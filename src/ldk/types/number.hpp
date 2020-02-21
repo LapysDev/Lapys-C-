@@ -1,0 +1,2 @@
+/* Class > Number */
+struct number {};

@@ -1,0 +1,2 @@
+/* Class > Stream */
+class Stream {};
