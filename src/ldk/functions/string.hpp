@@ -15,20 +15,25 @@
     }
 
     // Type Of
-    template <typename structure_type>
-    struct string__typeof {
-        public:
-            using type = typename
-                std::enable_if<std::is_same<structure_type, char*>::value, char>
-                    ::else_if<std::is_same<structure_type, char8_t*>::value, char8_t>
-                    ::else_if<std::is_same<structure_type, char16_t*>::value, char16_t>
-                    ::else_if<std::is_same<structure_type, char32_t*>::value, char32_t>
-                    ::else_if<std::is_same<structure_type, signed char*>::value, signed char>
-                    ::else_if<std::is_same<structure_type, unsigned char*>::value, unsigned char>
-                    ::else_if<std::is_same<structure_type, wchar_t*>::value, wchar_t>
-            ::type;
-            constexpr inline string__typeof(void) {}
-    };
+    // template <bool> class Foo;
+    // template <> class Foo<true> { typedef int data_t; };
+    // template <> class Foo<false> { typedef unsigned int data_t; };
+
+    template <typename> struct string__typeof;
+    template <> struct string__typeof<char*> { using type = char; };
+    template <> struct string__typeof<const char*> { using type = char; };
+    template <> struct string__typeof<char8_t*> { using type = char8_t; };
+    template <> struct string__typeof<const char8_t*> { using type = char8_t; };
+    template <> struct string__typeof<char16_t*> { using type = char16_t; };
+    template <> struct string__typeof<const char16_t*> { using type = char16_t; };
+    template <> struct string__typeof<char32_t*> { using type = char32_t; };
+    template <> struct string__typeof<const char32_t*> { using type = char32_t; };
+    template <> struct string__typeof<signed char*> { using type = signed char; };
+    template <> struct string__typeof<const signed char*> { using type = signed char; };
+    template <> struct string__typeof<unsigned char*> { using type = unsigned char; };
+    template <> struct string__typeof<const unsigned char*> { using type = unsigned char; };
+    template <> struct string__typeof<wchar_t*> { using type = wchar_t; };
+    template <> struct string__typeof<const wchar_t*> { using type = wchar_t; };
 
 /* Function
         --- RULES ---
@@ -39,7 +44,9 @@
 */
     // At
     template <typename type>
-    typename std::enable_if<LDKF::string__instanceof<type>(), LDKF::string__typeof<type>()::type>::type string__at(type characterString) {}
+    typename std::enable_if<LDKF::string__instanceof<type>(), typename LDKF::string__typeof<type>()::type>::type string__at(type characterString) {
+
+    }
 
     inline char string__at(char characterString[], const std::size_t index) noexcept { return *(characterString + index); }
     inline char string__at(const char characterString[], const std::size_t index) noexcept { return *(characterString + index); }
