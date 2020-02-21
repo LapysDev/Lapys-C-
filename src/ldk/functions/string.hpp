@@ -1,39 +1,40 @@
-/* ... */
-    // Instance Of
-    template <typename type>
-    inline bool string__instanceof(void) noexcept {
-        // Return
-        return (
-            ((std::is_same<type, char*>::value || std::is_same<type, char[]>::value) || (std::is_same<type, const char*>::value || std::is_same<type, const char[]>::value)) ||
-            ((std::is_same<type, char8_t*>::value || std::is_same<type, char8_t[]>::value) || (std::is_same<type, const char8_t*>::value || std::is_same<type, const char8_t[]>::value)) ||
-            ((std::is_same<type, char16_t*>::value || std::is_same<type, char16_t[]>::value) || (std::is_same<type, const char16_t*>::value || std::is_same<type, const char16_t[]>::value)) ||
-            ((std::is_same<type, char32_t*>::value || std::is_same<type, char32_t[]>::value) || (std::is_same<type, const char32_t*>::value || std::is_same<type, const char32_t[]>::value)) ||
-            ((std::is_same<type, signed char*>::value || std::is_same<type, signed char[]>::value) || (std::is_same<type, const signed char*>::value || std::is_same<type, const signed char[]>::value)) ||
-            ((std::is_same<type, unsigned char*>::value || std::is_same<type, unsigned char[]>::value) || (std::is_same<type, const unsigned char*>::value || std::is_same<type, const unsigned char[]>::value)) ||
-            ((std::is_same<type, wchar_t*>::value || std::is_same<type, wchar_t[]>::value) || (std::is_same<type, const wchar_t*>::value || std::is_same<type, const wchar_t[]>::value))
-        );
-    }
+/* Meta > ... */
+template <typename type>
+inline bool string__instanceof(void) noexcept {
+    // Return
+    return (
+        ((std::is_same<type, char*>::value || std::is_same<type, char[]>::value) || (std::is_same<type, const char*>::value || std::is_same<type, const char[]>::value)) ||
+        ((std::is_same<type, char8_t*>::value || std::is_same<type, char8_t[]>::value) || (std::is_same<type, const char8_t*>::value || std::is_same<type, const char8_t[]>::value)) ||
+        ((std::is_same<type, char16_t*>::value || std::is_same<type, char16_t[]>::value) || (std::is_same<type, const char16_t*>::value || std::is_same<type, const char16_t[]>::value)) ||
+        ((std::is_same<type, char32_t*>::value || std::is_same<type, char32_t[]>::value) || (std::is_same<type, const char32_t*>::value || std::is_same<type, const char32_t[]>::value)) ||
+        ((std::is_same<type, signed char*>::value || std::is_same<type, signed char[]>::value) || (std::is_same<type, const signed char*>::value || std::is_same<type, const signed char[]>::value)) ||
+        ((std::is_same<type, unsigned char*>::value || std::is_same<type, unsigned char[]>::value) || (std::is_same<type, const unsigned char*>::value || std::is_same<type, const unsigned char[]>::value)) ||
+        ((std::is_same<type, wchar_t*>::value || std::is_same<type, wchar_t[]>::value) || (std::is_same<type, const wchar_t*>::value || std::is_same<type, const wchar_t[]>::value))
+    );
+}
 
-    // Type Of
-    // template <bool> class Foo;
-    // template <> class Foo<true> { typedef int data_t; };
-    // template <> class Foo<false> { typedef unsigned int data_t; };
+template <typename> struct string__typeof;
+template <> struct string__typeof<char*> { using type = char; };
+template <> struct string__typeof<const char*> { using type = char; };
+template <> struct string__typeof<char8_t*> { using type = char8_t; };
+template <> struct string__typeof<const char8_t*> { using type = char8_t; };
+template <> struct string__typeof<char16_t*> { using type = char16_t; };
+template <> struct string__typeof<const char16_t*> { using type = char16_t; };
+template <> struct string__typeof<char32_t*> { using type = char32_t; };
+template <> struct string__typeof<const char32_t*> { using type = char32_t; };
+template <> struct string__typeof<signed char*> { using type = signed char; };
+template <> struct string__typeof<const signed char*> { using type = signed char; };
+template <> struct string__typeof<unsigned char*> { using type = unsigned char; };
+template <> struct string__typeof<const unsigned char*> { using type = unsigned char; };
+template <> struct string__typeof<wchar_t*> { using type = wchar_t; };
+template <> struct string__typeof<const wchar_t*> { using type = wchar_t; };
 
-    template <typename> struct string__typeof;
-    template <> struct string__typeof<char*> { using type = char; };
-    template <> struct string__typeof<const char*> { using type = char; };
-    template <> struct string__typeof<char8_t*> { using type = char8_t; };
-    template <> struct string__typeof<const char8_t*> { using type = char8_t; };
-    template <> struct string__typeof<char16_t*> { using type = char16_t; };
-    template <> struct string__typeof<const char16_t*> { using type = char16_t; };
-    template <> struct string__typeof<char32_t*> { using type = char32_t; };
-    template <> struct string__typeof<const char32_t*> { using type = char32_t; };
-    template <> struct string__typeof<signed char*> { using type = signed char; };
-    template <> struct string__typeof<const signed char*> { using type = signed char; };
-    template <> struct string__typeof<unsigned char*> { using type = unsigned char; };
-    template <> struct string__typeof<const unsigned char*> { using type = unsigned char; };
-    template <> struct string__typeof<wchar_t*> { using type = wchar_t; };
-    template <> struct string__typeof<const wchar_t*> { using type = wchar_t; };
+/* Utilization > ... --- NOTE (Lapys) -> Fails if `type` is not a collection of C-type characters. */
+template <typename type>
+using string__character_type = typename std::enable_if<LDKF::string__instanceof<type>(), typename LDKF::string__typeof<type>()>::type;
+
+template <typename type>
+using string__type = typename std::enable_if<LDKF::string__instanceof<type>(), type>::type;
 
 /* Function
         --- RULES ---
@@ -44,24 +45,7 @@
 */
     // At
     template <typename type>
-    typename std::enable_if<LDKF::string__instanceof<type>(), typename LDKF::string__typeof<type>()::type>::type string__at(type characterString) {
-
-    }
-
-    inline char string__at(char characterString[], const std::size_t index) noexcept { return *(characterString + index); }
-    inline char string__at(const char characterString[], const std::size_t index) noexcept { return *(characterString + index); }
-    inline char8_t string__at(char8_t characterString[], const std::size_t index) noexcept { return *(characterString + index); }
-    inline char8_t string__at(const char8_t characterString[], const std::size_t index) noexcept { return *(characterString + index); }
-    inline char16_t string__at(char16_t characterString[], const std::size_t index) noexcept { return *(characterString + index); }
-    inline char16_t string__at(const char16_t characterString[], const std::size_t index) noexcept { return *(characterString + index); }
-    inline char32_t string__at(char32_t characterString[], const std::size_t index) noexcept { return *(characterString + index); }
-    inline char32_t string__at(const char32_t characterString[], const std::size_t index) noexcept { return *(characterString + index); }
-    inline signed char string__at(signed char characterString[], const std::size_t index) noexcept { return *(characterString + index); }
-    inline signed char string__at(const signed char characterString[], const std::size_t index) noexcept { return *(characterString + index); }
-    inline unsigned char string__at(unsigned char characterString[], const std::size_t index) noexcept { return *(characterString + index); }
-    inline unsigned char string__at(const unsigned char characterString[], const std::size_t index) noexcept { return *(characterString + index); }
-    inline wchar_t string__at(wchar_t characterString[], const std::size_t index) noexcept { return *(characterString + index); }
-    inline wchar_t string__at(const wchar_t characterString[], const std::size_t index) noexcept { return *(characterString + index); }
+    inline string__character_type<type> string__at(type characterString, const std::size_t index) noexcept { return (characterString + index); }
 
     // Clone
     const char* string__clone(char characterString[]) noexcept { if (characterString) { char *characterStringClone = characterString; std::size_t characterStringLength = 1u; while (*(characterStringClone++)) ++characterStringLength; characterStringClone = LDKF::pointer__heap_allocate(characterStringLength * sizeof(char)); LDKF::pointer__copy(characterStringClone, characterString, characterStringLength); return (const char*) characterStringClone; } else return NULL; }
