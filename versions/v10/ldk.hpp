@@ -62,7 +62,7 @@ namespace LapysDevelopmentKit {
         #include "ldk/types/pointer.hpp"
         #include "ldk/types/primitive.hpp"
         #include "ldk/types/size.hpp"
-        #include "ldk/types/string.hpp"
+        // #include "ldk/types/string.hpp"
         #include "ldk/types/wide.hpp"
         #include "ldk/types.hpp"
     }

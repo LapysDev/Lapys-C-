@@ -14,20 +14,20 @@ inline bool string__instanceof(void) noexcept {
 }
 
 template <typename> struct string__typeof;
-template <> struct string__typeof<char*> { using type = char; };
-template <> struct string__typeof<const char*> { using type = char; };
-template <> struct string__typeof<char8_t*> { using type = char8_t; };
-template <> struct string__typeof<const char8_t*> { using type = char8_t; };
-template <> struct string__typeof<char16_t*> { using type = char16_t; };
-template <> struct string__typeof<const char16_t*> { using type = char16_t; };
-template <> struct string__typeof<char32_t*> { using type = char32_t; };
-template <> struct string__typeof<const char32_t*> { using type = char32_t; };
-template <> struct string__typeof<signed char*> { using type = signed char; };
-template <> struct string__typeof<const signed char*> { using type = signed char; };
-template <> struct string__typeof<unsigned char*> { using type = unsigned char; };
-template <> struct string__typeof<const unsigned char*> { using type = unsigned char; };
-template <> struct string__typeof<wchar_t*> { using type = wchar_t; };
-template <> struct string__typeof<const wchar_t*> { using type = wchar_t; };
+template <> struct string__typeof<char*> { public: using type = char; constexpr inline string__typeof(void) {} };
+template <> struct string__typeof<const char*> { public: using type = char; constexpr inline string__typeof(void) {} };
+template <> struct string__typeof<char8_t*> { public: using type = char8_t; constexpr inline string__typeof(void) {} };
+template <> struct string__typeof<const char8_t*> { public: using type = char8_t; constexpr inline string__typeof(void) {} };
+template <> struct string__typeof<char16_t*> { public: using type = char16_t; constexpr inline string__typeof(void) {} };
+template <> struct string__typeof<const char16_t*> { public: using type = char16_t; constexpr inline string__typeof(void) {} };
+template <> struct string__typeof<char32_t*> { public: using type = char32_t; constexpr inline string__typeof(void) {} };
+template <> struct string__typeof<const char32_t*> { public: using type = char32_t; constexpr inline string__typeof(void) {} };
+template <> struct string__typeof<signed char*> { public: using type = signed char; constexpr inline string__typeof(void) {} };
+template <> struct string__typeof<const signed char*> { public: using type = signed char; constexpr inline string__typeof(void) {} };
+template <> struct string__typeof<unsigned char*> { public: using type = unsigned char; constexpr inline string__typeof(void) {} };
+template <> struct string__typeof<const unsigned char*> { public: using type = unsigned char; constexpr inline string__typeof(void) {} };
+template <> struct string__typeof<wchar_t*> { public: using type = wchar_t; constexpr inline string__typeof(void) {} };
+template <> struct string__typeof<const wchar_t*> { public: using type = wchar_t; constexpr inline string__typeof(void) {} };
 
 /* Utilization > ... --- NOTE (Lapys) -> Fails if `type` is not a collection of C-type characters. */
 template <typename type>
@@ -39,48 +39,42 @@ using string__type = typename std::enable_if<LDKF::string__instanceof<type>(), t
 /* Function
         --- RULES ---
             #Lapys:
-                - All non-null strings are heap-allocated.
-                - Manipulated destination argument strings may be allocated or freed dynamically onto memory.
+                - Manipulated destination argument strings may be heap allocated or freed dynamically onto memory.
+                - Static array strings may not have their length asserted via templates.
                 - With the exception of conversions functions, each function may only accept strings of the same type.
 */
     // At
     template <typename type>
-    inline string__character_type<type> string__at(type characterString, const std::size_t index) noexcept { return (characterString + index); }
+    inline string__character_type<type*> string__at(type characterString[], const std::size_t index) noexcept { return *(characterString + index); }
 
     // Clone
-    const char* string__clone(char characterString[]) noexcept { if (characterString) { char *characterStringClone = characterString; std::size_t characterStringLength = 1u; while (*(characterStringClone++)) ++characterStringLength; characterStringClone = LDKF::pointer__heap_allocate(characterStringLength * sizeof(char)); LDKF::pointer__copy(characterStringClone, characterString, characterStringLength); return (const char*) characterStringClone; } else return NULL; }
-    const char* string__clone(const char characterString[]) noexcept { if (characterString) { char *characterStringClone = (char*) characterString; std::size_t characterStringLength = 1u; while (*(characterStringClone++)) ++characterStringLength; characterStringClone = LDKF::pointer__heap_allocate(characterStringLength * sizeof(char)); LDKF::pointer__copy(characterStringClone, characterString, characterStringLength); return (const char*) characterStringClone; } else return NULL; }
-    const char* string__clone(char characterString[], const std::size_t characterStringLength) noexcept { if (characterString && characterStringLength) { const char *characterStringClone = LDKF::pointer__heap_allocate((characterStringLength + 1u) * sizeof(char)); LDKF::pointer__copy(characterStringClone, characterString, characterStringLength + 1u); return characterStringClone; } else return NULL; }
-    const char* string__clone(const char characterString[], const std::size_t characterStringLength) noexcept { if (characterString && characterStringLength) { const char *characterStringClone = LDKF::pointer__heap_allocate((characterStringLength + 1u) * sizeof(char)); LDKF::pointer__copy(characterStringClone, characterString, characterStringLength + 1u); return characterStringClone; } else return NULL; }
-    const char8_t* string__clone(char8_t characterString[]) noexcept { if (characterString) { char8_t *characterStringClone = characterString; std::size_t characterStringLength = 1u; while (*(characterStringClone++)) ++characterStringLength; characterStringClone = LDKF::pointer__heap_allocate(characterStringLength * sizeof(char8_t)); LDKF::pointer__copy(characterStringClone, characterString, characterStringLength); return (const char8_t*) characterStringClone; } else return NULL; }
-    const char8_t* string__clone(const char8_t characterString[]) noexcept { if (characterString) { char8_t *characterStringClone = (char8_t*) characterString; std::size_t characterStringLength = 1u; while (*(characterStringClone++)) ++characterStringLength; characterStringClone = LDKF::pointer__heap_allocate(characterStringLength * sizeof(char8_t)); LDKF::pointer__copy(characterStringClone, characterString, characterStringLength); return (const char8_t*) characterStringClone; } else return NULL; }
-    const char8_t* string__clone(char8_t characterString[], const std::size_t characterStringLength) noexcept { if (characterString && characterStringLength) { const char8_t *characterStringClone = LDKF::pointer__heap_allocate((characterStringLength + 1u) * sizeof(char8_t)); LDKF::pointer__copy(characterStringClone, characterString, characterStringLength + 1u); return characterStringClone; } else return NULL; }
-    const char8_t* string__clone(const char8_t characterString[], const std::size_t characterStringLength) noexcept { if (characterString && characterStringLength) { const char8_t *characterStringClone = LDKF::pointer__heap_allocate((characterStringLength + 1u) * sizeof(char8_t)); LDKF::pointer__copy(characterStringClone, characterString, characterStringLength + 1u); return characterStringClone; } else return NULL; }
-    const char16_t* string__clone(char16_t characterString[]) noexcept { if (characterString) { char16_t *characterStringClone = characterString; std::size_t characterStringLength = 1u; while (*(characterStringClone++)) ++characterStringLength; characterStringClone = LDKF::pointer__heap_allocate(characterStringLength * sizeof(char16_t)); LDKF::pointer__copy(characterStringClone, characterString, characterStringLength); return (const char16_t*) characterStringClone; } else return NULL; }
-    const char16_t* string__clone(const char16_t characterString[]) noexcept { if (characterString) { char16_t *characterStringClone = (char16_t*) characterString; std::size_t characterStringLength = 1u; while (*(characterStringClone++)) ++characterStringLength; characterStringClone = LDKF::pointer__heap_allocate(characterStringLength * sizeof(char16_t)); LDKF::pointer__copy(characterStringClone, characterString, characterStringLength); return (const char16_t*) characterStringClone; } else return NULL; }
-    const char16_t* string__clone(char16_t characterString[], const std::size_t characterStringLength) noexcept { if (characterString && characterStringLength) { const char16_t *characterStringClone = LDKF::pointer__heap_allocate((characterStringLength + 1u) * sizeof(char16_t)); LDKF::pointer__copy(characterStringClone, characterString, characterStringLength + 1u); return characterStringClone; } else return NULL; }
-    const char16_t* string__clone(const char16_t characterString[], const std::size_t characterStringLength) noexcept { if (characterString && characterStringLength) { const char16_t *characterStringClone = LDKF::pointer__heap_allocate((characterStringLength + 1u) * sizeof(char16_t)); LDKF::pointer__copy(characterStringClone, characterString, characterStringLength + 1u); return characterStringClone; } else return NULL; }
-    const char32_t* string__clone(char32_t characterString[]) noexcept { if (characterString) { char32_t *characterStringClone = characterString; std::size_t characterStringLength = 1u; while (*(characterStringClone++)) ++characterStringLength; characterStringClone = LDKF::pointer__heap_allocate(characterStringLength * sizeof(char32_t)); LDKF::pointer__copy(characterStringClone, characterString, characterStringLength); return (const char32_t*) characterStringClone; } else return NULL; }
-    const char32_t* string__clone(const char32_t characterString[]) noexcept { if (characterString) { char32_t *characterStringClone = (char32_t*) characterString; std::size_t characterStringLength = 1u; while (*(characterStringClone++)) ++characterStringLength; characterStringClone = LDKF::pointer__heap_allocate(characterStringLength * sizeof(char32_t)); LDKF::pointer__copy(characterStringClone, characterString, characterStringLength); return (const char32_t*) characterStringClone; } else return NULL; }
-    const char32_t* string__clone(char32_t characterString[], const std::size_t characterStringLength) noexcept { if (characterString && characterStringLength) { const char32_t *characterStringClone = LDKF::pointer__heap_allocate((characterStringLength + 1u) * sizeof(char32_t)); LDKF::pointer__copy(characterStringClone, characterString, characterStringLength + 1u); return characterStringClone; } else return NULL; }
-    const char32_t* string__clone(const char32_t characterString[], const std::size_t characterStringLength) noexcept { if (characterString && characterStringLength) { const char32_t *characterStringClone = LDKF::pointer__heap_allocate((characterStringLength + 1u) * sizeof(char32_t)); LDKF::pointer__copy(characterStringClone, characterString, characterStringLength + 1u); return characterStringClone; } else return NULL; }
-    const signed char* string__clone(signed char characterString[]) noexcept { if (characterString) { signed char *characterStringClone = characterString; std::size_t characterStringLength = 1u; while (*(characterStringClone++)) ++characterStringLength; characterStringClone = LDKF::pointer__heap_allocate(characterStringLength * sizeof(signed char)); LDKF::pointer__copy(characterStringClone, characterString, characterStringLength); return (const signed char*) characterStringClone; } else return NULL; }
-    const signed char* string__clone(const signed char characterString[]) noexcept { if (characterString) { signed char *characterStringClone = (signed char*) characterString; std::size_t characterStringLength = 1u; while (*(characterStringClone++)) ++characterStringLength; characterStringClone = LDKF::pointer__heap_allocate(characterStringLength * sizeof(signed char)); LDKF::pointer__copy(characterStringClone, characterString, characterStringLength); return (const signed char*) characterStringClone; } else return NULL; }
-    const signed char* string__clone(signed char characterString[], const std::size_t characterStringLength) noexcept { if (characterString && characterStringLength) { const signed char *characterStringClone = LDKF::pointer__heap_allocate((characterStringLength + 1u) * sizeof(signed char)); LDKF::pointer__copy(characterStringClone, characterString, characterStringLength + 1u); return characterStringClone; } else return NULL; }
-    const signed char* string__clone(const signed char characterString[], const std::size_t characterStringLength) noexcept { if (characterString && characterStringLength) { const signed char *characterStringClone = LDKF::pointer__heap_allocate((characterStringLength + 1u) * sizeof(signed char)); LDKF::pointer__copy(characterStringClone, characterString, characterStringLength + 1u); return characterStringClone; } else return NULL; }
-    const unsigned char* string__clone(unsigned char characterString[]) noexcept { if (characterString) { unsigned char *characterStringClone = characterString; std::size_t characterStringLength = 1u; while (*(characterStringClone++)) ++characterStringLength; characterStringClone = LDKF::pointer__heap_allocate(characterStringLength * sizeof(unsigned char)); LDKF::pointer__copy(characterStringClone, characterString, characterStringLength); return (const unsigned char*) characterStringClone; } else return NULL; }
-    const unsigned char* string__clone(const unsigned char characterString[]) noexcept { if (characterString) { unsigned char *characterStringClone = (unsigned char*) characterString; std::size_t characterStringLength = 1u; while (*(characterStringClone++)) ++characterStringLength; characterStringClone = LDKF::pointer__heap_allocate(characterStringLength * sizeof(unsigned char)); LDKF::pointer__copy(characterStringClone, characterString, characterStringLength); return (const unsigned char*) characterStringClone; } else return NULL; }
-    const unsigned char* string__clone(unsigned char characterString[], const std::size_t characterStringLength) noexcept { if (characterString && characterStringLength) { const unsigned char *characterStringClone = LDKF::pointer__heap_allocate((characterStringLength + 1u) * sizeof(unsigned char)); LDKF::pointer__copy(characterStringClone, characterString, characterStringLength + 1u); return characterStringClone; } else return NULL; }
-    const unsigned char* string__clone(const unsigned char characterString[], const std::size_t characterStringLength) noexcept { if (characterString && characterStringLength) { const unsigned char *characterStringClone = LDKF::pointer__heap_allocate((characterStringLength + 1u) * sizeof(unsigned char)); LDKF::pointer__copy(characterStringClone, characterString, characterStringLength + 1u); return characterStringClone; } else return NULL; }
-    const wchar_t* string__clone(wchar_t characterString[]) noexcept { if (characterString) { wchar_t *characterStringClone = characterString; std::size_t characterStringLength = 1u; while (*(characterStringClone++)) ++characterStringLength; characterStringClone = LDKF::pointer__heap_allocate(characterStringLength * sizeof(wchar_t)); LDKF::pointer__copy(characterStringClone, characterString, characterStringLength); return (const wchar_t*) characterStringClone; } else return NULL; }
-    const wchar_t* string__clone(const wchar_t characterString[]) noexcept { if (characterString) { wchar_t *characterStringClone = (wchar_t*) characterString; std::size_t characterStringLength = 1u; while (*(characterStringClone++)) ++characterStringLength; characterStringClone = LDKF::pointer__heap_allocate(characterStringLength * sizeof(wchar_t)); LDKF::pointer__copy(characterStringClone, characterString, characterStringLength); return (const wchar_t*) characterStringClone; } else return NULL; }
-    const wchar_t* string__clone(wchar_t characterString[], const std::size_t characterStringLength) noexcept { if (characterString && characterStringLength) { const wchar_t *characterStringClone = LDKF::pointer__heap_allocate((characterStringLength + 1u) * sizeof(wchar_t)); LDKF::pointer__copy(characterStringClone, characterString, characterStringLength + 1u); return characterStringClone; } else return NULL; }
-    const wchar_t* string__clone(const wchar_t characterString[], const std::size_t characterStringLength) noexcept { if (characterString && characterStringLength) { const wchar_t *characterStringClone = LDKF::pointer__heap_allocate((characterStringLength + 1u) * sizeof(wchar_t)); LDKF::pointer__copy(characterStringClone, characterString, characterStringLength + 1u); return characterStringClone; } else return NULL; }
+    template <typename type>
+    inline string__type<type*> string__clone(type characterString[]) noexcept {
+        // Logic
+        if (characterString) {
+            // Initialization > Character String (Clone, Length)
+            std::size_t characterStringLength = LDKF::string__length(characterString);
+            type *characterStringClone = LDKF::array__create<characterStringLength, type>();
+
+            // Update > Character String Clone
+            LDKF::array__copy(characterStringClone, characterString, characterStringLength);
+
+            // Return
+            return characterStringClone;
+        }
+
+        else
+            // Return
+            return NULL;
+    }
 
     // Concatenate
     inline void string__concatenate() noexcept;
 
     // Copy --- WARN (Lapys) -> Do not copy null strings.
+    // template <typename type>
+    // inline string__type<type*> string__copy(type characterString[]) noexcept {}
+
     inline char* string__copy(char characterString[], char characterStringSource[]) noexcept { if (characterString && characterStringSource) { for (char *characterStringIterator = characterString; *characterStringIterator && (*(characterStringIterator++) = *(characterStringSource++));) continue; return characterString; } else return NULL; }
     inline char* string__copy(char characterString[], const char characterStringSource[]) noexcept { if (characterString && characterStringSource) { for (char *characterStringIterator = characterString, characterStringSourceIterator = (char*) characterStringSource; *characterStringIterator && (*(characterStringIterator++) = *(characterStringSourceIterator++));) continue; return characterString; } else return NULL; }
     inline const char* string__copy(const char characterString[], char characterStringSource[]) noexcept { if (characterString && characterStringSource) { for (char *characterStringIterator = (char*) characterString; *characterStringIterator && (*(characterStringIterator++) = *(characterStringSource++));) continue; return characterString; } else return NULL; }

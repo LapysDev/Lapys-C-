@@ -1,5 +1,4 @@
 /* Import > Lapys Development Kit */
-#include <iostream>
 #include "ldk.hpp"
 
 /* Namespace > Lapys */

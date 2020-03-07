@@ -1,8 +1,9 @@
 /* Declaration > ... */
-inline void array__at() noexcept;
-inline void array__clone() noexcept;
-inline void array__copy() noexcept;
-inline void array__create() noexcept;
+template <typename type> constexpr inline type& array__at(type*, const std::size_t) noexcept;
+template <typename type> type* array__clone(type[], const std::size_t) noexcept;
+template <typename type> type* array__copy(type[], type[], const std::size_t) noexcept;
+template <const std::size_t length, typename type> type* array__copy(type (&)[length], type[], const std::size_t) noexcept;
+template <const std::size_t length, typename type, typename... types> inline type* array__create(types...) noexcept;
 inline void array__cut() noexcept;
 inline void array__cut_from_end() noexcept;
 inline void array__cut_from_start() noexcept;
@@ -25,9 +26,13 @@ inline void number__is_nan() noexcept;
 inline void number__to_string() noexcept;
 
 template <typename typeA, typename typeB> inline void pointer__copy(typeA*, typeB*, const std::size_t) noexcept;
+template <const std::size_t length, typename type> struct pointer__create_array { private: type *value; public: template <typename... types> constexpr inline pointer__create_array(types...); inline operator type*(void) const noexcept { return this -> value; } };
+template <typename type> struct pointer__create_object { private: type *value; public: template <typename... types> constexpr inline pointer__create_object(types...); inline operator type*(void) const noexcept { return this -> value; } };
+template <typename type> constexpr inline void pointer__delete_array(type*) noexcept;
+template <typename type> constexpr inline void pointer__delete_object(type*) noexcept;
 inline std::size_t pointer__get_allocation_size(const std::size_t) noexcept;
-struct pointer__heap_allocate { private: void *value; public: constexpr inline pointer__heap_allocate(const std::size_t, const bool = false); template <typename type> inline operator type*(void) const noexcept { return this -> value; } };
-struct pointer__heap_contiguous_allocate { public:
+struct pointer__heap_allocate { private: const void *value; public: constexpr inline pointer__heap_allocate(const std::size_t, const bool = false); template <typename type> inline operator type*(void) const noexcept { return (type*) this -> value; } };
+const struct pointer__heap_contiguous_allocate { public:
     struct pointer__heap_contiguous_allocate_structure {
         private: const std::size_t size;
         public:
@@ -38,12 +43,12 @@ struct pointer__heap_contiguous_allocate { public:
     inline pointer__heap_contiguous_allocate_structure operator ()(const std::size_t size, const bool STRICT_SIZE = false) const noexcept { return STRICT_SIZE ? size : LDKF::pointer__get_allocation_size(size); }
 } pointer__heap_contiguous_allocate;
 template <typename type> inline void pointer__heap_free(type*) noexcept;
-struct pointer__map { private: void *value; public: inline pointer__map(const std::size_t, const bool = false); template <typename type> inline operator type*(void) const noexcept { return this -> value; } };
-struct pointer__heap_reallocate { private: void *value; public: template <typename type> constexpr inline pointer__heap_reallocate(type*, const std::size_t, const bool = false); template <typename type> inline operator type*(void) const noexcept { return this -> value; } };
+struct pointer__map { private: const void *value; public: inline pointer__map(const std::size_t, const bool = false); template <typename type> inline operator type*(void) const noexcept { return (type*) this -> value; } };
+struct pointer__heap_reallocate { private: const void *value; public: template <typename type> constexpr inline pointer__heap_reallocate(type*, const std::size_t, const bool = false); template <typename type> inline operator type*(void) const noexcept { return (type*) this -> value; } };
 template <typename type> inline void pointer__unmap(type*, const std::size_t = 0u) noexcept;
-struct pointer__stack_allocate { private: void *value; public: inline pointer__stack_allocate(const std::size_t, const bool = false); template <typename type> inline operator type*(void) const noexcept { return this -> value; } };
+struct pointer__stack_allocate { private: const void *value; public: inline pointer__stack_allocate(const std::size_t, const bool = false); template <typename type> inline operator type*(void) const noexcept { return (type*) this -> value; } };
 template <typename type> inline void pointer__stack_free(type*) noexcept;
-struct pointer__stack_reallocate { private: void *value; public: template <typename type> constexpr inline pointer__stack_reallocate(type*, const std::size_t, const bool = false); template <typename type> inline operator type*(void) const noexcept { return this -> value; } };
+struct pointer__stack_reallocate { private: const void *value; public: template <typename type> constexpr inline pointer__stack_reallocate(type*, const std::size_t, const bool = false); template <typename type> inline operator type*(void) const noexcept { return (type*) this -> value; } };
 template <typename type> inline int pointer__to_number(type*) noexcept;
 template <typename type> inline const char* pointer__to_string(type*) noexcept;
 

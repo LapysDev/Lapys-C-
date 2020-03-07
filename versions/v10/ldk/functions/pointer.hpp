@@ -1,7 +1,25 @@
 /* Function */
     // Copy
     template <typename typeA, typename typeB>
-    inline void pointer__copy(typeA* pointer, typeB* sourcePointer, const std::size_t size) noexcept { ::memcpy((void*) pointer, (void*) sourcePointer, size); }
+    inline void pointer__copy(typeA*& pointer, typeB* sourcePointer, const std::size_t size) noexcept { ::memcpy(pointer, (void*) sourcePointer, size); }
+
+    // Create Array
+    template <const std::size_t length, typename type>
+    template <typename... types>
+    constexpr inline pointer__create_array<length, type>::pointer__create_array(types... arguments) : value{new type[length]{arguments...}} {}
+
+    // Create Object
+    template <typename type>
+    template <typename... types>
+    constexpr inline pointer__create_object<type>::pointer__create_object(types... arguments) : value{new type{arguments...}} {}
+
+    // Delete Array
+    template <typename type>
+    constexpr inline void pointer__delete_array(type* array) noexcept { delete[] array; }
+
+    // Delete Object
+    template <typename type>
+    constexpr inline void pointer__delete_object(type* object) noexcept { delete object; }
 
     // Get Allocation Size
     inline std::size_t pointer__get_allocation_size(const std::size_t size) noexcept {
@@ -34,7 +52,7 @@
     }
 
     // Heap Allocate
-    constexpr inline pointer__heap_allocate::pointer__heap_allocate(const std::size_t size, const bool STRICT_SIZE) : value{::malloc(STRICT_SIZE ? size : LDKF::pointer__get_allocation_size(size))} {}
+    constexpr inline pointer__heap_allocate::pointer__heap_allocate(const std::size_t size, const bool STRICT_SIZE) : value{(const void*) ::malloc(STRICT_SIZE ? size : LDKF::pointer__get_allocation_size(size))} {}
 
     // Heap Contiguous Allocate
     template <typename type>
@@ -46,14 +64,14 @@
 
     // Heap Map
     #if ldk__detected_platform == ldk_platform__android || ldk__detected_platform == ldk_platform__linux
-        inline pointer__map::pointer__map(const std::size_t size, const bool STRICT_SIZE) : value{::mmap(NULL, size ? (STRICT_SIZE ? size : LDKF::pointer__get_allocation_size(size)) : 2u, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0)} {}
+        inline pointer__map::pointer__map(const std::size_t size, const bool STRICT_SIZE) : value{(const void*) ::mmap(NULL, size ? (STRICT_SIZE ? size : LDKF::pointer__get_allocation_size(size)) : 2u, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0)} {}
     #elif ldk__detected_platform == ldk_platform__windows
         inline pointer__map::pointer__map(const std::size_t size, const bool STRICT_SIZE) : value{NULL} { const std::size_t systemPageSize = LDKF::system__get_page_size(); this -> value = ::VirtualAlloc(0x0, size < systemPageSize ? (STRICT_SIZE ? size : LDKF::pointer__get_allocation_size(size)) : systemPageSize, MEM_COMMIT, PAGE_READWRITE); }
     #endif
 
     // Heap Reallocate
     template <typename type>
-    constexpr inline pointer__heap_reallocate::pointer__heap_reallocate(type* pointer, const std::size_t size, const bool STRICT_SIZE) : value{::realloc(pointer, STRICT_SIZE ? size : LDKF::pointer__get_allocation_size(size))} {}
+    constexpr inline pointer__heap_reallocate::pointer__heap_reallocate(type* pointer, const std::size_t size, const bool STRICT_SIZE) : value{(const void*) ::realloc(pointer, STRICT_SIZE ? size : LDKF::pointer__get_allocation_size(size))} {}
 
     // Heap Unmap --- NOTE (Lapys) -> Unlike freeing memory, un-mapping memory requires a size parameter (to assert how much memory is un-mapped).
     #if ldk__detected_platform == ldk_platform__android || ldk__detected_platform == ldk_platform__linux
@@ -67,9 +85,9 @@
     // Stack Allocate
     inline pointer__stack_allocate::pointer__stack_allocate(const std::size_t size, const bool STRICT_SIZE) :
         #if ldk__detected_platform == ldk_platform__android || ldk__detected_platform == ldk_platform__linux
-            value{::alloca(STRICT_SIZE ? size : LDKF::pointer__get_allocation_size(size))}
+            value{(const void*) ::alloca(STRICT_SIZE ? size : LDKF::pointer__get_allocation_size(size))}
         #elif ldk__detected_platform == ldk_platform__windows
-            value{::_malloca(STRICT_SIZE ? size : LDKF::pointer__get_allocation_size(size))}
+            value{(const void*) ::_malloca(STRICT_SIZE ? size : LDKF::pointer__get_allocation_size(size))}
         #endif
     {}
 
