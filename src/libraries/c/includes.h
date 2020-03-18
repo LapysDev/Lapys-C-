@@ -26,4 +26,5 @@
     // [...]
     #include <conio.h> // Console Input-Output
     #include <dirent.h> // Directory Entries
+    #include <strings.h> // Strings
     #include <wchar.h> // Wide Characters

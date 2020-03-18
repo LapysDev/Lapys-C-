@@ -1,0 +1,2 @@
+/* Definition > ... */
+typedef ClampedArray Arguments;

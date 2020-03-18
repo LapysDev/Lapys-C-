@@ -2,10 +2,13 @@
 #include "src/general.hpp"
 
 /* Main */
-void Main(const Arguments) {
-    // [Begin] Print
+void Main(const Arguments arguments) {
+    /* [Begin] Print */
     console.log("[PROGRAM INITIATED]");
 
-    // [End] Print
+    // ...
+    console.log(arguments);
+
+    /* [End] Print */
     console.log("[PROGRAM TERMINATED]");
 }
