@@ -1,6 +1,7 @@
 /* Import */
     // [C Standard Library]
     #include <float.h> // Floating-Point
+    #include <limits.h> // [Numeric] Limits
     #include <math.h> // Mathematics
     #include <stdbool.h> // Standard Boolean
     #include <stdio.h> // Standard Input-Output

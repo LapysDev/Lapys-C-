@@ -82,12 +82,15 @@
             inline operator character_type(void) const noexcept;
     };
 
-    /* Wide --- NOTE (Lapys) -> Alias for the largest C++ primitive integral type; Allowed niladic constructor. --- WARN (Lapys) -> Defers value without sign. */
+    /* Wide
+            --- NOTE (Lapys) -> Alias for the largest C++ primitive integral type; Allowed niladic constructor.
+            --- WARN (Lapys) -> Defers value without sign which may cause misinterpretations.
+    */
     struct wide {
         // [...]
         public:
             // Definition > (..., Value)
-            #if defined(__cplusplus) && __cplusplus <= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900) // C++ 2011, ISO/IEC 14882:2011
+            #if cpp__version <= 2011uL
                 typedef signed long long wide_signed_type;
                 typedef unsigned long long wide_unsigned_type;
             #else
@@ -122,7 +125,7 @@
             inline wide operator --(int const) noexcept;
             inline wide& operator --(void) noexcept;
 
-            inline operator wide_unsigned_type(void) const noexcept;
+            constexpr inline operator wide_unsigned_type(void) const noexcept;
     };
 
     /* Integral --- WARN (Lapys) -> Requires the `wide` type; Stores value without sign. */
@@ -489,7 +492,7 @@
         // Absolute
         constexpr inline double number__absolute(double const number) noexcept { return ::fabs(number); }
         constexpr inline float number__absolute(float const number) noexcept {
-            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+            #if cpp__version >= 2011uL
                 return ::fabsf(number);
             #else
                 return ::fabs(number);
@@ -497,14 +500,14 @@
         }
         constexpr inline int number__absolute(int const number) noexcept { return ::abs(number); }
         inline long number__absolute(long const number) noexcept {
-            #if defined(__cplusplus) && __cplusplus >= 199711L
+            #if cpp__version >= 1997uL
                 return ::abs(number);
             #else
                 return number < 0L ? -number : number;
             #endif
         }
         constexpr inline long double number__absolute(long double const number) noexcept {
-            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+            #if cpp__version >= 2011uL
                 return ::fabsl(number);
             #else
                 return ::fabs(number);
@@ -515,7 +518,7 @@
         constexpr inline unsigned long number__absolute(unsigned long const number) noexcept { return number; }
         constexpr inline unsigned short number__absolute(unsigned short const number) noexcept { return number; }
         inline wide number__absolute(wide const number) noexcept {
-            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+            #if cpp__version >= 2011uL
                 return ::abs((wide::wide_signed_type) number);
             #else
                 if (((wide::wide_signed_type) number) < 0) return -((wide::wide_signed_type) number);
@@ -524,70 +527,70 @@
         }
 
         // Arc Cosine
-        constexpr inline double number__arc_cosine(double const number) noexcept { return ::acos(number); }
-        constexpr inline float number__arc_cosine(float const number) noexcept {
-            #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+        constexpr inline double number__arc_cosine(double const number) { return ::acos(number); }
+        constexpr inline float number__arc_cosine(float const number) {
+            #if c__version >= 1990uL
                 return ::acosf(number);
-            #elif defined(__STDC__)
+            #elif c__version
                 return number__arc_cosine((double) number);
             #else
                 return ::acos(number);
             #endif
         }
-        constexpr inline int number__arc_cosine(int const number) noexcept {
-            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+        constexpr inline float number__arc_cosine(int const number) {
+            #if cpp__version >= 2011uL
                 return ::acos(number);
             #else
                 return number__arc_cosine((float) number);
             #endif
         }
-        constexpr inline long number__arc_cosine(long const number) noexcept {
-            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+        constexpr inline double number__arc_cosine(long const number) {
+            #if cpp__version >= 2011uL
                 return ::acos(number);
             #else
                 return number__arc_cosine((double) number);
             #endif
         }
-        constexpr inline long double number__arc_cosine(long double const number) noexcept {
-            #if defined(__STDC_VERSION__) && __STDC_VERSION__ <= 199901L
+        constexpr inline long double number__arc_cosine(long double const number) {
+            #if c__version <= 1999uL
                 return ::acosl(number);
-            #elif defined(__STDC__)
+            #elif c__version
                 if (number > DBL_MAX) return number__arc_cosine(number - DBL_MAX);
                 else return number__arc_cosine((double) number);
             #else
                 return ::acos(number);
             #endif
         }
-        constexpr inline short number__arc_cosine(short const number) noexcept {
-            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+        constexpr inline float number__arc_cosine(short const number) {
+            #if cpp__version >= 2011uL
                 return ::acos(number);
             #else
                 return number__arc_cosine((float) number);
             #endif
         }
-        constexpr inline unsigned int number__arc_cosine(unsigned int const number) noexcept {
-            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+        constexpr inline float number__arc_cosine(unsigned int const number) {
+            #if cpp__version >= 2011uL
                 return ::acos(number);
             #else
                 return number__arc_cosine((float) number);
             #endif
         }
-        constexpr inline unsigned long number__arc_cosine(unsigned long const number) noexcept {
-            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+        constexpr inline double number__arc_cosine(unsigned long const number) {
+            #if cpp__version >= 2011uL
                 return ::acos(number);
             #else
                 return number__arc_cosine((double) number);
             #endif
         }
-        constexpr inline unsigned short number__arc_cosine(unsigned short const number) noexcept {
-            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+        constexpr inline float number__arc_cosine(unsigned short const number) {
+            #if cpp__version >= 2011uL
                 return ::acos(number);
             #else
                 return number__arc_cosine((float) number);
             #endif
         }
-        inline wide number__arc_cosine(wide const number) noexcept {
-            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+        inline long double number__arc_cosine(wide const number) {
+            #if cpp__version >= 2011uL
                 if ((wide::wide_signed_type) number < 0L) return ::acos((wide::wide_signed_type) number);
                 else return ::acos((wide::wide_unsigned_type) number);
             #else
@@ -597,39 +600,1658 @@
         }
 
         // Arc Sine
+        constexpr inline double number__arc_sine(double const number) { return ::asin(number); }
+        constexpr inline float number__arc_sine(float const number) {
+            #if c__version >= 1990uL
+                return ::asinf(number);
+            #elif c__version
+                return number__arc_sine((double) number);
+            #else
+                return ::asin(number);
+            #endif
+        }
+        constexpr inline float number__arc_sine(int const number) {
+            #if cpp__version >= 2011uL
+                return ::asin(number);
+            #else
+                return number__arc_sine((float) number);
+            #endif
+        }
+        constexpr inline double number__arc_sine(long const number) {
+            #if cpp__version >= 2011uL
+                return ::asin(number);
+            #else
+                return number__arc_sine((double) number);
+            #endif
+        }
+        constexpr inline long double number__arc_sine(long double const number) {
+            #if c__version <= 1999uL
+                return ::asinl(number);
+            #elif c__version
+                if (number > DBL_MAX) return number__arc_sine(number - DBL_MAX);
+                else return number__arc_sine((double) number);
+            #else
+                return ::asin(number);
+            #endif
+        }
+        constexpr inline float number__arc_sine(short const number) {
+            #if cpp__version >= 2011uL
+                return ::asin(number);
+            #else
+                return number__arc_sine((float) number);
+            #endif
+        }
+        constexpr inline float number__arc_sine(unsigned int const number) {
+            #if cpp__version >= 2011uL
+                return ::asin(number);
+            #else
+                return number__arc_sine((float) number);
+            #endif
+        }
+        constexpr inline double number__arc_sine(unsigned long const number) {
+            #if cpp__version >= 2011uL
+                return ::asin(number);
+            #else
+                return number__arc_sine((double) number);
+            #endif
+        }
+        constexpr inline float number__arc_sine(unsigned short const number) {
+            #if cpp__version >= 2011uL
+                return ::asin(number);
+            #else
+                return number__arc_sine((float) number);
+            #endif
+        }
+        inline long double number__arc_sine(wide const number) {
+            #if cpp__version >= 2011uL
+                if ((wide::wide_signed_type) number < 0L) return ::asin((wide::wide_signed_type) number);
+                else return ::asin((wide::wide_unsigned_type) number);
+            #else
+                if ((wide::wide_signed_type) number < 0L) return number__arc_sine((long double) (wide::wide_signed_type) number);
+                else return number__arc_sine((long double) (wide::wide_unsigned_type) number);
+            #endif
+        }
+
         // Arc Tangent
+        constexpr inline double number__arc_tangent(double const number) { return ::atan(number); }
+        constexpr inline float number__arc_tangent(float const number) {
+            #if c__version >= 1990uL
+                return ::atanf(number);
+            #elif c__version
+                return number__arc_tangent((double) number);
+            #else
+                return ::atan(number);
+            #endif
+        }
+        constexpr inline float number__arc_tangent(int const number) {
+            #if cpp__version >= 2011uL
+                return ::atan(number);
+            #else
+                return number__arc_tangent((float) number);
+            #endif
+        }
+        constexpr inline double number__arc_tangent(long const number) {
+            #if cpp__version >= 2011uL
+                return ::atan(number);
+            #else
+                return number__arc_tangent((double) number);
+            #endif
+        }
+        constexpr inline long double number__arc_tangent(long double const number) {
+            #if c__version <= 1999uL
+                return ::atanl(number);
+            #elif c__version
+                if (number > DBL_MAX) return number__arc_tangent(number - DBL_MAX);
+                else return number__arc_tangent((double) number);
+            #else
+                return ::atan(number);
+            #endif
+        }
+        constexpr inline float number__arc_tangent(short const number) {
+            #if cpp__version >= 2011uL
+                return ::atan(number);
+            #else
+                return number__arc_tangent((float) number);
+            #endif
+        }
+        constexpr inline float number__arc_tangent(unsigned int const number) {
+            #if cpp__version >= 2011uL
+                return ::atan(number);
+            #else
+                return number__arc_tangent((float) number);
+            #endif
+        }
+        constexpr inline double number__arc_tangent(unsigned long const number) {
+            #if cpp__version >= 2011uL
+                return ::atan(number);
+            #else
+                return number__arc_tangent((double) number);
+            #endif
+        }
+        constexpr inline float number__arc_tangent(unsigned short const number) {
+            #if cpp__version >= 2011uL
+                return ::atan(number);
+            #else
+                return number__arc_tangent((float) number);
+            #endif
+        }
+        inline long double number__arc_tangent(wide const number) {
+            #if cpp__version >= 2011uL
+                if ((wide::wide_signed_type) number < 0L) return ::atan((wide::wide_signed_type) number);
+                else return ::atan((wide::wide_unsigned_type) number);
+            #else
+                if ((wide::wide_signed_type) number < 0L) return number__arc_tangent((long double) (wide::wide_signed_type) number);
+                else return number__arc_tangent((long double) (wide::wide_unsigned_type) number);
+            #endif
+        }
+
+        // Area Hyperbolic Cosine
+        constexpr inline double number__area_hyperbolic_cosine(double const number) {
+            #if c__version <= 1999uL
+                return ::acosh(number);
+            #elif cpp__version >= 2011uL
+                return ::acosh(number);
+            #endif
+            return NAN;
+        }
+        constexpr inline float number__area_hyperbolic_cosine(float const number) {
+            #if c__version <= 1999uL
+                return ::acosf(number);
+            #elif cpp__version >= 2011uL
+                return ::acosh(number);
+            #endif
+            return NANF;
+        }
+        constexpr inline float number__area_hyperbolic_cosine(int const number) {
+            #if cpp__version >= 2011uL
+                return ::acosh(number);
+            #else
+                return number__area_hyperbolic_cosine((float) number);
+            #endif
+        }
+        constexpr inline double number__area_hyperbolic_cosine(long const number) {
+            #if cpp__version >= 2011uL
+                return ::acosh(number);
+            #else
+                return number__area_hyperbolic_cosine((double) number);
+            #endif
+        }
+        constexpr inline long double number__area_hyperbolic_cosine(long double const number) {
+            #if c__version <= 1999uL
+                return ::acosl(number);
+            #elif cpp__version >= 2011uL
+                return ::acosh(number);
+            #endif
+            return NANL;
+        }
+        constexpr inline float number__area_hyperbolic_cosine(short const number) {
+            #if cpp__version >= 2011uL
+                return ::acosh(number);
+            #else
+                return number__area_hyperbolic_cosine((float) number);
+            #endif
+        }
+        constexpr inline float number__area_hyperbolic_cosine(unsigned int const number) {
+            #if cpp__version >= 2011uL
+                return ::acosh(number);
+            #else
+                return number__area_hyperbolic_cosine((float) number);
+            #endif
+        }
+        constexpr inline double number__area_hyperbolic_cosine(unsigned long const number) {
+            #if cpp__version >= 2011uL
+                return ::acosh(number);
+            #else
+                return number__area_hyperbolic_cosine((double) number);
+            #endif
+        }
+        constexpr inline float number__area_hyperbolic_cosine(unsigned short const number) {
+            #if cpp__version >= 2011uL
+                return ::acosh(number);
+            #else
+                return number__area_hyperbolic_cosine((float) number);
+            #endif
+        }
+        inline long double number__area_hyperbolic_cosine(wide const number) {
+            #if cpp__version >= 2011uL
+                if ((wide::wide_signed_type) number < 0) return ::acosh((wide::wide_signed_type) number);
+                else return ::acosh((wide::wide_unsigned_type) number);
+            #else
+                if ((wide::wide_signed_type) number < 0) return number__area_hyperbolic_cosine((long double) (wide::wide_signed_type) number);
+                else return number__area_hyperbolic_cosine((long double) (wide::wide_unsigned_type) number);
+            #endif
+        }
+
+        // Area Hyperbolic Sine
+        constexpr inline double number__area_hyperbolic_sine(double const number) {
+            #if c__version <= 1999uL
+                return ::asinh(number);
+            #elif cpp__version >= 2011uL
+                return ::asinh(number);
+            #endif
+            return NAN;
+        }
+        constexpr inline float number__area_hyperbolic_sine(float const number) {
+            #if c__version <= 1999uL
+                return ::asinhf(number);
+            #elif cpp__version >= 2011uL
+                return ::asinh(number);
+            #endif
+            return NANF;
+        }
+        constexpr inline float number__area_hyperbolic_sine(int const number) {
+            #if cpp__version >= 2011uL
+                return ::asinh(number);
+            #else
+                return number__area_hyperbolic_sine((float) number);
+            #endif
+        }
+        constexpr inline double number__area_hyperbolic_sine(long const number) {
+            #if cpp__version >= 2011uL
+                return ::asinh(number);
+            #else
+                return number__area_hyperbolic_sine((double) number);
+            #endif
+        }
+        constexpr inline long double number__area_hyperbolic_sine(long double const number) {
+            #if c__version <= 1999uL
+                return ::asinhl(number);
+            #elif cpp__version >= 2011uL
+                return ::asinh(number);
+            #endif
+            return NANL;
+        }
+        constexpr inline float number__area_hyperbolic_sine(short const number) {
+            #if cpp__version >= 2011uL
+                return ::asinh(number);
+            #else
+                return number__area_hyperbolic_sine((float) number);
+            #endif
+        }
+        constexpr inline float number__area_hyperbolic_sine(unsigned int const number) {
+            #if cpp__version >= 2011uL
+                return ::asinh(number);
+            #else
+                return number__area_hyperbolic_sine((float) number);
+            #endif
+        }
+        constexpr inline double number__area_hyperbolic_sine(unsigned long const number) {
+            #if cpp__version >= 2011uL
+                return ::asinh(number);
+            #else
+                return number__area_hyperbolic_sine((double) number);
+            #endif
+        }
+        constexpr inline float number__area_hyperbolic_sine(unsigned short const number) {
+            #if cpp__version >= 2011uL
+                return ::asinh(number);
+            #else
+                return number__area_hyperbolic_sine((float) number);
+            #endif
+        }
+        inline long double number__area_hyperbolic_sine(wide const number) {
+            #if cpp__version >= 2011uL
+                if ((wide::wide_signed_type) number < 0) return ::asinh((wide::wide_signed_type) number);
+                else return ::asinh((wide::wide_unsigned_type) number);
+            #else
+                if ((wide::wide_signed_type) number < 0) return number__area_hyperbolic_sine((long double) (wide::wide_signed_type) number);
+                else return number__area_hyperbolic_sine((long double) (wide::wide_unsigned_type) number);
+            #endif
+        }
+
+        // Area Hyperbolic Tangent
+        constexpr inline double number__area_hyperbolic_tangent(double const number) {
+            #if c__version <= 1999uL
+                return ::atanh(number);
+            #elif cpp__version >= 2011uL
+                return ::atanh(number);
+            #endif
+            return NAN;
+        }
+        constexpr inline float number__area_hyperbolic_tangent(float const number) {
+            #if c__version <= 1999uL
+                return ::atanhf(number);
+            #elif cpp__version >= 2011uL
+                return ::atanh(number);
+            #endif
+            return NANF;
+        }
+        constexpr inline float number__area_hyperbolic_tangent(int const number) {
+            #if cpp__version >= 2011uL
+                return ::atanh(number);
+            #else
+                return number__area_hyperbolic_tangent((float) number);
+            #endif
+        }
+        constexpr inline double number__area_hyperbolic_tangent(long const number) {
+            #if cpp__version >= 2011uL
+                return ::atanh(number);
+            #else
+                return number__area_hyperbolic_tangent((double) number);
+            #endif
+        }
+        constexpr inline long double number__area_hyperbolic_tangent(long double const number) {
+            #if c__version <= 1999uL
+                return ::atanhl(number);
+            #elif cpp__version >= 2011uL
+                return ::atanh(number);
+            #endif
+            return NANL;
+        }
+        constexpr inline float number__area_hyperbolic_tangent(short const number) {
+            #if cpp__version >= 2011uL
+                return ::atanh(number);
+            #else
+                return number__area_hyperbolic_tangent((float) number);
+            #endif
+        }
+        constexpr inline float number__area_hyperbolic_tangent(unsigned int const number) {
+            #if cpp__version >= 2011uL
+                return ::atanh(number);
+            #else
+                return number__area_hyperbolic_tangent((float) number);
+            #endif
+        }
+        constexpr inline double number__area_hyperbolic_tangent(unsigned long const number) {
+            #if cpp__version >= 2011uL
+                return ::atanh(number);
+            #else
+                return number__area_hyperbolic_tangent((double) number);
+            #endif
+        }
+        constexpr inline float number__area_hyperbolic_tangent(unsigned short const number) {
+            #if cpp__version >= 2011uL
+                return ::atanh(number);
+            #else
+                return number__area_hyperbolic_tangent((float) number);
+            #endif
+        }
+        inline long double number__area_hyperbolic_tangent(wide const number) {
+            #if cpp__version >= 2011uL
+                if ((wide::wide_signed_type) number < 0) return ::atanh((wide::wide_signed_type) number);
+                else return ::atanh((wide::wide_unsigned_type) number);
+            #else
+                if ((wide::wide_signed_type) number < 0) return number__area_hyperbolic_tangent((long double) (wide::wide_signed_type) number);
+                else return number__area_hyperbolic_tangent((long double) (wide::wide_unsigned_type) number);
+            #endif
+        }
+
         // Ceiling
+        constexpr inline double number__ceiling(double const number) noexcept { return ::ceil(number); }
+        constexpr inline float number__ceiling(float const number) noexcept {
+            #if c__version >= 1990uL
+                return ::ceilf(number);
+            #elif cpp__version >= 1997uL
+                return ::ceil(number);
+            #else
+                float const integer = number__floor(number);
+                return number > integer ? integer + 1.0f : integer;
+            #endif
+        }
+        constexpr inline int number__ceiling(int const number) noexcept {
+            #if cpp__version >= 2011uL
+                return ::ceil(number);
+            #else
+                return number;
+            #endif
+        }
+        constexpr inline long number__ceiling(long const number) noexcept {
+            #if cpp__version >= 2011uL
+                return ::ceil(number);
+            #else
+                return number;
+            #endif
+        }
+        constexpr inline long double number__ceiling(long double const number) noexcept {
+            #if c__version >= 1990uL
+                return ::ceill(number);
+            #elif cpp__version >= 1997uL
+                return ::ceil(number);
+            #else
+                long double const integer = number__floor(number);
+                return number > integer ? integer + 1.00 : integer;
+            #endif
+        }
+        constexpr inline short number__ceiling(short const number) noexcept {
+            #if cpp__version >= 2011uL
+                return ::ceil(number);
+            #else
+                return number;
+            #endif
+        }
+        constexpr inline unsigned int number__ceiling(unsigned int const number) noexcept {
+            #if cpp__version >= 2011uL
+                return ::ceil(number);
+            #else
+                return number;
+            #endif
+        }
+        constexpr inline unsigned long number__ceiling(unsigned long const number) noexcept {
+            #if cpp__version >= 2011uL
+                return ::ceil(number);
+            #else
+                return number;
+            #endif
+        }
+        constexpr inline unsigned short number__ceiling(unsigned short const number) noexcept {
+            #if cpp__version >= 2011uL
+                return ::ceil(number);
+            #else
+                return number;
+            #endif
+        }
+        inline wide number__ceiling(wide const number) noexcept {
+            #if cpp__version >= 2011uL
+                if ((wide::wide_signed_type) number < 0L) return ::ceil((wide::wide_signed_type) number);
+                else return ::ceil((wide::wide_unsigned_type) number);
+            #else
+                return number;
+            #endif
+        }
+
         // Cosine
+        constexpr inline double number__cosine(double const number) { return ::cos(number); }
+        constexpr inline float number__cosine(float const number) {
+            #if c__version >= 1990uL
+                return ::cosf(number);
+            #elif cpp__version >= 1997uL
+                return ::cos(number);
+            #else
+                return number__cosine((double) number);
+            #endif
+        }
+        constexpr inline float number__cosine(int const number) {
+            #if cpp__version >= 2011uL
+                return ::cos(number);
+            #else
+                return number__cosine((float) number);
+            #endif
+        }
+        constexpr inline double number__cosine(long const number) {
+            #if cpp__version >= 2011uL
+                return ::cos(number);
+            #else
+                return number__cosine((double) number);
+            #endif
+        }
+        inline long double number__cosine(long double const number) {
+            #if c__version >= 1990uL
+                return ::cosl(number);
+            #elif c__version
+                if (number > DBL_MAX) return number__arc_tangent(number - DBL_MAX);
+                else return number__arc_tangent((double) number);
+            #elif cpp__version >= 1997uL
+                return ::cos(number);
+            #endif
+        }
+        constexpr inline float number__cosine(short const number) {
+            #if cpp__version >= 2011uL
+                return ::cos(number);
+            #else
+                return number__cosine((float) number);
+            #endif
+        }
+        constexpr inline float number__cosine(unsigned int const number) {
+            #if cpp__version >= 2011uL
+                return ::cos(number);
+            #else
+                return number__cosine((float) number);
+            #endif
+        }
+        constexpr inline double number__cosine(unsigned long const number) {
+            #if cpp__version >= 2011uL
+                return ::cos(number);
+            #else
+                return number__cosine((double) number);
+            #endif
+        }
+        constexpr inline float number__cosine(unsigned short const number) {
+            #if cpp__version >= 2011uL
+                return ::cos(number);
+            #else
+                return number__cosine((float) number);
+            #endif
+        }
+        inline long double number__cosine(wide const number) {
+            #if cpp__version >= 2011uL
+                if ((wide::wide_signed_type) number < 0L) return ::cos((wide::wide_signed_type) number);
+                else return ::cos((wide::wide_unsigned_type) number);
+            #else
+                if ((wide::wide_signed_type) number < 0L) return number__cosine((long double) (wide::wide_signed_type) number);
+                else return number__cosine((long double) (wide::wide_unsigned_type) number);
+            #endif
+        }
+
         // Exponentiate
+        constexpr inline double number__exponentiate(double const number, double const exponent) { return ::pow(number, exponent); }
+        constexpr inline double number__exponentiate(double const number, float const exponent) {
+            #if cpp__version <= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate(number, (double) exponent);
+            #endif
+        }
+        constexpr inline double number__exponentiate(double const number, int const exponent) { return ::pow(number, exponent); }
+        constexpr inline double number__exponentiate(double const number, long const exponent) {
+            #if cpp__version <= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate(number, (double) exponent);
+            #endif
+        }
+        constexpr inline long double number__exponentiate(double const number, long double const exponent) {
+            #if cpp__version <= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate(number, (double) exponent);
+            #endif
+        }
+        constexpr inline double number__exponentiate(double const number, short const exponent) {
+            #if cpp__version <= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate(number, (double) exponent);
+            #endif
+        }
+        constexpr inline double number__exponentiate(double const number, unsigned int const exponent) {
+            #if cpp__version <= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate(number, (double) exponent);
+            #endif
+        }
+        constexpr inline double number__exponentiate(double const number, unsigned long const exponent) {
+            #if cpp__version <= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate(number, (double) exponent);
+            #endif
+        }
+        constexpr inline double number__exponentiate(double const number, unsigned short const exponent) {
+            #if cpp__version <= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate(number, (double) exponent);
+            #endif
+        }
+        inline long double number__exponentiate(double const number, wide const exponent) {
+            #if cpp__version <= 2011uL
+                if ((wide::wide_signed_type) exponent < 0L) return ::pow(number, (wide::wide_signed_type) exponent);
+                else return ::pow(number, (wide::wide_unsigned_type) exponent);
+            #else
+                if ((wide::wide_signed_type) exponent < 0L) return number__exponentiate(number, (double) (wide::wide_signed_type) exponent);
+                else return number__exponentiate(number, (double) (wide::wide_unsigned_type) exponent);
+            #endif
+        }
+        constexpr inline double number__exponentiate(float const number, double const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((double) number, exponent);
+            #endif
+        }
+        constexpr inline float number__exponentiate(float const number, float const exponent) {
+            #if c__version >= 1999uL
+                return ::powf(number, exponent);
+            #elif cpp__version >= 1998uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((double) number, (double) exponent);
+            #endif
+        }
+        constexpr inline float number__exponentiate(float const number, int const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate(number, (float) exponent);
+            #endif
+        }
+        constexpr inline double number__exponentiate(float const number, long const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((double) number, (double) exponent);
+            #endif
+        }
+        constexpr inline long double number__exponentiate(float const number, long double const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #elif
+                return number__exponentiate((long double) number, exponent);
+            #endif
+        }
+        constexpr inline float number__exponentiate(float const number, short const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate(number, (float) exponent);
+            #endif
+        }
+        constexpr inline float number__exponentiate(float const number, unsigned int const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate(number, (float) exponent);
+            #endif
+        }
+        constexpr inline double number__exponentiate(float const number, unsigned long const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((double) number, (double) exponent);
+            #endif
+        }
+        constexpr inline double number__exponentiate(float const number, unsigned short const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate(number, (float) exponent);
+            #endif
+        }
+        inline long double number__exponentiate(float const number, wide const exponent) {
+            #if cpp__version >= 2011uL
+                if ((wide::wide_signed_type) exponent < 0L) return ::pow(number, (wide::wide_signed_type) exponent);
+                else return ::pow(number, (wide::wide_unsigned_type) exponent);
+            #else
+                if ((wide::wide_signed_type) exponent < 0L) return number__exponentiate((long double) number, (long double) (wide::wide_signed_type) exponent);
+                else return number__exponentiate((long double) number, (long double) (wide::wide_unsigned_type) exponent);
+            #endif
+        }
+        constexpr inline double number__exponentiate(int const number, double const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((double) number, exponent);
+            #endif
+        }
+        constexpr inline float number__exponentiate(int const number, float const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((float) number, exponent);
+            #endif
+        }
+        constexpr inline int number__exponentiate(int const number, int const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((float) number, (float) exponent);
+            #endif
+        }
+        constexpr inline long number__exponentiate(int const number, long const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((double) number, (double) exponent);
+            #endif
+        }
+        constexpr inline long double number__exponentiate(int const number, long double const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((long double) number, exponent);
+            #endif
+        }
+        constexpr inline int number__exponentiate(int const number, short const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((float) number, (float) exponent);
+            #endif
+        }
+        constexpr inline long number__exponentiate(int const number, unsigned int const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((float) number, (float) exponent);
+            #endif
+        }
+        constexpr inline double number__exponentiate(int const number, unsigned long const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((double) number, (double) exponent);
+            #endif
+        }
+        constexpr inline long number__exponentiate(int const number, unsigned short const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((float) number, (float) exponent);
+            #endif
+        }
+        inline wide number__exponentiate(int const number, wide const exponent) {
+            #if cpp__version >= 2011uL
+                if ((wide::wide_signed_type) exponent < 0L) return ::pow(number, (wide::wide_signed_type) exponent);
+                else return ::pow(number, (wide::wide_unsigned_type) exponent);
+            #else
+                if ((wide::wide_signed_type) exponent < 0L) return number__exponentiate((long double) number, (long double) (wide::wide_signed_type) exponent);
+                else return number__exponentiate((long double) number, (long double) (wide::wide_unsigned_type) exponent);
+            #endif
+        }
+        constexpr inline double number__exponentiate(long const number, double const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((double) number, exponent);
+            #endif
+        }
+        constexpr inline double number__exponentiate(long const number, float const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((double) number, (double) exponent);
+            #endif
+        }
+        constexpr inline long number__exponentiate(long const number, int const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((double) number, exponent);
+            #endif
+        }
+        constexpr inline long number__exponentiate(long const number, long const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((double) number, (double) exponent);
+            #endif
+        }
+        constexpr inline long double number__exponentiate(long const number, long double const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((long double) number, exponent);
+            #endif
+        }
+        constexpr inline long number__exponentiate(long const number, short const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((double) number, (double) exponent);
+            #endif
+        }
+        constexpr inline double number__exponentiate(long const number, unsigned int const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((double) number, (double) exponent);
+            #endif
+        }
+        constexpr inline double number__exponentiate(long const number, unsigned long const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((double) number, (double) exponent);
+            #endif
+        }
+        constexpr inline double number__exponentiate(long const number, unsigned short const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((double) number, (double) exponent);
+            #endif
+        }
+        inline long double number__exponentiate(long const number, wide const exponent) {
+            #if cpp__version >= 2011uL
+                if ((wide::wide_signed_type) exponent < 0L) return ::pow(number, (wide::wide_signed_type) exponent);
+                else return ::pow(number, (wide::wide_unsigned_type) exponent);
+            #else
+                if ((wide::wide_signed_type) exponent < 0L) return number__exponentiate((long double) number, (long double) (wide::wide_signed_type) exponent);
+                else return number__exponentiate((long double) number, (long double) (wide::wide_unsigned_type) exponent);
+            #endif
+        }
+        constexpr inline long double number__exponentiate(long double const number, double const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((long double) number, (long double) exponent);
+            #endif
+        }
+        constexpr inline long double number__exponentiate(long double const number, float const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((long double) number, (long double) exponent);
+            #endif
+        }
+        constexpr inline long double number__exponentiate(long double const number, int const exponent) {
+            #if cpp__version >= 1998uL
+                return ::pow(number, exponent);
+            #elif cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((long double) number, (long double) exponent);
+            #endif
+        }
+        constexpr inline long double number__exponentiate(long double const number, long const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate(number, (long double) exponent);
+            #endif
+        }
+        constexpr inline long double number__exponentiate(long double const number, long double const exponent) {
+            #if c__version >= 1999uL
+                return ::powl(number, exponent);
+            #elif cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                if (number > DBL_MAX) return number__exponentiate(number - DBL_MAX, exponent);
+                else if (exponent > DBL_MAX) return number__exponentiate(number, exponent - DBL_MAX);
+                else return number__exponentiate((double) number, (double) exponent);
+            #endif
+        }
+        constexpr inline long double number__exponentiate(long double const number, short const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate(number, (long double) exponent);
+            #endif
+        }
+        constexpr inline long double number__exponentiate(long double const number, unsigned int const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate(number, (long double) exponent);
+            #endif
+        }
+        constexpr inline long double number__exponentiate(long double const number, unsigned long const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate(number, (long double) exponent);
+            #endif
+        }
+        constexpr inline long double number__exponentiate(long double const number, unsigned short const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate(number, (long double) exponent);
+            #endif
+        }
+        inline long double number__exponentiate(long double const number, wide const exponent) {
+            #if cpp__version >= 2011uL
+                if ((wide::wide_signed_type) exponent < 0L) return ::pow(number, (wide::wide_signed_type) exponent);
+                else return ::pow(number, (wide::wide_unsigned_type) exponent);
+            #else
+                if ((wide::wide_signed_type) exponent < 0L) return ::pow(number, (long double) (wide::wide_signed_type) exponent);
+                else return ::pow(number, (long double) (wide::wide_unsigned_type) exponent);
+            #endif
+        }
+        constexpr inline double number__exponentiate(short const number, double const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((double) number, exponent);
+            #endif
+        }
+        constexpr inline float number__exponentiate(short const number, float const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((float) number, exponent);
+            #endif
+        }
+        constexpr inline int number__exponentiate(short const number, int const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((float) number, (float) exponent);
+            #endif
+        }
+        constexpr inline long number__exponentiate(short const number, long const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((double) number, (double) exponent);
+            #endif
+        }
+        constexpr inline long double number__exponentiate(short const number, long double const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((long double) number, exponent);
+            #endif
+        }
+        constexpr inline int number__exponentiate(short const number, short const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((float) number, (float) exponent);
+            #endif
+        }
+        constexpr inline long number__exponentiate(short const number, unsigned int const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((float) number, (float) exponent);
+            #endif
+        }
+        constexpr inline double number__exponentiate(short const number, unsigned long const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((double) number, (double) exponent);
+            #endif
+        }
+        constexpr inline long number__exponentiate(short const number, unsigned short const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((float) number, (float) exponent);
+            #endif
+        }
+        inline wide number__exponentiate(short const number, wide const exponent) {
+            #if cpp__version >= 2011uL
+                if ((wide::wide_signed_type) exponent < 0L) return ::pow(number, (wide::wide_signed_type) exponent);
+                else return ::pow(number, (wide::wide_unsigned_type) exponent);
+            #else
+                if ((wide::wide_signed_type) exponent < 0L) return number__exponentiate((long double) number, (long double) (wide::wide_signed_type) exponent);
+                else return number__exponentiate((long double) number, (long double) (wide::wide_unsigned_type) exponent);
+            #endif
+        }
+        constexpr inline double number__exponentiate(unsigned int const number, double const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((double) number, exponent);
+            #endif
+        }
+        constexpr inline float number__exponentiate(unsigned int const number, float const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((float) number, exponent);
+            #endif
+        }
+        constexpr inline int number__exponentiate(unsigned int const number, int const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((float) number, (float) exponent);
+            #endif
+        }
+        constexpr inline long number__exponentiate(unsigned int const number, long const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((double) number, (double) exponent);
+            #endif
+        }
+        constexpr inline long double number__exponentiate(unsigned int const number, long double const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((long double) number, exponent);
+            #endif
+        }
+        constexpr inline int number__exponentiate(unsigned int const number, short const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((float) number, (float) exponent);
+            #endif
+        }
+        constexpr inline long number__exponentiate(unsigned int const number, unsigned int const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((float) number, (float) exponent);
+            #endif
+        }
+        constexpr inline double number__exponentiate(unsigned int const number, unsigned long const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((double) number, (double) exponent);
+            #endif
+        }
+        constexpr inline long number__exponentiate(unsigned int const number, unsigned short const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((float) number, (float) exponent);
+            #endif
+        }
+        inline wide number__exponentiate(unsigned int const number, wide const exponent) {
+            #if cpp__version >= 2011uL
+                if ((wide::wide_signed_type) exponent < 0L) return ::pow(number, (wide::wide_signed_type) exponent);
+                else return ::pow(number, (wide::wide_unsigned_type) exponent);
+            #else
+                if ((wide::wide_signed_type) exponent < 0L) return number__exponentiate((long double) number, (long double) (wide::wide_signed_type) exponent);
+                else return number__exponentiate((long double) number, (long double) (wide::wide_unsigned_type) exponent);
+            #endif
+        }
+        constexpr inline double number__exponentiate(unsigned long const number, double const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((double) number, exponent);
+            #endif
+        }
+        constexpr inline double number__exponentiate(unsigned long const number, float const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((double) number, (double) exponent);
+            #endif
+        }
+        constexpr inline long number__exponentiate(unsigned long const number, int const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((double) number, exponent);
+            #endif
+        }
+        constexpr inline long number__exponentiate(unsigned long const number, long const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((double) number, (double) exponent);
+            #endif
+        }
+        constexpr inline long double number__exponentiate(unsigned long const number, long double const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((long double) number, exponent);
+            #endif
+        }
+        constexpr inline long number__exponentiate(unsigned long const number, short const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((double) number, (double) exponent);
+            #endif
+        }
+        constexpr inline double number__exponentiate(unsigned long const number, unsigned int const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((double) number, (double) exponent);
+            #endif
+        }
+        constexpr inline double number__exponentiate(unsigned long const number, unsigned long const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((double) number, (double) exponent);
+            #endif
+        }
+        constexpr inline double number__exponentiate(unsigned long const number, unsigned short const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((double) number, (double) exponent);
+            #endif
+        }
+        inline long double number__exponentiate(unsigned long const number, wide const exponent) {
+            #if cpp__version >= 2011uL
+                if ((wide::wide_signed_type) exponent < 0L) return ::pow(number, (wide::wide_signed_type) exponent);
+                else return ::pow(number, (wide::wide_unsigned_type) exponent);
+            #else
+                if ((wide::wide_signed_type) exponent < 0L) return number__exponentiate((long double) number, (long double) (wide::wide_signed_type) exponent);
+                else return number__exponentiate((long double) number, (long double) (wide::wide_unsigned_type) exponent);
+            #endif
+        }
+        constexpr inline double number__exponentiate(unsigned short const number, double const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((double) number, exponent);
+            #endif
+        }
+        constexpr inline float number__exponentiate(unsigned short const number, float const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((float) number, exponent);
+            #endif
+        }
+        constexpr inline int number__exponentiate(unsigned short const number, int const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((float) number, (float) exponent);
+            #endif
+        }
+        constexpr inline long number__exponentiate(unsigned short const number, long const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((double) number, (double) exponent);
+            #endif
+        }
+        constexpr inline long double number__exponentiate(unsigned short const number, long double const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((long double) number, exponent);
+            #endif
+        }
+        constexpr inline int number__exponentiate(unsigned short const number, short const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((float) number, (float) exponent);
+            #endif
+        }
+        constexpr inline long number__exponentiate(unsigned short const number, unsigned int const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((float) number, (float) exponent);
+            #endif
+        }
+        constexpr inline double number__exponentiate(unsigned short const number, unsigned long const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((double) number, (double) exponent);
+            #endif
+        }
+        constexpr inline long number__exponentiate(unsigned short const number, unsigned short const exponent) {
+            #if cpp__version >= 2011uL
+                return ::pow(number, exponent);
+            #else
+                return number__exponentiate((float) number, (float) exponent);
+            #endif
+        }
+        inline wide number__exponentiate(unsigned short const number, wide const exponent) {
+            #if cpp__version >= 2011uL
+                if ((wide::wide_signed_type) exponent < 0L) return ::pow(number, (wide::wide_signed_type) exponent);
+                else return ::pow(number, (wide::wide_unsigned_type) exponent);
+            #else
+                if ((wide::wide_signed_type) exponent < 0L) return number__exponentiate((long double) number, (long double) (wide::wide_signed_type) exponent);
+                else return number__exponentiate((long double) number, (long double) (wide::wide_unsigned_type) exponent);
+            #endif
+        }
+        inline long double number__exponentiate(wide const number, double const exponent) {
+            #if cpp__version >= 2011uL
+                if ((wide::wide_signed_type) number < 0L) return ::pow((wide::wide_signed_type) number, exponent);
+                else return ::pow((wide::wide_unsigned_type) number, exponent);
+            #else
+                if ((wide::wide_signed_type) number < 0L) return number__exponentiate((long double) (wide::wide_signed_type) number, exponent);
+                else return number__exponentiate((long double) (wide::wide_unsigned_type) number, exponent);
+            #endif
+        }
+        inline long double number__exponentiate(wide const number, float const exponent) {
+            #if cpp__version >= 2011uL
+                if ((wide::wide_signed_type) number < 0L) return ::pow((wide::wide_signed_type) number, exponent);
+                else return ::pow((wide::wide_unsigned_type) number, exponent);
+            #else
+                if ((wide::wide_signed_type) number < 0L) return number__exponentiate((long double) (wide::wide_signed_type) number, exponent);
+                else return number__exponentiate((long double) (wide::wide_unsigned_type) number, exponent);
+            #endif
+        }
+        inline wide number__exponentiate(wide const number, int const exponent) {
+            #if cpp__version >= 2011uL
+                if ((wide::wide_signed_type) number < 0L) return ::pow((wide::wide_signed_type) number, exponent);
+                else return ::pow((wide::wide_unsigned_type) number, exponent);
+            #else
+                if ((wide::wide_signed_type) number < 0L) return number__exponentiate((long double) (wide::wide_signed_type) number, exponent);
+                else return number__exponentiate((long double) (wide::wide_unsigned_type) number, exponent);
+            #endif
+        }
+        inline wide number__exponentiate(wide const number, long const exponent) {
+            #if cpp__version >= 2011uL
+                if ((wide::wide_signed_type) number < 0L) return ::pow((wide::wide_signed_type) number, exponent);
+                else return ::pow((wide::wide_unsigned_type) number, exponent);
+            #else
+                if ((wide::wide_signed_type) number < 0L) return number__exponentiate((long double) (wide::wide_signed_type) number, exponent);
+                else return number__exponentiate((long double) (wide::wide_unsigned_type) number, exponent);
+            #endif
+        }
+        inline long double number__exponentiate(wide const number, long double const exponent) {
+            #if cpp__version >= 2011uL
+                if ((wide::wide_signed_type) number < 0L) return ::pow((wide::wide_signed_type) number, exponent);
+                else return ::pow((wide::wide_unsigned_type) number, exponent);
+            #else
+                if ((wide::wide_signed_type) number < 0L) return number__exponentiate((long double) (wide::wide_signed_type) number, exponent);
+                else return number__exponentiate((long double) (wide::wide_unsigned_type) number, exponent);
+            #endif
+        }
+        inline wide number__exponentiate(wide const number, short const exponent) {
+            #if cpp__version >= 2011uL
+                if ((wide::wide_signed_type) number < 0L) return ::pow((wide::wide_signed_type) number, exponent);
+                else return ::pow((wide::wide_unsigned_type) number, exponent);
+            #else
+                if ((wide::wide_signed_type) number < 0L) return number__exponentiate((long double) (wide::wide_signed_type) number, exponent);
+                else return number__exponentiate((long double) (wide::wide_unsigned_type) number, exponent);
+            #endif
+        }
+        inline wide number__exponentiate(wide const number, unsigned int const exponent) {
+            #if cpp__version >= 2011uL
+                if ((wide::wide_signed_type) number < 0L) return ::pow((wide::wide_signed_type) number, exponent);
+                else return ::pow((wide::wide_unsigned_type) number, exponent);
+            #else
+                if ((wide::wide_signed_type) number < 0L) return number__exponentiate((long double) (wide::wide_signed_type) number, exponent);
+                else return number__exponentiate((long double) (wide::wide_unsigned_type) number, exponent);
+            #endif
+        }
+        inline wide number__exponentiate(wide const number, unsigned long const exponent) {
+            #if cpp__version >= 2011uL
+                if ((wide::wide_signed_type) number < 0L) return ::pow((wide::wide_signed_type) number, exponent);
+                else return ::pow((wide::wide_unsigned_type) number, exponent);
+            #else
+                if ((wide::wide_signed_type) number < 0L) return number__exponentiate((long double) (wide::wide_signed_type) number, exponent);
+                else return number__exponentiate((long double) (wide::wide_unsigned_type) number, exponent);
+            #endif
+        }
+        inline wide number__exponentiate(wide const number, unsigned short const exponent) {
+            #if cpp__version >= 2011uL
+                if ((wide::wide_signed_type) number < 0L) return ::pow((wide::wide_signed_type) number, exponent);
+                else return ::pow((wide::wide_unsigned_type) number, exponent);
+            #else
+                if ((wide::wide_signed_type) exponent < 0L) return number__exponentiate((long double) (wide::wide_signed_type) number, exponent);
+                else return number__exponentiate((long double) (wide::wide_unsigned_type) number, exponent);
+            #endif
+        }
+        inline wide number__exponentiate(wide const number, wide const exponent) {
+            #if cpp__version >= 2011uL
+                if ((wide::wide_signed_type) number < 0L) {
+                    if ((wide::wide_signed_type) exponent < 0L) return ::pow((wide::wide_signed_type) number, (wide::wide_signed_type) exponent);
+                    else return ::pow((wide::wide_signed_type) number, (wide::wide_unsigned_type) exponent);
+                }
+                else {
+                    if ((wide::wide_signed_type) exponent < 0L) return ::pow((wide::wide_unsigned_type) number, (wide::wide_signed_type) exponent);
+                    else return ::pow((wide::wide_unsigned_type) number, (wide::wide_unsigned_type) exponent);
+                }
+            #else
+                if ((wide::wide_signed_type) exponent < 0L) {
+                    if ((wide::wide_signed_type) exponent < 0L) return number__exponentiate((long double) (wide::wide_signed_type) number, (long double) (wide::wide_signed_type) exponent);
+                    else return number__exponentiate((long double) (wide::wide_signed_type) number, (long double) (wide::wide_unsigned_type) exponent);
+                }
+                else {
+                    if ((wide::wide_signed_type) exponent < 0L) return number__exponentiate((long double) (wide::wide_unsigned_type) number, (long double) (wide::wide_signed_type) exponent);
+                    else return number__exponentiate((long double) (wide::wide_unsigned_type) number, (long double) (wide::wide_unsigned_type) exponent);
+                }
+            #endif
+        }
+
+        // Exponentiate Euler`s Number
+        constexpr inline double number__exponentiate_eulers_number(double const number) { return ::exp(number); }
+        constexpr inline float number__exponentiate_eulers_number(float const number) {
+            #if c__version >= 1990uL
+                return ::expf(number);
+            #elif cpp__version >= 1997uL
+                return ::exp(number);
+            #else
+                return number__exponentiate_eulers_number((double) number);
+            #endif
+        }
+        constexpr inline float number__exponentiate_eulers_number(int const number) {
+            #if cpp__version >= 2011uL
+                return ::exp(number);
+            #else
+                return number__exponentiate_eulers_number((float) number);
+            #endif
+        }
+        inline long double number__exponentiate_eulers_number(long const number) {
+            #if cpp__version >= 2011uL
+                return ::exp(number);
+            #else
+                return number__exponentiate_eulers_number((long double) number);
+            #endif
+        }
+        inline long double number__exponentiate_eulers_number(long double const number) {
+            #if c__version >= 1990uL
+                return ::expl(number);
+            #elif cpp__version >= 1997uL
+                return ::exp(number);
+            #else
+                if (number > DBL_MAX) return number__exponentiate_eulers_number(number - DBL_MAX);
+                else return number__exponentiate_eulers_number((double) number);
+            #endif
+        }
+        constexpr inline float number__exponentiate_eulers_number(short const number) {
+            #if cpp__version >= 2011uL
+                return ::exp(number);
+            #else
+                return number__exponentiate_eulers_number((float) number);
+            #endif
+        }
+        constexpr inline float number__exponentiate_eulers_number(unsigned int const number) {
+            #if cpp__version >= 2011uL
+                return ::exp(number);
+            #else
+                return number__exponentiate_eulers_number((float) number);
+            #endif
+        }
+        inline long double number__exponentiate_eulers_number(unsigned long const number) {
+            #if cpp__version >= 2011uL
+                return ::exp(number);
+            #else
+                return number__exponentiate_eulers_number((long double) number);
+            #endif
+        }
+        constexpr inline float number__exponentiate_eulers_number(unsigned short const number) {
+            #if cpp__version >= 2011uL
+                return ::exp(number);
+            #else
+                return number__exponentiate_eulers_number((float) number);
+            #endif
+        }
+        inline long double number__exponentiate_eulers_number(wide const number) {
+            #if cpp__version >= 2011uL
+                if ((wide::wide_signed_type) number < 0L) return ::exp((wide::wide_signed_type) number);
+                else return ::exp((wide::wide_unsigned_type) number);
+            #else
+                return number__exponentiate_eulers_number((long double) number);
+            #endif
+        }
+
         // Floor
-        // Hyperbolic Arc Cosine
-        // Hyperbolic Arc Sine
-        // Hyperbolic Arc Tangent
+        inline double number__floor(double const number) noexcept {
+            #if c__version >= 1990uL
+                return ::floorf(number);
+            #elif cpp__version >= 1997uL
+                return ::floor(number);
+            #else
+                if (number < 0.0f) return -number_floor(-number);
+                else {
+                    double evaluation = 0.0f;
+
+                    for (wide increment = 1uL, overflow = 0uL; increment; overflow = 0uL) {
+                        for (increment = 1uL; evaluation + increment <= number && increment > overflow; increment <<= 1uL) overflow = increment;
+                        increment = increment == 1uL || increment <= overflow ? 0uL; increment >> 1uL;
+                        evaluation += increment;
+                    }
+
+                    return evaluation;
+                }
+            #endif
+        }
+        inline float number__floor(float const number) noexcept {
+            #if c__version >= 1990uL
+                return ::floorf(number);
+            #elif cpp__version >= 1997uL
+                return ::floor(number);
+            #else
+                if (number < 0.0f) return -number_floor(-number);
+                else {
+                    float evaluation = 0.0f;
+
+                    for (unsigned long increment = 1uL, overflow = 0uL; increment; overflow = 0uL) {
+                        for (increment = 1uL; evaluation + increment <= number && increment > overflow; increment <<= 1uL) overflow = increment;
+                        increment = increment == 1uL || increment <= overflow ? 0uL; increment >> 1uL;
+                        evaluation += increment;
+                    }
+
+                    return evaluation;
+                }
+            #endif
+        }
+        constexpr inline int number__floor(int const number) noexcept { return number; }
+        constexpr inline long number__floor(long const number) noexcept { return number; }
+        inline long double number__floor(long double const number) noexcept {
+            #if c__version >= 1990uL
+                return ::floorl(number);
+            #elif cpp__version >= 1997uL
+                return ::floor(number);
+            #else
+                if (number < 0.0f) return -number_floor(-number);
+                else {
+                    long double evaluation = 0.0f;
+
+                    for (wide increment = 1uL, overflow = 0uL; increment; overflow = 0uL) {
+                        for (increment = 1uL; evaluation + increment <= number && increment > overflow; increment <<= 1uL) overflow = increment;
+                        increment = increment == 1uL || increment <= overflow ? 0uL; increment >> 1uL;
+                        evaluation += increment;
+                    }
+
+                    return 0.0f == evaluation ? number < 0 ? -((long double) (wide::wide_unsigned_type) -number) : (long double) (wide::wide_unsigned_type) number : evaluation;
+                }
+            #endif
+        }
+        constexpr inline short number__floor(short const number) noexcept { return number; }
+        constexpr inline unsigned int number__floor(unsigned int const number) noexcept { return number; }
+        constexpr inline unsigned long number__floor(unsigned long const number) noexcept { return number; }
+        constexpr inline unsigned short number__floor(unsigned short const number) noexcept { return number; }
+        constexpr inline wide number__floor(wide const number) noexcept { return number; }
+
         // Hyperbolic Cosine
+        constexpr inline double number__hyperbolic_cosine(double const number) { return ::cosh(number); }
+        constexpr inline float number__hyperbolic_cosine(float const number) {
+            #if c__version >= 1990uL
+                return ::coshf(number);
+            #elif cpp__version >= 1997uL
+                return ::cosh(number);
+            #else
+                return number__hyperbolic_cosine((double) number);
+            #endif
+        }
+        constexpr inline float number__hyperbolic_cosine(int const number) {
+            #if cpp__version >= 2011uL
+                return ::cosh(number);
+            #else
+                return number__hyperbolic_cosine((float) number);
+            #endif
+        }
+        constexpr inline double number__hyperbolic_cosine(long const number) {
+            #if cpp__version >= 2011uL
+                return ::cosh(number);
+            #else
+                return number__hyperbolic_cosine((double) number);
+            #endif
+        }
+        inline long double number__hyperbolic_cosine(long double const number) {
+            #if c__version >= 1990uL
+                return ::coshl(number);
+            #elif c__version
+                if (number > DBL_MAX) return number__arc_tangent(number - DBL_MAX);
+                else return number__arc_tangent((double) number);
+            #elif cpp__version >= 1997uL
+                return ::cosh(number);
+            #endif
+        }
+        constexpr inline float number__hyperbolic_cosine(short const number) {
+            #if cpp__version >= 2011uL
+                return ::cosh(number);
+            #else
+                return number__hyperbolic_cosine((float) number);
+            #endif
+        }
+        constexpr inline float number__hyperbolic_cosine(unsigned int const number) {
+            #if cpp__version >= 2011uL
+                return ::cosh(number);
+            #else
+                return number__hyperbolic_cosine((float) number);
+            #endif
+        }
+        constexpr inline double number__hyperbolic_cosine(unsigned long const number) {
+            #if cpp__version >= 2011uL
+                return ::cosh(number);
+            #else
+                return number__hyperbolic_cosine((double) number);
+            #endif
+        }
+        constexpr inline float number__hyperbolic_cosine(unsigned short const number) {
+            #if cpp__version >= 2011uL
+                return ::cosh(number);
+            #else
+                return number__hyperbolic_cosine((float) number);
+            #endif
+        }
+        inline long double number__hyperbolic_cosine(wide const number) {
+            #if cpp__version >= 2011uL
+                if ((wide::wide_signed_type) number < 0L) return ::cosh((wide::wide_signed_type) number);
+                else return ::cosh((wide::wide_unsigned_type) number);
+            #else
+                if ((wide::wide_signed_type) number < 0L) return number__hyperbolic_cosine((long double) (wide::wide_signed_type) number);
+                else return number__hyperbolic_cosine((long double) (wide::wide_unsigned_type) number);
+            #endif
+        }
+
         // Hyperbolic Sine
+        constexpr inline double number__hyperbolic_sine(double const number) { return ::sinh(number); }
+        constexpr inline float number__hyperbolic_sine(float const number) {
+            #if c__version >= 1990uL
+                return ::sinhf(number);
+            #elif cpp__version >= 1997uL
+                return ::sinh(number);
+            #else
+                return number__hyperbolic_sine((double) number);
+            #endif
+        }
+        constexpr inline float number__hyperbolic_sine(int const number) {
+            #if cpp__version >= 2011uL
+                return ::sinh(number);
+            #else
+                return number__hyperbolic_sine((float) number);
+            #endif
+        }
+        constexpr inline double number__hyperbolic_sine(long const number) {
+            #if cpp__version >= 2011uL
+                return ::sinh(number);
+            #else
+                return number__hyperbolic_sine((double) number);
+            #endif
+        }
+        inline long double number__hyperbolic_sine(long double const number) {
+            #if c__version >= 1990uL
+                return ::sinhl(number);
+            #elif c__version
+                if (number > DBL_MAX) return number__arc_tangent(number - DBL_MAX);
+                else return number__arc_tangent((double) number);
+            #elif cpp__version >= 1997uL
+                return ::sinh(number);
+            #endif
+        }
+        constexpr inline float number__hyperbolic_sine(short const number) {
+            #if cpp__version >= 2011uL
+                return ::sinh(number);
+            #else
+                return number__hyperbolic_sine((float) number);
+            #endif
+        }
+        constexpr inline float number__hyperbolic_sine(unsigned int const number) {
+            #if cpp__version >= 2011uL
+                return ::sinh(number);
+            #else
+                return number__hyperbolic_sine((float) number);
+            #endif
+        }
+        constexpr inline double number__hyperbolic_sine(unsigned long const number) {
+            #if cpp__version >= 2011uL
+                return ::sinh(number);
+            #else
+                return number__hyperbolic_sine((double) number);
+            #endif
+        }
+        constexpr inline float number__hyperbolic_sine(unsigned short const number) {
+            #if cpp__version >= 2011uL
+                return ::sinh(number);
+            #else
+                return number__hyperbolic_sine((float) number);
+            #endif
+        }
+        inline long double number__hyperbolic_sine(wide const number) {
+            #if cpp__version >= 2011uL
+                if ((wide::wide_signed_type) number < 0L) return ::sinh((wide::wide_signed_type) number);
+                else return ::sinh((wide::wide_unsigned_type) number);
+            #else
+                if ((wide::wide_signed_type) number < 0L) return number__hyperbolic_sine((long double) (wide::wide_signed_type) number);
+                else return number__hyperbolic_sine((long double) (wide::wide_unsigned_type) number);
+            #endif
+        }
+
         // Hyperbolic Tangent
+        constexpr inline double number__hyperbolic_tangent(double const number) { return ::tanh(number); }
+        constexpr inline float number__hyperbolic_tangent(float const number) {
+            #if c__version >= 1990uL
+                return ::tanhf(number);
+            #elif cpp__version >= 1997uL
+                return ::tanh(number);
+            #else
+                return number__hyperbolic_tangent((double) number);
+            #endif
+        }
+        constexpr inline float number__hyperbolic_tangent(int const number) {
+            #if cpp__version >= 2011uL
+                return ::tanh(number);
+            #else
+                return number__hyperbolic_tangent((float) number);
+            #endif
+        }
+        constexpr inline double number__hyperbolic_tangent(long const number) {
+            #if cpp__version >= 2011uL
+                return ::tanh(number);
+            #else
+                return number__hyperbolic_tangent((double) number);
+            #endif
+        }
+        inline long double number__hyperbolic_tangent(long double const number) {
+            #if c__version >= 1990uL
+                return ::tanhl(number);
+            #elif c__version
+                if (number > DBL_MAX) return number__arc_tangent(number - DBL_MAX);
+                else return number__arc_tangent((double) number);
+            #elif cpp__version >= 1997uL
+                return ::tanh(number);
+            #endif
+        }
+        constexpr inline float number__hyperbolic_tangent(short const number) {
+            #if cpp__version >= 2011uL
+                return ::tanh(number);
+            #else
+                return number__hyperbolic_tangent((float) number);
+            #endif
+        }
+        constexpr inline float number__hyperbolic_tangent(unsigned int const number) {
+            #if cpp__version >= 2011uL
+                return ::tanh(number);
+            #else
+                return number__hyperbolic_tangent((float) number);
+            #endif
+        }
+        constexpr inline double number__hyperbolic_tangent(unsigned long const number) {
+            #if cpp__version >= 2011uL
+                return ::tanh(number);
+            #else
+                return number__hyperbolic_tangent((double) number);
+            #endif
+        }
+        constexpr inline float number__hyperbolic_tangent(unsigned short const number) {
+            #if cpp__version >= 2011uL
+                return ::tanh(number);
+            #else
+                return number__hyperbolic_tangent((float) number);
+            #endif
+        }
+        inline long double number__hyperbolic_tangent(wide const number) {
+            #if cpp__version >= 2011uL
+                if ((wide::wide_signed_type) number < 0L) return ::tanh((wide::wide_signed_type) number);
+                else return ::tanh((wide::wide_unsigned_type) number);
+            #else
+                if ((wide::wide_signed_type) number < 0L) return number__hyperbolic_tangent((long double) (wide::wide_signed_type) number);
+                else return number__hyperbolic_tangent((long double) (wide::wide_unsigned_type) number);
+            #endif
+        }
+
         // Is Computable --- NOTE (Lapys) -> Is not `NaN`.
         constexpr inline bool number__is_computable(double const number) noexcept {
-            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
-                return ::isnan(number);
+            #if cpp__version >= 2011uL
+                return false == ::isnan(number);
             #else
-                return isnan(number);
+                return false == isnan(number);
             #endif
         }
         constexpr inline bool number__is_computable(float const number) noexcept {
-            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
-                return ::isnan(number);
+            #if cpp__version >= 2011uL
+                return false == ::isnan(number);
             #else
-                return isnan(number);
+                return false == isnan(number);
             #endif
         }
         constexpr inline bool number__is_computable(int const) noexcept { return true; }
         constexpr inline bool number__is_computable(long const) noexcept { return true; }
         constexpr inline bool number__is_computable(long double const number) noexcept {
-            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
-                return ::isnan(number);
+            #if cpp__version >= 2011uL
+                return false == ::isnan(number);
             #else
-                return isnan(number);
+                return false == isnan(number);
             #endif
         }
         constexpr inline bool number__is_computable(short const) noexcept { return true; }
@@ -645,93 +2267,681 @@
             static double const indeterminate = *((double const*) indeterminateBitRepresentation);
 
             // Return
-            return number == number && ::memcmp(&number, &indeterminate, sizeof(double));
+            return indeterminate != number && number == number;
         }
         inline bool number__is_determinate(float const number) noexcept { return number__is_determinate((double) number); }
-        inline bool
+        constexpr inline bool number__is_determinate(int const) noexcept { return true; }
+        constexpr inline bool number__is_determinate(long const) noexcept { return true; }
         inline bool number__is_determinate(long double const number) noexcept { if (number > DBL_MAX) return number__is_determinate(number - DBL_MAX); else return number__is_determinate((double) number); }
+        constexpr inline bool number__is_determinate(short const) noexcept { return true; }
+        constexpr inline bool number__is_determinate(unsigned int const) noexcept { return true; }
+        constexpr inline bool number__is_determinate(unsigned long const) noexcept { return true; }
+        constexpr inline bool number__is_determinate(unsigned short const) noexcept { return true; }
+        constexpr inline bool number__is_determinate(wide const) noexcept { return true; }
 
         // Is Finite
         inline bool number__is_finite(double const number) noexcept {
-            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+            #if cpp__version >= 2011uL
                 return ::isfinite(number);
             #else
                 return isfinite(number);
             #endif
         }
         inline bool number__is_finite(float const number) noexcept {
-            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+            #if cpp__version >= 2011uL
                 return ::isfinite(number);
             #else
                 return isfinite(number);
             #endif
         }
+        constexpr inline bool number__is_finite(int const) noexcept { return true; }
+        constexpr inline bool number__is_finite(long const) noexcept { return true; }
         inline bool number__is_finite(long double const number) noexcept {
-            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+            #if cpp__version >= 2011uL
                 return ::isfinite(number);
             #else
                 return isfinite(number);
             #endif
         }
+        constexpr inline bool number__is_finite(short const) noexcept { return true; }
+        constexpr inline bool number__is_finite(unsigned int const) noexcept { return true; }
+        constexpr inline bool number__is_finite(unsigned long const) noexcept { return true; }
+        constexpr inline bool number__is_finite(unsigned short const) noexcept { return true; }
+        constexpr inline bool number__is_finite(wide const) noexcept { return true; }
 
         // Is Infinite --- NOTE (Lapys) -> Defined only because `isinf` is a standard-defined function.
         constexpr inline bool number__is_infinite(double const number) noexcept {
-            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+            #if cpp__version >= 2011uL
                 return ::isinf(number);
             #else
                 return isinf(number);
             #endif
         }
         constexpr inline bool number__is_infinite(float const number) noexcept {
-            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+            #if cpp__version >= 2011uL
                 return ::isinf(number);
             #else
                 return isinf(number);
             #endif
         }
+        constexpr inline bool number__is_infinite(int const) noexcept { return false; }
+        constexpr inline bool number__is_infinite(long const) noexcept { return false; }
         constexpr inline bool number__is_infinite(long double const number) noexcept {
-            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+            #if cpp__version >= 2011uL
                 return ::isinf(number);
             #else
                 return isinf(number);
             #endif
         }
+        constexpr inline bool number__is_infinite(short const) noexcept { return false; }
+        constexpr inline bool number__is_infinite(unsigned int const) noexcept { return false; }
+        constexpr inline bool number__is_infinite(unsigned long const) noexcept { return false; }
+        constexpr inline bool number__is_infinite(unsigned short const) noexcept { return false; }
+        constexpr inline bool number__is_infinite(wide const) noexcept { return false; }
 
         // Is Normalized
         inline bool number__is_normalized(double const number) noexcept {
-            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+            #if cpp__version >= 2011uL
                 return ::isnormal(number);
             #else
                 return isnormal(number);
             #endif
         }
         inline bool number__is_normalized(float const number) noexcept {
-            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+            #if cpp__version >= 2011uL
                 return ::isnormal(number);
             #else
                 return isnormal(number);
             #endif
         }
+        constexpr inline bool number__is_normalized(int const) noexcept { return true; }
+        constexpr inline bool number__is_normalized(long const) noexcept { return true; }
         inline bool number__is_normalized(long double const number) noexcept {
-            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+            #if cpp__version >= 2011uL
                 return ::isnormal(number);
             #else
                 return isnormal(number);
             #endif
         }
+        constexpr inline bool number__is_normalized(short const) noexcept { return true; }
+        constexpr inline bool number__is_normalized(unsigned int const) noexcept { return true; }
+        constexpr inline bool number__is_normalized(unsigned long const) noexcept { return true; }
+        constexpr inline bool number__is_normalized(unsigned short const) noexcept { return true; }
+        constexpr inline bool number__is_normalized(wide const) noexcept { return true; }
 
         // Is Safe --- NOTE (Lapys) -> Is computable, determinate, finite and normalized.
         inline bool number__is_safe(double const number) noexcept { return number__is_computable(number) && number__is_determinate(number) && number__is_finite(number) && number__is_normalized(number); }
+        inline bool number__is_safe(float const number) noexcept { return number__is_computable(number) && number__is_determinate(number) && number__is_finite(number) && number__is_normalized(number); }
+        inline bool number__is_safe(int const number) noexcept { return INT_MAX ^ number; }
+        inline bool number__is_safe(long const number) noexcept { return LONG_MAX ^ number; }
+        inline bool number__is_safe(long double const number) noexcept { return number__is_computable(number) && number__is_determinate(number) && number__is_finite(number) && number__is_normalized(number); }
+        inline bool number__is_safe(short const number) noexcept { return SHRT_MAX ^ number; }
+        inline bool number__is_safe(unsigned int const number) noexcept { return UINT_MAX ^ number; }
+        inline bool number__is_safe(unsigned long const number) noexcept { return ULONG_MAX ^ number; }
+        inline bool number__is_safe(unsigned short const) noexcept { return true; } // FLAG (Lapys) -> This is safe, right? Yeah, let`s ignore `USHRT_MAX`...
+        inline bool number__is_safe(wide const number) noexcept {
+            #if cpp__version >= 2011uL
+                return (LLONG_MAX ^ (wide::wide_signed_type) number) && (ULLONG_MAX ^ (wide::wide_unsigned_type) number);
+            #else
+                return true;
+            #endif
+        }
 
-        // Logarithm
+        // Logarithm --- NOTE (Lapys) -> Compute natural logarithm.
+        constexpr inline double number__logarithm(double const number) { return ::log(number); }
+        constexpr inline float number__logarithm(float const number) {
+            #if c__version <= 1999uL
+                return ::logf(number);
+            #elif cpp__version >= 1997uL
+                return ::log(number);
+            #endif
+        }
+        constexpr inline float number__logarithm(int const number) {
+            #if cpp__version >= 2011uL
+                return ::log(number);
+            #else
+                return number__logarithm((float) number);
+            #endif
+        }
+        constexpr inline double number__logarithm(long const number) {
+            #if cpp__version >= 2011uL
+                return ::log(number);
+            #else
+                return number__logarithm((double) number);
+            #endif
+        }
+        constexpr inline long double number__logarithm(long double const number) {
+            #if c__version <= 1999uL
+                return ::logl(number);
+            #elif cpp__version >= 1997uL
+                return ::log(number);
+            #endif
+        }
+        constexpr inline float number__logarithm(short const number) {
+            #if cpp__version >= 2011uL
+                return ::log(number);
+            #else
+                return number__logarithm((float) number);
+            #endif
+        }
+        constexpr inline float number__logarithm(unsigned int const number) {
+            #if cpp__version >= 2011uL
+                return ::log(number);
+            #else
+                return number__logarithm((float) number);
+            #endif
+        }
+        constexpr inline double number__logarithm(unsigned long const number) {
+            #if cpp__version >= 2011uL
+                return ::log(number);
+            #else
+                return number__logarithm((double) number);
+            #endif
+        }
+        constexpr inline float number__logarithm(unsigned short const number) {
+            #if cpp__version >= 2011uL
+                return ::log(number);
+            #else
+                return number__logarithm((float) number);
+            #endif
+        }
+        inline long double number__logarithm(wide const number) {
+            #if cpp__version >= 2011uL
+                if ((wide::wide_signed_type) number < 0L) return ::log((wide::wide_signed_type) number);
+                else return ::log((wide::wide_unsigned_type) number);
+            #else
+                if ((wide::wide_signed_type) number < 0L) return number__logarithm((long double) (wide::wide_signed_type) number);
+                else return number__logarithm((long double) (wide::wide_unsigned_type) number);
+            #endif
+        }
+
         // Maximum
+        constexpr inline double number__maximum(double const numberA, double const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline double number__maximum(double const numberA, float const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline double number__maximum(double const numberA, int const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline double number__maximum(double const numberA, long const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline long double number__maximum(double const numberA, long double const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline double number__maximum(double const numberA, short const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline double number__maximum(double const numberA, unsigned int const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline double number__maximum(double const numberA, unsigned long const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline double number__maximum(double const numberA, unsigned short const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        inline long double number__maximum(double const numberA, wide const numberB) noexcept {
+            if ((wide::wide_signed_type) numberB < 0L) return numberA > (wide::wide_signed_type) numberB ? numberA : (wide::wide_signed_type) numberB;
+            else return numberA < (wide::wide_unsigned_type) numberB ? numberA : (wide::wide_unsigned_type) numberB;
+        }
+        constexpr inline double number__maximum(float const numberA, double const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline float number__maximum(float const numberA, float const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline float number__maximum(float const numberA, int const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline double number__maximum(float const numberA, long const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline long double number__maximum(float const numberA, long double const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline float number__maximum(float const numberA, short const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline float number__maximum(float const numberA, unsigned int const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline double number__maximum(float const numberA, unsigned long const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline double number__maximum(float const numberA, unsigned short const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        inline long double number__maximum(float const numberA, wide const numberB) noexcept {
+            if ((wide::wide_signed_type) numberB < 0L) return numberA > (wide::wide_signed_type) numberB ? numberA : (wide::wide_signed_type) numberB;
+            else return numberA < (wide::wide_unsigned_type) numberB ? numberA : (wide::wide_unsigned_type) numberB;
+        }
+        constexpr inline double number__maximum(int const numberA, double const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline float number__maximum(int const numberA, float const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline int number__maximum(int const numberA, int const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline long number__maximum(int const numberA, long const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline long double number__maximum(int const numberA, long double const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline int number__maximum(int const numberA, short const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline long number__maximum(int const numberA, unsigned int const numberB) noexcept { return numberA < 0 ? numberB : ((unsigned int) numberA > numberB ? numberA : numberB); }
+        constexpr inline double number__maximum(int const numberA, unsigned long const numberB) noexcept { return numberA < 0 ? numberB : ((unsigned int) numberA > numberB ? numberA : numberB); }
+        constexpr inline long number__maximum(int const numberA, unsigned short const numberB) noexcept { return numberA < 0 ? numberB : ((unsigned int) numberA > numberB ? numberA : numberB); }
+        inline wide number__maximum(int const numberA, wide const numberB) noexcept {
+            if ((wide::wide_signed_type) numberB < 0L) return numberA > (wide::wide_signed_type) numberB ? numberA : (wide::wide_signed_type) numberB;
+            else return numberA < 0 ? (wide::wide_unsigned_type) numberB : ((unsigned int) numberA > (wide::wide_unsigned_type) numberB ? numberA : (wide::wide_unsigned_type) numberB);
+        }
+        constexpr inline double number__maximum(long const numberA, double const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline double number__maximum(long const numberA, float const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline long number__maximum(long const numberA, int const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline long number__maximum(long const numberA, long const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline long double number__maximum(long const numberA, long double const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline long number__maximum(long const numberA, short const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline double number__maximum(long const numberA, unsigned int const numberB) noexcept { return numberA < 0L ? numberB : ((unsigned long) numberA > numberB ? numberA : numberB); }
+        constexpr inline double number__maximum(long const numberA, unsigned long const numberB) noexcept { return numberA < 0L ? numberB : ((unsigned long) numberA > numberB ? numberA : numberB); }
+        constexpr inline double number__maximum(long const numberA, unsigned short const numberB) noexcept { return numberA < 0L ? numberB : ((unsigned long) numberA > numberB ? numberA : numberB); }
+        inline long double number__maximum(long const numberA, wide const numberB) noexcept {
+            if ((wide::wide_signed_type) numberB < 0L) return numberA > (wide::wide_signed_type) numberB ? numberA : (wide::wide_signed_type) numberB;
+            else return numberA < 0 ? (wide::wide_unsigned_type) numberB : ((unsigned long) numberA > (wide::wide_unsigned_type) numberB ? numberA : (wide::wide_unsigned_type) numberB);
+        }
+        constexpr inline long double number__maximum(long double const numberA, double const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline long double number__maximum(long double const numberA, float const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline long double number__maximum(long double const numberA, int const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline long double number__maximum(long double const numberA, long const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline long double number__maximum(long double const numberA, long double const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline long double number__maximum(long double const numberA, short const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline long double number__maximum(long double const numberA, unsigned int const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline long double number__maximum(long double const numberA, unsigned long const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline long double number__maximum(long double const numberA, unsigned short const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        inline long double number__maximum(long double const numberA, wide const numberB) noexcept {
+            if ((wide::wide_signed_type) numberB < 0L) return numberA > (wide::wide_signed_type) numberB ? numberA : (wide::wide_signed_type) numberB;
+            else return numberA < (wide::wide_unsigned_type) numberB ? numberA : (wide::wide_unsigned_type) numberB;
+        }
+        constexpr inline double number__maximum(short const numberA, double const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline float number__maximum(short const numberA, float const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline int number__maximum(short const numberA, int const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline long number__maximum(short const numberA, long const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline long double number__maximum(short const numberA, long double const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline short number__maximum(short const numberA, short const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline long number__maximum(short const numberA, unsigned int const numberB) noexcept { return numberA < 0 ? numberB : ((unsigned short) numberA > numberB ? numberA : numberB); }
+        constexpr inline double number__maximum(short const numberA, unsigned long const numberB) noexcept { return numberA < 0 ? numberB : ((unsigned short) numberA > numberB ? numberA : numberB); }
+        constexpr inline int number__maximum(short const numberA, unsigned short const numberB) noexcept { return numberA < 0 ? numberB : ((unsigned short) numberA > numberB ? numberA : numberB); }
+        inline long double number__maximum(short const numberA, wide const numberB) noexcept {
+            if ((wide::wide_signed_type) numberB < 0L) return numberA > (wide::wide_signed_type) numberB ? numberA : (wide::wide_signed_type) numberB;
+            else return numberA < 0 ? (wide::wide_unsigned_type) numberB : ((unsigned short) numberA > (wide::wide_unsigned_type) numberB ? numberA : (wide::wide_unsigned_type) numberB);
+        }
+        constexpr inline double number__maximum(unsigned int const numberA, double const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline float number__maximum(unsigned int const numberA, float const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline long number__maximum(unsigned int const numberA, int const numberB) noexcept { return numberB < 0 ? numberA : (numberA > (unsigned int) numberB ? numberA : numberB); }
+        constexpr inline long number__maximum(unsigned int const numberA, long const numberB) noexcept { return numberB < 0 ? numberA : (numberA > (unsigned int) numberB ? numberA : numberB); }
+        constexpr inline long double number__maximum(unsigned int const numberA, long double const numberB) noexcept { return numberB < 0 ? numberA : (numberA > (unsigned int) numberB ? numberA : numberB); }
+        constexpr inline long number__maximum(unsigned int const numberA, short const numberB) noexcept { return numberB < 0 ? numberA : (numberA > (unsigned int) numberB ? numberA : numberB); }
+        constexpr inline unsigned int number__maximum(unsigned int const numberA, unsigned int const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline unsigned long number__maximum(unsigned int const numberA, unsigned long const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline unsigned int number__maximum(unsigned int const numberA, unsigned short const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        inline wide number__maximum(unsigned int const numberA, wide const numberB) noexcept {
+            if ((wide::wide_signed_type) numberB < 0L) return (wide::wide_signed_type) numberB < 0L ? numberA : (numberA > (wide::wide_unsigned_type) numberB ? numberA : (wide::wide_signed_type) numberB);
+            else return numberA < (wide::wide_unsigned_type) numberB ? numberA : (wide::wide_unsigned_type) numberB;
+        }
+        constexpr inline double number__maximum(unsigned long const numberA, double const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline float number__maximum(unsigned long const numberA, float const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline double number__maximum(unsigned long const numberA, int const numberB) noexcept { return numberB < 0 ? numberA : (numberA > (unsigned long) numberB ? numberA : numberB); }
+        constexpr inline double number__maximum(unsigned long const numberA, long const numberB) noexcept { return numberB < 0 ? numberA : (numberA > (unsigned long) numberB ? numberA : numberB); }
+        constexpr inline long double number__maximum(unsigned long const numberA, long double const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline double number__maximum(unsigned long const numberA, short const numberB) noexcept { return numberB < 0 ? numberA : (numberA > (unsigned long) numberB ? numberA : numberB); }
+        constexpr inline double number__maximum(unsigned long const numberA, unsigned int const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline unsigned long number__maximum(unsigned long const numberA, unsigned long const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline unsigned long number__maximum(unsigned long const numberA, unsigned short const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        inline wide number__maximum(unsigned long const numberA, wide const numberB) noexcept {
+            if ((wide::wide_signed_type) numberB < 0L) return (wide::wide_signed_type) numberB < 0L ? numberA : (numberA > (wide::wide_unsigned_type) numberB ? numberA : (wide::wide_signed_type) numberB);
+            else return numberA < (wide::wide_unsigned_type) numberB ? numberA : (wide::wide_unsigned_type) numberB;
+        }
+        constexpr inline double number__maximum(unsigned short const numberA, double const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline float number__maximum(unsigned short const numberA, float const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline long number__maximum(unsigned short const numberA, int const numberB) noexcept { return numberB < 0 ? numberA : (numberA > (unsigned short) numberB ? numberA : numberB); }
+        constexpr inline long number__maximum(unsigned short const numberA, long const numberB) noexcept { return numberB < 0 ? numberA : (numberA > (unsigned short) numberB ? numberA : numberB); }
+        constexpr inline long double number__maximum(unsigned short const numberA, long double const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline int number__maximum(unsigned short const numberA, short const numberB) noexcept { return numberB < 0 ? numberA : (numberA > (unsigned short) numberB ? numberA : numberB); }
+        constexpr inline unsigned int number__maximum(unsigned short const numberA, unsigned int const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline unsigned long number__maximum(unsigned short const numberA, unsigned long const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        constexpr inline unsigned short number__maximum(unsigned short const numberA, unsigned short const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
+        inline wide number__maximum(unsigned short const numberA, wide const numberB) noexcept {
+            if ((wide::wide_signed_type) numberB < 0L) return (wide::wide_signed_type) numberB < 0L ? numberA : (numberA > (wide::wide_unsigned_type) numberB ? numberA : (wide::wide_signed_type) numberB);
+            else return numberA < (wide::wide_unsigned_type) numberB ? numberA : (wide::wide_unsigned_type) numberB;
+        }
+        inline long double number__maximum(wide const numberA, double const numberB) noexcept {
+            if ((wide::wide_signed_type) numberA < 0L) return ((wide::wide_signed_type) numberA) > numberB ? (wide::wide_signed_type) numberA : numberB;
+            else return ((wide::wide_unsigned_type) numberA) > numberB ? (wide::wide_unsigned_type) numberA : numberB;
+        }
+        inline long double number__maximum(wide const numberA, float const numberB) noexcept {
+            if ((wide::wide_signed_type) numberA < 0L) return ((wide::wide_signed_type) numberA) > numberB ? (wide::wide_signed_type) numberA : numberB;
+            else return ((wide::wide_unsigned_type) numberA) > numberB ? (wide::wide_unsigned_type) numberA : numberB;
+        }
+        inline wide number__maximum(wide const numberA, int const numberB) noexcept {
+            if ((wide::wide_signed_type) numberA < 0L) return ((wide::wide_signed_type) numberA) > numberB ? (wide::wide_signed_type) numberA : numberB;
+            else if (numberB < 0) return numberA;
+            else return ((wide::wide_unsigned_type) numberA) > (unsigned int) numberB ? (wide::wide_unsigned_type) numberA : numberB;
+        }
+        inline wide number__maximum(wide const numberA, long const numberB) noexcept {
+            if ((wide::wide_signed_type) numberA < 0L) return ((wide::wide_signed_type) numberA) > numberB ? (wide::wide_signed_type) numberA : numberB;
+            else if (numberB < 0L) return numberA;
+            else return ((wide::wide_unsigned_type) numberA) > (unsigned int) numberB ? (wide::wide_unsigned_type) numberA : numberB;
+        }
+        inline long double number__maximum(wide const numberA, long double const numberB) noexcept {
+            if ((wide::wide_signed_type) numberA < 0L) return ((wide::wide_signed_type) numberA) > numberB ? (wide::wide_signed_type) numberA : numberB;
+            else return ((wide::wide_unsigned_type) numberA) > numberB ? (wide::wide_unsigned_type) numberA : numberB;
+        }
+        inline wide number__maximum(wide const numberA, short const numberB) noexcept {
+            if ((wide::wide_signed_type) numberA < 0L) return ((wide::wide_signed_type) numberA) > numberB ? (wide::wide_signed_type) numberA : numberB;
+            else if (numberB < 0) return numberA;
+            else return ((wide::wide_unsigned_type) numberA) > (unsigned int) numberB ? (wide::wide_unsigned_type) numberA : numberB;
+        }
+        inline wide number__maximum(wide const numberA, unsigned int const numberB) noexcept {
+            if ((wide::wide_signed_type) numberA < 0L) return numberB;
+            else return ((wide::wide_unsigned_type) numberA) > numberB ? (wide::wide_unsigned_type) numberA : numberB;
+        }
+        inline wide number__maximum(wide const numberA, unsigned long const numberB) noexcept {
+            if ((wide::wide_signed_type) numberA < 0L) return numberB;
+            else return ((wide::wide_unsigned_type) numberA) > numberB ? (wide::wide_unsigned_type) numberA : numberB;
+        }
+        inline wide number__maximum(wide const numberA, unsigned short const numberB) noexcept {
+            if ((wide::wide_signed_type) numberA < 0L) return numberB;
+            else return ((wide::wide_unsigned_type) numberA) > numberB ? (wide::wide_unsigned_type) numberA : numberB;
+        }
+        inline wide number__maximum(wide const numberA, wide const numberB) noexcept {
+            if ((wide::wide_signed_type) numberA < 0L) {
+                if ((wide::wide_signed_type) numberB < 0L) return (wide::wide_signed_type) numberA > (wide::wide_signed_type) numberB ? numberA : numberB;
+                else return numberB;
+            }
+
+            else {
+                if ((wide::wide_signed_type) numberB < 0L) return numberA;
+                else return (wide::wide_unsigned_type) numberA > (wide::wide_unsigned_type) numberB ? numberA : numberB;
+            }
+        }
+
         // Minimum
-        // Power
+        constexpr inline double number__minimum(double const numberA, double const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline double number__minimum(double const numberA, float const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline double number__minimum(double const numberA, int const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline double number__minimum(double const numberA, long const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline long double number__minimum(double const numberA, long double const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline double number__minimum(double const numberA, short const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline double number__minimum(double const numberA, unsigned int const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline double number__minimum(double const numberA, unsigned long const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline double number__minimum(double const numberA, unsigned short const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        inline long double number__minimum(double const numberA, wide const numberB) noexcept {
+            if ((wide::wide_signed_type) numberB < 0L) return numberA < (wide::wide_signed_type) numberB ? numberA : (wide::wide_signed_type) numberB;
+            else return numberA < (wide::wide_unsigned_type) numberB ? numberA : (wide::wide_unsigned_type) numberB;
+        }
+        constexpr inline double number__minimum(float const numberA, double const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline float number__minimum(float const numberA, float const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline float number__minimum(float const numberA, int const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline double number__minimum(float const numberA, long const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline long double number__minimum(float const numberA, long double const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline float number__minimum(float const numberA, short const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline float number__minimum(float const numberA, unsigned int const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline double number__minimum(float const numberA, unsigned long const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline double number__minimum(float const numberA, unsigned short const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        inline long double number__minimum(float const numberA, wide const numberB) noexcept {
+            if ((wide::wide_signed_type) numberB < 0L) return numberA < (wide::wide_signed_type) numberB ? numberA : (wide::wide_signed_type) numberB;
+            else return numberA < (wide::wide_unsigned_type) numberB ? numberA : (wide::wide_unsigned_type) numberB;
+        }
+        constexpr inline double number__minimum(int const numberA, double const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline float number__minimum(int const numberA, float const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline int number__minimum(int const numberA, int const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline long number__minimum(int const numberA, long const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline long double number__minimum(int const numberA, long double const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline int number__minimum(int const numberA, short const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline long number__minimum(int const numberA, unsigned int const numberB) noexcept { return numberA < 0 ? numberB : ((unsigned int) numberA < numberB ? numberA : numberB); }
+        constexpr inline double number__minimum(int const numberA, unsigned long const numberB) noexcept { return numberA < 0 ? numberB : ((unsigned int) numberA < numberB ? numberA : numberB); }
+        constexpr inline long number__minimum(int const numberA, unsigned short const numberB) noexcept { return numberA < 0 ? numberB : ((unsigned int) numberA < numberB ? numberA : numberB); }
+        inline wide number__minimum(int const numberA, wide const numberB) noexcept {
+            if ((wide::wide_signed_type) numberB < 0L) return numberA < (wide::wide_signed_type) numberB ? numberA : (wide::wide_signed_type) numberB;
+            else return numberA < 0 ? (wide::wide_unsigned_type) numberB : ((unsigned int) numberA > (wide::wide_unsigned_type) numberB ? numberA : (wide::wide_unsigned_type) numberB);
+        }
+        constexpr inline double number__minimum(long const numberA, double const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline double number__minimum(long const numberA, float const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline long number__minimum(long const numberA, int const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline long number__minimum(long const numberA, long const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline long double number__minimum(long const numberA, long double const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline long number__minimum(long const numberA, short const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline double number__minimum(long const numberA, unsigned int const numberB) noexcept { return numberA < 0L ? numberB : ((unsigned long) numberA < numberB ? numberA : numberB); }
+        constexpr inline double number__minimum(long const numberA, unsigned long const numberB) noexcept { return numberA < 0L ? numberB : ((unsigned long) numberA < numberB ? numberA : numberB); }
+        constexpr inline double number__minimum(long const numberA, unsigned short const numberB) noexcept { return numberA < 0L ? numberB : ((unsigned long) numberA < numberB ? numberA : numberB); }
+        inline long double number__minimum(long const numberA, wide const numberB) noexcept {
+            if ((wide::wide_signed_type) numberB < 0L) return numberA < (wide::wide_signed_type) numberB ? numberA : (wide::wide_signed_type) numberB;
+            else return numberA < 0 ? (wide::wide_unsigned_type) numberB : ((unsigned long) numberA > (wide::wide_unsigned_type) numberB ? numberA : (wide::wide_unsigned_type) numberB);
+        }
+        constexpr inline long double number__minimum(long double const numberA, double const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline long double number__minimum(long double const numberA, float const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline long double number__minimum(long double const numberA, int const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline long double number__minimum(long double const numberA, long const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline long double number__minimum(long double const numberA, long double const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline long double number__minimum(long double const numberA, short const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline long double number__minimum(long double const numberA, unsigned int const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline long double number__minimum(long double const numberA, unsigned long const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline long double number__minimum(long double const numberA, unsigned short const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        inline long double number__minimum(long double const numberA, wide const numberB) noexcept {
+            if ((wide::wide_signed_type) numberB < 0L) return numberA < (wide::wide_signed_type) numberB ? numberA : (wide::wide_signed_type) numberB;
+            else return numberA < (wide::wide_unsigned_type) numberB ? numberA : (wide::wide_unsigned_type) numberB;
+        }
+        constexpr inline double number__minimum(short const numberA, double const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline float number__minimum(short const numberA, float const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline int number__minimum(short const numberA, int const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline long number__minimum(short const numberA, long const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline long double number__minimum(short const numberA, long double const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline short number__minimum(short const numberA, short const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline long number__minimum(short const numberA, unsigned int const numberB) noexcept { return numberA < 0 ? numberB : ((unsigned short) numberA < numberB ? numberA : numberB); }
+        constexpr inline double number__minimum(short const numberA, unsigned long const numberB) noexcept { return numberA < 0 ? numberB : ((unsigned short) numberA < numberB ? numberA : numberB); }
+        constexpr inline int number__minimum(short const numberA, unsigned short const numberB) noexcept { return numberA < 0 ? numberB : ((unsigned short) numberA < numberB ? numberA : numberB); }
+        inline long double number__minimum(short const numberA, wide const numberB) noexcept {
+            if ((wide::wide_signed_type) numberB < 0L) return numberA < (wide::wide_signed_type) numberB ? numberA : (wide::wide_signed_type) numberB;
+            else return numberA < 0 ? (wide::wide_unsigned_type) numberB : ((unsigned short) numberA > (wide::wide_unsigned_type) numberB ? numberA : (wide::wide_unsigned_type) numberB);
+        }
+        constexpr inline double number__minimum(unsigned int const numberA, double const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline float number__minimum(unsigned int const numberA, float const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline long number__minimum(unsigned int const numberA, int const numberB) noexcept { return numberB < 0 ? numberA : (numberA > (unsigned int) numberB ? numberA : numberB); }
+        constexpr inline long number__minimum(unsigned int const numberA, long const numberB) noexcept { return numberB < 0 ? numberA : (numberA > (unsigned int) numberB ? numberA : numberB); }
+        constexpr inline long double number__minimum(unsigned int const numberA, long double const numberB) noexcept { return numberB < 0 ? numberA : (numberA > (unsigned int) numberB ? numberA : numberB); }
+        constexpr inline long number__minimum(unsigned int const numberA, short const numberB) noexcept { return numberB < 0 ? numberA : (numberA > (unsigned int) numberB ? numberA : numberB); }
+        constexpr inline unsigned int number__minimum(unsigned int const numberA, unsigned int const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline unsigned long number__minimum(unsigned int const numberA, unsigned long const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline unsigned int number__minimum(unsigned int const numberA, unsigned short const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        inline wide number__minimum(unsigned int const numberA, wide const numberB) noexcept {
+            if ((wide::wide_signed_type) numberB < 0L) return (wide::wide_signed_type) numberB < 0L ? numberA : (numberA > (wide::wide_unsigned_type) numberB ? numberA : (wide::wide_signed_type) numberB);
+            else return numberA < (wide::wide_unsigned_type) numberB ? numberA : (wide::wide_unsigned_type) numberB;
+        }
+        constexpr inline double number__minimum(unsigned long const numberA, double const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline float number__minimum(unsigned long const numberA, float const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline double number__minimum(unsigned long const numberA, int const numberB) noexcept { return numberB < 0 ? numberA : (numberA > (unsigned long) numberB ? numberA : numberB); }
+        constexpr inline double number__minimum(unsigned long const numberA, long const numberB) noexcept { return numberB < 0 ? numberA : (numberA > (unsigned long) numberB ? numberA : numberB); }
+        constexpr inline long double number__minimum(unsigned long const numberA, long double const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline double number__minimum(unsigned long const numberA, short const numberB) noexcept { return numberB < 0 ? numberA : (numberA > (unsigned long) numberB ? numberA : numberB); }
+        constexpr inline double number__minimum(unsigned long const numberA, unsigned int const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline unsigned long number__minimum(unsigned long const numberA, unsigned long const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline unsigned long number__minimum(unsigned long const numberA, unsigned short const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        inline wide number__minimum(unsigned long const numberA, wide const numberB) noexcept {
+            if ((wide::wide_signed_type) numberB < 0L) return (wide::wide_signed_type) numberB < 0L ? numberA : (numberA > (wide::wide_unsigned_type) numberB ? numberA : (wide::wide_signed_type) numberB);
+            else return numberA < (wide::wide_unsigned_type) numberB ? numberA : (wide::wide_unsigned_type) numberB;
+        }
+        constexpr inline double number__minimum(unsigned short const numberA, double const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline float number__minimum(unsigned short const numberA, float const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline long number__minimum(unsigned short const numberA, int const numberB) noexcept { return numberB < 0 ? numberA : (numberA > (unsigned short) numberB ? numberA : numberB); }
+        constexpr inline long number__minimum(unsigned short const numberA, long const numberB) noexcept { return numberB < 0 ? numberA : (numberA > (unsigned short) numberB ? numberA : numberB); }
+        constexpr inline long double number__minimum(unsigned short const numberA, long double const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline int number__minimum(unsigned short const numberA, short const numberB) noexcept { return numberB < 0 ? numberA : (numberA > (unsigned short) numberB ? numberA : numberB); }
+        constexpr inline unsigned int number__minimum(unsigned short const numberA, unsigned int const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline unsigned long number__minimum(unsigned short const numberA, unsigned long const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        constexpr inline unsigned short number__minimum(unsigned short const numberA, unsigned short const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
+        inline wide number__minimum(unsigned short const numberA, wide const numberB) noexcept {
+            if ((wide::wide_signed_type) numberB < 0L) return (wide::wide_signed_type) numberB < 0L ? numberA : (numberA > (wide::wide_unsigned_type) numberB ? numberA : (wide::wide_signed_type) numberB);
+            else return numberA < (wide::wide_unsigned_type) numberB ? numberA : (wide::wide_unsigned_type) numberB;
+        }
+        inline long double number__minimum(wide const numberA, double const numberB) noexcept {
+            if ((wide::wide_signed_type) numberA < 0L) return ((wide::wide_signed_type) numberA) < numberB ? (wide::wide_signed_type) numberA : numberB;
+            else return ((wide::wide_unsigned_type) numberA) < numberB ? (wide::wide_unsigned_type) numberA : numberB;
+        }
+        inline long double number__minimum(wide const numberA, float const numberB) noexcept {
+            if ((wide::wide_signed_type) numberA < 0L) return ((wide::wide_signed_type) numberA) < numberB ? (wide::wide_signed_type) numberA : numberB;
+            else return ((wide::wide_unsigned_type) numberA) < numberB ? (wide::wide_unsigned_type) numberA : numberB;
+        }
+        inline wide number__minimum(wide const numberA, int const numberB) noexcept {
+            if ((wide::wide_signed_type) numberA < 0L) return ((wide::wide_signed_type) numberA) < numberB ? (wide::wide_signed_type) numberA : numberB;
+            else if (numberB < 0) return numberA;
+            else return ((wide::wide_unsigned_type) numberA) < (unsigned int) numberB ? (wide::wide_unsigned_type) numberA : numberB;
+        }
+        inline wide number__minimum(wide const numberA, long const numberB) noexcept {
+            if ((wide::wide_signed_type) numberA < 0L) return ((wide::wide_signed_type) numberA) < numberB ? (wide::wide_signed_type) numberA : numberB;
+            else if (numberB < 0L) return numberA;
+            else return ((wide::wide_unsigned_type) numberA) < (unsigned int) numberB ? (wide::wide_unsigned_type) numberA : numberB;
+        }
+        inline long double number__minimum(wide const numberA, long double const numberB) noexcept {
+            if ((wide::wide_signed_type) numberA < 0L) return ((wide::wide_signed_type) numberA) < numberB ? (wide::wide_signed_type) numberA : numberB;
+            else return ((wide::wide_unsigned_type) numberA) < numberB ? (wide::wide_unsigned_type) numberA : numberB;
+        }
+        inline wide number__minimum(wide const numberA, short const numberB) noexcept {
+            if ((wide::wide_signed_type) numberA < 0L) return ((wide::wide_signed_type) numberA) < numberB ? (wide::wide_signed_type) numberA : numberB;
+            else if (numberB < 0) return numberA;
+            else return ((wide::wide_unsigned_type) numberA) < (unsigned int) numberB ? (wide::wide_unsigned_type) numberA : numberB;
+        }
+        inline wide number__minimum(wide const numberA, unsigned int const numberB) noexcept {
+            if ((wide::wide_signed_type) numberA < 0L) return numberB;
+            else return ((wide::wide_unsigned_type) numberA) < numberB ? (wide::wide_unsigned_type) numberA : numberB;
+        }
+        inline wide number__minimum(wide const numberA, unsigned long const numberB) noexcept {
+            if ((wide::wide_signed_type) numberA < 0L) return numberB;
+            else return ((wide::wide_unsigned_type) numberA) < numberB ? (wide::wide_unsigned_type) numberA : numberB;
+        }
+        inline wide number__minimum(wide const numberA, unsigned short const numberB) noexcept {
+            if ((wide::wide_signed_type) numberA < 0L) return numberB;
+            else return ((wide::wide_unsigned_type) numberA) < numberB ? (wide::wide_unsigned_type) numberA : numberB;
+        }
+        inline wide number__minimum(wide const numberA, wide const numberB) noexcept {
+            if ((wide::wide_signed_type) numberA < 0L) {
+                if ((wide::wide_signed_type) numberB < 0L) return (wide::wide_signed_type) numberA < (wide::wide_signed_type) numberB ? numberA : numberB;
+                else return numberB;
+            }
+
+            else {
+                if ((wide::wide_signed_type) numberB < 0L) return numberA;
+                else return (wide::wide_unsigned_type) numberA > (wide::wide_unsigned_type) numberB ? numberA : numberB;
+            }
+        }
+
         // Random
         // Round
         // Root
+
         // Sine
+        constexpr inline double number__sine(double const number) { return ::sin(number); }
+        constexpr inline float number__sine(float const number) {
+            #if c__version >= 1990uL
+                return ::sinf(number);
+            #elif cpp__version >= 1997uL
+                return ::sin(number);
+            #else
+                return number__sine((double) number);
+            #endif
+        }
+        constexpr inline float number__sine(int const number) {
+            #if cpp__version >= 2011uL
+                return ::sin(number);
+            #else
+                return number__sine((float) number);
+            #endif
+        }
+        constexpr inline double number__sine(long const number) {
+            #if cpp__version >= 2011uL
+                return ::sin(number);
+            #else
+                return number__sine((double) number);
+            #endif
+        }
+        inline long double number__sine(long double const number) {
+            #if c__version >= 1990uL
+                return ::sinl(number);
+            #elif c__version
+                if (number > DBL_MAX) return number__arc_tangent(number - DBL_MAX);
+                else return number__arc_tangent((double) number);
+            #elif cpp__version >= 1997uL
+                return ::sin(number);
+            #endif
+        }
+        constexpr inline float number__sine(short const number) {
+            #if cpp__version >= 2011uL
+                return ::sin(number);
+            #else
+                return number__sine((float) number);
+            #endif
+        }
+        constexpr inline float number__sine(unsigned int const number) {
+            #if cpp__version >= 2011uL
+                return ::sin(number);
+            #else
+                return number__sine((float) number);
+            #endif
+        }
+        constexpr inline double number__sine(unsigned long const number) {
+            #if cpp__version >= 2011uL
+                return ::sin(number);
+            #else
+                return number__sine((double) number);
+            #endif
+        }
+        constexpr inline float number__sine(unsigned short const number) {
+            #if cpp__version >= 2011uL
+                return ::sin(number);
+            #else
+                return number__sine((float) number);
+            #endif
+        }
+        inline long double number__sine(wide const number) {
+            #if cpp__version >= 2011uL
+                if ((wide::wide_signed_type) number < 0L) return ::sin((wide::wide_signed_type) number);
+                else return ::sin((wide::wide_unsigned_type) number);
+            #else
+                if ((wide::wide_signed_type) number < 0L) return number__sine((long double) (wide::wide_signed_type) number);
+                else return number__sine((long double) (wide::wide_unsigned_type) number);
+            #endif
+        }
+
         // Tangent
+        constexpr inline double number__tangent(double const number) { return ::tan(number); }
+        constexpr inline float number__tangent(float const number) {
+            #if c__version >= 1990uL
+                return ::tanf(number);
+            #elif cpp__version >= 1997uL
+                return ::tan(number);
+            #else
+                return number__tangent((double) number);
+            #endif
+        }
+        constexpr inline float number__tangent(int const number) {
+            #if cpp__version >= 2011uL
+                return ::tan(number);
+            #else
+                return number__tangent((float) number);
+            #endif
+        }
+        constexpr inline double number__tangent(long const number) {
+            #if cpp__version >= 2011uL
+                return ::tan(number);
+            #else
+                return number__tangent((double) number);
+            #endif
+        }
+        inline long double number__tangent(long double const number) {
+            #if c__version >= 1990uL
+                return ::tanl(number);
+            #elif c__version
+                if (number > DBL_MAX) return number__arc_tangent(number - DBL_MAX);
+                else return number__arc_tangent((double) number);
+            #elif cpp__version >= 1997uL
+                return ::tan(number);
+            #endif
+        }
+        constexpr inline float number__tangent(short const number) {
+            #if cpp__version >= 2011uL
+                return ::tan(number);
+            #else
+                return number__tangent((float) number);
+            #endif
+        }
+        constexpr inline float number__tangent(unsigned int const number) {
+            #if cpp__version >= 2011uL
+                return ::tan(number);
+            #else
+                return number__tangent((float) number);
+            #endif
+        }
+        constexpr inline double number__tangent(unsigned long const number) {
+            #if cpp__version >= 2011uL
+                return ::tan(number);
+            #else
+                return number__tangent((double) number);
+            #endif
+        }
+        constexpr inline float number__tangent(unsigned short const number) {
+            #if cpp__version >= 2011uL
+                return ::tan(number);
+            #else
+                return number__tangent((float) number);
+            #endif
+        }
+        inline long double number__tangent(wide const number) {
+            #if cpp__version >= 2011uL
+                if ((wide::wide_signed_type) number < 0L) return ::tan((wide::wide_signed_type) number);
+                else return ::tan((wide::wide_unsigned_type) number);
+            #else
+                if ((wide::wide_signed_type) number < 0L) return number__tangent((long double) (wide::wide_signed_type) number);
+                else return number__tangent((long double) (wide::wide_unsigned_type) number);
+            #endif
+        }
 
     /* Pointer */
         // Allocate Heap Memory
@@ -1345,4 +3555,4 @@
         inline wide wide::operator --(int const) noexcept { (this -> value)--; return *this; }
         inline wide& wide::operator --(void) noexcept { --(this -> value); return *this; }
 
-        inline wide::operator wide_unsigned_type(void) const noexcept { return this -> value; }
+        constexpr inline wide::operator wide_unsigned_type(void) const noexcept { return this -> value; }
