@@ -172,11 +172,11 @@
                 constexpr inline LapysDevelopmentKit::Types::boolean number__is_unsafe(const LapysDevelopmentKit::Types::size);
                 void number__to_string(...);
                 // x is NaN if and only if x != x.
-// x is NaN or an infinity if and only if x - x != 0.
-// x is a zero or an infinity if and only if x + x == x.
-// x is a zero if and only if x == 0.
-// If FLT_EVAL_METHOD is 0 or 1, then x is an infinity if and only if x + DBL_MAX == x.
-// x is positive infinity if and only if x + infinity == x.
+                // x is NaN or an infinity if and only if x - x != 0.
+                // x is a zero or an infinity if and only if x + x == x.
+                // x is a zero if and only if x == 0.
+                // If FLT_EVAL_METHOD is 0 or 1, then x is an infinity if and only if x + DBL_MAX == x.
+                // x is positive infinity if and only if x + infinity == x.
 
                 constexpr inline LapysDevelopmentKit::Types::null_pointer& pointer__allocate_memory(LapysDevelopmentKit::Types::null_pointer&);
                 constexpr inline LapysDevelopmentKit::Types::null_pointer& pointer__allocate_memory(LapysDevelopmentKit::Types::null_pointer&&);

@@ -85,7 +85,7 @@
     /* Wide --- NOTE (Lapys) -> Alias for the largest C++ primitive integral type; Allowed niladic constructor. --- WARN (Lapys) -> Defers value without sign. */
     struct wide {
         // [...]
-        private:
+        public:
             // Definition > (..., Value)
             #if defined(__cplusplus) && __cplusplus <= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900) // C++ 2011, ISO/IEC 14882:2011
                 typedef signed long long wide_signed_type;
@@ -94,6 +94,9 @@
                 typedef signed long wide_signed_type;
                 typedef unsigned long wide_unsigned_type;
             #endif
+
+        // [...]
+        private:
             wide_unsigned_type value;
 
         // [...]
@@ -395,6 +398,20 @@
             inline string& operator =(string&&) noexcept;
             inline string& operator =(string const&) noexcept;
             inline string& operator =(string const&&) noexcept;
+            template <size_t length> inline string& operator =(char (&)[length]) noexcept;
+            template <size_t length> inline string& operator =(char const (&)[length]) noexcept;
+            template <size_t length> inline string& operator =(char8_t (&)[length]) noexcept;
+            template <size_t length> inline string& operator =(char8_t const (&)[length]) noexcept;
+            template <size_t length> inline string& operator =(char16_t (&)[length]) noexcept;
+            template <size_t length> inline string& operator =(char16_t const (&)[length]) noexcept;
+            template <size_t length> inline string& operator =(char32_t (&)[length]) noexcept;
+            template <size_t length> inline string& operator =(char32_t const (&)[length]) noexcept;
+            template <size_t length> inline string& operator =(signed char (&)[length]) noexcept;
+            template <size_t length> inline string& operator =(signed char const (&)[length]) noexcept;
+            template <size_t length> inline string& operator =(unsigned char (&)[length]) noexcept;
+            template <size_t length> inline string& operator =(unsigned char const (&)[length]) noexcept;
+            template <size_t length> inline string& operator =(wchar_t (&)[length]) noexcept;
+            template <size_t length> inline string& operator =(wchar_t const (&)[length]) noexcept;
 
             inline operator char*(void) const noexcept;
             inline operator char const*(void) const noexcept;
@@ -462,52 +479,331 @@
         // Source Copy --- WARN (Lapys) -> Assumes the array is heap-allocated.
         void array__source_copy(void) noexcept {}
 
+        // Zero
+        template <size_t> void array__zero(void* const) noexcept;
+        template <size_t> void array__zero(void const* const) noexcept;
+        template <size_t length, typename type> inline void array__zero(type* const array) noexcept { pointer__zero_memory(array, length * sizeof(type)); }
+        template <size_t length, typename type> inline void array__zero(type (&array)[length]) noexcept { pointer__zero_memory(array, length * sizeof(type)); }
+
     /* Number */
-        // Is Computable --- NOTE (Lapys) -> Is `NaN`.
-        void number__is_computable(void) noexcept {}
+        // Absolute
+        constexpr inline double number__absolute(double const number) noexcept { return ::fabs(number); }
+        constexpr inline float number__absolute(float const number) noexcept {
+            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+                return ::fabsf(number);
+            #else
+                return ::fabs(number);
+            #endif
+        }
+        constexpr inline int number__absolute(int const number) noexcept { return ::abs(number); }
+        inline long number__absolute(long const number) noexcept {
+            #if defined(__cplusplus) && __cplusplus >= 199711L
+                return ::abs(number);
+            #else
+                return number < 0L ? -number : number;
+            #endif
+        }
+        constexpr inline long double number__absolute(long double const number) noexcept {
+            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+                return ::fabsl(number);
+            #else
+                return ::fabs(number);
+            #endif
+        }
+        constexpr inline short number__absolute(short const number) noexcept { return number < 0 ? -number : number; }
+        constexpr inline unsigned int number__absolute(unsigned int const number) noexcept { return number; }
+        constexpr inline unsigned long number__absolute(unsigned long const number) noexcept { return number; }
+        constexpr inline unsigned short number__absolute(unsigned short const number) noexcept { return number; }
+        inline wide number__absolute(wide const number) noexcept {
+            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+                return ::abs((wide::wide_signed_type) number);
+            #else
+                if (((wide::wide_signed_type) number) < 0) return -((wide::wide_signed_type) number);
+                else return number;
+            #endif
+        }
+
+        // Arc Cosine
+        constexpr inline double number__arc_cosine(double const number) noexcept { return ::acos(number); }
+        constexpr inline float number__arc_cosine(float const number) noexcept {
+            #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+                return ::acosf(number);
+            #elif defined(__STDC__)
+                return number__arc_cosine((double) number);
+            #else
+                return ::acos(number);
+            #endif
+        }
+        constexpr inline int number__arc_cosine(int const number) noexcept {
+            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+                return ::acos(number);
+            #else
+                return number__arc_cosine((float) number);
+            #endif
+        }
+        constexpr inline long number__arc_cosine(long const number) noexcept {
+            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+                return ::acos(number);
+            #else
+                return number__arc_cosine((double) number);
+            #endif
+        }
+        constexpr inline long double number__arc_cosine(long double const number) noexcept {
+            #if defined(__STDC_VERSION__) && __STDC_VERSION__ <= 199901L
+                return ::acosl(number);
+            #elif defined(__STDC__)
+                if (number > DBL_MAX) return number__arc_cosine(number - DBL_MAX);
+                else return number__arc_cosine((double) number);
+            #else
+                return ::acos(number);
+            #endif
+        }
+        constexpr inline short number__arc_cosine(short const number) noexcept {
+            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+                return ::acos(number);
+            #else
+                return number__arc_cosine((float) number);
+            #endif
+        }
+        constexpr inline unsigned int number__arc_cosine(unsigned int const number) noexcept {
+            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+                return ::acos(number);
+            #else
+                return number__arc_cosine((float) number);
+            #endif
+        }
+        constexpr inline unsigned long number__arc_cosine(unsigned long const number) noexcept {
+            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+                return ::acos(number);
+            #else
+                return number__arc_cosine((double) number);
+            #endif
+        }
+        constexpr inline unsigned short number__arc_cosine(unsigned short const number) noexcept {
+            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+                return ::acos(number);
+            #else
+                return number__arc_cosine((float) number);
+            #endif
+        }
+        inline wide number__arc_cosine(wide const number) noexcept {
+            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+                if ((wide::wide_signed_type) number < 0L) return ::acos((wide::wide_signed_type) number);
+                else return ::acos((wide::wide_unsigned_type) number);
+            #else
+                if ((wide::wide_signed_type) number < 0L) return number__arc_cosine((long double) (wide::wide_signed_type) number);
+                else return number__arc_cosine((long double) (wide::wide_unsigned_type) number);
+            #endif
+        }
+
+        // Arc Sine
+        // Arc Tangent
+        // Ceiling
+        // Cosine
+        // Exponentiate
+        // Floor
+        // Hyperbolic Arc Cosine
+        // Hyperbolic Arc Sine
+        // Hyperbolic Arc Tangent
+        // Hyperbolic Cosine
+        // Hyperbolic Sine
+        // Hyperbolic Tangent
+        // Is Computable --- NOTE (Lapys) -> Is not `NaN`.
+        constexpr inline bool number__is_computable(double const number) noexcept {
+            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+                return ::isnan(number);
+            #else
+                return isnan(number);
+            #endif
+        }
+        constexpr inline bool number__is_computable(float const number) noexcept {
+            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+                return ::isnan(number);
+            #else
+                return isnan(number);
+            #endif
+        }
+        constexpr inline bool number__is_computable(int const) noexcept { return true; }
+        constexpr inline bool number__is_computable(long const) noexcept { return true; }
+        constexpr inline bool number__is_computable(long double const number) noexcept {
+            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+                return ::isnan(number);
+            #else
+                return isnan(number);
+            #endif
+        }
+        constexpr inline bool number__is_computable(short const) noexcept { return true; }
+        constexpr inline bool number__is_computable(unsigned int const) noexcept { return true; }
+        constexpr inline bool number__is_computable(unsigned long const) noexcept { return true; }
+        constexpr inline bool number__is_computable(unsigned short const) noexcept { return true; }
+        constexpr inline bool number__is_computable(wide const) noexcept { return true; }
 
         // Is Determinate
-        void number__is_determinate(void) noexcept {}
+        inline bool number__is_determinate(double const number) noexcept {
+            // Constant > ...
+            static unsigned long const indeterminateBitRepresentation[2] = {0x00000000, 0xFFF80000}; // NOTE (Lapys) -> IEEE-754 hexadecimal form.
+            static double const indeterminate = *((double const*) indeterminateBitRepresentation);
+
+            // Return
+            return number == number && ::memcmp(&number, &indeterminate, sizeof(double));
+        }
+        inline bool number__is_determinate(float const number) noexcept { return number__is_determinate((double) number); }
+        inline bool
+        inline bool number__is_determinate(long double const number) noexcept { if (number > DBL_MAX) return number__is_determinate(number - DBL_MAX); else return number__is_determinate((double) number); }
 
         // Is Finite
-        void number__is_finite(void) noexcept {}
+        inline bool number__is_finite(double const number) noexcept {
+            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+                return ::isfinite(number);
+            #else
+                return isfinite(number);
+            #endif
+        }
+        inline bool number__is_finite(float const number) noexcept {
+            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+                return ::isfinite(number);
+            #else
+                return isfinite(number);
+            #endif
+        }
+        inline bool number__is_finite(long double const number) noexcept {
+            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+                return ::isfinite(number);
+            #else
+                return isfinite(number);
+            #endif
+        }
+
+        // Is Infinite --- NOTE (Lapys) -> Defined only because `isinf` is a standard-defined function.
+        constexpr inline bool number__is_infinite(double const number) noexcept {
+            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+                return ::isinf(number);
+            #else
+                return isinf(number);
+            #endif
+        }
+        constexpr inline bool number__is_infinite(float const number) noexcept {
+            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+                return ::isinf(number);
+            #else
+                return isinf(number);
+            #endif
+        }
+        constexpr inline bool number__is_infinite(long double const number) noexcept {
+            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+                return ::isinf(number);
+            #else
+                return isinf(number);
+            #endif
+        }
 
         // Is Normalized
-        void number__is_normalized(void) noexcept {}
+        inline bool number__is_normalized(double const number) noexcept {
+            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+                return ::isnormal(number);
+            #else
+                return isnormal(number);
+            #endif
+        }
+        inline bool number__is_normalized(float const number) noexcept {
+            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+                return ::isnormal(number);
+            #else
+                return isnormal(number);
+            #endif
+        }
+        inline bool number__is_normalized(long double const number) noexcept {
+            #if (defined(__cplusplus) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+                return ::isnormal(number);
+            #else
+                return isnormal(number);
+            #endif
+        }
+
+        // Is Safe --- NOTE (Lapys) -> Is computable, determinate, finite and normalized.
+        inline bool number__is_safe(double const number) noexcept { return number__is_computable(number) && number__is_determinate(number) && number__is_finite(number) && number__is_normalized(number); }
+
+        // Logarithm
+        // Maximum
+        // Minimum
+        // Power
+        // Random
+        // Round
+        // Root
+        // Sine
+        // Tangent
 
     /* Pointer */
         // Allocate Heap Memory
-        struct pointer__allocate_heap_memory { private: void *value; public:
-            constexpr inline pointer__allocate_heap_memory(size_t const size) : value{::malloc(size)} {}
-            template <typename type> inline operator type*(void) noexcept { return (type*) (this -> value); }
+        struct pointer__allocate_heap_memory { private: void * const value; public:
+            inline pointer__allocate_heap_memory(size_t const size) : value{
+                #if environment__is_windows
+                    ::HeapAlloc(::GetProcessHeap(), 0x0, size)
+                #else
+                    ::malloc(size)
+                #endif
+            } {}
+            template <typename type> inline operator type*(void) const noexcept { return (type*) (this -> value); }
         };
 
-        // Allocate Stack Memory
-        void pointer__allocate_stack_memory(void) noexcept {}
+        // Allocate Stack Memory --- WARN (Lapys) -> Allocated memory is freed once the function returns.
+        struct pointer__allocate_stack_memory { private: void * const value; public:
+            constexpr inline pointer__allocate_stack_memory(size_t const size) : value{
+                #if environment__is_linux
+                    ::alloca(size)
+                #elif environment__is_windows
+                    ::_alloca(size)
+                #endif
+            } {}
+            template <typename type> inline operator type*(void) const noexcept { return (type*) (this -> value); }
+        };
 
         // Free Heap Memory
-        template <typename type> inline void pointer__free_heap_memory(type* const pointer) noexcept { ::free(pointer); }
+        template <typename type> inline void pointer__free_heap_memory(type* const pointer) noexcept {
+            #if environment__is_windows
+                ::HeapFree(::GetProcessHeap(), 0x0, (void*) pointer);
+            #else
+                ::free((void*) pointer);
+            #endif
+        }
 
-        // Free Stack Memory
-        void pointer__free_stack_memory(void) noexcept {}
+        // Free Stack Memory --- NOTE (Lapys) -> Passes onto the `_free` function.
+        template <typename type> constexpr inline void pointer__free_stack_memory(type* const) noexcept {}
 
-        // Map Heap Memory
-        void pointer__map_heap_memory(void) noexcept {}
+        // Map Heap Memory --- REDACT (Lapys)
+        struct pointer__map_heap_memory { private: void *value; public:
+            template <typename type> inline pointer__map_heap_memory(type* const pointer, size_t const size) : value{NULL} {
+                #if environment__is_linux
+                    int const descriptor = ::open(::tmpnam(NULL), O_CREAT | O_RDWR);
+
+                    if (-1 == descriptor) this -> value = ::mmap(0, size, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+                    else { this -> value = ::mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE, descriptor, 0); ::close(descriptor); }
+
+                    if (MAP_FAILED == this -> value) this -> value = NULL;
+                #elif environment__is_windows
+                    ::VirtualAllocEx(::GetCurrentProcess(), NULL, size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+                #endif
+            }
+            template <typename type> inline operator type*(void) const noexcept { return (type*) (this -> value); }
+        };
 
         // Reallocate Heap Memory
-        struct pointer__reallocate_heap_memory {
-            public:
-                inline pointer__reallocate_heap_memory& operator ()(size_t const size) { this -> size = size; return *this; }
-                friend type* operator =(type*& pointer, pointer__reallocate_heap_memory& function) noexcept {
-                    pointer = (type*) ::realloc((void*) pointer, function.size);
-                    return pointer;
-                }
+        struct pointer__reallocate_heap_memory { private: void * const value; public:
+            template <typename type> constexpr inline pointer__reallocate_heap_memory(type* const pointer, size_t const size) : value{
+                #if environment__is_windows
+                    ::HeapReAlloc(::GetProcessHeap(), 0x0, (void*) pointer, size)
+                #else
+                    ::realloc((void*) pointer, size)
+                #endif
+            } {}
+            template <typename type> inline operator type*(void) const noexcept { return (type*) (this -> value); }
+        };
 
-            template <typename type> inline operator type*(void) noexcept { return NULL == this -> currentValue || this -> currentValue == this -> recentValue ? NULL : this -> currentValue; }
-        } pointer__reallocate_heap_memory;
-
-        // Reallocate Stack Memory
-        void pointer__reallocate_stack_memory(void) noexcept {}
+        // Reallocate Stack Memory --- REDACT (Lapys) --- WARN (Lapys) -> Allocated memory is freed once the function returns.
+        struct pointer__reallocate_stack_memory { public:
+            template <typename type> constexpr inline pointer__reallocate_stack_memory(type* const, size_t const) {}
+            template <typename type> inline operator type*(void) const noexcept { return NULL; }
+        };
 
         // Source Copy
         template <typename type> inline void pointer__source_copy_memory(type* const source, type* const pointer, size_t const size) noexcept { ::memmove((void*) source, (void*) pointer, size); }
@@ -516,10 +812,17 @@
         template <typename type> inline void pointer__source_move_memory(type* const source, type* const pointer, size_t const size) noexcept { ::memcpy((void*) source, (void*) pointer, size); }
 
         // Unmap Heap Memory
-        void pointer__unmap_heap_memory(void) noexcept {}
+        template <typename type>
+        inline void pointer__unmap_heap_memory(type* const pointer, size_t const size) noexcept {
+            #if environment__is_linux
+                ::munmap((void*) pointer, size);
+            #elif environment__is_windows
+                ::VirtualFree((void*) pointer, size, MEM_RELEASE);
+            #endif
+        }
 
         // Zero Memory
-        void pointer__zero_memory(void) noexcept {}
+        template <typename type> inline void pointer__zero_memory(type* const pointer, size_t const size) noexcept { ::memset((void*) pointer, 0u, size); }
 
     /* String */
         // Concatenate --- NOTE (Lapys) -> Allocates memory onto the heap.
@@ -549,21 +852,65 @@
         // Index From Front
         void string__index_from_front(void) noexcept {}
 
-        // Length --- NOTE (Lapys) -> Counts the characters until a null-terminal is reached.
+        // Is Empty
+        inline bool string__is_empty(char* const string) noexcept { return NULL == string || '\0' == *string; }
+        inline bool string__is_empty(char const* const string) noexcept { return NULL == string || '\0' == *string; }
+        template <size_t length> inline bool string__is_empty(char (&string)[length]) noexcept { return length && '\0' == *string; }
+        template <size_t length> inline bool string__is_empty(char const (&string)[length]) noexcept { return length && '\0' == *string; }
+        inline bool string__is_empty(char8_t* const string) noexcept { return NULL == string || 0u == *string; }
+        inline bool string__is_empty(char8_t const* const string) noexcept { return NULL == string || 0u == *string; }
+        template <size_t length> inline bool string__is_empty(char8_t (&string)[length]) noexcept { return length && 0u == *string; }
+        template <size_t length> inline bool string__is_empty(char8_t const (&string)[length]) noexcept { return length && 0u == *string; }
+        inline bool string__is_empty(char16_t* const string) noexcept { return NULL == string || 0u == *string; }
+        inline bool string__is_empty(char16_t const* const string) noexcept { return NULL == string || 0u == *string; }
+        template <size_t length> inline bool string__is_empty(char16_t (&string)[length]) noexcept { return length && 0u == *string; }
+        template <size_t length> inline bool string__is_empty(char16_t const (&string)[length]) noexcept { return length && 0u == *string; }
+        inline bool string__is_empty(char32_t* const string) noexcept { return NULL == string || 0u == *string; }
+        inline bool string__is_empty(char32_t const* const string) noexcept { return NULL == string || 0u == *string; }
+        template <size_t length> inline bool string__is_empty(char32_t (&string)[length]) noexcept { return length && 0u == *string; }
+        template <size_t length> inline bool string__is_empty(char32_t const (&string)[length]) noexcept { return length && 0u == *string; }
+        inline bool string__is_empty(signed char* const string) noexcept { return NULL == string || '\0' == *string; }
+        inline bool string__is_empty(signed char const* const string) noexcept { return NULL == string || '\0' == *string; }
+        template <size_t length> inline bool string__is_empty(signed char (&string)[length]) noexcept { return length && '\0' == *string; }
+        template <size_t length> inline bool string__is_empty(signed char const (&string)[length]) noexcept { return length && '\0' == *string; }
+        inline bool string__is_empty(unsigned char* const string) noexcept { return NULL == string || '\0' == *string; }
+        inline bool string__is_empty(unsigned char const* const string) noexcept { return NULL == string || '\0' == *string; }
+        template <size_t length> inline bool string__is_empty(unsigned char (&string)[length]) noexcept { return length && '\0' == *string; }
+        template <size_t length> inline bool string__is_empty(unsigned char const (&string)[length]) noexcept { return length && '\0' == *string; }
+        inline bool string__is_empty(wchar_t* const string) noexcept { return NULL == string || L'\0' == *string; }
+        inline bool string__is_empty(wchar_t const* const string) noexcept { return NULL == string || L'\0' == *string; }
+        template <size_t length> inline bool string__is_empty(wchar_t (&string)[length]) noexcept { return length && L'\0' == *string; }
+        template <size_t length> inline bool string__is_empty(wchar_t const (&string)[length]) noexcept { return length && L'\0' == *string; }
+
+        // Length --- NOTE (Lapys) -> Counts the characters until a null-terminal is reached for raw pointers.
         inline size_t string__length(char* const string) noexcept { if (NULL == string) return 0u; else { size_t length = 0u; while ('\0' ^ *(string + length)) ++length; return length; } }
         inline size_t string__length(char const* const string) noexcept { if (NULL == string) return 0u; else { size_t length = 0u; while ('\0' ^ *(string + length)) ++length; return length; } }
+        template <size_t length> inline size_t string__length(char (&string)[length]) noexcept { if (length) { size_t evaluation = 0u; while ((evaluation ^ length) && ('\0' ^ *(string + evaluation))) ++evaluation; return evaluation; } else return length; }
+        template <size_t length> inline size_t string__length(char const (&string)[length]) noexcept { if (length) { size_t evaluation = 0u; while ((evaluation ^ length) && ('\0' ^ *(string + evaluation))) ++evaluation; return evaluation; } else return length; }
         inline size_t string__length(char8_t* const string) noexcept { if (NULL == string) return 0u; else { size_t length = 0u; while (*(string + length)) ++length; return length; } }
         inline size_t string__length(char8_t const* const string) noexcept { if (NULL == string) return 0u; else { size_t length = 0u; while (*(string + length)) ++length; return length; } }
+        template <size_t length> inline size_t string__length(char8_t (&string)[length]) noexcept { if (length) { size_t evaluation = 0u; while ((evaluation ^ length) && *(string + evaluation)) ++evaluation; return evaluation; } else return length; }
+        template <size_t length> inline size_t string__length(char8_t const (&string)[length]) noexcept { if (length) { size_t evaluation = 0u; while ((evaluation ^ length) && *(string + evaluation)) ++evaluation; return evaluation; } else return length; }
         inline size_t string__length(char16_t* const string) noexcept { if (NULL == string) return 0u; else { size_t length = 0u; while (*(string + length)) ++length; return length; } }
         inline size_t string__length(char16_t const* const string) noexcept { if (NULL == string) return 0u; else { size_t length = 0u; while (*(string + length)) ++length; return length; } }
+        template <size_t length> inline size_t string__length(char16_t (&string)[length]) noexcept { if (length) { size_t evaluation = 0u; while ((evaluation ^ length) && *(string + evaluation)) ++evaluation; return evaluation; } else return length; }
+        template <size_t length> inline size_t string__length(char16_t const (&string)[length]) noexcept { if (length) { size_t evaluation = 0u; while ((evaluation ^ length) && *(string + evaluation)) ++evaluation; return evaluation; } else return length; }
         inline size_t string__length(char32_t* const string) noexcept { if (NULL == string) return 0u; else { size_t length = 0u; while (*(string + length)) ++length; return length; } }
         inline size_t string__length(char32_t const* const string) noexcept { if (NULL == string) return 0u; else { size_t length = 0u; while (*(string + length)) ++length; return length; } }
+        template <size_t length> inline size_t string__length(char32_t (&string)[length]) noexcept { if (length) { size_t evaluation = 0u; while ((evaluation ^ length) && *(string + evaluation)) ++evaluation; return evaluation; } else return length; }
+        template <size_t length> inline size_t string__length(char32_t const (&string)[length]) noexcept { if (length) { size_t evaluation = 0u; while ((evaluation ^ length) && *(string + evaluation)) ++evaluation; return evaluation; } else return length; }
         inline size_t string__length(signed char* const string) noexcept { if (NULL == string) return 0u; else { size_t length = 0u; while ('\0' ^ *(string + length)) ++length; return length; } }
         inline size_t string__length(signed char const* const string) noexcept { if (NULL == string) return 0u; else { size_t length = 0u; while ('\0' ^ *(string + length)) ++length; return length; } }
+        template <size_t length> inline size_t string__length(signed char (&string)[length]) noexcept { if (length) { size_t evaluation = 0u; while ((evaluation ^ length) && ('\0' ^ *(string + evaluation))) ++evaluation; return evaluation; } else return length; }
+        template <size_t length> inline size_t string__length(signed char const (&string)[length]) noexcept { if (length) { size_t evaluation = 0u; while ((evaluation ^ length) && ('\0' ^ *(string + evaluation))) ++evaluation; return evaluation; } else return length; }
         inline size_t string__length(unsigned char* const string) noexcept { if (NULL == string) return 0u; else { size_t length = 0u; while ('\0' ^ *(string + length)) ++length; return length; } }
         inline size_t string__length(unsigned char const* const string) noexcept { if (NULL == string) return 0u; else { size_t length = 0u; while ('\0' ^ *(string + length)) ++length; return length; } }
+        template <size_t length> inline size_t string__length(unsigned char (&string)[length]) noexcept { if (length) { size_t evaluation = 0u; while ((evaluation ^ length) && ('\0' ^ *(string + evaluation))) ++evaluation; return evaluation; } else return length; }
+        template <size_t length> inline size_t string__length(unsigned char const (&string)[length]) noexcept { if (length) { size_t evaluation = 0u; while ((evaluation ^ length) && ('\0' ^ *(string + evaluation))) ++evaluation; return evaluation; } else return length; }
         inline size_t string__length(wchar_t* const string) noexcept { if (NULL == string) return 0u; else { size_t length = 0u; while (L'\0' ^ *(string + length)) ++length; return length; } }
         inline size_t string__length(wchar_t const* const string) noexcept { if (NULL == string) return 0u; else { size_t length = 0u; while (L'\0' ^ *(string + length)) ++length; return length; } }
+        template <size_t length> inline size_t string__length(wchar_t (&string)[length]) noexcept { if (length) { size_t evaluation = 0u; while ((evaluation ^ length) && (L'\0' ^ *(string + evaluation))) ++evaluation; return evaluation; } else return length; }
+        template <size_t length> inline size_t string__length(wchar_t const (&string)[length]) noexcept { if (length) { size_t evaluation = 0u; while ((evaluation ^ length) && (L'\0' ^ *(string + evaluation))) ++evaluation; return evaluation; } else return length; }
 
         // Remove
         void string__remove(void) noexcept {}
@@ -906,30 +1253,57 @@
         inline string::string(string&& argument) : length{argument.length}, value{NULL} { if (this -> length) { this -> value = pointer__allocate_heap_memory(this -> length * sizeof(character)); pointer__source_move_memory(this -> value, argument.value, this -> length * sizeof(character)); } }
         inline string::string(string const& argument) : length{argument.length}, value{NULL} { if (this -> length) { this -> value = pointer__allocate_heap_memory(this -> length * sizeof(character)); pointer__source_move_memory(this -> value, argument.value, this -> length * sizeof(character)); } }
         inline string::string(string const&& argument) : length{argument.length}, value{NULL} { if (this -> length) { this -> value = pointer__allocate_heap_memory(this -> length * sizeof(character)); pointer__source_move_memory(this -> value, argument.value, this -> length * sizeof(character)); } }
-        template <size_t argumentLength> inline string::string(char (&argument)[argumentLength]) : length{argumentLength}, value{NULL} { if (this -> length) { this -> value = pointer__allocate_heap_memory(this -> length * sizeof(character)); for (size_t iterator = 0u; (iterator ^ (this -> length)) && ('\0' ^ *(argument + iterator)); ++iterator) *(this -> value + iterator) = *(argument + iterator); } }
-        template <size_t argumentLength> inline string::string(char const (&argument)[argumentLength]) : length{argumentLength}, value{NULL} { if (this -> length) { this -> value = pointer__allocate_heap_memory(this -> length * sizeof(character)); for (size_t iterator = 0u; (iterator ^ (this -> length)) && ('\0' ^ *(argument + iterator)); ++iterator) *(this -> value + iterator) = *(argument + iterator); } }
-        template <size_t argumentLength> inline string::string(char8_t (&argument)[argumentLength]) : length{argumentLength}, value{NULL} { if (this -> length) { this -> value = pointer__allocate_heap_memory(this -> length * sizeof(character)); for (size_t iterator = 0u; (iterator ^ (this -> length)) && *(argument + iterator); ++iterator) *(this -> value + iterator) = *(argument + iterator); } }
-        template <size_t argumentLength> inline string::string(char8_t const (&argument)[argumentLength]) : length{argumentLength}, value{NULL} { if (this -> length) { this -> value = pointer__allocate_heap_memory(this -> length * sizeof(character)); for (size_t iterator = 0u; (iterator ^ (this -> length)) && *(argument + iterator); ++iterator) *(this -> value + iterator) = *(argument + iterator); } }
-        template <size_t argumentLength> inline string::string(char16_t (&argument)[argumentLength]) : length{argumentLength}, value{NULL} { if (this -> length) { this -> value = pointer__allocate_heap_memory(this -> length * sizeof(character)); for (size_t iterator = 0u; (iterator ^ (this -> length)) && *(argument + iterator); ++iterator) *(this -> value + iterator) = *(argument + iterator); } }
-        template <size_t argumentLength> inline string::string(char16_t const (&argument)[argumentLength]) : length{argumentLength}, value{NULL} { if (this -> length) { this -> value = pointer__allocate_heap_memory(this -> length * sizeof(character)); for (size_t iterator = 0u; (iterator ^ (this -> length)) && *(argument + iterator); ++iterator) *(this -> value + iterator) = *(argument + iterator); } }
-        template <size_t argumentLength> inline string::string(char32_t (&argument)[argumentLength]) : length{argumentLength}, value{NULL} { if (this -> length) { this -> value = pointer__allocate_heap_memory(this -> length * sizeof(character)); for (size_t iterator = 0u; (iterator ^ (this -> length)) && *(argument + iterator); ++iterator) *(this -> value + iterator) = *(argument + iterator); } }
-        template <size_t argumentLength> inline string::string(char32_t const (&argument)[argumentLength]) : length{argumentLength}, value{NULL} { if (this -> length) { this -> value = pointer__allocate_heap_memory(this -> length * sizeof(character)); for (size_t iterator = 0u; (iterator ^ (this -> length)) && *(argument + iterator); ++iterator) *(this -> value + iterator) = *(argument + iterator); } }
-        template <size_t argumentLength> inline string::string(signed char (&argument)[argumentLength]) : length{argumentLength}, value{NULL} { if (this -> length) { this -> value = pointer__allocate_heap_memory(this -> length * sizeof(character)); for (size_t iterator = 0u; (iterator ^ (this -> length)) && ('\0' ^ *(argument + iterator)); ++iterator) *(this -> value + iterator) = *(argument + iterator); } }
-        template <size_t argumentLength> inline string::string(signed char const (&argument)[argumentLength]) : length{argumentLength}, value{NULL} { if (this -> length) { this -> value = pointer__allocate_heap_memory(this -> length * sizeof(character)); for (size_t iterator = 0u; (iterator ^ (this -> length)) && ('\0' ^ *(argument + iterator)); ++iterator) *(this -> value + iterator) = *(argument + iterator); } }
-        template <size_t argumentLength> inline string::string(unsigned char (&argument)[argumentLength]) : length{argumentLength}, value{NULL} { if (this -> length) { this -> value = pointer__allocate_heap_memory(this -> length * sizeof(character)); for (size_t iterator = 0u; (iterator ^ (this -> length)) && ('\0' ^ *(argument + iterator)); ++iterator) *(this -> value + iterator) = *(argument + iterator); } }
-        template <size_t argumentLength> inline string::string(unsigned char const (&argument)[argumentLength]) : length{argumentLength}, value{NULL} { if (this -> length) { this -> value = pointer__allocate_heap_memory(this -> length * sizeof(character)); for (size_t iterator = 0u; (iterator ^ (this -> length)) && ('\0' ^ *(argument + iterator)); ++iterator) *(this -> value + iterator) = *(argument + iterator); } }
-        template <size_t argumentLength> inline string::string(wchar_t (&argument)[argumentLength]) : length{argumentLength}, value{NULL} { if (this -> length) { this -> value = pointer__allocate_heap_memory(this -> length * sizeof(character)); for (size_t iterator = 0u; (iterator ^ (this -> length)) && (L'\0' ^ *(argument + iterator)); ++iterator) *(this -> value + iterator) = *(argument + iterator); } }
-        template <size_t argumentLength> inline string::string(wchar_t const (&argument)[argumentLength]) : length{argumentLength}, value{NULL} { if (this -> length) { this -> value = pointer__allocate_heap_memory(this -> length * sizeof(character)); for (size_t iterator = 0u; (iterator ^ (this -> length)) && (L'\0' ^ *(argument + iterator)); ++iterator) *(this -> value + iterator) = *(argument + iterator); } }
+        template <size_t argumentLength> inline string::string(char (&argument)[argumentLength]) : length{0u}, value{NULL} { if (argumentLength && !string__is_empty(argument)) { this -> value = pointer__allocate_heap_memory(argumentLength); while (((this -> length) ^ argumentLength) && *(argument + (this -> length))) { *(this -> value + (this -> length)) = *(argument + (this -> length)); ++(this -> length); } } }
+        template <size_t argumentLength> inline string::string(char const (&argument)[argumentLength]) : length{0u}, value{NULL} { if (argumentLength && !string__is_empty(argument)) { this -> value = pointer__allocate_heap_memory(argumentLength); while (((this -> length) ^ argumentLength) && *(argument + (this -> length))) { *(this -> value + (this -> length)) = *(argument + (this -> length)); ++(this -> length); } } }
+        template <size_t argumentLength> inline string::string(char8_t (&argument)[argumentLength]) : length{0u}, value{NULL} { if (argumentLength && !string__is_empty(argument)) { this -> value = pointer__allocate_heap_memory(argumentLength); while (((this -> length) ^ argumentLength) && *(argument + (this -> length))) { *(this -> value + (this -> length)) = *(argument + (this -> length)); ++(this -> length); } } }
+        template <size_t argumentLength> inline string::string(char8_t const (&argument)[argumentLength]) : length{0u}, value{NULL} { if (argumentLength && !string__is_empty(argument)) { this -> value = pointer__allocate_heap_memory(argumentLength); while (((this -> length) ^ argumentLength) && *(argument + (this -> length))) { *(this -> value + (this -> length)) = *(argument + (this -> length)); ++(this -> length); } } }
+        template <size_t argumentLength> inline string::string(char16_t (&argument)[argumentLength]) : length{0u}, value{NULL} { if (argumentLength && !string__is_empty(argument)) { this -> value = pointer__allocate_heap_memory(argumentLength); while (((this -> length) ^ argumentLength) && *(argument + (this -> length))) { *(this -> value + (this -> length)) = *(argument + (this -> length)); ++(this -> length); } } }
+        template <size_t argumentLength> inline string::string(char16_t const (&argument)[argumentLength]) : length{0u}, value{NULL} { if (argumentLength && !string__is_empty(argument)) { this -> value = pointer__allocate_heap_memory(argumentLength); while (((this -> length) ^ argumentLength) && *(argument + (this -> length))) { *(this -> value + (this -> length)) = *(argument + (this -> length)); ++(this -> length); } } }
+        template <size_t argumentLength> inline string::string(char32_t (&argument)[argumentLength]) : length{0u}, value{NULL} { if (argumentLength && !string__is_empty(argument)) { this -> value = pointer__allocate_heap_memory(argumentLength); while (((this -> length) ^ argumentLength) && *(argument + (this -> length))) { *(this -> value + (this -> length)) = *(argument + (this -> length)); ++(this -> length); } } }
+        template <size_t argumentLength> inline string::string(char32_t const (&argument)[argumentLength]) : length{0u}, value{NULL} { if (argumentLength && !string__is_empty(argument)) { this -> value = pointer__allocate_heap_memory(argumentLength); while (((this -> length) ^ argumentLength) && *(argument + (this -> length))) { *(this -> value + (this -> length)) = *(argument + (this -> length)); ++(this -> length); } } }
+        template <size_t argumentLength> inline string::string(signed char (&argument)[argumentLength]) : length{0u}, value{NULL} { if (argumentLength && !string__is_empty(argument)) { this -> value = pointer__allocate_heap_memory(argumentLength); while (((this -> length) ^ argumentLength) && *(argument + (this -> length))) { *(this -> value + (this -> length)) = *(argument + (this -> length)); ++(this -> length); } } }
+        template <size_t argumentLength> inline string::string(signed char const (&argument)[argumentLength]) : length{0u}, value{NULL} { if (argumentLength && !string__is_empty(argument)) { this -> value = pointer__allocate_heap_memory(argumentLength); while (((this -> length) ^ argumentLength) && *(argument + (this -> length))) { *(this -> value + (this -> length)) = *(argument + (this -> length)); ++(this -> length); } } }
+        template <size_t argumentLength> inline string::string(unsigned char (&argument)[argumentLength]) : length{0u}, value{NULL} { if (argumentLength && !string__is_empty(argument)) { this -> value = pointer__allocate_heap_memory(argumentLength); while (((this -> length) ^ argumentLength) && *(argument + (this -> length))) { *(this -> value + (this -> length)) = *(argument + (this -> length)); ++(this -> length); } } }
+        template <size_t argumentLength> inline string::string(unsigned char const (&argument)[argumentLength]) : length{0u}, value{NULL} { if (argumentLength && !string__is_empty(argument)) { this -> value = pointer__allocate_heap_memory(argumentLength); while (((this -> length) ^ argumentLength) && *(argument + (this -> length))) { *(this -> value + (this -> length)) = *(argument + (this -> length)); ++(this -> length); } } }
+        template <size_t argumentLength> inline string::string(wchar_t (&argument)[argumentLength]) : length{0u}, value{NULL} { if (argumentLength && !string__is_empty(argument)) { this -> value = pointer__allocate_heap_memory(argumentLength); while (((this -> length) ^ argumentLength) && *(argument + (this -> length))) { *(this -> value + (this -> length)) = *(argument + (this -> length)); ++(this -> length); } } }
+        template <size_t argumentLength> inline string::string(wchar_t const (&argument)[argumentLength]) : length{0u}, value{NULL} { if (argumentLength && !string__is_empty(argument)) { this -> value = pointer__allocate_heap_memory(argumentLength); while (((this -> length) ^ argumentLength) && *(argument + (this -> length))) { *(this -> value + (this -> length)) = *(argument + (this -> length)); ++(this -> length); } } }
 
         // [Destructor]
         string::~string(void) { pointer__free_heap_memory(this -> value); }
 
         // [Operator] > ... --- MINIFY (Lapys)
-        inline string& string::operator =(char* const argument) noexcept { this -> length = string__length(argument); if (this -> length) { this -> value = pointer__reallocate_heap_memory(this -> length * sizeof(character)); for (size_t iterator = 0u; iterator ^ (this -> length); ++iterator) *(this -> value + iterator) = *(argument + iterator); } else { pointer__free_heap_memory(this -> value); this -> value = NULL; } return *this; }
-        inline string& string::operator =(string& argument) noexcept { this -> value = argument.value; return *this; }
-        inline string& string::operator =(string&& argument) noexcept { this -> value = argument.value; return *this; }
-        inline string& string::operator =(string const& argument) noexcept { this -> value = argument.value; return *this; }
-        inline string& string::operator =(string const&& argument) noexcept { this -> value = argument.value; return *this; }
+        inline string& string::operator =(char* const argument) noexcept { this -> length = string__length(argument); if (this -> length) { this -> value = pointer__reallocate_heap_memory(this -> value, this -> length * sizeof(character)); for (size_t iterator = 0u; iterator ^ (this -> length); ++iterator) *(this -> value + iterator) = *(argument + iterator); } else { pointer__free_heap_memory(this -> value); this -> value = NULL; } return *this; }
+        inline string& string::operator =(char const* const argument) noexcept { this -> length = string__length(argument); if (this -> length) { this -> value = pointer__reallocate_heap_memory(this -> value, this -> length * sizeof(character)); for (size_t iterator = 0u; iterator ^ (this -> length); ++iterator) *(this -> value + iterator) = *(argument + iterator); } else { pointer__free_heap_memory(this -> value); this -> value = NULL; } return *this; }
+        inline string& string::operator =(char8_t* const argument) noexcept { this -> length = string__length(argument); if (this -> length) { this -> value = pointer__reallocate_heap_memory(this -> value, this -> length * sizeof(character)); for (size_t iterator = 0u; iterator ^ (this -> length); ++iterator) *(this -> value + iterator) = *(argument + iterator); } else { pointer__free_heap_memory(this -> value); this -> value = NULL; } return *this; }
+        inline string& string::operator =(char8_t const* const argument) noexcept { this -> length = string__length(argument); if (this -> length) { this -> value = pointer__reallocate_heap_memory(this -> value, this -> length * sizeof(character)); for (size_t iterator = 0u; iterator ^ (this -> length); ++iterator) *(this -> value + iterator) = *(argument + iterator); } else { pointer__free_heap_memory(this -> value); this -> value = NULL; } return *this; }
+        inline string& string::operator =(char16_t* const argument) noexcept { this -> length = string__length(argument); if (this -> length) { this -> value = pointer__reallocate_heap_memory(this -> value, this -> length * sizeof(character)); for (size_t iterator = 0u; iterator ^ (this -> length); ++iterator) *(this -> value + iterator) = *(argument + iterator); } else { pointer__free_heap_memory(this -> value); this -> value = NULL; } return *this; }
+        inline string& string::operator =(char16_t const* const argument) noexcept { this -> length = string__length(argument); if (this -> length) { this -> value = pointer__reallocate_heap_memory(this -> value, this -> length * sizeof(character)); for (size_t iterator = 0u; iterator ^ (this -> length); ++iterator) *(this -> value + iterator) = *(argument + iterator); } else { pointer__free_heap_memory(this -> value); this -> value = NULL; } return *this; }
+        inline string& string::operator =(char32_t* const argument) noexcept { this -> length = string__length(argument); if (this -> length) { this -> value = pointer__reallocate_heap_memory(this -> value, this -> length * sizeof(character)); for (size_t iterator = 0u; iterator ^ (this -> length); ++iterator) *(this -> value + iterator) = *(argument + iterator); } else { pointer__free_heap_memory(this -> value); this -> value = NULL; } return *this; }
+        inline string& string::operator =(char32_t const* const argument) noexcept { this -> length = string__length(argument); if (this -> length) { this -> value = pointer__reallocate_heap_memory(this -> value, this -> length * sizeof(character)); for (size_t iterator = 0u; iterator ^ (this -> length); ++iterator) *(this -> value + iterator) = *(argument + iterator); } else { pointer__free_heap_memory(this -> value); this -> value = NULL; } return *this; }
+        inline string& string::operator =(signed char* const argument) noexcept { this -> length = string__length(argument); if (this -> length) { this -> value = pointer__reallocate_heap_memory(this -> value, this -> length * sizeof(character)); for (size_t iterator = 0u; iterator ^ (this -> length); ++iterator) *(this -> value + iterator) = *(argument + iterator); } else { pointer__free_heap_memory(this -> value); this -> value = NULL; } return *this; }
+        inline string& string::operator =(signed char const* const argument) noexcept { this -> length = string__length(argument); if (this -> length) { this -> value = pointer__reallocate_heap_memory(this -> value, this -> length * sizeof(character)); for (size_t iterator = 0u; iterator ^ (this -> length); ++iterator) *(this -> value + iterator) = *(argument + iterator); } else { pointer__free_heap_memory(this -> value); this -> value = NULL; } return *this; }
+        inline string& string::operator =(unsigned char* const argument) noexcept { this -> length = string__length(argument); if (this -> length) { this -> value = pointer__reallocate_heap_memory(this -> value, this -> length * sizeof(character)); for (size_t iterator = 0u; iterator ^ (this -> length); ++iterator) *(this -> value + iterator) = *(argument + iterator); } else { pointer__free_heap_memory(this -> value); this -> value = NULL; } return *this; }
+        inline string& string::operator =(unsigned char const* const argument) noexcept { this -> length = string__length(argument); if (this -> length) { this -> value = pointer__reallocate_heap_memory(this -> value, this -> length * sizeof(character)); for (size_t iterator = 0u; iterator ^ (this -> length); ++iterator) *(this -> value + iterator) = *(argument + iterator); } else { pointer__free_heap_memory(this -> value); this -> value = NULL; } return *this; }
+        inline string& string::operator =(wchar_t* const argument) noexcept { this -> length = string__length(argument); if (this -> length) { this -> value = pointer__reallocate_heap_memory(this -> value, this -> length * sizeof(character)); for (size_t iterator = 0u; iterator ^ (this -> length); ++iterator) *(this -> value + iterator) = *(argument + iterator); } else { pointer__free_heap_memory(this -> value); this -> value = NULL; } return *this; }
+        inline string& string::operator =(wchar_t const* const argument) noexcept { this -> length = string__length(argument); if (this -> length) { this -> value = pointer__reallocate_heap_memory(this -> value, this -> length * sizeof(character)); for (size_t iterator = 0u; iterator ^ (this -> length); ++iterator) *(this -> value + iterator) = *(argument + iterator); } else { pointer__free_heap_memory(this -> value); this -> value = NULL; } return *this; }
+        inline string& string::operator =(string& argument) noexcept { if (this != &argument) { this -> length = argument.length; if (this -> length) { this -> value = pointer__reallocate_heap_memory(this -> value, this -> length * sizeof(character)); pointer__source_copy_memory(this -> value, argument.value, this -> length * sizeof(character)); } else { pointer__free_heap_memory(this -> value); this -> value = NULL; } } return *this; }
+        inline string& string::operator =(string&& argument) noexcept { if (this != &argument) { this -> length = argument.length; if (this -> length) { this -> value = pointer__reallocate_heap_memory(this -> value, this -> length * sizeof(character)); pointer__source_copy_memory(this -> value, argument.value, this -> length * sizeof(character)); } else { pointer__free_heap_memory(this -> value); this -> value = NULL; } } return *this; }
+        inline string& string::operator =(string const& argument) noexcept { if (this != &argument) { this -> length = argument.length; if (this -> length) { this -> value = pointer__reallocate_heap_memory(this -> value, this -> length * sizeof(character)); pointer__source_copy_memory(this -> value, argument.value, this -> length * sizeof(character)); } else { pointer__free_heap_memory(this -> value); this -> value = NULL; } } return *this; }
+        inline string& string::operator =(string const&& argument) noexcept { if (this != &argument) { this -> length = argument.length; if (this -> length) { this -> value = pointer__reallocate_heap_memory(this -> value, this -> length * sizeof(character)); pointer__source_copy_memory(this -> value, argument.value, this -> length * sizeof(character)); } else { pointer__free_heap_memory(this -> value); this -> value = NULL; } } return *this; }
+        template <size_t argumentLength> inline string& string::operator =(char (&argument)[argumentLength]) noexcept { if (argumentLength && !string__is_empty(argument)) { this -> value = pointer__reallocate_heap_memory(this -> value, argumentLength); for (this -> length = 0u; ((this -> length) ^ argumentLength) && *(argument + (this -> length)); ++(this -> length)) *(this -> value + (this -> length)) = *(argument + (this -> length)); } return *this; }
+        template <size_t argumentLength> inline string& string::operator =(char const (&argument)[argumentLength]) noexcept { if (argumentLength && !string__is_empty(argument)) { this -> value = pointer__reallocate_heap_memory(this -> value, argumentLength); for (this -> length = 0u; ((this -> length) ^ argumentLength) && *(argument + (this -> length)); ++(this -> length)) *(this -> value + (this -> length)) = *(argument + (this -> length)); } return *this; }
+        template <size_t argumentLength> inline string& string::operator =(char8_t (&argument)[argumentLength]) noexcept { if (argumentLength && !string__is_empty(argument)) { this -> value = pointer__reallocate_heap_memory(this -> value, argumentLength); for (this -> length = 0u; ((this -> length) ^ argumentLength) && *(argument + (this -> length)); ++(this -> length)) *(this -> value + (this -> length)) = *(argument + (this -> length)); } return *this; }
+        template <size_t argumentLength> inline string& string::operator =(char8_t const (&argument)[argumentLength]) noexcept { if (argumentLength && !string__is_empty(argument)) { this -> value = pointer__reallocate_heap_memory(this -> value, argumentLength); for (this -> length = 0u; ((this -> length) ^ argumentLength) && *(argument + (this -> length)); ++(this -> length)) *(this -> value + (this -> length)) = *(argument + (this -> length)); } return *this; }
+        template <size_t argumentLength> inline string& string::operator =(char16_t (&argument)[argumentLength]) noexcept { if (argumentLength && !string__is_empty(argument)) { this -> value = pointer__reallocate_heap_memory(this -> value, argumentLength); for (this -> length = 0u; ((this -> length) ^ argumentLength) && *(argument + (this -> length)); ++(this -> length)) *(this -> value + (this -> length)) = *(argument + (this -> length)); } return *this; }
+        template <size_t argumentLength> inline string& string::operator =(char16_t const (&argument)[argumentLength]) noexcept { if (argumentLength && !string__is_empty(argument)) { this -> value = pointer__reallocate_heap_memory(this -> value, argumentLength); for (this -> length = 0u; ((this -> length) ^ argumentLength) && *(argument + (this -> length)); ++(this -> length)) *(this -> value + (this -> length)) = *(argument + (this -> length)); } return *this; }
+        template <size_t argumentLength> inline string& string::operator =(char32_t (&argument)[argumentLength]) noexcept { if (argumentLength && !string__is_empty(argument)) { this -> value = pointer__reallocate_heap_memory(this -> value, argumentLength); for (this -> length = 0u; ((this -> length) ^ argumentLength) && *(argument + (this -> length)); ++(this -> length)) *(this -> value + (this -> length)) = *(argument + (this -> length)); } return *this; }
+        template <size_t argumentLength> inline string& string::operator =(char32_t const (&argument)[argumentLength]) noexcept { if (argumentLength && !string__is_empty(argument)) { this -> value = pointer__reallocate_heap_memory(this -> value, argumentLength); for (this -> length = 0u; ((this -> length) ^ argumentLength) && *(argument + (this -> length)); ++(this -> length)) *(this -> value + (this -> length)) = *(argument + (this -> length)); } return *this; }
+        template <size_t argumentLength> inline string& string::operator =(signed char (&argument)[argumentLength]) noexcept { if (argumentLength && !string__is_empty(argument)) { this -> value = pointer__reallocate_heap_memory(this -> value, argumentLength); for (this -> length = 0u; ((this -> length) ^ argumentLength) && *(argument + (this -> length)); ++(this -> length)) *(this -> value + (this -> length)) = *(argument + (this -> length)); } return *this; }
+        template <size_t argumentLength> inline string& string::operator =(signed char const (&argument)[argumentLength]) noexcept { if (argumentLength && !string__is_empty(argument)) { this -> value = pointer__reallocate_heap_memory(this -> value, argumentLength); for (this -> length = 0u; ((this -> length) ^ argumentLength) && *(argument + (this -> length)); ++(this -> length)) *(this -> value + (this -> length)) = *(argument + (this -> length)); } return *this; }
+        template <size_t argumentLength> inline string& string::operator =(unsigned char (&argument)[argumentLength]) noexcept { if (argumentLength && !string__is_empty(argument)) { this -> value = pointer__reallocate_heap_memory(this -> value, argumentLength); for (this -> length = 0u; ((this -> length) ^ argumentLength) && *(argument + (this -> length)); ++(this -> length)) *(this -> value + (this -> length)) = *(argument + (this -> length)); } return *this; }
+        template <size_t argumentLength> inline string& string::operator =(unsigned char const (&argument)[argumentLength]) noexcept { if (argumentLength && !string__is_empty(argument)) { this -> value = pointer__reallocate_heap_memory(this -> value, argumentLength); for (this -> length = 0u; ((this -> length) ^ argumentLength) && *(argument + (this -> length)); ++(this -> length)) *(this -> value + (this -> length)) = *(argument + (this -> length)); } return *this; }
+        template <size_t argumentLength> inline string& string::operator =(wchar_t (&argument)[argumentLength]) noexcept { if (argumentLength && !string__is_empty(argument)) { this -> value = pointer__reallocate_heap_memory(this -> value, argumentLength); for (this -> length = 0u; ((this -> length) ^ argumentLength) && *(argument + (this -> length)); ++(this -> length)) *(this -> value + (this -> length)) = *(argument + (this -> length)); } return *this; }
+        template <size_t argumentLength> inline string& string::operator =(wchar_t const (&argument)[argumentLength]) noexcept { if (argumentLength && !string__is_empty(argument)) { this -> value = pointer__reallocate_heap_memory(this -> value, argumentLength); for (this -> length = 0u; ((this -> length) ^ argumentLength) && *(argument + (this -> length)); ++(this -> length)) *(this -> value + (this -> length)) = *(argument + (this -> length)); } return *this; }
 
         inline string::operator char*(void) const noexcept { return (char*) this -> value; }
         inline string::operator char const*(void) const noexcept { return (char const*) this -> value; }

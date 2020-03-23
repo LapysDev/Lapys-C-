@@ -23,8 +23,11 @@
     #  endif
     #endif
 
-    // [...]
-    #include <conio.h> // Console Input-Output
+    // [POSIX Library]
     #include <dirent.h> // Directory Entries
     #include <strings.h> // Strings
     #include <wchar.h> // Wide Characters
+
+    // [...]
+    #include <conio.h> // Console Input-Output
+    #include <malloc.h> // Main Memory Allocation Point

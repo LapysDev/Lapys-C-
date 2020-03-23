@@ -24,30 +24,66 @@ struct raw_pointer;
 struct string;
 struct wide;
 
-/* Definition */
+/* Definition --- NOTE (Lapys) -> Some of these function definitions may be optimized in-definition. */
     // Array ...
     // Number ...
     // Pointer ...
     struct pointer__allocate_heap_memory;
+    struct pointer__allocate_stack_memory;
     template <typename type> void pointer__free_heap_memory(type* const) noexcept;
+    template <typename type> constexpr void pointer__free_stack_memory(type* const) noexcept;
+    struct pointer__map_heap_memory;
+    struct pointer__reallocate_heap_memory;
+    struct pointer__reallocate_stack_memory;
     template <typename type> void pointer__source_copy_memory(type* const, type* const, size_t const) noexcept;
     template <typename type> void pointer__source_move_memory(type* const, type* const, size_t const) noexcept;
+    template <typename type> void pointer__unmap_heap_memory(type* const, size_t const) noexcept;
+    template <typename type> void pointer__zero_memory(type* const, size_t const) noexcept;
 
     // String ...
+    bool string__is_empty(char* const) noexcept;
+    bool string__is_empty(char const* const) noexcept;
+    bool string__is_empty(char8_t* const) noexcept;
+    bool string__is_empty(char8_t const* const) noexcept;
+    bool string__is_empty(char16_t* const) noexcept;
+    bool string__is_empty(char16_t const* const) noexcept;
+    bool string__is_empty(char32_t* const) noexcept;
+    bool string__is_empty(char32_t const* const) noexcept;
+    bool string__is_empty(signed char* const) noexcept;
+    bool string__is_empty(signed char const* const) noexcept;
+    bool string__is_empty(unsigned char* const) noexcept;
+    bool string__is_empty(unsigned char const* const) noexcept;
+    bool string__is_empty(wchar_t* const) noexcept;
+    bool string__is_empty(wchar_t const* const) noexcept;
+
     size_t string__length(char* const) noexcept;
     size_t string__length(char const* const) noexcept;
+    template <size_t length> size_t string__length(char (&)[length]) noexcept;
+    template <size_t length> size_t string__length(char const (&)[length]) noexcept;
     size_t string__length(char8_t* const) noexcept;
     size_t string__length(char8_t const* const) noexcept;
+    template <size_t length> size_t string__length(char8_t (&)[length]) noexcept;
+    template <size_t length> size_t string__length(char8_t const (&)[length]) noexcept;
     size_t string__length(char16_t* const) noexcept;
     size_t string__length(char16_t const* const) noexcept;
+    template <size_t length> size_t string__length(char16_t (&)[length]) noexcept;
+    template <size_t length> size_t string__length(char16_t const (&)[length]) noexcept;
     size_t string__length(char32_t* const) noexcept;
     size_t string__length(char32_t const* const) noexcept;
+    template <size_t length> size_t string__length(char32_t (&)[length]) noexcept;
+    template <size_t length> size_t string__length(char32_t const (&)[length]) noexcept;
     size_t string__length(signed char* const) noexcept;
     size_t string__length(signed char const* const) noexcept;
+    template <size_t length> size_t string__length(signed char (&)[length]) noexcept;
+    template <size_t length> size_t string__length(signed char const (&)[length]) noexcept;
     size_t string__length(unsigned char* const) noexcept;
     size_t string__length(unsigned char const* const) noexcept;
+    template <size_t length> size_t string__length(unsigned char (&)[length]) noexcept;
+    template <size_t length> size_t string__length(unsigned char const (&)[length]) noexcept;
     size_t string__length(wchar_t* const) noexcept;
     size_t string__length(wchar_t const* const) noexcept;
+    template <size_t length> size_t string__length(wchar_t (&)[length]) noexcept;
+    template <size_t length> size_t string__length(wchar_t const (&)[length]) noexcept;
 
 /* Import */
 #include "general.cpp" // NOTE (Lapys) -> Define all data interfaces.
@@ -60,13 +96,13 @@ struct wide;
 /* Main */
 void Main(Arguments const);
 
-#if IS_LINUX_ENVIRONMENT
+#if environment__is_linux
 int main(int const /*argumentCount*/, char* const /*argumentVector*/[]) {
     // Return
     return EXIT_SUCCESS;
 }
 
-#elif IS_WINDOWS_ENVIRONMENT // CHECKPOINT (Lapys) -> Get the directory of the executing script and de-allocate each argument string.
+#elif environment__is_windows // CHECKPOINT (Lapys) -> Get the directory of the executing script and de-allocate each argument string.
 int WinMain(HINSTANCE const /*instanceHandle*/, HINSTANCE const /*previousInstanceHandle*/, LPSTR const /*programInitiationCommandLineArguments*/, int const/*windowAppearance*/) {
     // Return
     return EXIT_SUCCESS;

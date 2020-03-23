@@ -134,7 +134,7 @@
     #  define CHAR32_MIN UINT_MIN
     #endif
 
-    #if defined(__cplusplus) && __cplusplus <= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900) // C++ 2011, ISO/IEC 14882:2011
+    #if (defined(__cplusplus) && __cplusplus <= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1900) // C++ 2011, ISO/IEC 14882:2011
     #  define abstract = delete
     #else
     #  define abstract = 0
