@@ -444,10 +444,14 @@
         void array__copy(void) noexcept {}
 
         // Create --- NOTE (Lapys) -> Allocates memory onto the heap.
-        void array__create(void) noexcept {}
+        template <size_t length, typename type> constexpr inline type* array__create(void) noexcept { return new type[length]; }
 
         // Fill
-        void array__fill(void) noexcept {}
+        template <size_t length, typename type>
+        inline void array__fill(type* const array, type value) noexcept {
+            for (size_t iterator = 0u; iterator ^ length; ++iterator)
+            pointer__source_copy_memory(array + iterator, &value, sizeof(type));
+        }
 
         // Free --- WARN (Lapys) -> Assumes the array is heap allocated.
         void array__free(void) noexcept {}
@@ -1122,17 +1126,126 @@
             #endif
         }
 
+        // Create Indeterminate
+        struct number__create_indeterminate { public:
+            constexpr inline number__create_indeterminate(void) {}
+            inline operator double(void) const {
+                static unsigned long const indeterminateBitRepresentation[2] = {0x00000000, 0xFFF80000}; // NOTE (Lapys) -> IEEE-754 hexadecimal form.
+                static double const indeterminate = *((double const*) indeterminateBitRepresentation);
+
+                return indeterminate;
+            }
+        };
+
+        // Create Negative Infinity
+        struct number__create_negative_infinity { public:
+            constexpr inline number__create_negative_infinity(void) {}
+            inline operator float(void) const noexcept { return -INFINITY; }
+        };
+
+        // Create Non-Computable
+        struct number__create_non_computable { public:
+            constexpr inline number__create_non_computable(void) {}
+            inline operator double(void) const noexcept { return NAN; }
+            inline operator float(void) const noexcept { return NANF; }
+            inline operator long double(void) const noexcept { return NANL; }
+        };
+
+        // Create Positive Infinity
+        struct number__create_positive_infinity { public:
+            constexpr inline number__create_positive_infinity(void) {}
+            inline operator float(void) const noexcept { return INFINITY; }
+        };
+
+        // Cube Root
+        constexpr inline double number__cube_root(double const number) noexcept {
+            #if c__version >= 1990uL || cpp__version >= 1998uL
+                return ::cbrt(number);
+            #else
+                return number__exponentiate(number, 0.5);
+            #endif
+        }
+        constexpr inline float number__cube_root(float const number) noexcept {
+            #if c__version >= 1999uL
+                return ::cbrtf(number);
+            #elif cpp__version >= 1998uL
+                return ::cbrt(number);
+            #else
+                return number__exponentiate(number, 0.5f);
+            #endif
+        }
+        constexpr inline int number__cube_root(int const number) noexcept {
+            #if cpp__version >= 2011uL
+                return ::cbrt(number);
+            #else
+                return number__exponentiate(number, 0.5f);
+            #endif
+        }
+        constexpr inline long number__cube_root(long const number) noexcept {
+            #if cpp__version >= 2011uL
+                return ::cbrt(number);
+            #else
+                return number__exponentiate(number, 0.5);
+            #endif
+        }
+        constexpr inline long double number__cube_root(long double const number) noexcept {
+            #if c__version >= 1999uL
+                return ::cbrtl(number);
+            #elif cpp__version >= 1998uL
+                return ::cbrt(number);
+            #else
+                return number__exponentiate(number, 0.50);
+            #endif
+        }
+        constexpr inline short number__cube_root(short const number) noexcept {
+            #if cpp__version >= 2011uL
+                return ::cbrt(number);
+            #else
+                return number__exponentiate(number, 0.5f);
+            #endif
+        }
+        constexpr inline unsigned int number__cube_root(unsigned int const number) noexcept {
+            #if cpp__version >= 2011uL
+                return ::cbrt(number);
+            #else
+                return number__exponentiate(number, 0.5f);
+            #endif
+        }
+        constexpr inline unsigned long number__cube_root(unsigned long const number) noexcept {
+            #if cpp__version >= 2011uL
+                return ::cbrt(number);
+            #else
+                return number__exponentiate(number, 0.5);
+            #endif
+        }
+        constexpr inline unsigned short number__cube_root(unsigned short const number) noexcept {
+            #if cpp__version >= 2011uL
+                return ::cbrt(number);
+            #else
+                return number__exponentiate(number, 0.5f);
+            #endif
+        }
+        inline wide number__cube_root(wide const number) noexcept {
+            #if cpp__version >= 2011uL
+                if ((wide::wide_signed_type) number < 0L) return ::cbrt((wide::wide_signed_type) number);
+                else return ::cbrt((wide::wide_unsigned_type) number);
+            #else
+                if ((wide::wide_signed_type) number < 0L) return number__exponentiate((wide::wide_signed_type) number, 0.50);
+                else return number__exponentiate((wide::wide_unsigned_type) number, 0.50);
+            #endif
+        }
+
         // Exponentiate
-        constexpr inline double number__exponentiate(double const number, double const exponent) { return ::pow(number, exponent); }
-        constexpr inline double number__exponentiate(double const number, float const exponent) {
+        constexpr inline long double number__exponentiate(double const number, double const exponent) { return ::pow(number, exponent); }
+        constexpr inline long double number__exponentiate(double const number, float const exponent) {
             #if cpp__version <= 2011uL
                 return ::pow(number, exponent);
             #else
                 return number__exponentiate(number, (double) exponent);
             #endif
         }
-        constexpr inline double number__exponentiate(double const number, int const exponent) { return ::pow(number, exponent); }
-        constexpr inline double number__exponentiate(double const number, long const exponent) {
+        constexpr inline long double number__exponentiate(double const number, int const exponent) { return ::pow(number, exponent); }
+        constexpr inline long double number__exponentiate(double const number, long const exponent) {
             #if cpp__version <= 2011uL
                 return ::pow(number, exponent);
             #else
@@ -1146,28 +1259,28 @@
                 return number__exponentiate(number, (double) exponent);
             #endif
         }
-        constexpr inline double number__exponentiate(double const number, short const exponent) {
+        constexpr inline long double number__exponentiate(double const number, short const exponent) {
             #if cpp__version <= 2011uL
                 return ::pow(number, exponent);
             #else
                 return number__exponentiate(number, (double) exponent);
             #endif
         }
-        constexpr inline double number__exponentiate(double const number, unsigned int const exponent) {
+        constexpr inline long double number__exponentiate(double const number, unsigned int const exponent) {
             #if cpp__version <= 2011uL
                 return ::pow(number, exponent);
             #else
                 return number__exponentiate(number, (double) exponent);
             #endif
         }
-        constexpr inline double number__exponentiate(double const number, unsigned long const exponent) {
+        constexpr inline long double number__exponentiate(double const number, unsigned long const exponent) {
             #if cpp__version <= 2011uL
                 return ::pow(number, exponent);
             #else
                 return number__exponentiate(number, (double) exponent);
             #endif
         }
-        constexpr inline double number__exponentiate(double const number, unsigned short const exponent) {
+        constexpr inline long double number__exponentiate(double const number, unsigned short const exponent) {
             #if cpp__version <= 2011uL
                 return ::pow(number, exponent);
             #else
@@ -1190,7 +1303,7 @@
                 return number__exponentiate((double) number, exponent);
             #endif
         }
-        constexpr inline float number__exponentiate(float const number, float const exponent) {
+        constexpr inline double number__exponentiate(float const number, float const exponent) {
             #if c__version >= 1999uL
                 return ::powf(number, exponent);
             #elif cpp__version >= 1998uL
@@ -1199,7 +1312,7 @@
                 return number__exponentiate((double) number, (double) exponent);
             #endif
         }
-        constexpr inline float number__exponentiate(float const number, int const exponent) {
+        constexpr inline double number__exponentiate(float const number, int const exponent) {
             #if cpp__version >= 2011uL
                 return ::pow(number, exponent);
             #else
@@ -1220,14 +1333,14 @@
                 return number__exponentiate((long double) number, exponent);
             #endif
         }
-        constexpr inline float number__exponentiate(float const number, short const exponent) {
+        constexpr inline double number__exponentiate(float const number, short const exponent) {
             #if cpp__version >= 2011uL
                 return ::pow(number, exponent);
             #else
                 return number__exponentiate(number, (float) exponent);
             #endif
         }
-        constexpr inline float number__exponentiate(float const number, unsigned int const exponent) {
+        constexpr inline double number__exponentiate(float const number, unsigned int const exponent) {
             #if cpp__version >= 2011uL
                 return ::pow(number, exponent);
             #else
@@ -1257,28 +1370,28 @@
                 else return number__exponentiate((long double) number, (long double) (wide::wide_unsigned_type) exponent);
             #endif
         }
-        constexpr inline double number__exponentiate(int const number, double const exponent) {
+        constexpr inline long double number__exponentiate(int const number, double const exponent) {
             #if cpp__version >= 2011uL
                 return ::pow(number, exponent);
             #else
                 return number__exponentiate((double) number, exponent);
             #endif
         }
-        constexpr inline float number__exponentiate(int const number, float const exponent) {
+        constexpr inline double number__exponentiate(int const number, float const exponent) {
             #if cpp__version >= 2011uL
                 return ::pow(number, exponent);
             #else
                 return number__exponentiate((float) number, exponent);
             #endif
         }
-        constexpr inline int number__exponentiate(int const number, int const exponent) {
+        constexpr inline long number__exponentiate(int const number, int const exponent) {
             #if cpp__version >= 2011uL
                 return ::pow(number, exponent);
             #else
                 return number__exponentiate((float) number, (float) exponent);
             #endif
         }
-        constexpr inline long number__exponentiate(int const number, long const exponent) {
+        constexpr inline wide number__exponentiate(int const number, long const exponent) {
             #if cpp__version >= 2011uL
                 return ::pow(number, exponent);
             #else
@@ -1292,7 +1405,7 @@
                 return number__exponentiate((long double) number, exponent);
             #endif
         }
-        constexpr inline int number__exponentiate(int const number, short const exponent) {
+        constexpr inline long number__exponentiate(int const number, short const exponent) {
             #if cpp__version >= 2011uL
                 return ::pow(number, exponent);
             #else
@@ -1306,7 +1419,7 @@
                 return number__exponentiate((float) number, (float) exponent);
             #endif
         }
-        constexpr inline double number__exponentiate(int const number, unsigned long const exponent) {
+        constexpr inline long number__exponentiate(int const number, unsigned long const exponent) {
             #if cpp__version >= 2011uL
                 return ::pow(number, exponent);
             #else
@@ -1329,7 +1442,7 @@
                 else return number__exponentiate((long double) number, (long double) (wide::wide_unsigned_type) exponent);
             #endif
         }
-        constexpr inline double number__exponentiate(long const number, double const exponent) {
+        constexpr inline long double number__exponentiate(long const number, double const exponent) {
             #if cpp__version >= 2011uL
                 return ::pow(number, exponent);
             #else
@@ -1343,14 +1456,14 @@
                 return number__exponentiate((double) number, (double) exponent);
             #endif
         }
-        constexpr inline long number__exponentiate(long const number, int const exponent) {
+        constexpr inline wide number__exponentiate(long const number, int const exponent) {
             #if cpp__version >= 2011uL
                 return ::pow(number, exponent);
             #else
                 return number__exponentiate((double) number, exponent);
             #endif
         }
-        constexpr inline long number__exponentiate(long const number, long const exponent) {
+        constexpr inline wide number__exponentiate(long const number, long const exponent) {
             #if cpp__version >= 2011uL
                 return ::pow(number, exponent);
             #else
@@ -1364,35 +1477,35 @@
                 return number__exponentiate((long double) number, exponent);
             #endif
         }
-        constexpr inline long number__exponentiate(long const number, short const exponent) {
+        constexpr inline wide number__exponentiate(long const number, short const exponent) {
             #if cpp__version >= 2011uL
                 return ::pow(number, exponent);
             #else
                 return number__exponentiate((double) number, (double) exponent);
             #endif
         }
-        constexpr inline double number__exponentiate(long const number, unsigned int const exponent) {
+        constexpr inline wide number__exponentiate(long const number, unsigned int const exponent) {
             #if cpp__version >= 2011uL
                 return ::pow(number, exponent);
             #else
                 return number__exponentiate((double) number, (double) exponent);
             #endif
         }
-        constexpr inline double number__exponentiate(long const number, unsigned long const exponent) {
+        constexpr inline wide number__exponentiate(long const number, unsigned long const exponent) {
             #if cpp__version >= 2011uL
                 return ::pow(number, exponent);
             #else
                 return number__exponentiate((double) number, (double) exponent);
             #endif
         }
-        constexpr inline double number__exponentiate(long const number, unsigned short const exponent) {
+        constexpr inline wide number__exponentiate(long const number, unsigned short const exponent) {
             #if cpp__version >= 2011uL
                 return ::pow(number, exponent);
             #else
                 return number__exponentiate((double) number, (double) exponent);
             #endif
         }
-        inline long double number__exponentiate(long const number, wide const exponent) {
+        inline wide number__exponentiate(long const number, wide const exponent) {
             #if cpp__version >= 2011uL
                 if ((wide::wide_signed_type) exponent < 0L) return ::pow(number, (wide::wide_signed_type) exponent);
                 else return ::pow(number, (wide::wide_unsigned_type) exponent);
@@ -1493,7 +1606,7 @@
                 return number__exponentiate((float) number, exponent);
             #endif
         }
-        constexpr inline int number__exponentiate(short const number, int const exponent) {
+        constexpr inline long number__exponentiate(short const number, int const exponent) {
             #if cpp__version >= 2011uL
                 return ::pow(number, exponent);
             #else
@@ -1528,21 +1641,21 @@
                 return number__exponentiate((float) number, (float) exponent);
             #endif
         }
-        constexpr inline double number__exponentiate(short const number, unsigned long const exponent) {
+        constexpr inline long number__exponentiate(short const number, unsigned long const exponent) {
             #if cpp__version >= 2011uL
                 return ::pow(number, exponent);
             #else
                 return number__exponentiate((double) number, (double) exponent);
             #endif
         }
-        constexpr inline long number__exponentiate(short const number, unsigned short const exponent) {
+        constexpr inline int number__exponentiate(short const number, unsigned short const exponent) {
             #if cpp__version >= 2011uL
                 return ::pow(number, exponent);
             #else
                 return number__exponentiate((float) number, (float) exponent);
             #endif
         }
-        inline wide number__exponentiate(short const number, wide const exponent) {
+        inline int number__exponentiate(short const number, wide const exponent) {
             #if cpp__version >= 2011uL
                 if ((wide::wide_signed_type) exponent < 0L) return ::pow(number, (wide::wide_signed_type) exponent);
                 else return ::pow(number, (wide::wide_unsigned_type) exponent);
@@ -1551,21 +1664,21 @@
                 else return number__exponentiate((long double) number, (long double) (wide::wide_unsigned_type) exponent);
             #endif
         }
-        constexpr inline double number__exponentiate(unsigned int const number, double const exponent) {
+        constexpr inline long double number__exponentiate(unsigned int const number, double const exponent) {
             #if cpp__version >= 2011uL
                 return ::pow(number, exponent);
             #else
                 return number__exponentiate((double) number, exponent);
             #endif
         }
-        constexpr inline float number__exponentiate(unsigned int const number, float const exponent) {
+        constexpr inline double number__exponentiate(unsigned int const number, float const exponent) {
             #if cpp__version >= 2011uL
                 return ::pow(number, exponent);
             #else
                 return number__exponentiate((float) number, exponent);
             #endif
         }
-        constexpr inline int number__exponentiate(unsigned int const number, int const exponent) {
+        constexpr inline long number__exponentiate(unsigned int const number, int const exponent) {
             #if cpp__version >= 2011uL
                 return ::pow(number, exponent);
             #else
@@ -1586,28 +1699,28 @@
                 return number__exponentiate((long double) number, exponent);
             #endif
         }
-        constexpr inline int number__exponentiate(unsigned int const number, short const exponent) {
+        constexpr inline long number__exponentiate(unsigned int const number, short const exponent) {
             #if cpp__version >= 2011uL
                 return ::pow(number, exponent);
             #else
                 return number__exponentiate((float) number, (float) exponent);
             #endif
         }
-        constexpr inline long number__exponentiate(unsigned int const number, unsigned int const exponent) {
+        constexpr inline unsigned long number__exponentiate(unsigned int const number, unsigned int const exponent) {
             #if cpp__version >= 2011uL
                 return ::pow(number, exponent);
             #else
                 return number__exponentiate((float) number, (float) exponent);
             #endif
         }
-        constexpr inline double number__exponentiate(unsigned int const number, unsigned long const exponent) {
+        constexpr inline unsigned long number__exponentiate(unsigned int const number, unsigned long const exponent) {
             #if cpp__version >= 2011uL
                 return ::pow(number, exponent);
             #else
                 return number__exponentiate((double) number, (double) exponent);
             #endif
         }
-        constexpr inline long number__exponentiate(unsigned int const number, unsigned short const exponent) {
+        constexpr inline unsigned long number__exponentiate(unsigned int const number, unsigned short const exponent) {
             #if cpp__version >= 2011uL
                 return ::pow(number, exponent);
             #else
@@ -1623,28 +1736,28 @@
                 else return number__exponentiate((long double) number, (long double) (wide::wide_unsigned_type) exponent);
             #endif
         }
-        constexpr inline double number__exponentiate(unsigned long const number, double const exponent) {
+        constexpr inline long double number__exponentiate(unsigned long const number, double const exponent) {
             #if cpp__version >= 2011uL
                 return ::pow(number, exponent);
             #else
                 return number__exponentiate((double) number, exponent);
             #endif
         }
-        constexpr inline double number__exponentiate(unsigned long const number, float const exponent) {
+        constexpr inline long double number__exponentiate(unsigned long const number, float const exponent) {
             #if cpp__version >= 2011uL
                 return ::pow(number, exponent);
             #else
                 return number__exponentiate((double) number, (double) exponent);
             #endif
         }
-        constexpr inline long number__exponentiate(unsigned long const number, int const exponent) {
+        constexpr inline wide number__exponentiate(unsigned long const number, int const exponent) {
             #if cpp__version >= 2011uL
                 return ::pow(number, exponent);
             #else
                 return number__exponentiate((double) number, exponent);
             #endif
         }
-        constexpr inline long number__exponentiate(unsigned long const number, long const exponent) {
+        constexpr inline wide number__exponentiate(unsigned long const number, long const exponent) {
             #if cpp__version >= 2011uL
                 return ::pow(number, exponent);
             #else
@@ -1658,35 +1771,35 @@
                 return number__exponentiate((long double) number, exponent);
             #endif
         }
-        constexpr inline long number__exponentiate(unsigned long const number, short const exponent) {
+        constexpr inline wide number__exponentiate(unsigned long const number, short const exponent) {
             #if cpp__version >= 2011uL
                 return ::pow(number, exponent);
             #else
                 return number__exponentiate((double) number, (double) exponent);
             #endif
         }
-        constexpr inline double number__exponentiate(unsigned long const number, unsigned int const exponent) {
+        constexpr inline wide number__exponentiate(unsigned long const number, unsigned int const exponent) {
             #if cpp__version >= 2011uL
                 return ::pow(number, exponent);
             #else
                 return number__exponentiate((double) number, (double) exponent);
             #endif
         }
-        constexpr inline double number__exponentiate(unsigned long const number, unsigned long const exponent) {
+        constexpr inline wide number__exponentiate(unsigned long const number, unsigned long const exponent) {
             #if cpp__version >= 2011uL
                 return ::pow(number, exponent);
             #else
                 return number__exponentiate((double) number, (double) exponent);
             #endif
         }
-        constexpr inline double number__exponentiate(unsigned long const number, unsigned short const exponent) {
+        constexpr inline wide number__exponentiate(unsigned long const number, unsigned short const exponent) {
             #if cpp__version >= 2011uL
                 return ::pow(number, exponent);
             #else
                 return number__exponentiate((double) number, (double) exponent);
             #endif
         }
-        inline long double number__exponentiate(unsigned long const number, wide const exponent) {
+        inline wide number__exponentiate(unsigned long const number, wide const exponent) {
             #if cpp__version >= 2011uL
                 if ((wide::wide_signed_type) exponent < 0L) return ::pow(number, (wide::wide_signed_type) exponent);
                 else return ::pow(number, (wide::wide_unsigned_type) exponent);
@@ -1702,21 +1815,21 @@
                 return number__exponentiate((double) number, exponent);
             #endif
         }
-        constexpr inline float number__exponentiate(unsigned short const number, float const exponent) {
+        constexpr inline double number__exponentiate(unsigned short const number, float const exponent) {
             #if cpp__version >= 2011uL
                 return ::pow(number, exponent);
             #else
                 return number__exponentiate((float) number, exponent);
             #endif
         }
-        constexpr inline int number__exponentiate(unsigned short const number, int const exponent) {
+        constexpr inline long number__exponentiate(unsigned short const number, int const exponent) {
             #if cpp__version >= 2011uL
                 return ::pow(number, exponent);
             #else
                 return number__exponentiate((float) number, (float) exponent);
             #endif
         }
-        constexpr inline long number__exponentiate(unsigned short const number, long const exponent) {
+        constexpr inline wide number__exponentiate(unsigned short const number, long const exponent) {
             #if cpp__version >= 2011uL
                 return ::pow(number, exponent);
             #else
@@ -1737,21 +1850,21 @@
                 return number__exponentiate((float) number, (float) exponent);
             #endif
         }
-        constexpr inline long number__exponentiate(unsigned short const number, unsigned int const exponent) {
+        constexpr inline unsigned long number__exponentiate(unsigned short const number, unsigned int const exponent) {
             #if cpp__version >= 2011uL
                 return ::pow(number, exponent);
             #else
                 return number__exponentiate((float) number, (float) exponent);
             #endif
         }
-        constexpr inline double number__exponentiate(unsigned short const number, unsigned long const exponent) {
+        constexpr inline wide number__exponentiate(unsigned short const number, unsigned long const exponent) {
             #if cpp__version >= 2011uL
                 return ::pow(number, exponent);
             #else
                 return number__exponentiate((double) number, (double) exponent);
             #endif
         }
-        constexpr inline long number__exponentiate(unsigned short const number, unsigned short const exponent) {
+        constexpr inline unsigned int number__exponentiate(unsigned short const number, unsigned short const exponent) {
             #if cpp__version >= 2011uL
                 return ::pow(number, exponent);
             #else
@@ -2261,14 +2374,7 @@
         constexpr inline bool number__is_computable(wide const) noexcept { return true; }
 
         // Is Determinate
-        inline bool number__is_determinate(double const number) noexcept {
-            // Constant > ...
-            static unsigned long const indeterminateBitRepresentation[2] = {0x00000000, 0xFFF80000}; // NOTE (Lapys) -> IEEE-754 hexadecimal form.
-            static double const indeterminate = *((double const*) indeterminateBitRepresentation);
-
-            // Return
-            return indeterminate != number && number == number;
-        }
+        inline bool number__is_determinate(double const number) noexcept { return number == number && number != (double) number__create_indeterminate(); }
         inline bool number__is_determinate(float const number) noexcept { return number__is_determinate((double) number); }
         constexpr inline bool number__is_determinate(int const) noexcept { return true; }
         constexpr inline bool number__is_determinate(long const) noexcept { return true; }
@@ -2794,8 +2900,139 @@
         }
 
         // Random
+        inline int number__random(void) noexcept { return ::rand(); }
+
         // Round
+        constexpr inline double number__round(double const number) noexcept { return ::round(number); }
+        constexpr inline float number__round(float const number) noexcept {
+            #if cpp__version >= 2011uL
+                return ::round(number);
+            #elif c__version >= 1999uL
+                return ::roundf(number);
+            #else
+                float const integer = number__floor(number);
+                return number - integer >= 0.5f ? integer + 1.0f : integer;
+            #endif
+        }
+        constexpr inline int number__round(int const number) noexcept { return number; }
+        constexpr inline long number__round(long const number) noexcept { return number; }
+        constexpr inline long double number__round(long double const number) noexcept {
+            #if cpp__version >= 2011uL
+                return ::round(number);
+            #elif c__version >= 1999uL
+                return ::roundl(number);
+            #else
+                long double const integer = number__floor(number);
+                return number - integer >= 0.50 ? integer + 1.00 : integer;
+            #endif
+        }
+        constexpr inline short number__round(short const number) noexcept { return number; }
+        constexpr inline unsigned int number__round(unsigned int const number) noexcept { return number; }
+        constexpr inline unsigned long number__round(unsigned long const number) noexcept { return number; }
+        constexpr inline unsigned short number__round(unsigned short const number) noexcept { return number; }
+        inline wide number__round(wide const number) noexcept { return number; }
+
         // Root
+        inline long double number__root(double const number, double const exponent) { if (2.0 == exponent) return number__square_root(number); else if (3.0 == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0 / exponent); return number__create_non_computable(); }
+        inline long double number__root(double const number, float const exponent) { if (2.0f == exponent) return number__square_root(number); else if (3.0f == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / exponent); return number__create_non_computable(); }
+        inline double number__root(double const number, int const exponent) { if (2 == exponent) return number__square_root(number); else if (3 == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / (float) exponent); return number__create_non_computable(); }
+        inline double number__root(double const number, long const exponent) { if (2L == exponent) return number__square_root(number); else if (3L == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0 / (double) exponent); return number__create_non_computable(); }
+        inline long double number__root(double const number, long double const exponent) { if (2.00 == exponent) return number__square_root(number); else if (3.00 == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.00 / exponent); return number__create_non_computable(); }
+        inline double number__root(double const number, short const exponent) { if (2 == exponent) return number__square_root(number); else if (3 == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / (float) exponent); return number__create_non_computable(); }
+        inline double number__root(double const number, unsigned int const exponent) { if (2u == exponent) return number__square_root(number); else if (3u == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / (float) exponent); return number__create_non_computable(); }
+        inline double number__root(double const number, unsigned long const exponent) { if (2uL == exponent) return number__square_root(number); else if (3uL == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0 / (double) exponent); return number__create_non_computable(); }
+        inline double number__root(double const number, unsigned short const exponent) { if (2u == exponent) return number__square_root(number); else if (3u == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / (float) exponent); return number__create_non_computable(); }
+        inline double number__root(double const number, wide const exponent) { if (2uL == exponent) return number__square_root(number); else if (3uL == exponent) return number__cube_root(number); else if (exponent) { if ((wide::wide_signed_type) exponent < 0L) return number__exponentiate(number, 1.00 / (long double) (wide::wide_signed_type) exponent); else return number__exponentiate(number, 1.00 / (long double) (wide::wide_unsigned_type) exponent); } return number__create_non_computable(); }
+        inline double number__root(float const number, double const exponent) { if (2.0 == exponent) return number__square_root(number); else if (3.0 == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0 / exponent); return number__create_non_computable(); }
+        inline double number__root(float const number, float const exponent) { if (2.0f == exponent) return number__square_root(number); else if (3.0f == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / exponent); return number__create_non_computable(); }
+        inline float number__root(float const number, int const exponent) { if (2 == exponent) return number__square_root(number); else if (3 == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / (float) exponent); return number__create_non_computable(); }
+        inline float number__root(float const number, long const exponent) { if (2L == exponent) return number__square_root(number); else if (3L == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0 / (double) exponent); return number__create_non_computable(); }
+        inline long double number__root(float const number, long double const exponent) { if (2.00 == exponent) return number__square_root(number); else if (3.00 == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.00 / exponent); return number__create_non_computable(); }
+        inline float number__root(float const number, short const exponent) { if (2 == exponent) return number__square_root(number); else if (3 == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / (float) exponent); return number__create_non_computable(); }
+        inline float number__root(float const number, unsigned int const exponent) { if (2u == exponent) return number__square_root(number); else if (3u == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / (float) exponent); return number__create_non_computable(); }
+        inline float number__root(float const number, unsigned long const exponent) { if (2uL == exponent) return number__square_root(number); else if (3uL == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0 / (double) exponent); return number__create_non_computable(); }
+        inline float number__root(float const number, unsigned short const exponent) { if (2u == exponent) return number__square_root(number); else if (3u == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / (float) exponent); return number__create_non_computable(); }
+        inline float number__root(float const number, wide const exponent) { if (2uL == exponent) return number__square_root(number); else if (3uL == exponent) return number__cube_root(number); else if (exponent) { if ((wide::wide_signed_type) exponent < 0L) return number__exponentiate(number, 1.00 / (long double) (wide::wide_signed_type) exponent); else return number__exponentiate(number, 1.00 / (long double) (wide::wide_unsigned_type) exponent); } return number__create_non_computable(); }
+        inline long double number__root(int const number, double const exponent) { if (2.0 == exponent) return number__square_root(number); else if (3.0 == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0 / exponent); return number__create_non_computable(); }
+        inline double number__root(int const number, float const exponent) { if (2.0f == exponent) return number__square_root(number); else if (3.0f == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / exponent); return number__create_non_computable(); }
+        inline int number__root(int const number, int const exponent) { if (2 == exponent) return number__square_root(number); else if (3 == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / (float) exponent); return number; }
+        inline int number__root(int const number, long const exponent) { if (2L == exponent) return number__square_root(number); else if (3L == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0 / (double) exponent); return number; }
+        inline long double number__root(int const number, long double const exponent) { if (2.00 == exponent) return number__square_root(number); else if (3.00 == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.00 / exponent); return number__create_non_computable(); }
+        inline int number__root(int const number, short const exponent) { if (2 == exponent) return number__square_root(number); else if (3 == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / (float) exponent); return number; }
+        inline int number__root(int const number, unsigned int const exponent) { if (2u == exponent) return number__square_root(number); else if (3u == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / (float) exponent); return number; }
+        inline int number__root(int const number, unsigned long const exponent) { if (2uL == exponent) return number__square_root(number); else if (3uL == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0 / (double) exponent); return number; }
+        inline int number__root(int const number, unsigned short const exponent) { if (2u == exponent) return number__square_root(number); else if (3u == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / (float) exponent); return number; }
+        inline int number__root(int const number, wide const exponent) { if (2uL == exponent) return number__square_root(number); else if (3uL == exponent) return number__cube_root(number); else if (exponent) { if ((wide::wide_signed_type) exponent < 0L) return number__exponentiate(number, 1.00 / (long double) (wide::wide_signed_type) exponent); else return number__exponentiate(number, 1.00 / (long double) (wide::wide_unsigned_type) exponent); } return number; }
+        inline long double number__root(long const number, double const exponent) { if (2.0 == exponent) return number__square_root(number); else if (3.0 == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0 / exponent); return number__create_non_computable(); }
+        inline double number__root(long const number, float const exponent) { if (2.0f == exponent) return number__square_root(number); else if (3.0f == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / exponent); return number__create_non_computable(); }
+        inline long number__root(long const number, int const exponent) { if (2 == exponent) return number__square_root(number); else if (3 == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / (float) exponent); return number; }
+        inline long number__root(long const number, long const exponent) { if (2L == exponent) return number__square_root(number); else if (3L == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0 / (double) exponent); return number; }
+        inline long double number__root(long const number, long double const exponent) { if (2.00 == exponent) return number__square_root(number); else if (3.00 == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.00 / exponent); return number__create_non_computable(); }
+        inline long number__root(long const number, short const exponent) { if (2 == exponent) return number__square_root(number); else if (3 == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / (float) exponent); return number; }
+        inline long number__root(long const number, unsigned int const exponent) { if (2u == exponent) return number__square_root(number); else if (3u == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / (float) exponent); return number; }
+        inline long number__root(long const number, unsigned long const exponent) { if (2uL == exponent) return number__square_root(number); else if (3uL == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0 / (double) exponent); return number; }
+        inline long number__root(long const number, unsigned short const exponent) { if (2u == exponent) return number__square_root(number); else if (3u == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / (float) exponent); return number; }
+        inline long number__root(long const number, wide const exponent) { if (2uL == exponent) return number__square_root(number); else if (3uL == exponent) return number__cube_root(number); else if (exponent) { if ((wide::wide_signed_type) exponent < 0L) return number__exponentiate(number, 1.00 / (long double) (wide::wide_signed_type) exponent); else return number__exponentiate(number, 1.00 / (long double) (wide::wide_unsigned_type) exponent); } return number; }
+        inline long double number__root(long double const number, double const exponent) { if (2.0 == exponent) return number__square_root(number); else if (3.0 == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0 / exponent); return number__create_non_computable(); }
+        inline long double number__root(long double const number, float const exponent) { if (2.0f == exponent) return number__square_root(number); else if (3.0f == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / exponent); return number__create_non_computable(); }
+        inline long double number__root(long double const number, int const exponent) { if (2 == exponent) return number__square_root(number); else if (3 == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / (float) exponent); return number__create_non_computable(); }
+        inline long double number__root(long double const number, long const exponent) { if (2L == exponent) return number__square_root(number); else if (3L == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0 / (double) exponent); return number__create_non_computable(); }
+        inline long double number__root(long double const number, long double const exponent) { if (2.00 == exponent) return number__square_root(number); else if (3.00 == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.00 / exponent); return number__create_non_computable(); }
+        inline long double number__root(long double const number, short const exponent) { if (2 == exponent) return number__square_root(number); else if (3 == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / (float) exponent); return number__create_non_computable(); }
+        inline long double number__root(long double const number, unsigned int const exponent) { if (2u == exponent) return number__square_root(number); else if (3u == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / (float) exponent); return number__create_non_computable(); }
+        inline long double number__root(long double const number, unsigned long const exponent) { if (2uL == exponent) return number__square_root(number); else if (3uL == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0 / (double) exponent); return number__create_non_computable(); }
+        inline long double number__root(long double const number, unsigned short const exponent) { if (2u == exponent) return number__square_root(number); else if (3u == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / (float) exponent); return number__create_non_computable(); }
+        inline long double number__root(long double const number, wide const exponent) { if (2uL == exponent) return number__square_root(number); else if (3uL == exponent) return number__cube_root(number); else if (exponent) { if ((wide::wide_signed_type) exponent < 0L) return number__exponentiate(number, 1.00 / (long double) (wide::wide_signed_type) exponent); else return number__exponentiate(number, 1.00 / (long double) (wide::wide_unsigned_type) exponent); } return number__create_non_computable(); }
+        inline double number__root(short const number, double const exponent) { if (2.0 == exponent) return number__square_root(number); else if (3.0 == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0 / exponent); return number__create_non_computable(); }
+        inline float number__root(short const number, float const exponent) { if (2.0f == exponent) return number__square_root(number); else if (3.0f == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / exponent); return number__create_non_computable(); }
+        inline short number__root(short const number, int const exponent) { if (2 == exponent) return number__square_root(number); else if (3 == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / (float) exponent); return number; }
+        inline short number__root(short const number, long const exponent) { if (2L == exponent) return number__square_root(number); else if (3L == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0 / (double) exponent); return number; }
+        inline long double number__root(short const number, long double const exponent) { if (2.00 == exponent) return number__square_root(number); else if (3.00 == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.00 / exponent); return number__create_non_computable(); }
+        inline short number__root(short const number, short const exponent) { if (2 == exponent) return number__square_root(number); else if (3 == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / (float) exponent); return number; }
+        inline short number__root(short const number, unsigned int const exponent) { if (2u == exponent) return number__square_root(number); else if (3u == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / (float) exponent); return number; }
+        inline short number__root(short const number, unsigned long const exponent) { if (2uL == exponent) return number__square_root(number); else if (3uL == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0 / (double) exponent); return number; }
+        inline short number__root(short const number, unsigned short const exponent) { if (2u == exponent) return number__square_root(number); else if (3u == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / (float) exponent); return number; }
+        inline short number__root(short const number, wide const exponent) { if (2uL == exponent) return number__square_root(number); else if (3uL == exponent) return number__cube_root(number); else if (exponent) { if ((wide::wide_signed_type) exponent < 0L) return number__exponentiate(number, 1.00 / (long double) (wide::wide_signed_type) exponent); else return number__exponentiate(number, 1.00 / (long double) (wide::wide_unsigned_type) exponent); } return number; }
+        inline long double number__root(unsigned int const number, double const exponent) { if (2.0 == exponent) return number__square_root(number); else if (3.0 == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0 / exponent); return number__create_non_computable(); }
+        inline double number__root(unsigned int const number, float const exponent) { if (2.0f == exponent) return number__square_root(number); else if (3.0f == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / exponent); return number__create_non_computable(); }
+        inline int number__root(unsigned int const number, int const exponent) { if (2 == exponent) return number__square_root(number); else if (3 == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / (float) exponent); return number; }
+        inline int number__root(unsigned int const number, long const exponent) { if (2L == exponent) return number__square_root(number); else if (3L == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0 / (double) exponent); return number; }
+        inline long double number__root(unsigned int const number, long double const exponent) { if (2.00 == exponent) return number__square_root(number); else if (3.00 == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.00 / exponent); return number__create_non_computable(); }
+        inline long number__root(unsigned int const number, short const exponent) { if (2 == exponent) return number__square_root(number); else if (3 == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / (float) exponent); return number; }
+        inline unsigned int number__root(unsigned int const number, unsigned int const exponent) { if (2u == exponent) return number__square_root(number); else if (3u == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / (float) exponent); return number; }
+        inline unsigned int number__root(unsigned int const number, unsigned long const exponent) { if (2uL == exponent) return number__square_root(number); else if (3uL == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0 / (double) exponent); return number; }
+        inline unsigned int number__root(unsigned int const number, unsigned short const exponent) { if (2u == exponent) return number__square_root(number); else if (3u == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / (float) exponent); return number; }
+        inline unsigned int number__root(unsigned int const number, wide const exponent) { if (2uL == exponent) return number__square_root(number); else if (3uL == exponent) return number__cube_root(number); else if (exponent) { if ((wide::wide_signed_type) exponent < 0L) return number__exponentiate(number, 1.00 / (long double) (wide::wide_signed_type) exponent); else return number__exponentiate(number, 1.00 / (long double) (wide::wide_unsigned_type) exponent); } return number; }
+        inline long double number__root(unsigned long const number, double const exponent) { if (2.0 == exponent) return number__square_root(number); else if (3.0 == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0 / exponent); return number__create_non_computable(); }
+        inline long double number__root(unsigned long const number, float const exponent) { if (2.0f == exponent) return number__square_root(number); else if (3.0f == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / exponent); return number__create_non_computable(); }
+        inline unsigned long number__root(unsigned long const number, int const exponent) { if (2 == exponent) return number__square_root(number); else if (3 == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / (float) exponent); return number; }
+        inline unsigned long number__root(unsigned long const number, long const exponent) { if (2L == exponent) return number__square_root(number); else if (3L == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0 / (double) exponent); return number; }
+        inline long double number__root(unsigned long const number, long double const exponent) { if (2.00 == exponent) return number__square_root(number); else if (3.00 == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.00 / exponent); return number__create_non_computable(); }
+        inline unsigned long number__root(unsigned long const number, short const exponent) { if (2 == exponent) return number__square_root(number); else if (3 == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / (float) exponent); return number; }
+        inline unsigned long number__root(unsigned long const number, unsigned int const exponent) { if (2u == exponent) return number__square_root(number); else if (3u == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / (float) exponent); return number; }
+        inline unsigned long number__root(unsigned long const number, unsigned long const exponent) { if (2uL == exponent) return number__square_root(number); else if (3uL == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0 / (double) exponent); return number; }
+        inline unsigned long number__root(unsigned long const number, unsigned short const exponent) { if (2u == exponent) return number__square_root(number); else if (3u == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / (float) exponent); return number; }
+        inline unsigned long number__root(unsigned long const number, wide const exponent) { if (2uL == exponent) return number__square_root(number); else if (3uL == exponent) return number__cube_root(number); else if (exponent) { if ((wide::wide_signed_type) exponent < 0L) return number__exponentiate(number, 1.00 / (long double) (wide::wide_signed_type) exponent); else return number__exponentiate(number, 1.00 / (long double) (wide::wide_unsigned_type) exponent); } return number; }
+        inline double number__root(unsigned short const number, double const exponent) { if (2.0 == exponent) return number__square_root(number); else if (3.0 == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0 / exponent); return number__create_non_computable(); }
+        inline double number__root(unsigned short const number, float const exponent) { if (2.0f == exponent) return number__square_root(number); else if (3.0f == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / exponent); return number__create_non_computable(); }
+        inline unsigned short number__root(unsigned short const number, int const exponent) { if (2 == exponent) return number__square_root(number); else if (3 == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / (float) exponent); return number; }
+        inline unsigned short number__root(unsigned short const number, long const exponent) { if (2L == exponent) return number__square_root(number); else if (3L == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0 / (double) exponent); return number; }
+        inline long double number__root(unsigned short const number, long double const exponent) { if (2.00 == exponent) return number__square_root(number); else if (3.00 == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.00 / exponent); return number__create_non_computable(); }
+        inline unsigned short number__root(unsigned short const number, short const exponent) { if (2 == exponent) return number__square_root(number); else if (3 == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / (float) exponent); return number; }
+        inline unsigned short number__root(unsigned short const number, unsigned int const exponent) { if (2u == exponent) return number__square_root(number); else if (3u == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / (float) exponent); return number; }
+        inline unsigned short number__root(unsigned short const number, unsigned long const exponent) { if (2uL == exponent) return number__square_root(number); else if (3uL == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0 / (double) exponent); return number; }
+        inline unsigned short number__root(unsigned short const number, unsigned short const exponent) { if (2u == exponent) return number__square_root(number); else if (3u == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / (float) exponent); return number; }
+        inline unsigned short number__root(unsigned short const number, wide const exponent) { if (2uL == exponent) return number__square_root(number); else if (3uL == exponent) return number__cube_root(number); else if (exponent) { if ((wide::wide_signed_type) exponent < 0L) return number__exponentiate(number, 1.00 / (long double) (wide::wide_signed_type) exponent); else return number__exponentiate(number, 1.00 / (long double) (wide::wide_unsigned_type) exponent); } return number; }
+        inline long double number__root(wide const number, double const exponent) { if (2.0 == exponent) return number__square_root(number); else if (3.0 == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0 / exponent); return number__create_non_computable(); }
+        inline long double number__root(wide const number, float const exponent) { if (2.0f == exponent) return number__square_root(number); else if (3.0f == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / exponent); return number__create_non_computable(); }
+        inline wide number__root(wide const number, int const exponent) { if (2 == exponent) return number__square_root(number); else if (3 == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / (float) exponent); return number; }
+        inline wide number__root(wide const number, long const exponent) { if (2L == exponent) return number__square_root(number); else if (3L == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0 / (double) exponent); return number; }
+        inline long double number__root(wide const number, long double const exponent) { if (2.00 == exponent) return number__square_root(number); else if (3.00 == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.00 / exponent); return number__create_non_computable(); }
+        inline wide number__root(wide const number, short const exponent) { if (2 == exponent) return number__square_root(number); else if (3 == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / (float) exponent); return number; }
+        inline wide number__root(wide const number, unsigned int const exponent) { if (2u == exponent) return number__square_root(number); else if (3u == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / (float) exponent); return number; }
+        inline wide number__root(wide const number, unsigned long const exponent) { if (2uL == exponent) return number__square_root(number); else if (3uL == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0 / (double) exponent); return number; }
+        inline wide number__root(wide const number, unsigned short const exponent) { if (2u == exponent) return number__square_root(number); else if (3u == exponent) return number__cube_root(number); else if (exponent) return number__exponentiate(number, 1.0f / (float) exponent); return number; }
+        inline wide number__root(wide const number, wide const exponent) { if (2uL == exponent) return number__square_root(number); else if (3uL == exponent) return number__cube_root(number); else if (exponent) { if ((wide::wide_signed_type) exponent < 0L) return number__exponentiate(number, 1.00 / (long double) (wide::wide_signed_type) exponent); else return number__exponentiate(number, 1.00 / (long double) (wide::wide_unsigned_type) exponent); } return number; }
 
         // Sine
         constexpr inline double number__sine(double const number) { return ::sin(number); }
@@ -2867,6 +3104,84 @@
             #else
                 if ((wide::wide_signed_type) number < 0L) return number__sine((long double) (wide::wide_signed_type) number);
                 else return number__sine((long double) (wide::wide_unsigned_type) number);
+            #endif
+        }
+
+        // Square Root
+        constexpr inline double number__square_root(double const number) noexcept {
+            #if c__version >= 1990uL || cpp__version >= 1998uL
+                return ::sqrt(number);
+            #else
+                return number__exponentiate(number, 0.5);
+            #endif
+        }
+        constexpr inline float number__square_root(float const number) noexcept {
+            #if c__version >= 1999uL
+                return ::sqrtf(number);
+            #elif cpp__version >= 1998uL
+                return ::sqrt(number);
+            #else
+                return number__exponentiate(number, 0.5f);
+            #endif
+        }
+        constexpr inline int number__square_root(int const number) noexcept {
+            #if cpp__version >= 2011uL
+                return ::sqrt(number);
+            #else
+                return number__exponentiate(number, 0.5f);
+            #endif
+        }
+        constexpr inline long number__square_root(long const number) noexcept {
+            #if cpp__version >= 2011uL
+                return ::sqrt(number);
+            #else
+                return number__exponentiate(number, 0.5);
+            #endif
+        }
+        constexpr inline long double number__square_root(long double const number) noexcept {
+            #if c__version >= 1999uL
+                return ::sqrtl(number);
+            #elif cpp__version >= 1998uL
+                return ::sqrt(number);
+            #else
+                return number__exponentiate(number, 0.50);
+            #endif
+        }
+        constexpr inline short number__square_root(short const number) noexcept {
+            #if cpp__version >= 2011uL
+                return ::sqrt(number);
+            #else
+                return number__exponentiate(number, 0.5f);
+            #endif
+        }
+        constexpr inline unsigned int number__square_root(unsigned int const number) noexcept {
+            #if cpp__version >= 2011uL
+                return ::sqrt(number);
+            #else
+                return number__exponentiate(number, 0.5f);
+            #endif
+        }
+        constexpr inline unsigned long number__square_root(unsigned long const number) noexcept {
+            #if cpp__version >= 2011uL
+                return ::sqrt(number);
+            #else
+                return number__exponentiate(number, 0.5);
+            #endif
+        }
+        constexpr inline unsigned short number__square_root(unsigned short const number) noexcept {
+            #if cpp__version >= 2011uL
+                return ::sqrt(number);
+            #else
+                return number__exponentiate(number, 0.5f);
+            #endif
+        }
+        inline wide number__square_root(wide const number) noexcept {
+            #if cpp__version >= 2011uL
+                if ((wide::wide_signed_type) number < 0L) return ::sqrt((wide::wide_signed_type) number);
+                else return ::sqrt((wide::wide_unsigned_type) number);
+            #else
+                if ((wide::wide_signed_type) number < 0L) return number__exponentiate((wide::wide_signed_type) number, 0.50);
+                else return number__exponentiate((wide::wide_unsigned_type) number, 0.50);
             #endif
         }
 
