@@ -72,6 +72,126 @@
         #      define HUGE_VALL HUGE_VAL
         #  endif
 
+        #  if false == (defined(__STD_UTF_16__) && __STD_UTF_16__) // Standard Unicode Text Format (UTF-16)
+            typedef struct char16_t { // UTF-16 Character Type
+                // [...]
+                private:
+                    // Definition > Value
+                    unsigned short value;
+
+                // [...]
+                public:
+                    // [Constructor]
+                    constexpr inline char16_t(void) : value{} {}
+                    constexpr inline char16_t(char16_t& argument) : value{argument.value} {}
+                    constexpr inline char16_t(char16_t&& argument) : value{argument.value} {}
+                    constexpr inline char16_t(char16_t const& argument) : value{argument.value} {}
+                    constexpr inline char16_t(char16_t const&& argument) : value{argument.value} {}
+                    template <typename type> constexpr inline char16_t(type argument) : value{argument} {}
+
+                    // [Operator] > ...
+                    template <typename type> inline char16_t& operator =(type argument) noexcept { this -> value = argument; return *this; }
+                    template <typename type> inline char16_t& operator +=(type argument) noexcept { this -> value += argument; return *this; }
+                    template <typename type> inline char16_t& operator -=(type argument) noexcept { this -> value -= argument; return *this; }
+                    template <typename type> inline char16_t& operator *=(type argument) noexcept { this -> value *= argument; return *this; }
+                    template <typename type> inline char16_t& operator /=(type argument) noexcept { this -> value /= argument; return *this; }
+                    template <typename type> inline char16_t& operator %=(type argument) noexcept { this -> value %= argument; return *this; }
+                    template <typename type> inline char16_t& operator ^=(type argument) noexcept { this -> value ^= argument; return *this; }
+                    template <typename type> inline char16_t& operator &=(type argument) noexcept { this -> value &= argument; return *this; }
+                    template <typename type> inline char16_t& operator |=(type argument) noexcept { this -> value |= argument; return *this; }
+                    template <typename type> inline char16_t& operator >>=(type argument) noexcept { return this -> value >>= argument; return *this; }
+                    template <typename type> inline char16_t& operator <<=(type argument) noexcept { return this -> value <<= argument; return *this; }
+                    inline char16_t operator ++(int const) noexcept { (this -> value)++; return *this; }
+                    inline char16_t& operator ++(void) noexcept { ++(this -> value); return *this; }
+                    inline char16_t operator --(int const) noexcept { (this -> value)--; return *this; }
+                    inline char16_t& operator --(void) noexcept { --(this -> value); return *this; }
+                    constexpr inline operator unsigned short(void) const noexcept { return this -> value; }
+            } char16_t;
+
+        #     define CHAR16_MAX USHRT_MAX
+        #     define CHAR16_MIN USHRT_MIN
+        #  endif
+
+        #  if false == (defined(__STD_UTF_32__) && __STD_UTF_32__) // Standard Unicode Text Format (UTF-32)
+            typedef struct char32_t { // UTF-32 Character Type
+                // [...]
+                private:
+                    // Definition > Value
+                    unsigned int value;
+
+                // [...]
+                public:
+                    // [Constructor]
+                    constexpr inline char32_t(void) : value{} {}
+                    constexpr inline char32_t(char32_t& argument) : value{argument.value} {}
+                    constexpr inline char32_t(char32_t&& argument) : value{argument.value} {}
+                    constexpr inline char32_t(char32_t const& argument) : value{argument.value} {}
+                    constexpr inline char32_t(char32_t const&& argument) : value{argument.value} {}
+                    template <typename type> constexpr inline char32_t(type argument) : value{argument} {}
+
+                    // [Operator] > ...
+                    template <typename type> inline char32_t& operator =(type argument) noexcept { this -> value = argument; return *this; }
+                    template <typename type> inline char32_t& operator +=(type argument) noexcept { this -> value += argument; return *this; }
+                    template <typename type> inline char32_t& operator -=(type argument) noexcept { this -> value -= argument; return *this; }
+                    template <typename type> inline char32_t& operator *=(type argument) noexcept { this -> value *= argument; return *this; }
+                    template <typename type> inline char32_t& operator /=(type argument) noexcept { this -> value /= argument; return *this; }
+                    template <typename type> inline char32_t& operator %=(type argument) noexcept { this -> value %= argument; return *this; }
+                    template <typename type> inline char32_t& operator ^=(type argument) noexcept { this -> value ^= argument; return *this; }
+                    template <typename type> inline char32_t& operator &=(type argument) noexcept { this -> value &= argument; return *this; }
+                    template <typename type> inline char32_t& operator |=(type argument) noexcept { this -> value |= argument; return *this; }
+                    template <typename type> inline char32_t& operator >>=(type argument) noexcept { return this -> value >>= argument; return *this; }
+                    template <typename type> inline char32_t& operator <<=(type argument) noexcept { return this -> value <<= argument; return *this; }
+                    inline char32_t operator ++(int const) noexcept { (this -> value)++; return *this; }
+                    inline char32_t& operator ++(void) noexcept { ++(this -> value); return *this; }
+                    inline char32_t operator --(int const) noexcept { (this -> value)--; return *this; }
+                    inline char32_t& operator --(void) noexcept { --(this -> value); return *this; }
+                    constexpr inline operator unsigned int(void) const noexcept { return this -> value; }
+            } char32_t;
+
+        #     define CHAR32_MAX UINT_MAX
+        #     define CHAR32_MIN UINT_MIN
+        #  endif
+
+        #  if false == (defined(__STD_UTF_8__) && __STD_UTF_8__) // Standard Unicode Text Format (UTF-8)
+            typedef struct char8_t { // UTF-8 Character Type
+                // [...]
+                private:
+                    // Definition > Value
+                    unsigned char value;
+
+                // [...]
+                public:
+                    // [Constructor]
+                    constexpr inline char8_t(void) : value{} {}
+                    constexpr inline char8_t(char8_t& argument) : value{argument.value} {}
+                    constexpr inline char8_t(char8_t&& argument) : value{argument.value} {}
+                    constexpr inline char8_t(char8_t const& argument) : value{argument.value} {}
+                    constexpr inline char8_t(char8_t const&& argument) : value{argument.value} {}
+                    template <typename type> constexpr inline char8_t(type argument) : value{argument} {}
+
+                    // [Operator] > ...
+                    template <typename type> inline char8_t& operator =(type argument) noexcept { this -> value = argument; return *this; }
+                    template <typename type> inline char8_t& operator +=(type argument) noexcept { this -> value += argument; return *this; }
+                    template <typename type> inline char8_t& operator -=(type argument) noexcept { this -> value -= argument; return *this; }
+                    template <typename type> inline char8_t& operator *=(type argument) noexcept { this -> value *= argument; return *this; }
+                    template <typename type> inline char8_t& operator /=(type argument) noexcept { this -> value /= argument; return *this; }
+                    template <typename type> inline char8_t& operator %=(type argument) noexcept { this -> value %= argument; return *this; }
+                    template <typename type> inline char8_t& operator ^=(type argument) noexcept { this -> value ^= argument; return *this; }
+                    template <typename type> inline char8_t& operator &=(type argument) noexcept { this -> value &= argument; return *this; }
+                    template <typename type> inline char8_t& operator |=(type argument) noexcept { this -> value |= argument; return *this; }
+                    template <typename type> inline char8_t& operator >>=(type argument) noexcept { return this -> value >>= argument; return *this; }
+                    template <typename type> inline char8_t& operator <<=(type argument) noexcept { return this -> value <<= argument; return *this; }
+                    inline char8_t operator ++(int const) noexcept { (this -> value)++; return *this; }
+                    inline char8_t& operator ++(void) noexcept { ++(this -> value); return *this; }
+                    inline char8_t operator --(int const) noexcept { (this -> value)--; return *this; }
+                    inline char8_t& operator --(void) noexcept { --(this -> value); return *this; }
+                    constexpr inline operator unsigned char(void) const noexcept { return this -> value; }
+            } char8_t;
+
+        #     define CHAR8_MAX UCHAR_MAX
+        #     define CHAR8_MIN UCHAR_MIN
+        #  endif
+
         #  ifndef WCHAR_MAX // Wide Character Maximum
         #     define WCHAR_MAX sizeof(wchar_t)
         #  endif
@@ -120,80 +240,6 @@
         #  define constexpr // ...
         #  define inline
         #  define noexcept throw()
-
-        typedef struct char16_t { // UTF-16 Character Type
-            // [...]
-            private:
-                // Definition > Value
-                unsigned short value;
-
-            // [...]
-            public:
-                // [Constructor]
-                constexpr inline char16_t(void) : value{} {}
-                constexpr inline char16_t(char16_t& argument) : value{argument.value} {}
-                constexpr inline char16_t(char16_t&& argument) : value{argument.value} {}
-                constexpr inline char16_t(char16_t const& argument) : value{argument.value} {}
-                constexpr inline char16_t(char16_t const&& argument) : value{argument.value} {}
-                template <typename type> constexpr inline char16_t(type argument) : value{argument} {}
-
-                // [Operator] > ...
-                template <typename type> inline char16_t& operator =(type argument) noexcept { this -> value = argument; return *this; }
-                template <typename type> inline char16_t& operator +=(type argument) noexcept { this -> value += argument; return *this; }
-                template <typename type> inline char16_t& operator -=(type argument) noexcept { this -> value -= argument; return *this; }
-                template <typename type> inline char16_t& operator *=(type argument) noexcept { this -> value *= argument; return *this; }
-                template <typename type> inline char16_t& operator /=(type argument) noexcept { this -> value /= argument; return *this; }
-                template <typename type> inline char16_t& operator %=(type argument) noexcept { this -> value %= argument; return *this; }
-                template <typename type> inline char16_t& operator ^=(type argument) noexcept { this -> value ^= argument; return *this; }
-                template <typename type> inline char16_t& operator &=(type argument) noexcept { this -> value &= argument; return *this; }
-                template <typename type> inline char16_t& operator |=(type argument) noexcept { this -> value |= argument; return *this; }
-                template <typename type> inline char16_t& operator >>=(type argument) noexcept { return this -> value >>= argument; return *this; }
-                template <typename type> inline char16_t& operator <<=(type argument) noexcept { return this -> value <<= argument; return *this; }
-                inline char16_t operator ++(int const) noexcept { (this -> value)++; return *this; }
-                inline char16_t& operator ++(void) noexcept { ++(this -> value); return *this; }
-                inline char16_t operator --(int const) noexcept { (this -> value)--; return *this; }
-                inline char16_t& operator --(void) noexcept { --(this -> value); return *this; }
-                constexpr inline operator unsigned short(void) const noexcept { return this -> value; }
-        } char16_t;
-        #  define CHAR16_MAX USHRT_MAX
-        #  define CHAR16_MIN USHRT_MIN
-
-        typedef struct char32_t { // UTF-32 Character Type
-            // [...]
-            private:
-                // Definition > Value
-                unsigned int value;
-
-            // [...]
-            public:
-                // [Constructor]
-                constexpr inline char32_t(void) : value{} {}
-                constexpr inline char32_t(char32_t& argument) : value{argument.value} {}
-                constexpr inline char32_t(char32_t&& argument) : value{argument.value} {}
-                constexpr inline char32_t(char32_t const& argument) : value{argument.value} {}
-                constexpr inline char32_t(char32_t const&& argument) : value{argument.value} {}
-                template <typename type> constexpr inline char32_t(type argument) : value{argument} {}
-
-                // [Operator] > ...
-                template <typename type> inline char32_t& operator =(type argument) noexcept { this -> value = argument; return *this; }
-                template <typename type> inline char32_t& operator +=(type argument) noexcept { this -> value += argument; return *this; }
-                template <typename type> inline char32_t& operator -=(type argument) noexcept { this -> value -= argument; return *this; }
-                template <typename type> inline char32_t& operator *=(type argument) noexcept { this -> value *= argument; return *this; }
-                template <typename type> inline char32_t& operator /=(type argument) noexcept { this -> value /= argument; return *this; }
-                template <typename type> inline char32_t& operator %=(type argument) noexcept { this -> value %= argument; return *this; }
-                template <typename type> inline char32_t& operator ^=(type argument) noexcept { this -> value ^= argument; return *this; }
-                template <typename type> inline char32_t& operator &=(type argument) noexcept { this -> value &= argument; return *this; }
-                template <typename type> inline char32_t& operator |=(type argument) noexcept { this -> value |= argument; return *this; }
-                template <typename type> inline char32_t& operator >>=(type argument) noexcept { return this -> value >>= argument; return *this; }
-                template <typename type> inline char32_t& operator <<=(type argument) noexcept { return this -> value <<= argument; return *this; }
-                inline char32_t operator ++(int const) noexcept { (this -> value)++; return *this; }
-                inline char32_t& operator ++(void) noexcept { ++(this -> value); return *this; }
-                inline char32_t operator --(int const) noexcept { (this -> value)--; return *this; }
-                inline char32_t& operator --(void) noexcept { --(this -> value); return *this; }
-                constexpr inline operator unsigned int(void) const noexcept { return this -> value; }
-        } char32_t;
-        #  define CHAR32_MAX UINT_MAX
-        #  define CHAR32_MIN UINT_MIN
         #endif
 
         #if cpp__version <= 2011uL // C++ 2011, ISO/IEC 14882:2011
@@ -204,42 +250,6 @@
         #endif
 
         #if cpp__version <= 2017uL // C++ 2017, ISO/IEC 14882:2017
-        typedef struct char8_t { // UTF-8 Character Type
-            // [...]
-            private:
-                // Definition > Value
-                unsigned char value;
-
-            // [...]
-            public:
-                // [Constructor]
-                constexpr inline char8_t(void) : value{} {}
-                constexpr inline char8_t(char8_t& argument) : value{argument.value} {}
-                constexpr inline char8_t(char8_t&& argument) : value{argument.value} {}
-                constexpr inline char8_t(char8_t const& argument) : value{argument.value} {}
-                constexpr inline char8_t(char8_t const&& argument) : value{argument.value} {}
-                template <typename type> constexpr inline char8_t(type argument) : value{argument} {}
-
-                // [Operator] > ...
-                template <typename type> inline char8_t& operator =(type argument) noexcept { this -> value = argument; return *this; }
-                template <typename type> inline char8_t& operator +=(type argument) noexcept { this -> value += argument; return *this; }
-                template <typename type> inline char8_t& operator -=(type argument) noexcept { this -> value -= argument; return *this; }
-                template <typename type> inline char8_t& operator *=(type argument) noexcept { this -> value *= argument; return *this; }
-                template <typename type> inline char8_t& operator /=(type argument) noexcept { this -> value /= argument; return *this; }
-                template <typename type> inline char8_t& operator %=(type argument) noexcept { this -> value %= argument; return *this; }
-                template <typename type> inline char8_t& operator ^=(type argument) noexcept { this -> value ^= argument; return *this; }
-                template <typename type> inline char8_t& operator &=(type argument) noexcept { this -> value &= argument; return *this; }
-                template <typename type> inline char8_t& operator |=(type argument) noexcept { this -> value |= argument; return *this; }
-                template <typename type> inline char8_t& operator >>=(type argument) noexcept { return this -> value >>= argument; return *this; }
-                template <typename type> inline char8_t& operator <<=(type argument) noexcept { return this -> value <<= argument; return *this; }
-                inline char8_t operator ++(int const) noexcept { (this -> value)++; return *this; }
-                inline char8_t& operator ++(void) noexcept { ++(this -> value); return *this; }
-                inline char8_t operator --(int const) noexcept { (this -> value)--; return *this; }
-                inline char8_t& operator --(void) noexcept { --(this -> value); return *this; }
-                constexpr inline operator unsigned char(void) const noexcept { return this -> value; }
-        } char8_t;
-        #  define CHAR8_MAX UCHAR_MAX
-        #  define CHAR8_MIN UCHAR_MIN
         #endif
 
         #if cpp__version <= 2020uL // C++ 2020, ...

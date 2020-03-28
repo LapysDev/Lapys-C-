@@ -446,9 +446,9 @@
         // Create --- NOTE (Lapys) -> Allocates memory onto the heap.
         template <size_t length, typename type> constexpr inline type* array__create(void) noexcept { return new type[length]; }
 
-        // Fill
-        template <size_t length, typename type>
-        inline void array__fill(type* const array, type value) noexcept {
+        // Fill --- CHECKPOINT (Lapys)
+        template <size_t length, typename type> inline void array__fill(type* const array, type& value) noexcept { for (size_t iterator = 0u; iterator ^ length; ++iterator) pointer__source_copy_memory(array + iterator, &value, sizeof(type)); }
+        template <size_t length, typename type> inline void array__fill(type* const array, type&& value) noexcept {
             for (size_t iterator = 0u; iterator ^ length; ++iterator)
             pointer__source_copy_memory(array + iterator, &value, sizeof(type));
         }
@@ -3257,6 +3257,18 @@
                 else return number__tangent((long double) (wide::wide_unsigned_type) number);
             #endif
         }
+
+        // To String --- WARN (Lapys) -> Allocated memory is unto the stack.
+        inline char const* number__to_string(double const number) noexcept { return NULL; }
+        inline char const* number__to_string(float const number) noexcept { return NULL; }
+        inline char const* number__to_string(int const number) noexcept { return NULL; }
+        inline char const* number__to_string(long const number) noexcept { return NULL; }
+        inline char const* number__to_string(long double const number) noexcept { return NULL; }
+        inline char const* number__to_string(short const number) noexcept { return NULL; }
+        inline char const* number__to_string(unsigned int const number) noexcept { return NULL; }
+        inline char const* number__to_string(unsigned long const number) noexcept { return NULL; }
+        inline char const* number__to_string(unsigned short const number) noexcept { return NULL; }
+        inline char const* number__to_string(wide const number) noexcept { return NULL; }
 
     /* Pointer */
         // Allocate Heap Memory

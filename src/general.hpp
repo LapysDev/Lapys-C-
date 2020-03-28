@@ -26,6 +26,8 @@ struct wide;
 
 /* Definition --- NOTE (Lapys) -> Some of these function definitions may be optimized in-definition. */
     // Array ...
+    template <size_t, typename type> constexpr type* array__create(void) noexcept;
+
     // Number ...
     constexpr inline double number__absolute(double const) noexcept;
     constexpr inline float number__absolute(float const) noexcept;
@@ -692,6 +694,16 @@ struct wide;
     constexpr inline double number__tangent(unsigned long const);
     constexpr inline float number__tangent(unsigned short const);
     inline long double number__tangent(wide const);
+    char const* number__to_string(double const) noexcept;
+    char const* number__to_string(float const) noexcept;
+    char const* number__to_string(int const) noexcept;
+    char const* number__to_string(long const) noexcept;
+    char const* number__to_string(long double const) noexcept;
+    char const* number__to_string(short const) noexcept;
+    char const* number__to_string(unsigned int const) noexcept;
+    char const* number__to_string(unsigned long const) noexcept;
+    char const* number__to_string(unsigned short const) noexcept;
+    char const* number__to_string(wide const) noexcept;
 
     // Pointer ...
     struct pointer__allocate_heap_memory;
