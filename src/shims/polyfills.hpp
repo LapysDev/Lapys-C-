@@ -4,6 +4,22 @@
     #  define CLOCKS_PER_SEC CLK_TCK
     #endif
 
+    #ifndef EXIT_SUCCESS // Successful Exit Program Status
+    #  define EXIT_SUCCESS 0
+    #endif
+
+    #ifndef INT_EPSILON // Integer Epsilon
+    #  define INT_EPSILON 1
+    #endif
+
+    #ifndef LONG_EPSILON // Long Integer Epsilon
+    #  define LONG_EPSILON 1L
+    #endif
+
+    #ifndef LLONG_EPSILON // Wide Integer Epsilon
+    #  define LLONG_EPSILON 1L
+    #endif
+
     #ifndef NANF // Not-A-Number
     #  define NANF ((float) NAN)
     #endif
@@ -16,8 +32,24 @@
     #  define NULL 0x0
     #endif
 
-    #ifndef EXIT_SUCCESS // Successful Exit Program Status
-    #  define EXIT_SUCCESS 0
+    #ifndef SHRT_EPSILON // Short Integer Epsilon
+    #  define SHRT_EPSILON 1
+    #endif
+
+    #ifndef UINT_EPSILON // Unsigned Integer Epsilon
+    #  define UINT_EPSILON 1u
+    #endif
+
+    #ifndef ULONG_EPSILON // Unsigned Long Integer Epsilon
+    #  define ULONG_EPSILON 1uL
+    #endif
+
+    #ifndef ULLONG_EPSILON // Unsigned Wide Integer Epsilon
+    #  define ULLONG_EPSILON 1uL
+    #endif
+
+    #ifndef USHRT_EPSILON // Unsigned Short Integer Epsilon
+    #  define USHRT_EPSILON 1u
     #endif
 
     #ifndef VK_HANGUL // Virtual Key: Hangul

@@ -980,7 +980,7 @@
             #endif
         }
 
-        // Ceiling
+        // Ceiling --- CHECKPOINT (Lapys) -> Move one-up the number line.
         constexpr inline double number__ceiling(double const number) noexcept { return ::ceil(number); }
         constexpr inline float number__ceiling(float const number) noexcept {
             #if c__version >= 1990uL
@@ -2055,25 +2055,13 @@
             #endif
         }
 
-        // Floor
+        // Floor --- CHECKPOINT (Lapys) -> Move one-down the number line.
         inline double number__floor(double const number) noexcept {
             #if c__version >= 1990uL
                 return ::floorf(number);
             #elif cpp__version >= 1997uL
                 return ::floor(number);
             #else
-                if (number < 0.0f) return -number_floor(-number);
-                else {
-                    double evaluation = 0.0f;
-
-                    for (wide increment = 1uL, overflow = 0uL; increment; overflow = 0uL) {
-                        for (increment = 1uL; evaluation + increment <= number && increment > overflow; increment <<= 1uL) overflow = increment;
-                        increment = increment == 1uL || increment <= overflow ? 0uL; increment >> 1uL;
-                        evaluation += increment;
-                    }
-
-                    return evaluation;
-                }
             #endif
         }
         inline float number__floor(float const number) noexcept {
@@ -2082,18 +2070,6 @@
             #elif cpp__version >= 1997uL
                 return ::floor(number);
             #else
-                if (number < 0.0f) return -number_floor(-number);
-                else {
-                    float evaluation = 0.0f;
-
-                    for (unsigned long increment = 1uL, overflow = 0uL; increment; overflow = 0uL) {
-                        for (increment = 1uL; evaluation + increment <= number && increment > overflow; increment <<= 1uL) overflow = increment;
-                        increment = increment == 1uL || increment <= overflow ? 0uL; increment >> 1uL;
-                        evaluation += increment;
-                    }
-
-                    return evaluation;
-                }
             #endif
         }
         constexpr inline int number__floor(int const number) noexcept { return number; }
@@ -2104,18 +2080,6 @@
             #elif cpp__version >= 1997uL
                 return ::floor(number);
             #else
-                if (number < 0.0f) return -number_floor(-number);
-                else {
-                    long double evaluation = 0.0f;
-
-                    for (wide increment = 1uL, overflow = 0uL; increment; overflow = 0uL) {
-                        for (increment = 1uL; evaluation + increment <= number && increment > overflow; increment <<= 1uL) overflow = increment;
-                        increment = increment == 1uL || increment <= overflow ? 0uL; increment >> 1uL;
-                        evaluation += increment;
-                    }
-
-                    return 0.0f == evaluation ? number < 0 ? -((long double) (wide::wide_unsigned_type) -number) : (long double) (wide::wide_unsigned_type) number : evaluation;
-                }
             #endif
         }
         constexpr inline short number__floor(short const number) noexcept { return number; }
@@ -2343,6 +2307,111 @@
             #endif
         }
 
+        // Is Approximate Equal --- CHECKPOINT (Lapys)
+        inline bool number__is_approximate_equal(double const numberA, double const numberB, double const tolerance = DBL_EPSILON) noexcept { double const difference = number__absolute(numberA - numberB); return difference <= tolerance || difference < number__maximum(number__absolute(numberA), number__absolute(numberB)) * tolerance; }
+
+        // Is Approximate Zero
+        inline bool number__is_approximate_zero(double const number, double const tolerance) noexcept { return number__absolute(number) <= tolerance; }
+        inline bool number__is_approximate_zero(double const number, float const tolerance) noexcept { return number__absolute(number) <= tolerance; }
+        inline bool number__is_approximate_zero(double const number, int const tolerance) noexcept { return number__absolute(number) <= tolerance; }
+        inline bool number__is_approximate_zero(double const number, long const tolerance) noexcept { return number__absolute(number) <= tolerance; }
+        inline bool number__is_approximate_zero(double const number, long double const tolerance) noexcept { return number__absolute(number) <= tolerance; }
+        inline bool number__is_approximate_zero(double const number, short const tolerance) noexcept { return number__absolute(number) <= tolerance; }
+        inline bool number__is_approximate_zero(double const number, unsigned int const tolerance) noexcept { return number__absolute(number) <= tolerance; }
+        inline bool number__is_approximate_zero(double const number, unsigned long const tolerance) noexcept { return number__absolute(number) <= tolerance; }
+        inline bool number__is_approximate_zero(double const number, unsigned short const tolerance) noexcept { return number__absolute(number) <= tolerance; }
+        inline bool number__is_approximate_zero(double const number, wide const tolerance) noexcept { return number__absolute(number) <= tolerance; }
+        inline bool number__is_approximate_zero(float const number, double const tolerance) noexcept { return number__absolute(number) <= tolerance; }
+        inline bool number__is_approximate_zero(float const number, float const tolerance) noexcept { return number__absolute(number) <= tolerance; }
+        inline bool number__is_approximate_zero(float const number, int const tolerance) noexcept { return number__absolute(number) <= tolerance; }
+        inline bool number__is_approximate_zero(float const number, long const tolerance) noexcept { return number__absolute(number) <= tolerance; }
+        inline bool number__is_approximate_zero(float const number, long double const tolerance) noexcept { return number__absolute(number) <= tolerance; }
+        inline bool number__is_approximate_zero(float const number, short const tolerance) noexcept { return number__absolute(number) <= tolerance; }
+        inline bool number__is_approximate_zero(float const number, unsigned int const tolerance) noexcept { return number__absolute(number) <= tolerance; }
+        inline bool number__is_approximate_zero(float const number, unsigned long const tolerance) noexcept { return number__absolute(number) <= tolerance; }
+        inline bool number__is_approximate_zero(float const number, unsigned short const tolerance) noexcept { return number__absolute(number) <= tolerance; }
+        inline bool number__is_approximate_zero(float const number, wide const tolerance) noexcept { return number__absolute(number) <= tolerance; }
+        constexpr inline bool number__is_approximate_zero(int const number, double const) noexcept { return 0 == number; }
+        constexpr inline bool number__is_approximate_zero(int const number, float const) noexcept { return 0 == number; }
+        constexpr inline bool number__is_approximate_zero(int const number, int const) noexcept { return 0 == number; }
+        constexpr inline bool number__is_approximate_zero(int const number, long const) noexcept { return 0 == number; }
+        constexpr inline bool number__is_approximate_zero(int const number, long double const) noexcept { return 0 == number; }
+        constexpr inline bool number__is_approximate_zero(int const number, short const) noexcept { return 0 == number; }
+        constexpr inline bool number__is_approximate_zero(int const number, unsigned int const) noexcept { return 0 == number; }
+        constexpr inline bool number__is_approximate_zero(int const number, unsigned long const) noexcept { return 0 == number; }
+        constexpr inline bool number__is_approximate_zero(int const number, unsigned short const) noexcept { return 0 == number; }
+        constexpr inline bool number__is_approximate_zero(int const number, wide const) noexcept { return 0L == number; }
+        constexpr inline bool number__is_approximate_zero(long const number, double const) noexcept { return 0L == number; }
+        constexpr inline bool number__is_approximate_zero(long const number, float const) noexcept { return 0L == number; }
+        constexpr inline bool number__is_approximate_zero(long const number, int const) noexcept { return 0L == number; }
+        constexpr inline bool number__is_approximate_zero(long const number, long const) noexcept { return 0L == number; }
+        constexpr inline bool number__is_approximate_zero(long const number, long double const) noexcept { return 0L == number; }
+        constexpr inline bool number__is_approximate_zero(long const number, short const) noexcept { return 0L == number; }
+        constexpr inline bool number__is_approximate_zero(long const number, unsigned int const) noexcept { return 0L == number; }
+        constexpr inline bool number__is_approximate_zero(long const number, unsigned long const) noexcept { return 0L == number; }
+        constexpr inline bool number__is_approximate_zero(long const number, unsigned short const) noexcept { return 0L == number; }
+        constexpr inline bool number__is_approximate_zero(long const number, wide const) noexcept { return 0L == number; }
+        inline bool number__is_approximate_zero(long double const number, double const tolerance) noexcept { return number__absolute(number) <= tolerance; }
+        inline bool number__is_approximate_zero(long double const number, float const tolerance) noexcept { return number__absolute(number) <= tolerance; }
+        inline bool number__is_approximate_zero(long double const number, int const tolerance) noexcept { return number__absolute(number) <= tolerance; }
+        inline bool number__is_approximate_zero(long double const number, long const tolerance) noexcept { return number__absolute(number) <= tolerance; }
+        inline bool number__is_approximate_zero(long double const number, long double const tolerance) noexcept { return number__absolute(number) <= tolerance; }
+        inline bool number__is_approximate_zero(long double const number, short const tolerance) noexcept { return number__absolute(number) <= tolerance; }
+        inline bool number__is_approximate_zero(long double const number, unsigned int const tolerance) noexcept { return number__absolute(number) <= tolerance; }
+        inline bool number__is_approximate_zero(long double const number, unsigned long const tolerance) noexcept { return number__absolute(number) <= tolerance; }
+        inline bool number__is_approximate_zero(long double const number, unsigned short const tolerance) noexcept { return number__absolute(number) <= tolerance; }
+        inline bool number__is_approximate_zero(long double const number, wide const tolerance) noexcept { return number__absolute(number) <= tolerance; }
+        constexpr inline bool number__is_approximate_zero(short const number, double const) noexcept { return 0 == number; }
+        constexpr inline bool number__is_approximate_zero(short const number, float const) noexcept { return 0 == number; }
+        constexpr inline bool number__is_approximate_zero(short const number, int const) noexcept { return 0 == number; }
+        constexpr inline bool number__is_approximate_zero(short const number, long const) noexcept { return 0 == number; }
+        constexpr inline bool number__is_approximate_zero(short const number, long double const) noexcept { return 0 == number; }
+        constexpr inline bool number__is_approximate_zero(short const number, short const) noexcept { return 0 == number; }
+        constexpr inline bool number__is_approximate_zero(short const number, unsigned int const) noexcept { return 0 == number; }
+        constexpr inline bool number__is_approximate_zero(short const number, unsigned long const) noexcept { return 0 == number; }
+        constexpr inline bool number__is_approximate_zero(short const number, unsigned short const) noexcept { return 0 == number; }
+        constexpr inline bool number__is_approximate_zero(short const number, wide const) noexcept { return 0u == number; }
+        constexpr inline bool number__is_approximate_zero(unsigned int const number, double const) noexcept { return 0u == number; }
+        constexpr inline bool number__is_approximate_zero(unsigned int const number, float const) noexcept { return 0u == number; }
+        constexpr inline bool number__is_approximate_zero(unsigned int const number, int const) noexcept { return 0u == number; }
+        constexpr inline bool number__is_approximate_zero(unsigned int const number, long const) noexcept { return 0u == number; }
+        constexpr inline bool number__is_approximate_zero(unsigned int const number, long double const) noexcept { return 0u == number; }
+        constexpr inline bool number__is_approximate_zero(unsigned int const number, short const) noexcept { return 0u == number; }
+        constexpr inline bool number__is_approximate_zero(unsigned int const number, unsigned int const) noexcept { return 0u == number; }
+        constexpr inline bool number__is_approximate_zero(unsigned int const number, unsigned long const) noexcept { return 0u == number; }
+        constexpr inline bool number__is_approximate_zero(unsigned int const number, unsigned short const) noexcept { return 0u == number; }
+        constexpr inline bool number__is_approximate_zero(unsigned int const number, wide const) noexcept { return 0uL == number; }
+        constexpr inline bool number__is_approximate_zero(unsigned long const number, double const) noexcept { return 0uL == number; }
+        constexpr inline bool number__is_approximate_zero(unsigned long const number, float const) noexcept { return 0uL == number; }
+        constexpr inline bool number__is_approximate_zero(unsigned long const number, int const) noexcept { return 0uL == number; }
+        constexpr inline bool number__is_approximate_zero(unsigned long const number, long const) noexcept { return 0uL == number; }
+        constexpr inline bool number__is_approximate_zero(unsigned long const number, long double const) noexcept { return 0uL == number; }
+        constexpr inline bool number__is_approximate_zero(unsigned long const number, short const) noexcept { return 0uL == number; }
+        constexpr inline bool number__is_approximate_zero(unsigned long const number, unsigned int const) noexcept { return 0uL == number; }
+        constexpr inline bool number__is_approximate_zero(unsigned long const number, unsigned long const) noexcept { return 0uL == number; }
+        constexpr inline bool number__is_approximate_zero(unsigned long const number, unsigned short const) noexcept { return 0uL == number; }
+        constexpr inline bool number__is_approximate_zero(unsigned long const number, wide const) noexcept { return 0u == number; }
+        constexpr inline bool number__is_approximate_zero(unsigned short const number, double const) noexcept { return 0u == number; }
+        constexpr inline bool number__is_approximate_zero(unsigned short const number, float const) noexcept { return 0u == number; }
+        constexpr inline bool number__is_approximate_zero(unsigned short const number, int const) noexcept { return 0u == number; }
+        constexpr inline bool number__is_approximate_zero(unsigned short const number, long const) noexcept { return 0u == number; }
+        constexpr inline bool number__is_approximate_zero(unsigned short const number, long double const) noexcept { return 0u == number; }
+        constexpr inline bool number__is_approximate_zero(unsigned short const number, short const) noexcept { return 0u == number; }
+        constexpr inline bool number__is_approximate_zero(unsigned short const number, unsigned int const) noexcept { return 0u == number; }
+        constexpr inline bool number__is_approximate_zero(unsigned short const number, unsigned long const) noexcept { return 0u == number; }
+        constexpr inline bool number__is_approximate_zero(unsigned short const number, unsigned short const) noexcept { return 0u == number; }
+        constexpr inline bool number__is_approximate_zero(unsigned short const number, wide const) noexcept { return 0u == number; }
+        inline bool number__is_approximate_zero(wide const number, double const) noexcept { return 0L == (wide::wide_signed_type) number && 0uL == (wide::wide_unsigned_type) number; }
+        inline bool number__is_approximate_zero(wide const number, float const) noexcept { return 0L == (wide::wide_signed_type) number && 0uL == (wide::wide_unsigned_type) number; }
+        inline bool number__is_approximate_zero(wide const number, int const) noexcept { return 0L == (wide::wide_signed_type) number && 0uL == (wide::wide_unsigned_type) number; }
+        inline bool number__is_approximate_zero(wide const number, long const) noexcept { return 0L == (wide::wide_signed_type) number && 0uL == (wide::wide_unsigned_type) number; }
+        inline bool number__is_approximate_zero(wide const number, long double const) noexcept { return 0L == (wide::wide_signed_type) number && 0uL == (wide::wide_unsigned_type) number; }
+        inline bool number__is_approximate_zero(wide const number, short const) noexcept { return 0L == (wide::wide_signed_type) number && 0uL == (wide::wide_unsigned_type) number; }
+        inline bool number__is_approximate_zero(wide const number, unsigned int const) noexcept { return 0L == (wide::wide_signed_type) number && 0uL == (wide::wide_unsigned_type) number; }
+        inline bool number__is_approximate_zero(wide const number, unsigned long const) noexcept { return 0L == (wide::wide_signed_type) number && 0uL == (wide::wide_unsigned_type) number; }
+        inline bool number__is_approximate_zero(wide const number, unsigned short const) noexcept { return 0L == (wide::wide_signed_type) number && 0uL == (wide::wide_unsigned_type) number; }
+        inline bool number__is_approximate_zero(wide const number, wide const) noexcept { return 0L == (wide::wide_signed_type) number && 0uL == (wide::wide_unsigned_type) number; }
+
         // Is Computable --- NOTE (Lapys) -> Is not `NaN`.
         constexpr inline bool number__is_computable(double const number) noexcept {
             #if cpp__version >= 2011uL
@@ -2444,6 +2513,12 @@
         constexpr inline bool number__is_infinite(unsigned long const) noexcept { return false; }
         constexpr inline bool number__is_infinite(unsigned short const) noexcept { return false; }
         constexpr inline bool number__is_infinite(wide const) noexcept { return false; }
+
+        // Is Lesser Than --- CHECKPOINT (Lapys)
+        inline bool number__is_lesser_than(long double const number, long double const comparison) noexcept { long double const difference = number - comparison; return difference < LDBL_EPSILON || difference < ::fmax(::fabs(number), ::fabs(comparison)) * LDBL_EPSILON; }
+
+        // Is Greater Than --- CHECKPOINT (Lapys)
+        inline bool number__is_greater_than(long double const number, long double const comparison) noexcept { long double const difference = number - comparison; return difference > LDBL_EPSILON || difference > ::fmax(::fabs(number), ::fabs(comparison)) * LDBL_EPSILON; }
 
         // Is Normalized
         inline bool number__is_normalized(double const number) noexcept {
@@ -2561,7 +2636,7 @@
             #endif
         }
 
-        // Maximum
+        // Maximum --- CHECKPOINT (Lapys) -> `fmax` and `max` functions.
         constexpr inline double number__maximum(double const numberA, double const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
         constexpr inline double number__maximum(double const numberA, float const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
         constexpr inline double number__maximum(double const numberA, int const numberB) noexcept { return numberA > numberB ? numberA : numberB; }
@@ -2730,7 +2805,7 @@
             }
         }
 
-        // Minimum
+        // Minimum --- CHECKPOINT (Lapys) -> `fmin` and `min` functions.
         constexpr inline double number__minimum(double const numberA, double const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
         constexpr inline double number__minimum(double const numberA, float const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
         constexpr inline double number__minimum(double const numberA, int const numberB) noexcept { return numberA < numberB ? numberA : numberB; }
@@ -2899,10 +2974,13 @@
             }
         }
 
+        // Modulus --- CHECKPOINT (Lapys)
+        inline double number__modulus(double const number, double const denominator) noexcept { ::fmod(number, denominator); }
+
         // Random
         inline int number__random(void) noexcept { return ::rand(); }
 
-        // Round
+        // Round --- CHECKPOINT (Lapys) -> Update this...
         constexpr inline double number__round(double const number) noexcept { return ::round(number); }
         constexpr inline float number__round(float const number) noexcept {
             #if cpp__version >= 2011uL
@@ -3258,7 +3336,166 @@
             #endif
         }
 
-        // To String --- WARN (Lapys) -> Allocated memory is unto the stack.
+        // To Integer
+        inline double number__to_integer(double number) noexcept {
+            #if c__version >= 1990uL
+                ::modf(number, &number); return number;
+            #elif c__version >= 1999uL || cpp__version >= 1998uL
+                return ::trunc(number);
+            #else
+                if (number < 0.0) return -number__to_integer(-number); else { double integer = 0.0; for (wide increment = 1uL, overflow = 0uL; increment; overflow = 0uL) { for (increment = 1uL; integer + increment <= number && increment > overflow; increment <<= 1uL) overflow = increment; increment = increment == 1uL || increment <= overflow ? 0uL; increment >> 1uL; integer += increment; } return integer; }
+            #endif
+        }
+        inline float number__to_integer(float number) noexcept {
+            #if cpp__version >= 1998uL
+                ::modff(number, &number); return number;
+            #elif c__version >= 1999uL
+                return ::truncf(number);
+            #elif cpp__version >= 2011uL
+                return ::trunc(number);
+            #else
+                if (number < 0.0f) return -number__to_integer(-number); else { float integer = 0.0f; for (unsigned long increment = 1uL, overflow = 0uL; increment; overflow = 0uL) { for (increment = 1uL; integer + increment <= number && increment > overflow; increment <<= 1uL) overflow = increment; increment = increment == 1uL || increment <= overflow ? 0uL; increment >> 1uL; integer += increment; } return integer; }
+            #endif
+        }
+        inline int number__to_integer(int const number) noexcept {
+            #if cpp__version >= 2011uL
+                return ::trunc(number);
+            #else
+                return number;
+            #endif
+        }
+        inline long number__to_integer(long const number) noexcept {
+            #if cpp__version >= 2011uL
+                return ::trunc(number);
+            #else
+                return number;
+            #endif
+        }
+        inline long double number__to_integer(long double number) noexcept {
+            #if cpp__version >= 1998uL
+                ::modfl(number, &number); return number;
+            #elif c__version >= 1999uL
+                return ::truncl(number);
+            #elif cpp__version >= 2011uL
+                return ::trunc(number);
+            #else
+            #else
+                if (number < 0.0) return -number__to_integer(-number); else { long double integer = 0.0; for (wide increment = 1uL, overflow = 0uL; increment; overflow = 0uL) { for (increment = 1uL; integer + increment <= number && increment > overflow; increment <<= 1uL) overflow = increment; increment = increment == 1uL || increment <= overflow ? 0uL; increment >> 1uL; integer += increment; } return 0.0 == integer ? number < 0 ? -((long double) (wide::wide_unsigned_type) -number) : (long double) (wide::wide_unsigned_type) number : integer; }
+            #endif
+        }
+        inline short number__to_integer(short const number) noexcept {
+            #if cpp__version >= 2011uL
+                return ::trunc(number);
+            #else
+                return number;
+            #endif
+        }
+        inline unsigned int number__to_integer(unsigned int const number) noexcept {
+            #if cpp__version >= 2011uL
+                return ::trunc(number);
+            #else
+                return number;
+            #endif
+        }
+        inline unsigned long number__to_integer(unsigned long const number) noexcept {
+            #if cpp__version >= 2011uL
+                return ::trunc(number);
+            #else
+                return number;
+            #endif
+        }
+        inline unsigned short number__to_integer(unsigned short const number) noexcept {
+            #if cpp__version >= 2011uL
+                return ::trunc(number);
+            #else
+                return number;
+            #endif
+        }
+        inline wide number__to_integer(wide const number) noexcept {
+            #if cpp__version >= 2011uL
+                return (wide::wide_signed_type) number < 0L ? ::trunc((wide::wide_signed_type) number) : ::trunc((wide::wide_unsigned_type) number);
+            #else
+                return number;
+            #endif
+        }
+
+        // To Mantissa
+        inline double number__to_mantissa(double const number) noexcept {
+            #if c__version >= 1990uL || cpp__version >= 1998uL
+                return ::modf(number, &number);
+            #else
+                return number - number__to_integer(number);
+            #endif
+        }
+        inline float number__to_mantissa(float const number) noexcept {
+            #if c__version >= 1999uL
+                return ::modff(number, &number);
+            #elif cpp__version >= 1998uL
+                return ::modf(number, &number);
+            #else
+                return number - number__to_integer(number);
+            #endif
+        }
+        inline int number__to_mantissa(int const number) noexcept {
+            #if cpp__version >= 2011uL
+                double integer; return (int) ::modf(number, &integer);
+            #else
+                return 0;
+            #endif
+        }
+        inline long number__to_mantissa(long const number) noexcept {
+            #if cpp__version >= 2011uL
+                double integer; return (long) ::modf(number, &integer);
+            #else
+                return 0L;
+            #endif
+        }
+        inline long double number__to_mantissa(long double const number) noexcept {
+            #if c__version >= 1999uL
+                return ::modfl(number, &number);
+            #elif cpp__version >= 1998uL
+                return ::modf(number, &number);
+            #else
+                return number - number__to_integer(number);
+            #endif
+        }
+        inline short number__to_mantissa(short const number) noexcept {
+            #if cpp__version >= 2011uL
+                double integer; return (short) ::modf(number, &integer);
+            #else
+                return 0;
+            #endif
+        }
+        inline unsigned int number__to_mantissa(unsigned int const number) noexcept {
+            #if cpp__version >= 2011uL
+                double integer; return (unsigned int) ::modf(number, &integer);
+            #else
+                return 0u;
+            #endif
+        }
+        inline unsigned long number__to_mantissa(unsigned long const number) noexcept {
+            #if cpp__version >= 2011uL
+                double integer; return (unsigned long) ::modf(number, &integer);
+            #else
+                return 0uL;
+            #endif
+        }
+        inline unsigned short number__to_mantissa(unsigned short const number) noexcept {
+            #if cpp__version >= 2011uL
+                double integer; return (unsigned short) ::modf(number, &integer);
+            #else
+                return 0u;
+            #endif
+        }
+        inline wide number__to_mantissa(wide const number) noexcept {
+            #if cpp__version >= 2011uL
+                double integer; return (wide) ((wide::wide_signed_type) number < 0L ? ::modf((wide::wide_signed_type) number, &integer) : ::modf((wide::wide_unsigned_type) number, &integer));
+            #else
+                return 0uL;
+            #endif
+        }
+
+        // To String --- CHECKPOINT (Lapys) --- WARN (Lapys) -> Allocated memory is unto the stack.
         inline char const* number__to_string(double const number) noexcept { return NULL; }
         inline char const* number__to_string(float const number) noexcept { return NULL; }
         inline char const* number__to_string(int const number) noexcept { return NULL; }
