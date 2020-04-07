@@ -3643,46 +3643,30 @@
         inline bool string__is_empty(char32_t const* const string) noexcept { return NULL == string || 0u == *string; }
         template <size_t length> inline bool string__is_empty(char32_t (&string)[length]) noexcept { return length && 0u == *string; }
         template <size_t length> inline bool string__is_empty(char32_t const (&string)[length]) noexcept { return length && 0u == *string; }
-        inline bool string__is_empty(signed char* const string) noexcept { return NULL == string || '\0' == *string; }
-        inline bool string__is_empty(signed char const* const string) noexcept { return NULL == string || '\0' == *string; }
-        template <size_t length> inline bool string__is_empty(signed char (&string)[length]) noexcept { return length && '\0' == *string; }
-        template <size_t length> inline bool string__is_empty(signed char const (&string)[length]) noexcept { return length && '\0' == *string; }
-        inline bool string__is_empty(unsigned char* const string) noexcept { return NULL == string || '\0' == *string; }
-        inline bool string__is_empty(unsigned char const* const string) noexcept { return NULL == string || '\0' == *string; }
-        template <size_t length> inline bool string__is_empty(unsigned char (&string)[length]) noexcept { return length && '\0' == *string; }
-        template <size_t length> inline bool string__is_empty(unsigned char const (&string)[length]) noexcept { return length && '\0' == *string; }
         inline bool string__is_empty(wchar_t* const string) noexcept { return NULL == string || L'\0' == *string; }
         inline bool string__is_empty(wchar_t const* const string) noexcept { return NULL == string || L'\0' == *string; }
         template <size_t length> inline bool string__is_empty(wchar_t (&string)[length]) noexcept { return length && L'\0' == *string; }
         template <size_t length> inline bool string__is_empty(wchar_t const (&string)[length]) noexcept { return length && L'\0' == *string; }
 
         // Length --- NOTE (Lapys) -> Counts the characters until a null-terminal is reached for raw pointers.
-        inline size_t string__length(char* const string) noexcept { if (NULL == string) return 0u; else { size_t length = 0u; while ('\0' ^ *(string + length)) ++length; return length; } }
-        inline size_t string__length(char const* const string) noexcept { if (NULL == string) return 0u; else { size_t length = 0u; while ('\0' ^ *(string + length)) ++length; return length; } }
+        constexpr inline size_t string__length(char* const string) noexcept { return string__length((char const*) string); }
+        constexpr inline size_t string__length(char const* const string) noexcept { return NULL == string ? 0u : ::strlen(string); }
         template <size_t length> inline size_t string__length(char (&string)[length]) noexcept { if (length) { size_t evaluation = 0u; while ((evaluation ^ length) && ('\0' ^ *(string + evaluation))) ++evaluation; return evaluation; } else return length; }
         template <size_t length> inline size_t string__length(char const (&string)[length]) noexcept { if (length) { size_t evaluation = 0u; while ((evaluation ^ length) && ('\0' ^ *(string + evaluation))) ++evaluation; return evaluation; } else return length; }
-        inline size_t string__length(char8_t* const string) noexcept { if (NULL == string) return 0u; else { size_t length = 0u; while (*(string + length)) ++length; return length; } }
+        inline size_t string__length(char8_t* const string) noexcept { return string__length((char8_t const*) string); }
         inline size_t string__length(char8_t const* const string) noexcept { if (NULL == string) return 0u; else { size_t length = 0u; while (*(string + length)) ++length; return length; } }
         template <size_t length> inline size_t string__length(char8_t (&string)[length]) noexcept { if (length) { size_t evaluation = 0u; while ((evaluation ^ length) && *(string + evaluation)) ++evaluation; return evaluation; } else return length; }
         template <size_t length> inline size_t string__length(char8_t const (&string)[length]) noexcept { if (length) { size_t evaluation = 0u; while ((evaluation ^ length) && *(string + evaluation)) ++evaluation; return evaluation; } else return length; }
-        inline size_t string__length(char16_t* const string) noexcept { if (NULL == string) return 0u; else { size_t length = 0u; while (*(string + length)) ++length; return length; } }
+        inline size_t string__length(char16_t* const string) noexcept { return string__length((char16_t const*) string); }
         inline size_t string__length(char16_t const* const string) noexcept { if (NULL == string) return 0u; else { size_t length = 0u; while (*(string + length)) ++length; return length; } }
         template <size_t length> inline size_t string__length(char16_t (&string)[length]) noexcept { if (length) { size_t evaluation = 0u; while ((evaluation ^ length) && *(string + evaluation)) ++evaluation; return evaluation; } else return length; }
         template <size_t length> inline size_t string__length(char16_t const (&string)[length]) noexcept { if (length) { size_t evaluation = 0u; while ((evaluation ^ length) && *(string + evaluation)) ++evaluation; return evaluation; } else return length; }
-        inline size_t string__length(char32_t* const string) noexcept { if (NULL == string) return 0u; else { size_t length = 0u; while (*(string + length)) ++length; return length; } }
+        inline size_t string__length(char32_t* const string) noexcept { return string__length((char32_t const*) string); }
         inline size_t string__length(char32_t const* const string) noexcept { if (NULL == string) return 0u; else { size_t length = 0u; while (*(string + length)) ++length; return length; } }
         template <size_t length> inline size_t string__length(char32_t (&string)[length]) noexcept { if (length) { size_t evaluation = 0u; while ((evaluation ^ length) && *(string + evaluation)) ++evaluation; return evaluation; } else return length; }
         template <size_t length> inline size_t string__length(char32_t const (&string)[length]) noexcept { if (length) { size_t evaluation = 0u; while ((evaluation ^ length) && *(string + evaluation)) ++evaluation; return evaluation; } else return length; }
-        inline size_t string__length(signed char* const string) noexcept { if (NULL == string) return 0u; else { size_t length = 0u; while ('\0' ^ *(string + length)) ++length; return length; } }
-        inline size_t string__length(signed char const* const string) noexcept { if (NULL == string) return 0u; else { size_t length = 0u; while ('\0' ^ *(string + length)) ++length; return length; } }
-        template <size_t length> inline size_t string__length(signed char (&string)[length]) noexcept { if (length) { size_t evaluation = 0u; while ((evaluation ^ length) && ('\0' ^ *(string + evaluation))) ++evaluation; return evaluation; } else return length; }
-        template <size_t length> inline size_t string__length(signed char const (&string)[length]) noexcept { if (length) { size_t evaluation = 0u; while ((evaluation ^ length) && ('\0' ^ *(string + evaluation))) ++evaluation; return evaluation; } else return length; }
-        inline size_t string__length(unsigned char* const string) noexcept { if (NULL == string) return 0u; else { size_t length = 0u; while ('\0' ^ *(string + length)) ++length; return length; } }
-        inline size_t string__length(unsigned char const* const string) noexcept { if (NULL == string) return 0u; else { size_t length = 0u; while ('\0' ^ *(string + length)) ++length; return length; } }
-        template <size_t length> inline size_t string__length(unsigned char (&string)[length]) noexcept { if (length) { size_t evaluation = 0u; while ((evaluation ^ length) && ('\0' ^ *(string + evaluation))) ++evaluation; return evaluation; } else return length; }
-        template <size_t length> inline size_t string__length(unsigned char const (&string)[length]) noexcept { if (length) { size_t evaluation = 0u; while ((evaluation ^ length) && ('\0' ^ *(string + evaluation))) ++evaluation; return evaluation; } else return length; }
-        inline size_t string__length(wchar_t* const string) noexcept { if (NULL == string) return 0u; else { size_t length = 0u; while (L'\0' ^ *(string + length)) ++length; return length; } }
-        inline size_t string__length(wchar_t const* const string) noexcept { if (NULL == string) return 0u; else { size_t length = 0u; while (L'\0' ^ *(string + length)) ++length; return length; } }
+        constexpr inline size_t string__length(wchar_t* const string) noexcept { return string__length((wchar_t const*) string); }
+        constexpr inline size_t string__length(wchar_t const* const string) noexcept { return NULL == string ? 0u : ::wcslen(string); }
         template <size_t length> inline size_t string__length(wchar_t (&string)[length]) noexcept { if (length) { size_t evaluation = 0u; while ((evaluation ^ length) && (L'\0' ^ *(string + evaluation))) ++evaluation; return evaluation; } else return length; }
         template <size_t length> inline size_t string__length(wchar_t const (&string)[length]) noexcept { if (length) { size_t evaluation = 0u; while ((evaluation ^ length) && (L'\0' ^ *(string + evaluation))) ++evaluation; return evaluation; } else return length; }
 
