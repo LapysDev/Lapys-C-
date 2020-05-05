@@ -27,9 +27,11 @@
 
     // [POSIX Library]
     #include <dirent.h> // Directory Entries
+    #include <locale.h> // Locale
     #include <strings.h> // Strings
     #include <wchar.h> // Wide Characters
 
     // [...]
     #include <conio.h> // Console Input-Output
+    #include <io.h> // Input-Output
     #include <malloc.h> // Main Memory Allocation Point

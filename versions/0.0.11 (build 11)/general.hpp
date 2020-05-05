@@ -839,6 +839,27 @@ struct wide;
     template <typename type> void pointer__zero_memory(type* const, size_t const) noexcept;
 
     // String ... --- CHECKPOINT (Lapys)
+    constexpr inline char* string__end(char*) noexcept;
+    constexpr inline char const* string__end(char const*) noexcept;
+    template <size_t length> constexpr inline char* string__end(char (&)[length]) noexcept;
+    template <size_t length> constexpr inline char const* string__end(char const (&)[length]) noexcept;
+    constexpr inline char8_t* string__end(char8_t*) noexcept;
+    constexpr inline char8_t const* string__end(char8_t const*) noexcept;
+    template <size_t length> constexpr inline char8_t* string__end(char8_t (&)[length]) noexcept;
+    template <size_t length> constexpr inline char8_t const* string__end(char8_t const (&)[length]) noexcept;
+    constexpr inline char16_t* string__end(char16_t*) noexcept;
+    constexpr inline char16_t const* string__end(char16_t const*) noexcept;
+    template <size_t length> constexpr inline char16_t* string__end(char16_t (&)[length]) noexcept;
+    template <size_t length> constexpr inline char16_t const* string__end(char16_t const (&)[length]) noexcept;
+    constexpr inline char32_t* string__end(char32_t*) noexcept;
+    constexpr inline char32_t const* string__end(char32_t const*) noexcept;
+    template <size_t length> constexpr inline char32_t* string__end(char32_t (&)[length]) noexcept;
+    template <size_t length> constexpr inline char32_t const* string__end(char32_t const (&)[length]) noexcept;
+    constexpr inline wchar_t* string__end(wchar_t*) noexcept;
+    constexpr inline wchar_t const* string__end(wchar_t const*) noexcept;
+    template <size_t length> constexpr inline wchar_t* string__end(wchar_t (&)[length]) noexcept;
+    template <size_t length> constexpr inline wchar_t const* string__end(wchar_t const (&)[length]) noexcept;
+
     bool string__is_empty(char* const) noexcept;
     bool string__is_empty(char const* const) noexcept;
     bool string__is_empty(char8_t* const) noexcept;
