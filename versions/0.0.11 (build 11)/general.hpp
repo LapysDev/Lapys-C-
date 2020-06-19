@@ -920,5 +920,4 @@ int main(void) {
     // Return
     return EXIT_SUCCESS;
 }
-
 #endif

@@ -1,0 +1,2 @@
+/* Class > Mouse */
+class Mouse;
