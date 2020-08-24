@@ -26,6 +26,8 @@
   #include "features/exceptions.hpp"
 
   // : Mathematics
+  #include "mathematics/constants.hpp"
+
   #include "mathematics/functions.hpp"
   #include "mathematics/functions.cpp"
 
