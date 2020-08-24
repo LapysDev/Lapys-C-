@@ -1,17 +1,14 @@
 /* Definition > ... [Linux] */
-#if defined(__gnu_linux__) || defined(linux) || defined(__linux) || defined(__linux__)
-#   define platform__is_linux true
-#else
-#   define platform__is_linux false
-#endif
+#define environment__is_linux (defined(__gnu_linux__) || defined(linux) || defined(__linux) || defined(__linux__))
 
 /* Import */
-#if platform__is_linux || (\
+#if environment__is_linux || (\
     defined(__CYGWIN__) || \
     defined(__clang__) || defined(__clang_major__) || defined(__clang_minor__) || defined(__clang_patchlevel__) || \
     defined(__GNUC__) || defined(__GNUC_MINOR__) || defined(__GNUC_PATCHLEVEL__) || defined(__GNUG__) || \
     defined(_MSC_VER) \
 )
+
 #  include <fcntl.h> // File Control
 #  include <sys/stat.h> // System > Status
 #  include <sys/types.h> // System > Types

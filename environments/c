@@ -1,0 +1,14 @@
+/* Definition > ... */
+#define _USE_MATH_DEFINES
+
+/* Import > [C Standard Library] */
+#include <errno.h> // Error Indicator
+#include <math.h> // Mathematics
+#include <signal.h> // Signal
+
+#if c__version || cpp__version >= 2011uL
+#   define includes__floating_point_environment_library true
+#   include <fenv.h> // Floating-Point Environment
+#else
+#   define includes__floating_point_environment_library false
+#endif
