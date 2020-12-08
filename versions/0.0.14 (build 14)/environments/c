@@ -8,6 +8,8 @@
 
 #if c__version || cpp__version >= 2011uL
 #   define includes__floating_point_environment_library true
+#   pragma STDC FENV_ACCESS on
+
 #   include <fenv.h> // Floating-Point Environment
 #else
 #   define includes__floating_point_environment_library false

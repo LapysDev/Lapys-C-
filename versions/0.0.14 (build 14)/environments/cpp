@@ -1,0 +1,20 @@
+/* Definition > ... */
+#define _USE_MATH_DEFINES
+
+/* Import > [C++ Standard Library] */
+#include <cerrno> // C Error Indicator
+#include <cmath> // C Mathematics
+#include <csignal> // C Signal
+
+#if c__version || cpp__version >= 2011uL
+#   define includes__floating_point_environment_library true
+#   pragma STDC FENV_ACCESS on
+
+#   include <cfenv> // C Floating-Point Environment
+#   include <cuchar> // C Unicode Characters
+#else
+#   define includes__floating_point_environment_library false
+#endif
+
+/* Utilization > Standard --- NOTE (Lapys) -> :/ */
+using namespace std;

@@ -6,7 +6,9 @@
 #endif
 
 #define WIN32_LEAN_AND_MEAN
-#define _WIN32_WINNT 0x0600
+#ifndef
+#   define _WIN32_WINNT 0x0600
+#endif
 
 /* Import */
 #if platform__is_windows

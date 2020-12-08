@@ -35,12 +35,12 @@ namespace Mathematics {
     void difference(...);
     void minimum(...);
     void absolute(...);
-
-    Infinity;
-    NaN;
 } namespace Math = Mathematics;
 
-/* Modification > Mathematics --- CHECKPOINT (Lapys) -> Cross-check versions, Check for exceptions; not only in custom implementations. Co-tangents? */
+/* Modification > Mathematics
+        --- CHECKPOINT (Lapys) -> Cross-check versions, Check for exceptions; not only in custom implementations. Co-tangents?
+        --- WARN (Lapys) -> Does not explicitly cast between decimal and integer types, defer to the `recompose(x)` & `truncate(x)` or `characteristics_of(x)` & `mantissa_of(x)` utilities.
+*/
 // : [Exponent & Logarithm]
     // Binary Exponentiate -> 2 ** x
     constexpr inline double binary_exponentiate(double const exponent) noexcept { return ::exp2(exponent); }
@@ -145,7 +145,7 @@ namespace Mathematics {
     #if c__version >= 1990uL || cpp__version >= 1997uL
         constexpr inline double natural_exponentiate(double const number) noexcept { return ::exp(number); }
     #else
-        constexpr inline double natural_exponentiate(double const number) noexcept { return Mathematics::exponentiate(Mathematics::E, number); }
+        constexpr inline double natural_exponentiate(double const number) noexcept { return Mathematics::exponentiate((long double) number); }
     #endif
 
     #if c__version >= 1999uL
@@ -155,16 +155,24 @@ namespace Mathematics {
         constexpr inline float natural_exponentiate(float const number) noexcept { return ::exp(number); }
         constexpr inline long double natural_exponentiate(long double const number) noexcept { return ::exp(number); }
     #else
-        constexpr inline float natural_exponentiate(float const number) noexcept { return Mathematics::exponentiate(Mathematics::E, number); }
-        constexpr inline long double natural_exponentiate(long double const number) noexcept { return Mathematics::exponentiate(Mathematics::E, number); }
+        constexpr inline float natural_exponentiate(float const number) noexcept { return Mathematics::exponentiate((long double) number); }
+        constexpr inline long double natural_exponentiate(long double const number) noexcept {
+            size_t const count = Mathematics::exponentiate(100uL, Mathematics::characteristics_length(number));
+            long double evaluation = 0.0L;
+
+            for (unsigned char iterator = 0u; count ^ iterator; ++iterator)
+            evaluation += Mathematics::exponentiate(Mathematics::recompose(number), iterator) / Mathematics::factorial(iterator);
+
+            return evaluation;
+        }
     #endif
 
     #if cpp__version >= 2011uL
         constexpr inline double natural_exponentiate(long const number) noexcept { return ::exp(number); }
         constexpr inline double natural_exponentiate(unsigned long const number) noexcept { return ::exp(number); }
     #else
-        constexpr inline double natural_exponentiate(long const number) noexcept { return Mathematics::exponentiate(Mathematics::E, number); }
-        constexpr inline double natural_exponentiate(unsigned long const number) noexcept { return Mathematics::exponentiate(Mathematics::E, number); }
+        constexpr inline double natural_exponentiate(long const number) noexcept { return Mathematics::exponentiate(Mathematics::recompose(number)); }
+        constexpr inline double natural_exponentiate(unsigned long const number) noexcept { return Mathematics::exponentiate(Mathematics::recompose(number)); }
     #endif
 
     // Natural Logarithm -> ln(x)
@@ -191,7 +199,7 @@ namespace Mathematics {
         constexpr inline float natural_logarithm(float const number) noexcept { return Mathematics::natural_logarithm((long double) number); }
         constexpr inline long double natural_logarithm(long double const number) noexcept {
             // Logic > ... --- ERROR (Lapys) ->
-            if (number < -0.0L) { // Domain error.
+            if (number < +0.0L) { // Domain error.
                 #if includes__floating_point_environment_library
                     if (Exception::allowsFloatingPointException()) Exception::raiseFloatingPointException(FE_INVALID);
                     if (Exception::allowsFloatingPointErrorIndicator()) Exception::setErrorIndicator(EDOM);
@@ -207,11 +215,11 @@ namespace Mathematics {
                 return -Infinity;
             }
 
-            else if (Infinity == number) return Infinity;
-            else if (NaN == number) return NaN;
+            else if (Infinity.is(number)) return Infinity;
+            else if (NaN.is(number)) return NaN;
 
             // Initialization > (Count, Evaluation)
-            size_t const count = Mathematics::exponentiate(10u, Mathematics::characteristics_length(number));
+            size_t const count = Mathematics::exponentiate(100uL, Mathematics::characteristics_length(number));
             long double evaluation = 0.0L;
 
             // Loop > Update > Evaluation
@@ -441,7 +449,7 @@ namespace Mathematics {
         constexpr inline float cube_root(float const number) noexcept { return Mathematics::cube_root((long double) number); }
         constexpr inline long double cube_root(long double const number) noexcept { // NOTE (Lapys) -> Binary search algorithm.
             // Logic > ... --- ERROR (Lapys) ->
-            if (number < -0.0L) { // Domain Error.
+            if (number < +0.0L) { // Domain Error.
                 #if includes__floating_point_environment_library
                     if (Exception::allowsFloatingPointException()) Exception::raiseFloatingPointException(FE_INVALID);
                     if (Exception::allowsFloatingPointErrorIndicator()) Exception::setErrorIndicator(EDOM);
@@ -449,7 +457,7 @@ namespace Mathematics {
                 return NaN;
             }
             else if (0.0L == number || Infinity.is(number)) return number;
-            else if (NaN == number) return NaN;
+            else if (NaN.is(number)) return NaN;
 
             // Initialization > (Evaluation, Precision, (Greater, Lower))
             long double evaluation = 0.0L;
@@ -508,7 +516,298 @@ namespace Mathematics {
         }
     #endif
 
-    // Exponentiate
+    // Exponentiate --- CHECKPOINT (Lapys) -> Fix the goddamn int-to-int pow()
+    constexpr inline double exponentiate(double const base, float const exponent) noexcept { return Mathematics::exponentiate(base, (double) exponent); }
+    constexpr inline double exponentiate(double const base, long const exponent) noexcept { return Mathematics::exponentiate(base, (double) Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(double const base, long double const exponent) noexcept { return Mathematics::exponentiate<double>((long double) base, exponent); }
+    constexpr inline double exponentiate(double const base, short const exponent) noexcept { return Mathematics::exponentiate(base, (double) Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(double const base, signed char const exponent) noexcept { return Mathematics::exponentiate(base, (double) Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(double const base, unsigned char const exponent) noexcept { return Mathematics::exponentiate(base, (double) Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(double const base, unsigned int const exponent) noexcept { return Mathematics::exponentiate(base, (double) Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(double const base, unsigned long const exponent) noexcept { return Mathematics::exponentiate(base, (double) Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(double const base, unsigned short const exponent) noexcept { return Mathematics::exponentiate(base, (double) Mathematics::recompose(exponent)); }
+
+    constexpr inline float exponentiate(float const base, double const exponent) noexcept { return Mathematics::exponentiate<float>((double) base, exponent); }
+    constexpr inline float exponentiate(float const base, int const exponent) noexcept { return Mathematics::exponentiate(base, (float) Mathematics::recompose(exponent)); }
+    constexpr inline float exponentiate(float const base, long const exponent) noexcept { return Mathematics::exponentiate<float>((double) base, (double) Mathematics::recompose(exponent)); }
+    constexpr inline float exponentiate(float const base, long double const exponent) noexcept { return Mathematics::exponentiate<float>((long double) base, exponent); }
+    constexpr inline float exponentiate(float const base, short const exponent) noexcept { return Mathematics::exponentiate(base, (float) Mathematics::recompose(exponent)); }
+    constexpr inline float exponentiate(float const base, signed char const exponent) noexcept { return Mathematics::exponentiate(base, (float) Mathematics::recompose(exponent)); }
+    constexpr inline float exponentiate(float const base, unsigned char const exponent) noexcept { return Mathematics::exponentiate(base, (float) Mathematics::recompose(exponent)); }
+    constexpr inline float exponentiate(float const base, unsigned int const exponent) noexcept { return Mathematics::exponentiate(base, (float) Mathematics::recompose(exponent)); }
+    constexpr inline float exponentiate(float const base, unsigned long const exponent) noexcept { return Mathematics::exponentiate(base, (float) Mathematics::recompose(exponent)); }
+    constexpr inline float exponentiate(float const base, unsigned short const exponent) noexcept { return Mathematics::exponentiate(base, (float) Mathematics::recompose(exponent)); }
+
+    constexpr inline double exponentiate(int const base, double const exponent) noexcept { return Mathematics::exponentiate<int>((double) Mathematics::recompose(base), (long double) exponent); }
+    constexpr inline double exponentiate(int const base, float const exponent) noexcept { return Mathematics::exponentiate((float) Mathematics::recompose(base), exponent); }
+    constexpr inline double exponentiate(int const base, long const exponent) noexcept { return Mathematics::exponentiate((long) base, exponent); }
+    constexpr inline double exponentiate(int const base, long double const exponent) noexcept { return Mathematics::exponentiate((float) Mathematics::recompose(base), exponent); }
+    constexpr inline double exponentiate(int const base, short const exponent) noexcept { return Mathematics::exponentiate(base, (int) exponent); }
+    constexpr inline double exponentiate(int const base, signed char const exponent) noexcept { return Mathematics::exponentiate(base, (int) exponent); }
+    constexpr inline double exponentiate(int const base, unsigned char const exponent) noexcept { return Mathematics::exponentiate(base, (int) exponent); }
+    constexpr inline double exponentiate(int const base, unsigned int const exponent) noexcept { return Mathematics::exponentiate((long) base, (long) exponent); }
+    constexpr inline double exponentiate(int const base, unsigned long const exponent) noexcept { return Mathematics::exponentiate(base, exponent); }
+    constexpr inline double exponentiate(int const base, unsigned short const exponent) noexcept { return Mathematics::exponentiate(base, exponent); }
+
+    constexpr inline double exponentiate(long const base, double const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), (long double) exponent); }
+    constexpr inline double exponentiate(long const base, float const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), (long double) exponent); }
+    constexpr inline double exponentiate(long const base, int const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(long const base, short const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(long const base, signed char const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(long const base, unsigned char const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(long const base, unsigned int const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(long const base, unsigned long const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(long const base, unsigned short const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+
+    constexpr inline long double exponentiate(long double const base, double const exponent) noexcept { return Mathematics::exponentiate(base, (long double) exponent); }
+    constexpr inline long double exponentiate(long double const base, float const exponent) noexcept { return Mathematics::exponentiate(base, (long double) exponent); }
+    constexpr inline long double exponentiate(long double const base, short const exponent) noexcept { return Mathematics::exponentiate(base, Mathematics::recompose(exponent)); }
+    constexpr inline long double exponentiate(long double const base, signed char const exponent) noexcept { return Mathematics::exponentiate(base, Mathematics::recompose(exponent)); }
+    constexpr inline long double exponentiate(long double const base, unsigned char const exponent) noexcept { return Mathematics::exponentiate(base, Mathematics::recompose(exponent)); }
+    constexpr inline long double exponentiate(long double const base, unsigned int const exponent) noexcept { return Mathematics::exponentiate(base, Mathematics::recompose(exponent)); }
+    constexpr inline long double exponentiate(long double const base, unsigned short const exponent) noexcept { return Mathematics::exponentiate(base, Mathematics::recompose(exponent)); }
+
+    constexpr inline double exponentiate(short const base, double const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), (long double) exponent); }
+    constexpr inline double exponentiate(short const base, float const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), (long double) exponent); }
+    constexpr inline double exponentiate(short const base, int const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(short const base, long const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(short const base, long double const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), exponent); }
+    constexpr inline double exponentiate(short const base, signed char const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(short const base, unsigned char const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(short const base, unsigned int const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(short const base, unsigned long const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(short const base, unsigned short const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+
+    constexpr inline double exponentiate(signed char const base, double const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), (long double) exponent); }
+    constexpr inline double exponentiate(signed char const base, float const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), (long double) exponent); }
+    constexpr inline double exponentiate(signed char const base, int const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(signed char const base, long const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(signed char const base, long double const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), exponent); }
+    constexpr inline double exponentiate(signed char const base, short const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(signed char const base, unsigned char const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(signed char const base, unsigned int const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(signed char const base, unsigned long const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(signed char const base, unsigned short const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+
+    constexpr inline double exponentiate(unsigned char const base, double const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), (long double) exponent); }
+    constexpr inline double exponentiate(unsigned char const base, float const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), (long double) exponent); }
+    constexpr inline double exponentiate(unsigned char const base, int const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(unsigned char const base, long const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(unsigned char const base, long double const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), exponent); }
+    constexpr inline double exponentiate(unsigned char const base, short const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(unsigned char const base, signed char const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(unsigned char const base, unsigned int const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(unsigned char const base, unsigned long const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(unsigned char const base, unsigned short const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+
+    constexpr inline double exponentiate(unsigned int const base, double const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), (long double) exponent); }
+    constexpr inline double exponentiate(unsigned int const base, float const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), (long double) exponent); }
+    constexpr inline double exponentiate(unsigned int const base, int const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(unsigned int const base, long const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(unsigned int const base, long double const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), exponent); }
+    constexpr inline double exponentiate(unsigned int const base, short const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(unsigned int const base, signed char const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(unsigned int const base, unsigned char const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(unsigned int const base, unsigned long const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(unsigned int const base, unsigned short const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+
+    constexpr inline double exponentiate(unsigned long const base, double const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), (long double) exponent); }
+    constexpr inline double exponentiate(unsigned long const base, float const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), (long double) exponent); }
+    constexpr inline double exponentiate(unsigned long const base, int const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(unsigned long const base, long const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(unsigned long const base, short const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(unsigned long const base, signed char const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(unsigned long const base, unsigned char const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(unsigned long const base, unsigned int const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(unsigned long const base, unsigned short const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+
+    constexpr inline double exponentiate(unsigned short const base, double const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), (long double) exponent); }
+    constexpr inline double exponentiate(unsigned short const base, float const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), (long double) exponent); }
+    constexpr inline double exponentiate(unsigned short const base, int const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(unsigned short const base, long const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(unsigned short const base, long double const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), exponent); }
+    constexpr inline double exponentiate(unsigned short const base, short const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(unsigned short const base, signed char const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(unsigned short const base, unsigned char const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(unsigned short const base, unsigned int const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+    constexpr inline double exponentiate(unsigned short const base, unsigned long const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), Mathematics::recompose(exponent)); }
+
+    #if c__version >= 1990uL || cpp__version >= 1997uL
+        constexpr inline double exponentiate(double const base, double const exponent) noexcept { return ::pow(base, exponent); }
+    #else
+        constexpr inline double exponentiate(double const base, double const exponent) noexcept { return Mathematics::exponentiate<double>((long double) base, (long double) exponent); }
+    #endif
+
+    #if c__version >= 1999uL
+        constexpr inline double exponentiate(double const base, int const exponent) noexcept { return Mathematics::exponentiate((double) base, (double) Mathematics::recompose(exponent)); }
+        constexpr inline float exponentiate(float const base, float const exponent) noexcept { return ::powf(base, exponent); }
+        constexpr inline long double exponentiate(long double const base, long double const exponent) noexcept { return ::powl(base, exponent); }
+        constexpr inline long double exponentiate(long double const base, int const exponent) noexcept { return Mathematics::exponentiate(base, (long double) Mathematics::recompose(exponent)); }
+    #elif cpp__version >= 1997uL
+        constexpr inline double exponentiate(double const base, int const exponent) noexcept { return ::pow(base, exponent); }
+        constexpr inline float exponentiate(float const base, float const exponent) noexcept { return ::pow(base, exponent); }
+        constexpr inline long double exponentiate(long double const base, long double const exponent) noexcept { return ::pow(base, exponent); }
+        constexpr inline long double exponentiate(long double const base, int const exponent) noexcept { return ::pow(base, exponent); }
+    #else
+        template <class type = long double>
+        constexpr inline long double exponentiate(long double const base, long double const exponent) noexcept {
+            // Logic ...
+            if ((base < +0.0L && Infinity.isnt(base)) && (Infinity.isnt(exponent) && Mathematics::mantissa_of(exponent))) {
+                // Logic > Error; Return --- ERROR (Lapys) ->
+                #if c__version >= 1990uL // (Domain, Range) Error.
+                    return Mathematics::exponentiate(-0.1, 0.1);
+                #elif includes__floating_point_environment_library // Domain Error.
+                    if (Exception::allowsFloatingPointException()) Exception::raiseFloatingPointException(FE_DIVBYZERO); // CONSIDER (Lapys)
+                    if (Exception::allowsFloatingPointErrorIndicator()) Exception::setErrorIndicator(EDOM);
+                #endif
+                return -(long double) NaN;
+            }
+
+            else if (base + exponent == 0.0L) {
+                // Logic; Return --- ERROR (Lapys) -> Domain Error.
+                #if c__version >= 1990uL
+                    // Return
+                    return Mathematics::exponentiate(0.0, 0.0);
+                #endif
+                return 1.0L;
+            }
+
+            else if (0.0L == base) {
+                // Logic
+                if (exponent < +0.0L) {
+                    // Logic; Return --- ERROR (Lapys) -> (Domain | Pole) Error.
+                    #if c__version >= 1990uL
+                        if (Infinity.is(exponent)) Mathematics::exponentiate(0.0, -Infinity);
+                        else return Mathematics::exponentiate(0.0, -1.0);
+                    #endif
+                    return Infinity;
+                }
+
+                else if (Mathematics::odd(exponent)) {
+                    // Logic > ... Return
+                    if (exponent < +0.0L) {
+                        #if includes__floating_point_environment_library
+                            if (Exception::allowsFloatingPointException()) Exception::raiseFloatingPointException(FE_DIVBYZERO);
+                            if (Exception::allowsFloatingPointErrorIndicator()) Exception::setErrorIndicator(EDOM); // CONSIDER (Lapys)
+                        #endif
+                        return +0.0L == base ? Infinity : -Infinity;
+                    } else return base;
+                }
+
+                else if (Mathematics::even(exponent) || Mathematics::mantissa_of(exponent)) {
+                    // Logic > ... Return
+                    if (false == exponent < +0.0L) return 0.0L;
+                    else if (exponent < +0.0L && Infinity.isnt(exponent)) {
+                        #if includes__floating_point_environment_library
+                            if (Exception::allowsFloatingPointException()) Exception::raiseFloatingPointException(FE_DIVBYZERO);
+                            if (Exception::allowsFloatingPointErrorIndicator()) Exception::setErrorIndicator(EDOM); // CONSIDER (Lapys)
+                        #endif
+                        return +Infinity;
+                    }
+                }
+            }
+
+            else if (0.0L == exponent) return 1.0L;
+            else if (1.0L == base) return 1.0L;
+            else if (-1.0L == base && Infinity.is(exponent)) return 1.0L;
+            else if (Infinity.is(base)) {
+                // Logic > ... Return
+                if (base < +0.0L) {
+                    if (Mathematics::odd(exponent)) return exponent < +0.0L ? -0.0L : -Infinity;
+                    else if (Mathematics::even(exponent) || Mathematics::mantissa_of(exponent)) return exponent < +0.0L ? +0.0L : +Infinity;
+                }
+                else if (exponent < +0.0L) return +0.0L;
+                else return +Infinity;
+            }
+
+            else if (Infinity.is(exponent)) {
+                // Constant > Absolute Base
+                long double const absoluteBase = Mathematics::absolute(base);
+
+                // Logic > ... Return
+                if (exponent < +0.0L) { if (absoluteBase < 1.0L) return Infinity; else if (absoluteBase > 1.0L) return 0.0L; }
+                else { if (absoluteBase < 1.0L) return 0.0L; else if (absoluteBase > 1.0L) return Infinity; }
+            }
+
+            else if ((base < +0.0L && Infinity.isnt(base)) && (Infinity.isnt(exponent) && Mathematics::mantissa_of(exponent))) {
+                // Logic > Error; Return --- ERROR (Lapys)
+                #if includes__floating_point_environment_library
+                    if (Exception::allowsFloatingPointException()) Exception::raiseFloatingPointException(FE_INVALID);
+                    if (Exception::allowsFloatingPointErrorIndicator()) Exception::setErrorIndicator(EDOM); // CONSIDER (Lapys)
+                #endif
+                return NaN;
+            }
+
+            else if (NaN.is(base) || NaN.is(exponent)) return NaN;
+            else if (0.0L == exponent) return 1.0L;
+            else if (exponent < +0.0L) return Mathematics::exponentiate(1.0L / base, -exponent);
+
+            else {
+                // Constant > Evaluation
+                long double const evaluation = Mathematics::natural_exponentiate(exponent * Mathematics::natural_logarithm(base));
+
+                // Logic > Error --- ERROR (Lapys) -> Range Error.
+                if (
+                    is_same_t<type, double> ? evaluation > DBL_MAX || evaluation < DBL_MIN :
+                    is_same_t<type, int> ? evaluation > INT_MAX || evaluation < INT_MIN :
+                    is_same_t<type, short> ? evaluation > DBL_MAX || evaluation < DBL_MIN :
+                    is_same_t<type, float> ? evaluation > FLT_MAX || evaluation < FLT_MIN :
+                    evaluation > LDBL_MAX || evaluation < LDBL_MIN
+                ) {
+                    #if includes__floating_point_environment_library
+                        if (Exception::allowsFloatingPointException()) Exception::raiseFloatingPointException(evaluation > LDBL_MAX ? FE_OVERFLOW : FE_UNDERFLOW);
+                        if (Exception::allowsFloatingPointErrorIndicator()) Exception::setErrorIndicator(ERANGE);
+                    #endif
+                }
+
+                // Return
+                return evaluation;
+            }
+
+            // Return
+            return NaN;
+        }
+
+        constexpr inline double exponentiate(double const base, int const exponent) noexcept { return Mathematics::exponentiate(base, (double) Mathematics::recompose(exponent)); }
+        constexpr inline float exponentiate(float const base, float const exponent) noexcept { return Mathematics::exponentiate<float>((long double) base, (long double) exponent); }
+        constexpr inline long double exponentiate(long double const base, int const exponent) noexcept { return Mathematics::exponentiate(base, (long double) Mathematics::recompose(exponent)); }
+    #endif
+
+    #if cpp__version >= 2011uL
+        constexpr inline double exponentiate(long const base, long const exponent) noexcept { return ::pow(base, exponent); }
+        constexpr inline double exponentiate(long const base, long double const exponent) noexcept { return ::pow(base, exponent); }
+        constexpr inline long double exponentiate(long double const base, long const exponent) noexcept { return ::pow(base, exponent); }
+
+        constexpr inline double exponentiate(unsigned long const base, unsigned long const exponent) noexcept { return ::pow(base, exponent); }
+        constexpr inline double exponentiate(unsigned long const base, long double const exponent) noexcept { return ::pow(base, exponent); }
+        constexpr inline long double exponentiate(long double const base, unsigned long const exponent) noexcept { return ::pow(base, exponent); }
+    #else
+        constexpr inline double exponentiate(long const base, long const exponent) noexcept {
+            [Custom code]
+            int ipow(int base, int exp) {
+                int result = 1;
+                for (;;)
+                {
+                    if (exp & 1)
+                        result *= base;
+                    exp >>= 1;
+                    if (!exp)
+                        break;
+                    base *= base;
+                }
+
+                return result;
+            }
+        }
+        constexpr inline double exponentiate(long const base, long double const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), exponent); }
+        constexpr inline long double exponentiate(long double const base, long const exponent) noexcept { return Mathematics::exponentiate(base, Mathematics::recompose(exponent)); }
+
+        constexpr inline double exponentiate(unsigned long const base, unsigned long const exponent) noexcept {
+            [Custom code]
+        }
+        constexpr inline double exponentiate(unsigned long const base, long double const exponent) noexcept { return Mathematics::exponentiate(Mathematics::recompose(base), exponent); }
+        constexpr inline long double exponentiate(long double const base, unsigned long const exponent) noexcept { return Mathematics::exponentiate(base, Mathematics::recompose(exponent)); }
+    #endif
 
     // Square Root
     constexpr inline double square_root(int const number) { return Mathematics::square_root((long) number); }
@@ -534,7 +833,7 @@ namespace Mathematics {
         constexpr inline float square_root(float const number) noexcept { return Mathematics::square_root((long double) number); }
         constexpr inline long double square_root(long double const number) noexcept { // NOTE (Lapys) -> Newton-Raphson method.
             // Logic > ... --- ERROR (Lapys) ->
-            if (number < -0.0L) { // Domain Error.
+            if (number < +0.0L) { // Domain Error.
                 #if includes__floating_point_environment_library
                     if (Exception::allowsFloatingPointException()) Exception::raiseFloatingPointException(FE_INVALID);
                     if (Exception::allowsFloatingPointErrorIndicator()) Exception::setErrorIndicator(EDOM);
@@ -542,7 +841,7 @@ namespace Mathematics {
                 return NaN;
             }
             else if (0.0L == number || Infinity.is(number)) return number;
-            else if (NaN == number) return NaN;
+            else if (NaN.is(number)) return NaN;
 
             // Initialization > (Evaluation, Precision, (Greater, Lower))
             long double evaluation = 0.0L;
@@ -634,10 +933,22 @@ void minimum(...);
 void absolute(...);
 unsigned char bit_length(...) {}
 unsigned char characteristics_length(...);
-void characteristics_of(...);
+void characteristics_of(...); // basically truncate :p
 unsigned char mantissa_length(...);
 void mantissa_of(...);
+void factorial(...);
+long double mantissa_of(...);
+long double recompose(...); // convert int to long double / long to float
 
+template <class> struct maxof {};
+template <> struct maxof<int> { constexpr inline int value = INT_MAX; };
+
+Math::maxof_t<int>
+
+maxof<>
+minof<>
 isfinite
 isinf
 isnan
+odd()
+even()

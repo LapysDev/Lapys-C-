@@ -4,8 +4,13 @@
 #   define CLOCKS_PER_SEC CLK_TCK
 #endif
 
-#ifndef EXIT_SUCCESS // Successful Exit Program Status
-#   define EXIT_SUCCESS 0
+#ifndef INFINITY // Infinity
+    struct INFINITY { // WARN (Lapys) -> Non-standard implementation.
+        private: unsigned long const value[2];
+        public:
+            constexpr inline INFINITY(void) : value{0x00000000, 0x7FF00000} {}
+            constexpr inline operator double(void) const noexcept { return *(double const*) (this -> value); }
+    } const INFINITY = {};
 #endif
 
 #ifndef INT_EPSILON // Integer Epsilon
@@ -22,6 +27,15 @@
 
 #ifndef M_LOG10E // Mathematical Denary Logarithm of Euler's Number
 #   define M_LOG10E 0.434294481903251827651
+#endif
+
+#ifndef NAN // Not-A-Number
+    struct NAN { // WARN (Lapys) -> Non-standard implementation.
+        private: unsigned long const value[2];
+        public:
+            constexpr inline NAN(void) : value{0x00000000, 0x7FF80000} {}
+            constexpr inline operator double(void) const noexcept { return *(double const*) (this -> value); }
+    } const NAN = {};
 #endif
 
 #ifndef NANF // Not-A-Number
@@ -281,6 +295,7 @@
     #endif
 
     #if cpp__version <= 2017uL // C++ 2017, ISO/IEC 14882:2017
+        constexpr std::size_t operator ""zu(unsigned long long const number) noexcept { return number; }
     #endif
 
     #if cpp__version <= 2020uL // C++ 2020, ...

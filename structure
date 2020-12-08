@@ -1,0 +1,313 @@
+/* ... Error */
+#if __CPP__VERSION__ < 2011uL
+#   error [LAPYS]: Lacking support for C++ versions before C++11 (variadic templates required)
+#endif
+
+/* ... > Utility --- NOTE (Lapys) */
+namespace Lapys {
+    /* ... Definition > ... */
+    inline namespace Utility {
+        namespace { struct void_t final {}; } // -> Represents typeless.
+
+        template <typename> struct alias;
+        template <typename, typename = void_t> struct base_of;
+        template <bool> struct boolean;
+        template <typename return_t, typename cast_t> return_t cast(cast_t const&);
+        template <bool, typename, typename = void_t> struct conditional_alias;
+        template <typename> struct is_array;
+        template <typename> struct is_array_pointer;
+        template <typename> struct is_array_reference;
+        template <typename> struct is_base;
+        template <typename> struct is_final;
+        template <typename> struct is_function;
+        template <typename> struct is_function_pointer;
+        template <typename> struct is_function_reference;
+        template <typename> struct is_member_pointer;
+        template <typename> struct is_member_function_pointer;
+        template <typename> struct is_member_object_pointer;
+        template <typename> struct is_noexcept;
+        template <typename> struct is_object;
+        template <typename> struct is_object_pointer;
+        template <typename> struct is_object_reference;
+        template <typename> struct is_pointer;
+        template <typename> struct is_reference;
+        template <typename, typename> struct is_same;
+        template <typename> struct is_variadic;
+        template <typename> struct length_of;
+        template <bool, typename, typename> struct method;
+        template <typename, typename> struct method_accessor;
+        template <typename, typename> struct method_mutator;
+        template <bool, typename, typename> struct property;
+        template <typename, typename> struct property_accessor;
+        template <typename, typename> struct property_mutator;
+        template <typename> struct remove_const;
+        template <typename> struct remove_cv;
+        template <typename> struct remove_lvalue_reference;
+        template <typename> struct remove_pointer;
+        template <typename> struct remove_qualifiers;
+        template <typename> struct remove_reference;
+        template <typename> struct remove_rvalue_reference;
+        template <typename> struct remove_volatile;
+        template <typename> struct shadow;
+
+        #if __CPP__VERSION__ > 1997uL
+            template <typename forward_t> constexpr forward_t&& forward(forward_t&&);
+        #endif
+    }
+
+    /* ... Class */
+    namespace Utility {
+        // Alias, Boolean -> Base constructs for consistent behavior to other "derived" constructs.
+        template <typename base> struct alias { public: typedef base type; };
+        template <bool state> struct boolean { public: constexpr static bool const value = state; };
+
+        /* Conditional Alias -> Evaluates to either type specified based on a boolean condition.
+                If an alternate type isn't specified, no `type` will be evaluated.
+        */
+        template <bool, typename, typename> struct conditional_alias {};
+        template <typename type> struct conditional_alias<false, type> {};
+        template <typename true_t, typename false_t> struct conditional_alias<false, true_t, false_t> : public alias<false_t> {};
+        template <typename true_t, typename false_t> struct conditional_alias<true, true_t, false_t> : public alias<true_t> {};
+
+        /* Base Of -> Denotes the underlying type of the specified `typename`.
+                For base types, unless a fallback `subtype` is specified, no `type` will be evaluated.
+        */
+        namespace {
+            template <typename type> struct base_of_t : public alias<type> {};
+            template <typename base> struct base_of_t<base []> : public alias<base> {};
+            template <typename base, std::size_t length> struct base_of_t<base [length]> : public alias<base> {};
+            template <typename base, typename... types> struct base_of_t<base (types...)> : public alias<base> {};
+            template <typename base, typename... types> struct base_of_t<base (types...)&> : public alias<base> {};
+            template <typename base, typename... types> struct base_of_t<base (types...)&&> : public alias<base> {};
+            template <typename base, typename... types> struct base_of_t<base (types...) const> : public alias<base> {};
+            template <typename base, typename... types> struct base_of_t<base (types...) const&> : public alias<base> {};
+            template <typename base, typename... types> struct base_of_t<base (types...) const&&> : public alias<base> {};
+            template <typename base, typename... types> struct base_of_t<base (types...) const volatile> : public alias<base> {};
+            template <typename base, typename... types> struct base_of_t<base (types...) const volatile&> : public alias<base> {};
+            template <typename base, typename... types> struct base_of_t<base (types...) const volatile&&> : public alias<base> {};
+            template <typename base, typename... types> struct base_of_t<base (types...) volatile> : public alias<base> {};
+            template <typename base, typename... types> struct base_of_t<base (types...) volatile&> : public alias<base> {};
+            template <typename base, typename... types> struct base_of_t<base (types...) volatile&&> : public alias<base> {};
+            template <typename base, typename... types> struct base_of_t<base (types..., ...)> : public alias<base> {};
+            template <typename base, typename... types> struct base_of_t<base (types..., ...) const> : public alias<base> {};
+            template <typename base, typename... types> struct base_of_t<base (types..., ...) const&> : public alias<base> {};
+            template <typename base, typename... types> struct base_of_t<base (types..., ...) const&&> : public alias<base> {};
+            template <typename base, typename... types> struct base_of_t<base (types..., ...) const volatile> : public alias<base> {};
+            template <typename base, typename... types> struct base_of_t<base (types..., ...) const volatile&> : public alias<base> {};
+            template <typename base, typename... types> struct base_of_t<base (types..., ...) const volatile&&> : public alias<base> {};
+            template <typename base, typename... types> struct base_of_t<base (types..., ...) volatile> : public alias<base> {};
+            template <typename base, typename... types> struct base_of_t<base (types..., ...) volatile&> : public alias<base> {};
+            template <typename base, typename... types> struct base_of_t<base (types..., ...) volatile&&> : public alias<base> {};
+            #if __CPP__VERSION__ > 2011uL
+                template <typename base, typename... types> struct base_of_t<base (types...) noexcept> : public alias<base> {};
+                template <typename base, typename... types> struct base_of_t<base (types...)& noexcept> : public alias<base> {};
+                template <typename base, typename... types> struct base_of_t<base (types...)&& noexcept> : public alias<base> {};
+                template <typename base, typename... types> struct base_of_t<base (types...) const noexcept> : public alias<base> {};
+                template <typename base, typename... types> struct base_of_t<base (types...) const& noexcept> : public alias<base> {};
+                template <typename base, typename... types> struct base_of_t<base (types...) const&& noexcept> : public alias<base> {};
+                template <typename base, typename... types> struct base_of_t<base (types...) const volatile noexcept> : public alias<base> {};
+                template <typename base, typename... types> struct base_of_t<base (types...) const volatile& noexcept> : public alias<base> {};
+                template <typename base, typename... types> struct base_of_t<base (types...) const volatile&& noexcept> : public alias<base> {};
+                template <typename base, typename... types> struct base_of_t<base (types...) volatile noexcept> : public alias<base> {};
+                template <typename base, typename... types> struct base_of_t<base (types...) volatile& noexcept> : public alias<base> {};
+                template <typename base, typename... types> struct base_of_t<base (types...) volatile&& noexcept> : public alias<base> {};
+                template <typename base, typename... types> struct base_of_t<base (types..., ...) noexcept> : public alias<base> {};
+                template <typename base, typename... types> struct base_of_t<base (types..., ...) const noexcept> : public alias<base> {};
+                template <typename base, typename... types> struct base_of_t<base (types..., ...) const& noexcept> : public alias<base> {};
+                template <typename base, typename... types> struct base_of_t<base (types..., ...) const&& noexcept> : public alias<base> {};
+                template <typename base, typename... types> struct base_of_t<base (types..., ...) const volatile noexcept> : public alias<base> {};
+                template <typename base, typename... types> struct base_of_t<base (types..., ...) const volatile& noexcept> : public alias<base> {};
+                template <typename base, typename... types> struct base_of_t<base (types..., ...) const volatile&& noexcept> : public alias<base> {};
+                template <typename base, typename... types> struct base_of_t<base (types..., ...) volatile noexcept> : public alias<base> {};
+                template <typename base, typename... types> struct base_of_t<base (types..., ...) volatile& noexcept> : public alias<base> {};
+                template <typename base, typename... types> struct base_of_t<base (types..., ...) volatile&& noexcept> : public alias<base> {};
+            #endif
+        }
+
+        template <typename type, typename subtype>
+        struct base_of : public base_of_t<
+            typename conditional_alias<
+                (is_array<type>::value || is_array_pointer<type>::value || is_array_reference<type>::value) ||
+                (is_function<type>::value || is_function_pointer<type>::value || is_function_reference<type>::value),
+
+                typename remove_pointer<typename remove_reference<type>::type>::type, subtype
+            >::type
+        > {};
+
+        // Is Array ...
+        template <typename> struct is_array : public boolean<false> {};
+        template <typename base> struct is_array<base []> : public boolean<true> {};
+        template <typename base, std::size_t length> struct is_array<base [length]> : public boolean<true> {};
+
+        template <typename type> struct is_array_pointer : public boolean<is_array<typename remove_pointer<type>::type>::value && false == is_array<type>::value> {};
+        template <typename type> struct is_array_reference : public boolean<is_array<typename remove_reference<type>::type>::value && false == is_array<type>::value> {};
+
+        // Is Base ->
+        namespace {
+            template <typename type>
+            struct is_base_t : public boolean<
+                (is_array<type>::value || is_array_reference<type>::value) ||
+                (is_function<type>::value || is_function_reference<type>::value) ||
+                (is_pointer<type>::value)
+            > {};
+            template <> struct is_base_t<bool> : public boolean<true> {};
+            template <> struct is_base_t<char> : public boolean<true> {};
+            template <> struct is_base_t<double> : public boolean<true> {};
+            template <> struct is_base_t<float> : public boolean<true> {};
+            template <> struct is_base_t<int> : public boolean<true> {};
+            template <> struct is_base_t<long> : public boolean<true> {};
+            template <> struct is_base_t<long double> : public boolean<true> {};
+            template <> struct is_base_t<short> : public boolean<true> {};
+            template <> struct is_base_t<signed char> : public boolean<true> {};
+            template <> struct is_base_t<unsigned char> : public boolean<true> {};
+            template <> struct is_base_t<unsigned int> : public boolean<true> {};
+            template <> struct is_base_t<unsigned long> : public boolean<true> {};
+            template <> struct is_base_t<unsigned short> : public boolean<true> {};
+            template <> struct is_base_t<wchar_t> : public boolean<true> {};
+            template <> struct is_base_t<void> : public boolean<true> {};
+            #if __CPP__VERSION__ > 1997uL
+                template <> struct is_base_t<long long> : public boolean<true> {};
+                template <> struct is_base_t<unsigned long long> : public boolean<true> {};
+            #endif
+        }
+
+        template <typename type>
+        struct is_base : public is_base_t<
+            typename conditional_alias<
+                is_array<type>::value || is_array_reference<type>::value,
+                typename base_of<type, void /* -> Enforce `base_of` to always evaluate a type (although it may never actually be computed). */>::type, type
+            >::type
+        > {};
+
+        // Is Function ...
+        template <typename> struct is_function : public boolean<false> {};
+        template <typename base, typename... types> struct is_function<base (types...)> : public boolean<true> {};
+        template <typename base, typename... types> struct is_function<base (types...)&> : public boolean<true> {};
+        template <typename base, typename... types> struct is_function<base (types...)&&> : public boolean<true> {};
+        template <typename base, typename... types> struct is_function<base (types...) const> : public boolean<true> {};
+        template <typename base, typename... types> struct is_function<base (types...) const&> : public boolean<true> {};
+        template <typename base, typename... types> struct is_function<base (types...) const&&> : public boolean<true> {};
+        template <typename base, typename... types> struct is_function<base (types...) const volatile> : public boolean<true> {};
+        template <typename base, typename... types> struct is_function<base (types...) const volatile&> : public boolean<true> {};
+        template <typename base, typename... types> struct is_function<base (types...) const volatile&&> : public boolean<true> {};
+        template <typename base, typename... types> struct is_function<base (types...) volatile> : public boolean<true> {};
+        template <typename base, typename... types> struct is_function<base (types...) volatile&> : public boolean<true> {};
+        template <typename base, typename... types> struct is_function<base (types...) volatile&&> : public boolean<true> {};
+        template <typename base, typename... types> struct is_function<base (types..., ...)> : public boolean<true> {};
+        template <typename base, typename... types> struct is_function<base (types..., ...) const> : public boolean<true> {};
+        template <typename base, typename... types> struct is_function<base (types..., ...) const&> : public boolean<true> {};
+        template <typename base, typename... types> struct is_function<base (types..., ...) const&&> : public boolean<true> {};
+        template <typename base, typename... types> struct is_function<base (types..., ...) const volatile> : public boolean<true> {};
+        template <typename base, typename... types> struct is_function<base (types..., ...) const volatile&> : public boolean<true> {};
+        template <typename base, typename... types> struct is_function<base (types..., ...) const volatile&&> : public boolean<true> {};
+        template <typename base, typename... types> struct is_function<base (types..., ...) volatile> : public boolean<true> {};
+        template <typename base, typename... types> struct is_function<base (types..., ...) volatile&> : public boolean<true> {};
+        template <typename base, typename... types> struct is_function<base (types..., ...) volatile&&> : public boolean<true> {};
+        #if __CPP__VERSION__ > 2011uL
+            template <typename base, typename... types> struct is_function<base (types...) noexcept> : public boolean<true> {};
+            template <typename base, typename... types> struct is_function<base (types...)& noexcept> : public boolean<true> {};
+            template <typename base, typename... types> struct is_function<base (types...)&& noexcept> : public boolean<true> {};
+            template <typename base, typename... types> struct is_function<base (types...) const noexcept> : public boolean<true> {};
+            template <typename base, typename... types> struct is_function<base (types...) const& noexcept> : public boolean<true> {};
+            template <typename base, typename... types> struct is_function<base (types...) const&& noexcept> : public boolean<true> {};
+            template <typename base, typename... types> struct is_function<base (types...) const volatile noexcept> : public boolean<true> {};
+            template <typename base, typename... types> struct is_function<base (types...) const volatile& noexcept> : public boolean<true> {};
+            template <typename base, typename... types> struct is_function<base (types...) const volatile&& noexcept> : public boolean<true> {};
+            template <typename base, typename... types> struct is_function<base (types...) volatile noexcept> : public boolean<true> {};
+            template <typename base, typename... types> struct is_function<base (types...) volatile& noexcept> : public boolean<true> {};
+            template <typename base, typename... types> struct is_function<base (types...) volatile&& noexcept> : public boolean<true> {};
+            template <typename base, typename... types> struct is_function<base (types..., ...) noexcept> : public boolean<true> {};
+            template <typename base, typename... types> struct is_function<base (types..., ...) const noexcept> : public boolean<true> {};
+            template <typename base, typename... types> struct is_function<base (types..., ...) const& noexcept> : public boolean<true> {};
+            template <typename base, typename... types> struct is_function<base (types..., ...) const&& noexcept> : public boolean<true> {};
+            template <typename base, typename... types> struct is_function<base (types..., ...) const volatile noexcept> : public boolean<true> {};
+            template <typename base, typename... types> struct is_function<base (types..., ...) const volatile& noexcept> : public boolean<true> {};
+            template <typename base, typename... types> struct is_function<base (types..., ...) const volatile&& noexcept> : public boolean<true> {};
+            template <typename base, typename... types> struct is_function<base (types..., ...) volatile noexcept> : public boolean<true> {};
+            template <typename base, typename... types> struct is_function<base (types..., ...) volatile& noexcept> : public boolean<true> {};
+            template <typename base, typename... types> struct is_function<base (types..., ...) volatile&& noexcept> : public boolean<true> {};
+        #endif
+
+        template <typename type> struct is_function_pointer : public boolean<is_member_function_pointer<type>::value || (is_function<typename remove_pointer<type>::type>::value && false == is_function<type>::value)> {};
+        template <typename type> struct is_function_reference : public boolean<is_function<typename remove_reference<type>::type>::value && false == is_function<type>::value> {};
+
+        // Is Member ...
+        template <typename> struct is_member_pointer : public boolean<false> {};
+        template <typename base, typename object> struct is_member_pointer<base object::*> : public boolean<true> {};
+        template <typename base, typename object> struct is_member_pointer<base object::* const> : public boolean<true> {};
+        template <typename base, typename object> struct is_member_pointer<base object::* const volatile> : public boolean<true> {};
+        template <typename base, typename object> struct is_member_pointer<base object::* volatile> : public boolean<true> {};
+
+        template <typename> struct is_member_function_pointer : public boolean<false> {};
+        template <typename base, typename object> struct is_member_function_pointer<base object::*> : public boolean<is_function<base>::value> {};
+        template <typename base, typename object> struct is_member_function_pointer<base object::* const> : public boolean<is_function<base>::value> {};
+        template <typename base, typename object> struct is_member_function_pointer<base object::* const volatile> : public boolean<is_function<base>::value> {};
+        template <typename base, typename object> struct is_member_function_pointer<base object::* volatile> : public boolean<is_function<base>::value> {};
+
+        template <typename type>
+        struct is_member_object_pointer : public boolean<is_member_pointer<type>::value && false == is_member_function_pointer<type>::value> {};
+
+        // Is Object ...
+        template <typename>
+        struct is_object : public boolean<true> {};
+
+        template <typename> struct is_object_pointer : public boolean<false> {};
+        template <typename type> struct is_object_pointer<type*> : public boolean<true> {};
+        template <typename type> struct is_object_pointer<type* const> : public boolean<true> {};
+        template <typename type> struct is_object_pointer<type* const volatile> : public boolean<true> {};
+        template <typename type> struct is_object_pointer<type* volatile> : public boolean<true> {};
+
+        template <typename> struct is_object_reference : public boolean<false> {};
+        template <typename type> struct is_object_reference<type&> : public boolean<true> {};
+        template <typename type> struct is_object_reference<type&&> : public boolean<true> {};
+
+        // Is (Pointer, Reference)
+        template <typename type> struct is_pointer : public boolean<is_array_pointer<type>::value || is_function_pointer<type>::value || is_object_pointer<type>::value> {};
+        template <typename type> struct is_reference : public boolean<is_array_reference<type>::value || is_function_reference<type>::value || is_object_reference<type>::value> {};
+
+        // Is Same
+        template <typename, typename> struct is_same : public boolean<false> {};
+        template <typename type> struct is_same<type, type> : public boolean<true> {};
+
+        // Remove (Constant, Volatile)
+        template <typename type> struct remove_const : public alias<type> {};
+        template <typename type> struct remove_const<type const> : public alias<type> {};
+
+        template <typename type> struct remove_volatile : public alias<type> {};
+        template <typename type> struct remove_volatile<type volatile> : public alias<type> {};
+
+        template <typename type>
+        struct remove_cv : public alias<typename remove_const<typename remove_volatile<type>::type>::type> {};
+
+        // Remove Pointer
+        template <typename type> struct remove_pointer : public alias<type> {};
+        template <typename type> struct remove_pointer<type*> : public alias<type> {};
+        template <typename type> struct remove_pointer<type* const> : public alias<type> {};
+        template <typename type> struct remove_pointer<type* const volatile> : public alias<type> {};
+        template <typename type> struct remove_pointer<type* volatile> : public alias<type> {};
+        template <typename base, typename object> struct remove_pointer<base object::*> : public alias<base> {};
+        template <typename base, typename object> struct remove_pointer<base object::* const> : public alias<base> {};
+        template <typename base, typename object> struct remove_pointer<base object::* const volatile> : public alias<base> {};
+        template <typename base, typename object> struct remove_pointer<base object::* volatile> : public alias<base> {};
+
+        // Remove Qualifiers
+        template <typename type>
+        struct remove_qualifiers : public alias<typename remove_cv<typename remove_reference<type>::type>::type> {};
+
+        // Remove ... Reference
+        template <typename type> struct remove_lvalue_reference : public alias<type> {};
+        template <typename type> struct remove_lvalue_reference<type&> : public alias<type> {};
+
+        template <typename type> struct remove_rvalue_reference : public alias<type> {};
+        template <typename type> struct remove_rvalue_reference<type&&> : public alias<type> {};
+
+        template <typename type>
+        struct remove_reference : public alias<typename remove_lvalue_reference<typename remove_rvalue_reference<type>::type>::type> {};
+
+        // Shadow
+        template <typename type>
+        struct shadow final {
+            type value;
+        };
+    }
+}
