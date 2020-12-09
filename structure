@@ -7,7 +7,10 @@
 namespace Lapys {
     /* ... Definition > ... */
     inline namespace Utility {
-        namespace { struct void_t final {}; } // -> Represents typeless.
+        namespace { // -> Represents blank slate type.
+            struct void_t final {};
+            template <typename> struct to_void_t final { public: typedef void_t type; }; // doesn't defer to `alias<...>`
+        }
 
         template <typename> struct alias;
         template <typename, typename = void_t> struct base_of;
@@ -17,21 +20,30 @@ namespace Lapys {
         template <typename> struct is_array;
         template <typename> struct is_array_pointer;
         template <typename> struct is_array_reference;
-        template <typename> struct is_base;
+        template <typename, typename = void_t> struct is_base;
+        template <typename> struct is_character;
+        template <typename, typename = void_t> struct is_class;
+        template <typename> struct is_enum;
         template <typename> struct is_final;
+        template <typename> struct is_floating_point;
         template <typename> struct is_function;
         template <typename> struct is_function_pointer;
         template <typename> struct is_function_reference;
+        template <typename> struct is_integer;
         template <typename> struct is_member_pointer;
         template <typename> struct is_member_function_pointer;
         template <typename> struct is_member_object_pointer;
         template <typename> struct is_noexcept;
+        template <typename> struct is_number;
         template <typename> struct is_object;
         template <typename> struct is_object_pointer;
         template <typename> struct is_object_reference;
         template <typename> struct is_pointer;
         template <typename> struct is_reference;
         template <typename, typename> struct is_same;
+        template <typename> struct is_scoped_enum;
+        template <typename> struct is_unscoped_enum;
+        template <typename> struct is_union;
         template <typename> struct is_variadic;
         template <typename> struct length_of;
         template <bool, typename, typename> struct method;
@@ -56,7 +68,7 @@ namespace Lapys {
     }
 
     /* ... Class */
-    namespace Utility {
+    inline namespace Utility {
         // Alias, Boolean -> Base constructs for consistent behavior to other "derived" constructs.
         template <typename base> struct alias { public: typedef base type; };
         template <bool state> struct boolean { public: constexpr static bool const value = state; };
@@ -142,42 +154,80 @@ namespace Lapys {
         template <typename type> struct is_array_pointer : public boolean<is_array<typename remove_pointer<type>::type>::value && false == is_array<type>::value> {};
         template <typename type> struct is_array_reference : public boolean<is_array<typename remove_reference<type>::type>::value && false == is_array<type>::value> {};
 
-        // Is Base ->
+        // Is Base
         namespace {
             template <typename type>
             struct is_base_t : public boolean<
                 (is_array<type>::value || is_array_reference<type>::value) ||
-                (is_function<type>::value || is_function_reference<type>::value) ||
-                (is_pointer<type>::value)
+                (is_character<type>::value || is_number<type>::value || is_pointer<type>::value) ||
+                (is_function<type>::value || is_function_reference<type>::value)
             > {};
             template <> struct is_base_t<bool> : public boolean<true> {};
-            template <> struct is_base_t<char> : public boolean<true> {};
-            template <> struct is_base_t<double> : public boolean<true> {};
-            template <> struct is_base_t<float> : public boolean<true> {};
-            template <> struct is_base_t<int> : public boolean<true> {};
-            template <> struct is_base_t<long> : public boolean<true> {};
-            template <> struct is_base_t<long double> : public boolean<true> {};
-            template <> struct is_base_t<short> : public boolean<true> {};
-            template <> struct is_base_t<signed char> : public boolean<true> {};
-            template <> struct is_base_t<unsigned char> : public boolean<true> {};
-            template <> struct is_base_t<unsigned int> : public boolean<true> {};
-            template <> struct is_base_t<unsigned long> : public boolean<true> {};
-            template <> struct is_base_t<unsigned short> : public boolean<true> {};
-            template <> struct is_base_t<wchar_t> : public boolean<true> {};
             template <> struct is_base_t<void> : public boolean<true> {};
-            #if __CPP__VERSION__ > 1997uL
-                template <> struct is_base_t<long long> : public boolean<true> {};
-                template <> struct is_base_t<unsigned long long> : public boolean<true> {};
-            #endif
         }
 
+        template <typename base_t, typename derived_t>
+        struct is_base : public boolean<
+            #if __COMPILER_IS__ARM__
+                false
+            #elif __COMPILER_IS__CLANG__
+                false
+            #elif __COMPILER_IS__GNU__
+                __is_base_of(base_t, derived_t)
+            #elif __COMPILER_IS__ICC__
+                false
+            #elif __COMPILER_IS__MSVC__
+                false
+            #else
+                ...
+            #endif
+        > {};
+
         template <typename type>
-        struct is_base : public is_base_t<
+        struct is_base<type> : public is_base_t<
             typename conditional_alias<
                 is_array<type>::value || is_array_reference<type>::value,
                 typename base_of<type, void /* -> Enforce `base_of` to always evaluate a type (although it may never actually be computed). */>::type, type
             >::type
         > {};
+
+        // Is Character
+        template <typename> struct is_character : public boolean<false> {};
+        template <> struct is_character<char> : public boolean<true> {};
+        template <> struct is_character<char8_t> : public boolean<true> {};
+        template <> struct is_character<char16_t> : public boolean<true> {};
+        template <> struct is_character<char32_t> : public boolean<true> {};
+        template <> struct is_character<wchar_t> : public boolean<true> {};
+
+        // Is Class
+        template <typename, typename> struct is_class : public boolean<false> {};
+        template <typename type> struct is_class<type, typename to_void_t<void_t type::*>::type> : public boolean<false == is_union<type>::value> {};
+
+        // // Is Final
+        // template <typename> struct is_final;
+
+        // Is (Floating-Point, Integer, ...)
+        template <typename> struct is_floating_point : public boolean<false> {};
+        template <> struct is_floating_point<double> : public boolean<true> {};
+        template <> struct is_floating_point<float> : public boolean<true> {};
+        template <> struct is_floating_point<long double> : public boolean<true> {};
+
+        template <typename> struct is_integer : public boolean<false> {};
+        template <> struct is_integer<signed char> : public boolean<true> {};
+        template <> struct is_integer<signed int> : public boolean<true> {};
+        template <> struct is_integer<signed long> : public boolean<true> {};
+        template <> struct is_integer<signed short> : public boolean<true> {};
+        template <> struct is_integer<unsigned char> : public boolean<true> {};
+        template <> struct is_integer<unsigned int> : public boolean<true> {};
+        template <> struct is_integer<unsigned long> : public boolean<true> {};
+        template <> struct is_integer<unsigned short> : public boolean<true> {};
+        #if __CPP__VERSION__ > 1997uL
+            template <> struct is_integer<signed long long> : public boolean<true> {};
+            template <> struct is_integer<unsigned long long> : public boolean<true> {};
+        #endif
+
+        template <typename type>
+        struct is_number : public boolean<is_floating_point<type>::value || is_integer<type>::value> {};
 
         // Is Function ...
         template <typename> struct is_function : public boolean<false> {};
@@ -268,6 +318,73 @@ namespace Lapys {
         // Is Same
         template <typename, typename> struct is_same : public boolean<false> {};
         template <typename type> struct is_same<type, type> : public boolean<true> {};
+
+        // Is Union
+        template <typename type>
+        struct is_union : public boolean<
+            #if __CPP__VERSION__ < 2011uL
+            #   if __COMPILER_IS__ARM__
+            #     ifdef __is_union
+                    __is_union(type)
+            #     else
+                    false
+            #     endif
+            #   elif __COMPILER_IS__GNU__
+                    __is_union(type)
+            #   elif __COMPILER_IS__MSVC__
+                    __is_union(type)
+            #   else
+                    false
+            #   endif
+            #else
+                std::is_union<type>::value
+            #endif
+        > {};
+
+        // Is ... Enumeration
+        namespace {
+            template <typename type>
+            struct is_unscoped_enum_t {
+                constexpr inline static bool const (&disambiguate(int const) noexcept)[true + 1];
+                constexpr inline static bool const (&disambiguate(...) noexcept)[false + 1];
+
+                // -> doesn't defer to `boolean<...>`
+                constexpr static bool const value = false == (
+                    is_array<type>::value ||
+                    is_function<type>::value ||
+                    is_number<type>::value ||
+                    is_pointer<type>::value ||
+                    is_reference<type>::value
+                ) && sizeof(bool[true + 1]) == sizeof(disambiguate(*static_cast<type*>(NULL)));
+            };
+        }
+
+        template <typename type>
+        struct is_enum : public boolean<
+            #if __CPP__VERSION__ < 2011uL
+            #   if __COMPILER_IS__ARM__
+            #     ifdef __is_enum
+                    __is_enum(type)
+            #     else
+                    false
+            #     endif
+            #   elif __COMPILER_IS__GNU__
+                    __is_enum(type)
+            #   elif __COMPILER_IS__MSVC__
+                    __is_enum(type)
+            #   else
+                    false
+            #   endif
+            #else
+                std::is_enum<type>::value
+            #endif
+        > {};
+
+        template <typename type>
+        struct is_scoped_enum : public boolean<is_enum<type>::value && false == is_unscoped_enum<type>::value> {};
+
+        template <typename type>
+        struct is_unscoped_enum : public is_unscoped_enum_t<type> {};
 
         // Remove (Constant, Volatile)
         template <typename type> struct remove_const : public alias<type> {};

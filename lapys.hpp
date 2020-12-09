@@ -14,44 +14,52 @@
     namespace Lapys {}
 
     /* Import */
-    // : C++ Standard Library
+    // : C++ Standard Library; ...
     #include <climits> // C Limits
     #include <cstddef> // C Standard Definitions
     #include <cstdlib> // C Standard Library
 
-    // : ...
     #include "polyfills" // Polyfills
+
+    // : C/ C++ Standard Library; ...
+    #if __CPP__VERSION__ < 2020uL
+    #   include <cstdbool> // C Standard Boolean
+    #else
+    #   include <stdbool.h> // Standard Boolean
+    #endif
+
+    #if __CPP__VERSION__ > 1997uL
+    #   include <type_traits> // Type Traits
+    #endif
+
     #include "structure" // Structure
 
-    // : C Standard Library
-    #include <stdbool.h> // Standard Boolean
-
-    /* Deletion > ... */
+    /* Deletion > ... --- NOTE (Lapys) -> Matches the order of definitions. */
     #undef __MAIN__
     #undef __WINDOWS__MAIN__
     #undef __WINDOWS_DLL__MAIN__
 
-    #if __ENVIRONMENT_IS__CPP__
-    #   undef is_noexcept
-    #   undef super
+    #if __CPP__VERSION__ < 2011uL
+    #  undef except__selector
+    #  undef except__selector_delay
+    #  undef except__state_anticipated
+    #  undef except__state_unexpected
+    #  undef except__state_unknown
+    #  undef except__tokenizer
+    #  undef except__tokenizer_delay
+    #  undef except__value_false
+    #  undef except__value_true
 
-    #   if __CPP__VERSION__ < 2003uL
-    #       undef constable
-    #       undef noexcept
-    #       undef specific
-    #   elif __CPP__VERSION__ < 2011uL
-    #       undef constable
-    #       undef noexcept
-    #       undef specific
-    #   endif
-
-    #   if __CPP__VERSION__ < 2011uL
-    #       undef constexpr
-    #       undef final
-    #       undef inline
-    #       undef override
-    #   endif
+    #  undef constexpr
+    #  undef final
+    #  undef inline
+    #  undef override
     #endif
+    #undef constable
+    #undef except
+    #undef is_except
+    #undef super
+    #undef specific
 
     #undef __PLATFORM_IS__APPLE_MACINTOSH__
     #undef __PLATFORM_IS__LINUX__
