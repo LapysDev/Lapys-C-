@@ -3,21 +3,13 @@
 #include <cstdio>
 
 /* ... Lapys::Main(ArgumentList const); */
-enum BaseEnumeration {};
-class BaseObject {};
-enum class BaseScopedEnumeration {};
-enum Enumeration : char {};
-class Object final {};
-enum class ScopedEnumeration : char {};
-union Union final {};
-
-namespace Utility = Lapys::Utility;
+class Primitive {};
+class Object : Primitive {};
 
 int main(void) {
-    std::printf("[...]: %s" "\r\n", Utility::is_enum<int>::value ? "true" : "false");
-    std::printf("[...]: %s" "\r\n", Utility::is_enum<Enumeration>::value ? "true" : "false");
-    std::printf("[...]: %s" "\r\n", Utility::is_enum<Object>::value ? "true" : "false");
-    std::printf("[...]: %s" "\r\n", Utility::is_enum<Union>::value ? "true" : "false");
-    std::printf("[...]: %s" "\r\n", Utility::is_enum<ScopedEnumeration>::value ? "true" : "false");
+    std::printf("[Object, Object]: %s" "\r\n", Lapys::is_base<Object, Object>::value ? "true" : "false");
+    std::printf("[Object, Primitive]: %s" "\r\n", Lapys::is_base<Object, Primitive>::value ? "true" : "false");
+    std::printf("[Primitive, Object]: %s" "\r\n", Lapys::is_base<Primitive, Object>::value ? "true" : "false");
+    std::printf("[Primitive, Primitive]: %s" "\r\n", Lapys::is_base<Primitive, Primitive>::value ? "true" : "false");
     std::printf("%18s", "[PROGRAM EXECUTED]");
 }
