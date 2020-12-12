@@ -102,6 +102,13 @@
 #   define __COMPILER_IS__MSVC__ false
 #endif
 
+// [Platform : Android]
+#if defined(ANDROID) || defined(__ANDROID__)
+#   define __PLATFORM_IS__ANDROID__ true
+#else
+#   define __PLATFORM_IS__ANDROID__ false
+#endif
+
 // [Platform : Apple Macintosh]
 #if defined(__APPLE__) && defined(__MACH__)
 #   define __PLATFORM_IS__APPLE_MACINTOSH__ true
@@ -121,6 +128,13 @@
 #   define __PLATFORM_IS__MICROSOFT_WINDOWS__ true
 #else
 #   define __PLATFORM_IS__MICROSOFT_WINDOWS__ false
+#endif
+
+// [Platform : Nintendo]
+#if defined(ARM9) || defined(_3DS) || defined(__SWITCH__)
+#   define __PLATFORM_IS__NINTENDO__ true
+#else
+#   define __PLATFORM_IS__NINTENDO__ false
 #endif
 
 // [Platform : UNIX]
@@ -307,7 +321,7 @@ namespace {
 #endif
 
 #if (false == defined(NAN)) // [Quiet] Not-A-Number
-    struct NAN_Implementation final {
+    struct NAN_Implementation final { // WARN (Lapys) -> Unfortunately not compile-time optimized.
         static unsigned long const value[2];
         inline operator float(void) const except(false) { return *reinterpret_cast<float const*>(value); }
     };
