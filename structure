@@ -701,28 +701,32 @@ namespace Lapys {
                 constexpr inline auto operator &(void) const except(false) { return &(this -> valueOf()); }
                 constexpr inline auto operator ~(void) const except(false) { return ~(this -> valueOf()); }
                 constexpr inline auto operator !(void) const except(false) { return !(this -> valueOf()); }
+                constexpr inline auto operator ++(void) const except(false) { return ++(this -> valueOf()); }
+                constexpr inline auto operator ++(int const) const except(false) { return (this -> valueOf())++; }
+                constexpr inline auto operator --(void) const except(false) { return --(this -> valueOf()); }
+                constexpr inline auto operator --(int const) const except(false) { return (this -> valueOf())--; }
             #endif
             #if __CPP__VERSION__ >= 2011uL
-                template <typename type = alias_t> constexpr friend inline auto operator +(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() + object) { return shadow.valueOf() + object; }
-                template <typename type = alias_t> constexpr friend inline auto operator +(type&& object, shadow const& shadow) except(false) -> typeof(object + shadow.valueOf()) { return object + shadow.valueOf(); }
-                template <typename type = alias_t> constexpr friend inline auto operator -(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() - object) { return shadow.valueOf() - object; }
-                template <typename type = alias_t> constexpr friend inline auto operator -(type&& object, shadow const& shadow) except(false) -> typeof(object - shadow.valueOf()) { return object - shadow.valueOf(); }
-                template <typename type = alias_t> constexpr friend inline auto operator *(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() * object) { return shadow.valueOf() * object; }
-                template <typename type = alias_t> constexpr friend inline auto operator *(type&& object, shadow const& shadow) except(false) -> typeof(object * shadow.valueOf()) { return object * shadow.valueOf(); }
-                template <typename type = alias_t> constexpr friend inline auto operator /(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() / object) { return shadow.valueOf() / object; }
-                template <typename type = alias_t> constexpr friend inline auto operator /(type&& object, shadow const& shadow) except(false) -> typeof(object / shadow.valueOf()) { return object / shadow.valueOf(); }
-                template <typename type = alias_t> constexpr friend inline auto operator %(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() % object) { return shadow.valueOf() % object; }
-                template <typename type = alias_t> constexpr friend inline auto operator %(type&& object, shadow const& shadow) except(false) -> typeof(object % shadow.valueOf()) { return object % shadow.valueOf(); }
-                template <typename type = alias_t> constexpr friend inline auto operator &(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() & object) { return shadow.valueOf() & object; }
-                template <typename type = alias_t> constexpr friend inline auto operator &(type&& object, shadow const& shadow) except(false) -> typeof(object & shadow.valueOf()) { return object & shadow.valueOf(); }
-                template <typename type = alias_t> constexpr friend inline auto operator |(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() | object) { return shadow.valueOf() | object; }
-                template <typename type = alias_t> constexpr friend inline auto operator |(type&& object, shadow const& shadow) except(false) -> typeof(object | shadow.valueOf()) { return object | shadow.valueOf(); }
-                template <typename type = alias_t> constexpr friend inline auto operator ^(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() ^ object) { return shadow.valueOf() ^ object; }
-                template <typename type = alias_t> constexpr friend inline auto operator ^(type&& object, shadow const& shadow) except(false) -> typeof(object ^ shadow.valueOf()) { return object ^ shadow.valueOf(); }
-                template <typename type = alias_t> constexpr friend inline auto operator <<(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() << object) { return shadow.valueOf() << object; }
-                template <typename type = alias_t> constexpr friend inline auto operator <<(type&& object, shadow const& shadow) except(false) -> typeof(object << shadow.valueOf()) { return object << shadow.valueOf(); }
-                template <typename type = alias_t> constexpr friend inline auto operator >>(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() >> object) { return shadow.valueOf() >> object; }
-                template <typename type = alias_t> constexpr friend inline auto operator >>(type&& object, shadow const& shadow) except(false) -> typeof(object >> shadow.valueOf()) { return object >> shadow.valueOf(); }
+                template <typename type = alias_t> constexpr friend inline auto operator +(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() + *static_cast<type*>(NULL)) { return shadow.valueOf() + object; }
+                template <typename type = alias_t> constexpr friend inline auto operator +(type&& object, shadow const& shadow) except(false) -> typeof(*static_cast<type*>(NULL) + shadow.valueOf()) { return object + shadow.valueOf(); }
+                template <typename type = alias_t> constexpr friend inline auto operator -(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() - *static_cast<type*>(NULL)) { return shadow.valueOf() - object; }
+                template <typename type = alias_t> constexpr friend inline auto operator -(type&& object, shadow const& shadow) except(false) -> typeof(*static_cast<type*>(NULL) - shadow.valueOf()) { return object - shadow.valueOf(); }
+                template <typename type = alias_t> constexpr friend inline auto operator *(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() * *static_cast<type*>(NULL)) { return shadow.valueOf() * object; }
+                template <typename type = alias_t> constexpr friend inline auto operator *(type&& object, shadow const& shadow) except(false) -> typeof(*static_cast<type*>(NULL) * shadow.valueOf()) { return object * shadow.valueOf(); }
+                template <typename type = alias_t> constexpr friend inline auto operator /(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() / *static_cast<type*>(NULL)) { return shadow.valueOf() / object; }
+                template <typename type = alias_t> constexpr friend inline auto operator /(type&& object, shadow const& shadow) except(false) -> typeof(*static_cast<type*>(NULL) / shadow.valueOf()) { return object / shadow.valueOf(); }
+                template <typename type = alias_t> constexpr friend inline auto operator %(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() % *static_cast<type*>(NULL)) { return shadow.valueOf() % object; }
+                template <typename type = alias_t> constexpr friend inline auto operator %(type&& object, shadow const& shadow) except(false) -> typeof(*static_cast<type*>(NULL) % shadow.valueOf()) { return object % shadow.valueOf(); }
+                template <typename type = alias_t> constexpr friend inline auto operator &(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() & *static_cast<type*>(NULL)) { return shadow.valueOf() & object; }
+                template <typename type = alias_t> constexpr friend inline auto operator &(type&& object, shadow const& shadow) except(false) -> typeof(*static_cast<type*>(NULL) & shadow.valueOf()) { return object & shadow.valueOf(); }
+                template <typename type = alias_t> constexpr friend inline auto operator |(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() | *static_cast<type*>(NULL)) { return shadow.valueOf() | object; }
+                template <typename type = alias_t> constexpr friend inline auto operator |(type&& object, shadow const& shadow) except(false) -> typeof(*static_cast<type*>(NULL) | shadow.valueOf()) { return object | shadow.valueOf(); }
+                template <typename type = alias_t> constexpr friend inline auto operator ^(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() ^ *static_cast<type*>(NULL)) { return shadow.valueOf() ^ object; }
+                template <typename type = alias_t> constexpr friend inline auto operator ^(type&& object, shadow const& shadow) except(false) -> typeof(*static_cast<type*>(NULL) ^ shadow.valueOf()) { return object ^ shadow.valueOf(); }
+                template <typename type = alias_t> constexpr friend inline auto operator <<(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() << *static_cast<type*>(NULL)) { return shadow.valueOf() << object; }
+                template <typename type = alias_t> constexpr friend inline auto operator <<(type&& object, shadow const& shadow) except(false) -> typeof(*static_cast<type*>(NULL) << shadow.valueOf()) { return object << shadow.valueOf(); }
+                template <typename type = alias_t> constexpr friend inline auto operator >>(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() >> *static_cast<type*>(NULL)) { return shadow.valueOf() >> object; }
+                template <typename type = alias_t> constexpr friend inline auto operator >>(type&& object, shadow const& shadow) except(false) -> typeof(*static_cast<type*>(NULL) >> shadow.valueOf()) { return object >> shadow.valueOf(); }
 
                 template <typename type = alias_t> constexpr inline auto operator =(type&& value) except(false) -> typeof((this -> valueOf() = value)) { return this -> valueOf() = value; }
                 template <typename type = alias_t> constexpr inline auto operator +=(type&& value) except(false) -> typeof((this -> valueOf() += value)) { return this -> valueOf() += value; }

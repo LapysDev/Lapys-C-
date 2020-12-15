@@ -4,14 +4,16 @@
 
 /* ... Lapys::Main(ArgumentList const); */
 int main(void) {
-    enum Enumeration { ZERO = 0 };
+    enum Enumeration { ENUM_VALUE = 420 };
     class Object final {};
 
-    constexpr Lapys::shadow<Enumeration> enumeration = ZERO;
+    constexpr Lapys::shadow<Enumeration> enumeration = ENUM_VALUE;
+    constexpr Lapys::shadow<unsigned> integer = 1330u;
     constexpr Lapys::shadow<Object> object; static_cast<void>(object);
-    constexpr Lapys::shadow<unsigned> variable = 1337u;
 
     std::printf("[...]: %i" "\r\n", +enumeration);
-    std::printf("[...]: %u" "\r\n", +variable);
+    std::printf("[...]: %u" "\r\n", integer + 7u);
+    std::printf("[...]: %u" "\r\n", integer += 12u);
+
     std::printf("%18s", "[PROGRAM EXECUTED]");
 }
