@@ -22,10 +22,10 @@
     #include "polyfills" // Polyfills
 
     // : C/ C++ Standard Library; ...
-    #if __CPP__VERSION__ < 2020uL
-    #   include <cstdbool> // C Standard Boolean
-    #else
+    #if __CPP__VERSION__ > 1997uL || __CPP__VERSION__ < 2020uL
     #   include <stdbool.h> // Standard Boolean
+    #else
+    #   include <cstdbool> // C Standard Boolean
     #endif
 
     #if __CPP__VERSION__ > 1997uL
@@ -39,27 +39,27 @@
     #undef __WINDOWS__MAIN__
     #undef __WINDOWS_DLL__MAIN__
 
-    #if __CPP__VERSION__ < 2011uL
-    #  undef except__selector
-    #  undef except__selector_delay
-    #  undef except__state_anticipated
-    #  undef except__state_unexpected
-    #  undef except__state_unknown
-    #  undef except__tokenizer
-    #  undef except__tokenizer_delay
-    #  undef except__value_false
-    #  undef except__value_true
-
-    #  undef constexpr
-    #  undef final
-    #  undef inline
-    #  undef override
-    #endif
+    #undef except__selector
+    #undef except__selector_delay
+    #undef except__state_anticipated
+    #undef except__state_unexpected
+    #undef except__state_unknown
+    #undef except__tokenizer
+    #undef except__tokenizer_delay
+    #undef except__value_false
+    #undef except__value_true
     #undef constable
+    #undef constexpr
     #undef except
+    #undef final
+    #undef inline
     #undef is_except
-    #undef super
+    #undef override
     #undef specific
+    #undef super
+    #if false == __COMPILER_IS__ICC__
+    #  undef typeof
+    #endif
 
     #undef __PLATFORM_IS__APPLE_MACINTOSH__
     #undef __PLATFORM_IS__LINUX__
@@ -101,6 +101,6 @@ inline bool isBigEndian(void) noexcept {
 
 inline bool isLittleEndian(void) noexcept {
     constexpr unsigned int value = 1u;
-    return 0u == *reinterpret_cast<unsigned char const*>(value);
+    return 0u != *reinterpret_cast<unsigned char const*>(value);
 }
 */

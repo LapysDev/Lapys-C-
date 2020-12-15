@@ -206,16 +206,38 @@
 #         define specific // -> explicit
 #         define super(...) (__VA_ARGS__) // -> Initialization method.
 
+#       if __COMPILER_IS__ARM__
+#         if defined(__typeof__)
+#         define typeof(expression) Lapys::Utility::alias<__typeof__(expression)>::type
+#         endif
+#       elif __COMPILER_IS__CLANG__
+#         if defined(__typeof__)
+#         define typeof(expression) Lapys::Utility::alias<__typeof__(expression)>::type
+#         elif defined(__typeof)
+#         define typeof(expression) Lapys::Utility::alias<__typeof(expression)>::type
+#         endif
+#       elif __COMPILER_IS__GNU__
+#         define typeof(expression) Lapys::Utility::alias<__typeof(expression)>::type
+#       elif __COMPILER_IS__ICC__
+//#       define typeof(expression) Lapys::Utility::alias<typeof(expression)>::type
+#       elif __COMPILER_IS__MSVC__
+#         define typeof(expression) Lapys::Utility::alias<decltype(expression)>::type
+#       endif
+
 #   else
 #       if __CPP__VERSION__ == 2011uL
 #         define constable // -> constexpr
 #       else
 #         define constable constexpr
 #       endif
+
 #         define except(boolean) noexcept(boolean ? false : true)
 #         define is_except(boolean) noexcept(boolean ? false : true)
 #         define specific explicit
 #         define super(...) {__VA_ARGS__} // -> Initialization method.
+
+#       undef typeof
+#         define typeof(expression) decltype(expression)
 #   endif
 
 // -> Undo the warning suppressions.

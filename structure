@@ -1,19 +1,19 @@
 /* ... Error */
 #if __CPP__VERSION__ < 2011uL
-#   error [LAPYS]: Lacking support for C++ versions before C++11 (variadic templates required)
+#   error [LAPYS]: Lacking support for C++ versions before the ISO C++11 standard (variadic templates required)
 #endif
 
 /* ... > Utility --- NOTE (Lapys) */
 namespace Lapys {
     /* ... Definition > ... */
     inline namespace Utility {
+        // ...
         namespace { // -> Miscellaneous...
-            typedef std::size_t integer_t;
-
             struct void_t final {};
             template <typename> struct to_void_t final { public: typedef void_t type; }; // -> doesn't defer to `alias<...>`
         }
 
+        // ...
         template <typename, std::size_t = 0u> struct add_bound;
         template <typename> struct add_const;
         template <typename> struct add_cv;
@@ -26,7 +26,6 @@ namespace Lapys {
         template <typename> struct alias;
         template <typename, typename = void_t> struct base_of;
         template <bool> struct boolean;
-        template <typename return_t, typename cast_t> return_t cast(cast_t const&);
         template <bool, typename, typename = void_t> struct conditional_alias;
         template <typename> struct depth_of;
         template <typename type, type> struct integer;
@@ -38,6 +37,7 @@ namespace Lapys {
         template <typename> struct is_bounded_array;
         template <typename> struct is_character;
         template <class, typename = void_t> struct is_class;
+        template <typename> struct is_const;
         template <typename> struct is_enum;
         template <typename> struct is_final;
         template <typename> struct is_floating_point;
@@ -64,6 +64,7 @@ namespace Lapys {
         template <typename> struct is_unsigned;
         template <typename> struct is_variadic;
         template <typename> struct is_void;
+        template <typename> struct is_volatile;
         template <typename> struct length_of;
         template <bool, typename, typename> struct method;
         template <typename, typename> struct method_accessor;
@@ -86,8 +87,13 @@ namespace Lapys {
         template <typename> struct to_signed;
         template <typename> struct to_unsigned;
 
-        #if __CPP__VERSION__ > 1997uL
-            template <typename forward_t> constexpr forward_t&& forward(forward_t&&);
+        // ...
+        template <typename return_t, typename cast_t> return_t cast(cast_t const&);
+        #if __CPP__VERSION__ < 2011uL
+            template <typename type> constexpr inline type forward(typename remove_const<typename remove_reference<type>::type>::type const& argument) except(false);
+        #else
+            template <typename type> constexpr inline type&& forward(typename remove_reference<type>::type&) except(false);
+            template <typename type> constexpr inline type&& forward(typename remove_reference<type>::type&&) except(false);
         #endif
     }
 
@@ -132,7 +138,9 @@ namespace Lapys {
 
         // Add ... Reference
         template <typename type> struct add_lvalue_reference : public alias<type&> {};
-        template <typename type> struct add_rvalue_reference : public alias<type&&> {};
+        #if __CPP__VERSION__ >= 2011uL
+            template <typename type> struct add_rvalue_reference : public alias<type&&> {};
+        #endif
 
         template <typename type>
         struct add_reference : public alias<typename add_lvalue_reference<typename add_rvalue_reference<type>::type>::type> {};
@@ -141,34 +149,51 @@ namespace Lapys {
                 For base types, unless a fallback `subtype` is specified, no `type` will be evaluated.
         */
         namespace {
-            template <typename type> struct base_of_t : public alias<type> {};
-            template <typename base> struct base_of_t<base []> : public alias<base> {};
-            template <typename base, std::size_t length> struct base_of_t<base [length]> : public alias<base> {};
-            template <typename base, typename... types> struct base_of_t<base (types...)> : public alias<base> {};
-            template <typename base, typename... types> struct base_of_t<base (types..., ...)> : public alias<base> {};
+            // ...
+            template <typename type>
+            struct base_of_enum_t : public alias<
+                # if __COMPILER_IS__ARM__
+                #   ifdef __underlying_type
+                        __underlying_type(type)
+                #   else
+                        typename conditional_alias<(static_cast<type>(-1) < static_cast<type>(0)), typename to_signed<type>::type, typename to_unsigned<type>::type>::type
+                #   endif
+                # elif __COMPILER_IS__CLANG__
+                        __underlying_type(type)
+                # else
+                        typename conditional_alias<
+                            (static_cast<type>(-1) < static_cast<type>(0)),
+                            typename to_signed<type>::type, typename to_unsigned<type>::type
+                        >::type
+                # endif
+            > {};
+            template <> struct base_of_enum_t<bool> : public alias<bool> {};
+            template <> struct base_of_enum_t<char> : public alias<char> {};
+            template <> struct base_of_enum_t<char8_t> : public alias<char8_t> {};
+            template <> struct base_of_enum_t<char16_t> : public alias<char16_t> {};
+            template <> struct base_of_enum_t<char32_t> : public alias<char32_t> {};
+            template <> struct base_of_enum_t<wchar_t> : public alias<wchar_t> {};
+
+            // ...
+            template <bool, typename type> struct base_of_t;
+            template <typename type> struct base_of_t<false, type> : public alias<type> {};
+            template <typename base> struct base_of_t<false, base []> : public alias<base> {};
+            template <typename base, std::size_t length> struct base_of_t<false, base [length]> : public alias<base> {};
+            template <typename base, typename... types> struct base_of_t<false, base (types...)> : public alias<base> {};
+            template <typename base, typename... types> struct base_of_t<false, base (types..., ...)> : public alias<base> {};
+            template <typename type> struct base_of_t<true, type> : public alias<typename base_of_enum_t<type>::type> {};
         }
 
         template <typename type, typename subtype>
         struct base_of : public base_of_t<
+            is_enum<type>::value,
             typename conditional_alias<
                 (is_array<type>::value || is_array_pointer<type>::value || is_array_reference<type>::value) ||
                 (is_function<type>::value || is_function_pointer<type>::value || is_function_reference<type>::value),
 
                 typename remove_pointer<typename remove_qualifiers<typename remove_specifications<type>::type>::type>::type,
-            typename conditional_alias<
-                is_enum<type>::value,
-                #if __COMPILER_IS__ARM__
-                # ifdef __underlying_type
-                    __underlying_type(type),
-                # else
-                    typename conditional_alias<(static_cast<type>(-1) < static_cast<type>(0)), typename to_signed<type>::type, typename to_unsigned<type>::type>::type,
-                # endif
-                #elif __COMPILER_IS__CLANG__
-                    __underlying_type(type),
-                #else
-                    typename conditional_alias<(static_cast<type>(-1) < static_cast<type>(0)), typename to_signed<type>::type, typename to_unsigned<type>::type>::type,
-                #endif
-            subtype >::type >::type
+                subtype
+            >::type
         > {};
 
         // Decay
@@ -190,9 +215,9 @@ namespace Lapys {
         struct decay : public decay_t<typename remove_reference<type>::type> {};
 
         // Depth Of
-        template <typename> struct depth_of : public integer<integer_t, 0u> {};
-        template <typename base> struct depth_of<base []> : public integer<integer_t, depth_of<base>::value + 1u> {};
-        template <typename base, std::size_t length> struct depth_of<base [length]> : public integer<integer_t, depth_of<base>::value + 1u> {};
+        template <typename> struct depth_of : public integer<std::size_t, 0u> {};
+        template <typename base> struct depth_of<base []> : public integer<std::size_t, depth_of<base>::value + 1u> {};
+        template <typename base, std::size_t length> struct depth_of<base [length]> : public integer<std::size_t, depth_of<base>::value + 1u> {};
 
         // Is Abstract
         template <typename type>
@@ -224,11 +249,12 @@ namespace Lapys {
 
         // Is Base ...
         namespace {
-            template <typename type> constexpr inline static bool const (&disambiguate_assert(type const volatile* const) noexcept)[true + 1];
-            template <typename> constexpr inline static bool const (&disambiguate_assert(void const volatile* const) noexcept)[false + 1];
+            // ...
+            template <typename type> constexpr inline static bool const (&disambiguate_assert(type const volatile* const) except(false))[true + 1];
+            template <typename> constexpr inline static bool const (&disambiguate_assert(void const volatile* const) except(false))[false + 1];
 
-            template <typename base, typename derived> constexpr inline static bool const (&disambiguate(int const) noexcept)[sizeof(disambiguate_assert<base>(static_cast<derived*>(NULL)))];
-            template <typename, typename> constexpr inline static bool const (&disambiguate(...) noexcept)[true + 1];
+            template <typename base, typename derived> constexpr inline static bool const (&disambiguate(int const) except(false))[sizeof(disambiguate_assert<base>(static_cast<derived*>(NULL)))];
+            template <typename, typename> constexpr inline static bool const (&disambiguate(...) except(false))[true + 1];
 
             // ...
             template <typename type>
@@ -246,7 +272,7 @@ namespace Lapys {
             // ...
             template <class base, class derived>
             struct is_base_of_t : public boolean<
-                (std::is_class<base>::value && std::is_class<derived>::value) &&
+                (is_class<base>::value && is_class<derived>::value) &&
                 sizeof(bool[true + 1]) == sizeof(disambiguate<base, derived>(0))
             > {};
 
@@ -284,6 +310,10 @@ namespace Lapys {
         template <class, typename> struct is_class : public boolean<false> {};
         template <class type> struct is_class<type, typename to_void_t<void_t type::*>::type> : public boolean<false == is_union<type>::value> {};
 
+        // Is Constant
+        template <typename> struct is_constant : public boolean<false> {};
+        template <typename type> struct is_constant<type const> : public boolean<true> {};
+
         // Is Final
         template <class type>
         struct is_final : public boolean<
@@ -291,7 +321,7 @@ namespace Lapys {
             #   if __COMPILER_IS__CLANG__
                     __is_final(type)
             #   elif __COMPILER_IS__GNU__
-            #     ifdef __is_final
+            #     if defined(__has_builtin) && __has_builtin(__is_final)
                     __is_final(type)
             #     else
                     false
@@ -321,7 +351,7 @@ namespace Lapys {
         template <> struct is_integer<unsigned int> : public boolean<true> {};
         template <> struct is_integer<unsigned long> : public boolean<true> {};
         template <> struct is_integer<unsigned short> : public boolean<true> {};
-        #if __CPP__VERSION__ > 1997uL
+        #if __CPP__VERSION__ >= 2011uL
             template <> struct is_integer<signed long long> : public boolean<true> {};
             template <> struct is_integer<unsigned long long> : public boolean<true> {};
         #endif
@@ -333,6 +363,7 @@ namespace Lapys {
         namespace {
             template <typename> struct is_function_t : public boolean<false> {};
             template <typename base, typename... types> struct is_function_t<base (types...)> : public boolean<true> {};
+            template <typename base, typename... types> struct is_function_t<base (types..., ...)> : public boolean<true> {};
         }
 
         template <typename type> struct is_function : public is_function_t<typename remove_specifications<type>::type> {};
@@ -342,20 +373,20 @@ namespace Lapys {
         // Is Member ...
         template <typename> struct is_member_pointer : public boolean<false> {};
         template <typename base, typename object> struct is_member_pointer<base object::*> : public boolean<true> {};
-        template <typename type> struct is_member_pointer<type*> : public boolean<is_member_pointer<type>::value> {};
-        template <typename type> struct is_member_pointer<type const*> : public boolean<is_member_pointer<type>::value> {};
-        template <typename type> struct is_member_pointer<type const volatile*> : public boolean<is_member_pointer<type>::value> {};
-        template <typename type> struct is_member_pointer<type volatile*> : public boolean<is_member_pointer<type>::value> {};
+        // template <typename type> struct is_member_pointer<type*> : public boolean<is_member_pointer<type>::value> {};
+        // template <typename type> struct is_member_pointer<type const*> : public boolean<is_member_pointer<type>::value> {};
+        // template <typename type> struct is_member_pointer<type const volatile*> : public boolean<is_member_pointer<type>::value> {};
+        // template <typename type> struct is_member_pointer<type volatile*> : public boolean<is_member_pointer<type>::value> {};
         template <typename base, typename object> struct is_member_pointer<base object::* const> : public boolean<is_member_pointer<base object::*>::value> {};
         template <typename base, typename object> struct is_member_pointer<base object::* const volatile> : public boolean<is_member_pointer<base object::*>::value> {};
         template <typename base, typename object> struct is_member_pointer<base object::* volatile> : public boolean<is_member_pointer<base object::*>::value> {};
 
         template <typename> struct is_member_function_pointer : public boolean<false> {};
         template <typename base, typename object> struct is_member_function_pointer<base object::*> : public boolean<is_function<base>::value> {};
-        template <typename type> struct is_member_function_pointer<type*> : public boolean<is_member_function_pointer<type>::value> {};
-        template <typename type> struct is_member_function_pointer<type const*> : public boolean<is_member_function_pointer<type>::value> {};
-        template <typename type> struct is_member_function_pointer<type const volatile*> : public boolean<is_member_function_pointer<type>::value> {};
-        template <typename type> struct is_member_function_pointer<type volatile*> : public boolean<is_member_function_pointer<type>::value> {};
+        // template <typename type> struct is_member_function_pointer<type*> : public boolean<is_member_function_pointer<type>::value> {};
+        // template <typename type> struct is_member_function_pointer<type const*> : public boolean<is_member_function_pointer<type>::value> {};
+        // template <typename type> struct is_member_function_pointer<type const volatile*> : public boolean<is_member_function_pointer<type>::value> {};
+        // template <typename type> struct is_member_function_pointer<type volatile*> : public boolean<is_member_function_pointer<type>::value> {};
         template <typename base, typename object> struct is_member_function_pointer<base object::* const> : public boolean<is_member_function_pointer<base object::*>::value> {};
         template <typename base, typename object> struct is_member_function_pointer<base object::* const volatile> : public boolean<is_member_function_pointer<base object::*>::value> {};
         template <typename base, typename object> struct is_member_function_pointer<base object::* volatile> : public boolean<is_member_function_pointer<base object::*>::value> {};
@@ -366,8 +397,8 @@ namespace Lapys {
         // Is Non-Exception
         namespace {
             template <typename type> struct is_noexcept_t : public boolean<false> {};
-            template <typename base, typename... types> struct is_noexcept_t<base (types...) noexcept> : public boolean<true> {};
-            template <typename base, typename object, typename... types> struct is_noexcept_t<base (object::*)(types...) noexcept> : public boolean<true> {};
+            template <typename base, typename... types> struct is_noexcept_t<base (types...) except(false)> : public boolean<true> {};
+            template <typename base, typename object, typename... types> struct is_noexcept_t<base (object::*)(types...) except(false)> : public boolean<true> {};
         }
 
         template <typename type>
@@ -385,7 +416,9 @@ namespace Lapys {
 
         template <typename> struct is_object_reference : public boolean<false> {};
         template <typename type> struct is_object_reference<type&> : public boolean<true> {};
-        template <typename type> struct is_object_reference<type&&> : public boolean<true> {};
+        #if __CPP__VERSION__ >= 2011uL
+            template <typename type> struct is_object_reference<type&&> : public boolean<true> {};
+        #endif
 
         // Is (Pointer, Reference)
         template <typename type> struct is_pointer : public boolean<is_array_pointer<type>::value || is_function_pointer<type>::value || is_object_pointer<type>::value> {};
@@ -408,7 +441,7 @@ namespace Lapys {
         template <> struct is_unsigned<unsigned long> : public boolean<true> {};
         template <> struct is_unsigned<unsigned short> : public boolean<true> {};
 
-        #if __CPP__VERSION__ > 1997uL
+        #if __CPP__VERSION__ >= 2011uL
             template <> struct is_signed<signed long long> : public boolean<true> {};
             template <> struct is_unsigned<unsigned long long> : public boolean<true> {};
         #endif
@@ -442,20 +475,12 @@ namespace Lapys {
         template <typename type>
         struct is_variadic : public is_variadic_t<typename remove_pointer<typename remove_qualifiers<typename remove_specifications<type>::type>::type>::type> {};
 
-        // template <typename> struct length_of;
-        // template <bool, typename, typename> struct method;
-        // template <typename, typename> struct method_accessor;
-        // template <typename, typename> struct method_mutator;
-        // template <bool, typename, typename> struct property;
-        // template <typename, typename> struct property_accessor;
-        // template <typename, typename> struct property_mutator;
-
         // Is ... Enumeration
         namespace {
             template <typename type>
             struct is_unscoped_enum_t {
-                constexpr inline static bool const (&disambiguate(int const) noexcept)[true + 1];
-                constexpr inline static bool const (&disambiguate(...) noexcept)[false + 1];
+                constexpr inline static bool const (&disambiguate(int const) except(false))[true + 1];
+                constexpr inline static bool const (&disambiguate(...) except(false))[false + 1];
 
                 // -> doesn't defer to `boolean<...>`
                 constexpr static bool const value = false == (
@@ -496,6 +521,15 @@ namespace Lapys {
         // Is Void
         template <typename> struct is_void : public boolean<false> {};
         template <> struct is_void<void> : public boolean<true> {};
+
+        // Is Volatile
+        template <typename> struct is_volatile : public boolean<false> {};
+        template <typename type> struct is_volatile<type volatile> : public boolean<true> {};
+
+        // Length Of
+        template <typename> struct length_of : public integer<std::size_t, 0u> {};
+        template <typename base> struct length_of<base []> : public integer<std::size_t, 0u> {};
+        template <typename base, std::size_t length> struct length_of<base [length]> : public integer<std::size_t, length> {};
 
         // Remove Bound
         template <typename type> struct remove_bound : public alias<type> {};
@@ -561,7 +595,7 @@ namespace Lapys {
         template <typename base, typename object> struct remove_specifications<base object::* const> : public alias<base object::*> {};
         template <typename base, typename object> struct remove_specifications<base object::* const volatile> : public alias<base object::*> {};
         template <typename base, typename object> struct remove_specifications<base object::* volatile> : public alias<base object::*> {};
-        #if __CPP__VERSION__ > 2014uL
+        #if __CPP__VERSION__ >= 2017uL
             template <typename base, typename... types> struct remove_specifications<base (types...)& noexcept> : public alias<base (types...)> {};
             template <typename base, typename... types> struct remove_specifications<base (types...)&& noexcept> : public alias<base (types...)> {};
             template <typename base, typename... types> struct remove_specifications<base (types...) const noexcept> : public alias<base (types...)> {};
@@ -597,27 +631,171 @@ namespace Lapys {
         struct remove_reference : public alias<typename remove_lvalue_reference<typename remove_rvalue_reference<type>::type>::type> {};
 
         // Shadow
-        template <typename type>
-        struct shadow final {
-            type value;
+        namespace {
+            // ... -> Redundant code used for the internal `shadow_layout_t<...>` constructor.
+            template <bool, typename>
+            struct shadow_layout_t final {};
+
+            template <typename alias_t> // -> For non-derivable types: PODs, `final` `class`es & `struct`s, `union`s, ...
+            struct shadow_layout_t<false, alias_t> {
+                protected: alias_t value;
+                public:
+                    template <typename... types> constexpr inline shadow_layout_t(types... arguments) except(false) : value super(forward<types>(arguments)...) {}
+                    constexpr inline alias_t& valueOf(void) const except(false) { return const_cast<alias_t&>(this -> value); }
+            };
+
+            template <class alias_t> // For derivable `class`es or `struct`s.
+            struct shadow_layout_t<true, alias_t> : public alias_t { public:
+                #if __CPP__VERSION__ < 2011uL
+                    template <typename... types> constexpr inline shadow_layout_t(types... arguments) except(false) : alias_t super(forward<types>(arguments)...) {}
+                    constexpr inline alias_t& valueOf(void) const except(false) { return *const_cast<alias_t*>(this); }
+                #else
+                    using alias_t::alias_t;
+                    constexpr inline alias_t& valueOf(void) const except(false) { return *const_cast<alias_t*>(this); }
+                #endif
+            };
+                // ... -> Predecessor to `template<...> using` type aliases
+                template <typename alias_t>
+                struct shadow_layout_alias_t final { public:
+                    typedef shadow_layout_t<
+                        is_class<alias_t>::value && false == is_final<alias_t>::value,
+                        typename conditional_alias<is_function<alias_t>::value, typename add_lvalue_reference<alias_t>::type, alias_t>::type
+                    > type;
+                };
+
+            // ...
+            template <bool, typename>
+            struct shadow_deference_t final {};
+
+            template <typename alias_t>
+            struct shadow_deference_t<false, alias_t> : public shadow_layout_alias_t<alias_t>::type { public:
+                template <typename... types>
+                constexpr inline shadow_deference_t(types... arguments) except(false) : shadow_layout_alias_t<alias_t>::type super(forward<types>(arguments)...) {}
+
+                constexpr inline operator typename decay<alias_t>::type&(void) const except(false) { return const_cast<typename decay<alias_t>::type&>(this -> valueOf()); }
+            };
+
+            template <typename alias_t>
+            struct shadow_deference_t<true, alias_t> : public shadow_layout_alias_t<alias_t>::type { public:
+                template <typename... types>
+                constexpr inline shadow_deference_t(types... arguments) except(false) : shadow_layout_alias_t<alias_t>::type super(forward<types>(arguments)...) {}
+
+                constexpr inline operator typename base_of<alias_t, unsigned int>::type(void) const except(false) { return static_cast<typename base_of<alias_t, unsigned int>::type>(this -> valueOf()); }
+                constexpr inline specific operator alias_t&(void) const except(false) { return const_cast<alias_t&>(this -> valueOf()); }
+            };
+                // ...
+                template <typename alias_t>
+                struct shadow_deference_alias_t final { public:
+                    typedef shadow_deference_t<is_enum<alias_t>::value, alias_t> type;
+                };
+        }
+
+        template <typename alias_t>
+        struct shadow : public shadow_deference_alias_t<alias_t>::type { public:
+            template <typename... types>
+            constexpr inline shadow(types... arguments) except(false) : shadow_deference_alias_t<alias_t>::type super(forward<types>(arguments)...) {}
+
+            #if __CPP__VERSION__ >= 2014uL
+                constexpr inline auto operator +(void) const except(false) { return +(this -> valueOf()); }
+                constexpr inline auto operator *(void) const except(false) { return *(this -> valueOf()); }
+                constexpr inline auto operator &(void) const except(false) { return &(this -> valueOf()); }
+                constexpr inline auto operator ~(void) const except(false) { return ~(this -> valueOf()); }
+                constexpr inline auto operator !(void) const except(false) { return !(this -> valueOf()); }
+            #endif
+            #if __CPP__VERSION__ >= 2011uL
+                template <typename type = alias_t> constexpr friend inline auto operator +(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() + object) { return shadow.valueOf() + object; }
+                template <typename type = alias_t> constexpr friend inline auto operator +(type&& object, shadow const& shadow) except(false) -> typeof(object + shadow.valueOf()) { return object + shadow.valueOf(); }
+                template <typename type = alias_t> constexpr friend inline auto operator -(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() - object) { return shadow.valueOf() - object; }
+                template <typename type = alias_t> constexpr friend inline auto operator -(type&& object, shadow const& shadow) except(false) -> typeof(object - shadow.valueOf()) { return object - shadow.valueOf(); }
+                template <typename type = alias_t> constexpr friend inline auto operator *(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() * object) { return shadow.valueOf() * object; }
+                template <typename type = alias_t> constexpr friend inline auto operator *(type&& object, shadow const& shadow) except(false) -> typeof(object * shadow.valueOf()) { return object * shadow.valueOf(); }
+                template <typename type = alias_t> constexpr friend inline auto operator /(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() / object) { return shadow.valueOf() / object; }
+                template <typename type = alias_t> constexpr friend inline auto operator /(type&& object, shadow const& shadow) except(false) -> typeof(object / shadow.valueOf()) { return object / shadow.valueOf(); }
+                template <typename type = alias_t> constexpr friend inline auto operator %(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() % object) { return shadow.valueOf() % object; }
+                template <typename type = alias_t> constexpr friend inline auto operator %(type&& object, shadow const& shadow) except(false) -> typeof(object % shadow.valueOf()) { return object % shadow.valueOf(); }
+                template <typename type = alias_t> constexpr friend inline auto operator &(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() & object) { return shadow.valueOf() & object; }
+                template <typename type = alias_t> constexpr friend inline auto operator &(type&& object, shadow const& shadow) except(false) -> typeof(object & shadow.valueOf()) { return object & shadow.valueOf(); }
+                template <typename type = alias_t> constexpr friend inline auto operator |(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() | object) { return shadow.valueOf() | object; }
+                template <typename type = alias_t> constexpr friend inline auto operator |(type&& object, shadow const& shadow) except(false) -> typeof(object | shadow.valueOf()) { return object | shadow.valueOf(); }
+                template <typename type = alias_t> constexpr friend inline auto operator ^(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() ^ object) { return shadow.valueOf() ^ object; }
+                template <typename type = alias_t> constexpr friend inline auto operator ^(type&& object, shadow const& shadow) except(false) -> typeof(object ^ shadow.valueOf()) { return object ^ shadow.valueOf(); }
+                template <typename type = alias_t> constexpr friend inline auto operator <<(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() << object) { return shadow.valueOf() << object; }
+                template <typename type = alias_t> constexpr friend inline auto operator <<(type&& object, shadow const& shadow) except(false) -> typeof(object << shadow.valueOf()) { return object << shadow.valueOf(); }
+                template <typename type = alias_t> constexpr friend inline auto operator >>(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() >> object) { return shadow.valueOf() >> object; }
+                template <typename type = alias_t> constexpr friend inline auto operator >>(type&& object, shadow const& shadow) except(false) -> typeof(object >> shadow.valueOf()) { return object >> shadow.valueOf(); }
+
+                template <typename type = alias_t> constexpr inline auto operator =(type&& value) except(false) -> typeof((this -> valueOf() = value)) { return this -> valueOf() = value; }
+                template <typename type = alias_t> constexpr inline auto operator +=(type&& value) except(false) -> typeof((this -> valueOf() += value)) { return this -> valueOf() += value; }
+                template <typename type = alias_t> constexpr inline auto operator -=(type&& value) except(false) -> typeof((this -> valueOf() -= value)) { return this -> valueOf() -= value; }
+                template <typename type = alias_t> constexpr inline auto operator *=(type&& value) except(false) -> typeof((this -> valueOf() *= value)) { return this -> valueOf() *= value; }
+                template <typename type = alias_t> constexpr inline auto operator /=(type&& value) except(false) -> typeof((this -> valueOf() /= value)) { return this -> valueOf() /= value; }
+                template <typename type = alias_t> constexpr inline auto operator %=(type&& value) except(false) -> typeof((this -> valueOf() %= value)) { return this -> valueOf() %= value; }
+                template <typename type = alias_t> constexpr inline auto operator &=(type&& value) except(false) -> typeof((this -> valueOf() &= value)) { return this -> valueOf() &= value; }
+                template <typename type = alias_t> constexpr inline auto operator |=(type&& value) except(false) -> typeof((this -> valueOf() |= value)) { return this -> valueOf() |= value; }
+                template <typename type = alias_t> constexpr inline auto operator ^=(type&& value) except(false) -> typeof((this -> valueOf() ^= value)) { return this -> valueOf() ^= value; }
+                template <typename type = alias_t> constexpr inline auto operator <<=(type&& value) except(false) -> typeof((this -> valueOf() <<= value)) { return this -> valueOf() <<= value; }
+                template <typename type = alias_t> constexpr inline auto operator >>=(type&& value) except(false) -> typeof((this -> valueOf() >>= value)) { return this -> valueOf() >>= value; }
+            #endif
         };
 
         // To (Un)Signed
-        template <typename type> struct to_signed : public alias<type> {};
+        template <typename type>
+        struct to_signed : public alias<
+            typename conditional_alias<
+                sizeof(type) <= sizeof(signed char), signed char,
+            typename conditional_alias<
+                sizeof(type) <= sizeof(signed int), signed int,
+            typename conditional_alias<
+                sizeof(type) <= sizeof(signed long), signed long,
+            typename conditional_alias<
+                sizeof(type) <= sizeof(signed short), signed short,
+                #if __CPP__VERSION__ >= 2011uL
+                    signed long long
+                #else
+                    type
+                #endif
+            >::type >::type >::type >::type
+        > {};
         template <> struct to_signed<unsigned char> : public alias<signed char> {};
         template <> struct to_signed<unsigned int> : public alias<signed int> {};
         template <> struct to_signed<unsigned long> : public alias<signed long> {};
         template <> struct to_signed<unsigned short> : public alias<signed short> {};
 
-        template <typename type> struct to_unsigned : public alias<type> {};
+        template <typename type>
+        struct to_unsigned : public alias<
+            typename conditional_alias<
+                sizeof(type) <= sizeof(unsigned char), unsigned char,
+            typename conditional_alias<
+                sizeof(type) <= sizeof(unsigned int), unsigned int,
+            typename conditional_alias<
+                sizeof(type) <= sizeof(unsigned long), unsigned long,
+            typename conditional_alias<
+                sizeof(type) <= sizeof(unsigned short), unsigned short,
+                #if __CPP__VERSION__ >= 2011uL
+                    unsigned long long
+                #else
+                    type
+                #endif
+            >::type >::type >::type >::type
+        > {};
         template <> struct to_unsigned<signed char> : public alias<unsigned char> {};
         template <> struct to_unsigned<signed int> : public alias<unsigned int> {};
         template <> struct to_unsigned<signed long> : public alias<unsigned long> {};
         template <> struct to_unsigned<signed short> : public alias<unsigned short> {};
 
-        #if __CPP__VERSION__ > 1997uL
+        #if __CPP__VERSION__ >= 2011uL
             template <> struct to_signed<unsigned long long> : public alias<signed long long> {};
             template <> struct to_unsigned<signed long long> : public alias<unsigned long long> {};
+        #endif
+    }
+
+    inline namespace Utility {
+        // Forward
+        #if __CPP__VERSION__ < 2011uL
+            template <typename type> constexpr inline type forward(typename remove_const<typename remove_reference<type>::type>::type const& argument) except(false) { return argument; }
+        #else
+            template <typename type> constexpr inline type&& forward(typename remove_reference<type>::type& argument) except(false) { return static_cast<type&&>(argument); }
+            template <typename type> constexpr inline type&& forward(typename remove_reference<type>::type&& argument) except(false) { return static_cast<type&&>(argument); }
         #endif
     }
 }
