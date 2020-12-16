@@ -540,9 +540,6 @@ namespace Lapys {
         struct property : public shadow<type> {
             friend object;
 
-            template <class subobject, typename subtype>
-            constexpr friend inline auto shadow<subtype>::disambiguate(property<subobject, subtype> const property) except(false) -> typeof(property.valueOf());
-
             public:
                 constexpr inline property(property const& property) except(false) : shadow<type> super(static_cast<shadow<type> const&>(property)) {}
                 template <typename... types> constexpr inline property(types nodecay... arguments) except(false) : shadow<type> super(Utility::forward<types nodecay>(arguments)...) {}
@@ -767,14 +764,11 @@ namespace Lapys {
         template <typename alias_t>
         struct shadow : public shadow_deference_alias<alias_t>::type {
             private:
-                template <typename type> constexpr inline static auto disambiguate(shadow<type> const shadow) except(false) -> typeof(shadow.valueOf()) { return shadow.valueOf(); }
-                // template <typename type> constexpr inline static auto disambiguate(shadow<type>& shadow) except(false) -> typeof(shadow.valueOf()) { return shadow.valueOf(); }
-                // template <typename type> constexpr inline static auto disambiguate(shadow<type> const& shadow) except(false) -> typeof(shadow.valueOf()) { return shadow.valueOf(); }
+                template <typename type, typename conditional_alias<false == is_base<shadow, typename remove_pointer<typename remove_reference<type>::type>::type>::value, bool>::type = 0x0>
+                constexpr inline static type nodecay disambiguate(type nodecay argument) except(false) { return static_cast<type nodecay>(argument); }
 
-                #if __CPP__VERSION__ >= 2011uL
-                    // template <typename type> constexpr inline static auto disambiguate(shadow<type>&& shadow) except(false) -> typeof(shadow.valueOf()) { return shadow.valueOf(); }
-                    template <typename type> constexpr inline static type&& disambiguate(type&& argument) except(false) { return static_cast<type&&>(argument); }
-                #endif
+                template <typename type, typename conditional_alias<true == is_base<shadow, typename remove_pointer<typename remove_reference<type>::type>::type>::value, bool>::type = 0x0>
+                constexpr inline static auto disambiguate(type nodecay argument) except(false) -> typeof(argument.valueOf()) { return argument.valueOf(); }
 
             public:
                 template <typename... types> constexpr inline shadow(types nodecay... arguments) except(false) : shadow_deference_alias<alias_t>::type super(Utility::forward<types nodecay>(arguments)...) {}
@@ -792,42 +786,42 @@ namespace Lapys {
                     constexpr inline auto operator --(int const) const except(false) { return (this -> valueOf())--; }
                 #endif
                 #if __CPP__VERSION__ >= 2011uL
-                    template <typename sus, typename type> constexpr friend inline auto operator +(shadow<sus> const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() + disambiguate(object)) { return shadow.valueOf() + disambiguate(object); }
-                    template <typename sus, typename type> constexpr friend inline auto operator +(type nodecay object, shadow<sus> const& shadow) except(false) -> typeof(disambiguate(object) + shadow.valueOf()) { return disambiguate(object) + shadow.valueOf(); }
-                    template <typename type> constexpr friend inline auto operator -(shadow const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() - disambiguate(object)) { return shadow.valueOf() - disambiguate(object); }
-                    template <typename type> constexpr friend inline auto operator -(type nodecay object, shadow const& shadow) except(false) -> typeof(disambiguate(object) - shadow.valueOf()) { return disambiguate(object) - shadow.valueOf(); }
-                    template <typename type> constexpr friend inline auto operator *(shadow const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() * disambiguate(object)) { return shadow.valueOf() * disambiguate(object); }
-                    template <typename type> constexpr friend inline auto operator *(type nodecay object, shadow const& shadow) except(false) -> typeof(disambiguate(object) * shadow.valueOf()) { return disambiguate(object) * shadow.valueOf(); }
-                    template <typename type> constexpr friend inline auto operator /(shadow const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() / disambiguate(object)) { return shadow.valueOf() / disambiguate(object); }
-                    template <typename type> constexpr friend inline auto operator /(type nodecay object, shadow const& shadow) except(false) -> typeof(disambiguate(object) / shadow.valueOf()) { return disambiguate(object) / shadow.valueOf(); }
-                    template <typename type> constexpr friend inline auto operator %(shadow const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() % disambiguate(object)) { return shadow.valueOf() % disambiguate(object); }
-                    template <typename type> constexpr friend inline auto operator %(type nodecay object, shadow const& shadow) except(false) -> typeof(disambiguate(object) % shadow.valueOf()) { return disambiguate(object) % shadow.valueOf(); }
-                    template <typename type> constexpr friend inline auto operator &(shadow const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() & disambiguate(object)) { return shadow.valueOf() & disambiguate(object); }
-                    template <typename type> constexpr friend inline auto operator &(type nodecay object, shadow const& shadow) except(false) -> typeof(disambiguate(object) & shadow.valueOf()) { return disambiguate(object) & shadow.valueOf(); }
-                    template <typename type> constexpr friend inline auto operator |(shadow const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() | disambiguate(object)) { return shadow.valueOf() | disambiguate(object); }
-                    template <typename type> constexpr friend inline auto operator |(type nodecay object, shadow const& shadow) except(false) -> typeof(disambiguate(object) | shadow.valueOf()) { return disambiguate(object) | shadow.valueOf(); }
-                    template <typename type> constexpr friend inline auto operator ^(shadow const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() ^ disambiguate(object)) { return shadow.valueOf() ^ disambiguate(object); }
-                    template <typename type> constexpr friend inline auto operator ^(type nodecay object, shadow const& shadow) except(false) -> typeof(disambiguate(object) ^ shadow.valueOf()) { return disambiguate(object) ^ shadow.valueOf(); }
+                    template <typename subalias_t, typename type> constexpr friend inline auto operator +(shadow<subalias_t> const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() + disambiguate(object)) { return shadow.valueOf() + disambiguate(object); }
+                    template <typename subalias_t, typename type> constexpr friend inline auto operator +(type nodecay object, shadow<subalias_t> const& shadow) except(false) -> typeof(disambiguate(object) + shadow.valueOf()) { return disambiguate(object) + shadow.valueOf(); }
+                    template <typename subalias_t, typename type> constexpr friend inline auto operator -(shadow<subalias_t> const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() - disambiguate(object)) { return shadow.valueOf() - disambiguate(object); }
+                    template <typename subalias_t, typename type> constexpr friend inline auto operator -(type nodecay object, shadow<subalias_t> const& shadow) except(false) -> typeof(disambiguate(object) - shadow.valueOf()) { return disambiguate(object) - shadow.valueOf(); }
+                    template <typename subalias_t, typename type> constexpr friend inline auto operator *(shadow<subalias_t> const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() * disambiguate(object)) { return shadow.valueOf() * disambiguate(object); }
+                    template <typename subalias_t, typename type> constexpr friend inline auto operator *(type nodecay object, shadow<subalias_t> const& shadow) except(false) -> typeof(disambiguate(object) * shadow.valueOf()) { return disambiguate(object) * shadow.valueOf(); }
+                    template <typename subalias_t, typename type> constexpr friend inline auto operator /(shadow<subalias_t> const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() / disambiguate(object)) { return shadow.valueOf() / disambiguate(object); }
+                    template <typename subalias_t, typename type> constexpr friend inline auto operator /(type nodecay object, shadow<subalias_t> const& shadow) except(false) -> typeof(disambiguate(object) / shadow.valueOf()) { return disambiguate(object) / shadow.valueOf(); }
+                    template <typename subalias_t, typename type> constexpr friend inline auto operator %(shadow<subalias_t> const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() % disambiguate(object)) { return shadow.valueOf() % disambiguate(object); }
+                    template <typename subalias_t, typename type> constexpr friend inline auto operator %(type nodecay object, shadow<subalias_t> const& shadow) except(false) -> typeof(disambiguate(object) % shadow.valueOf()) { return disambiguate(object) % shadow.valueOf(); }
+                    template <typename subalias_t, typename type> constexpr friend inline auto operator &(shadow<subalias_t> const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() & disambiguate(object)) { return shadow.valueOf() & disambiguate(object); }
+                    template <typename subalias_t, typename type> constexpr friend inline auto operator &(type nodecay object, shadow<subalias_t> const& shadow) except(false) -> typeof(disambiguate(object) & shadow.valueOf()) { return disambiguate(object) & shadow.valueOf(); }
+                    template <typename subalias_t, typename type> constexpr friend inline auto operator |(shadow<subalias_t> const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() | disambiguate(object)) { return shadow.valueOf() | disambiguate(object); }
+                    template <typename subalias_t, typename type> constexpr friend inline auto operator |(type nodecay object, shadow<subalias_t> const& shadow) except(false) -> typeof(disambiguate(object) | shadow.valueOf()) { return disambiguate(object) | shadow.valueOf(); }
+                    template <typename subalias_t, typename type> constexpr friend inline auto operator ^(shadow<subalias_t> const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() ^ disambiguate(object)) { return shadow.valueOf() ^ disambiguate(object); }
+                    template <typename subalias_t, typename type> constexpr friend inline auto operator ^(type nodecay object, shadow<subalias_t> const& shadow) except(false) -> typeof(disambiguate(object) ^ shadow.valueOf()) { return disambiguate(object) ^ shadow.valueOf(); }
 
-                    template <typename type> constexpr friend inline auto operator <<(shadow const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() << disambiguate(object)) { return shadow.valueOf() << disambiguate(object); }
-                    template <typename type> constexpr friend inline auto operator <<(type nodecay object, shadow const& shadow) except(false) -> typeof(disambiguate(object) << shadow.valueOf()) { return disambiguate(object) << shadow.valueOf(); }
+                    template <typename subalias_t, typename type> constexpr friend inline auto operator <<(shadow<subalias_t> const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() << disambiguate(object)) { return shadow.valueOf() << disambiguate(object); }
+                    template <typename subalias_t, typename type> constexpr friend inline auto operator <<(type nodecay object, shadow<subalias_t> const& shadow) except(false) -> typeof(disambiguate(object) << shadow.valueOf()) { return disambiguate(object) << shadow.valueOf(); }
 
-                    template <typename type> constexpr friend inline auto operator >>(shadow const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() >> disambiguate(object)) { return shadow.valueOf() >> disambiguate(object); }
-                    template <typename type> constexpr friend inline auto operator >>(type nodecay object, shadow const& shadow) except(false) -> typeof(disambiguate(object) >> shadow.valueOf()) { return disambiguate(object) >> shadow.valueOf(); }
-                    template <typename type> constexpr friend inline auto operator ==(shadow const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() == disambiguate(object)) { return shadow.valueOf() == disambiguate(object); }
-                    template <typename type> constexpr friend inline auto operator ==(type nodecay object, shadow const& shadow) except(false) -> typeof(disambiguate(object) == shadow.valueOf()) { return disambiguate(object) == shadow.valueOf(); }
-                    template <typename type> constexpr friend inline auto operator !=(shadow const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() != disambiguate(object)) { return shadow.valueOf() != disambiguate(object); }
-                    template <typename type> constexpr friend inline auto operator !=(type nodecay object, shadow const& shadow) except(false) -> typeof(disambiguate(object) != shadow.valueOf()) { return disambiguate(object) != shadow.valueOf(); }
-                    template <typename type> constexpr friend inline auto operator <=(shadow const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() <= disambiguate(object)) { return shadow.valueOf() <= disambiguate(object); }
-                    template <typename type> constexpr friend inline auto operator <=(type nodecay object, shadow const& shadow) except(false) -> typeof(disambiguate(object) <= shadow.valueOf()) { return disambiguate(object) <= shadow.valueOf(); }
-                    template <typename type> constexpr friend inline auto operator >=(shadow const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() >= disambiguate(object)) { return shadow.valueOf() >= disambiguate(object); }
-                    template <typename type> constexpr friend inline auto operator >=(type nodecay object, shadow const& shadow) except(false) -> typeof(disambiguate(object) >= shadow.valueOf()) { return disambiguate(object) >= shadow.valueOf(); }
-                    template <typename type> constexpr friend inline auto operator &&(shadow const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() && disambiguate(object)) { return shadow.valueOf() && disambiguate(object); }
-                    template <typename type> constexpr friend inline auto operator &&(type nodecay object, shadow const& shadow) except(false) -> typeof(disambiguate(object) && shadow.valueOf()) { return disambiguate(object) && shadow.valueOf(); }
-                    template <typename type> constexpr friend inline auto operator ||(shadow const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() || disambiguate(object)) { return shadow.valueOf() || disambiguate(object); }
-                    template <typename type> constexpr friend inline auto operator ||(type nodecay object, shadow const& shadow) except(false) -> typeof(disambiguate(object) || shadow.valueOf()) { return disambiguate(object) || shadow.valueOf(); }
-                    template <typename type> constexpr friend inline auto operator ,(shadow const& shadow, type nodecay object) except(false) -> typeof((shadow.valueOf(), disambiguate(object))) { return (shadow.valueOf(), disambiguate(object)); }
-                    template <typename type> constexpr friend inline auto operator ,(type nodecay object, shadow const& shadow) except(false) -> typeof((disambiguate(object), shadow.valueOf())) { return (disambiguate(object), shadow.valueOf()); }
+                    template <typename subalias_t, typename type> constexpr friend inline auto operator >>(shadow<subalias_t> const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() >> disambiguate(object)) { return shadow.valueOf() >> disambiguate(object); }
+                    template <typename subalias_t, typename type> constexpr friend inline auto operator >>(type nodecay object, shadow<subalias_t> const& shadow) except(false) -> typeof(disambiguate(object) >> shadow.valueOf()) { return disambiguate(object) >> shadow.valueOf(); }
+                    template <typename subalias_t, typename type> constexpr friend inline auto operator ==(shadow<subalias_t> const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() == disambiguate(object)) { return shadow.valueOf() == disambiguate(object); }
+                    template <typename subalias_t, typename type> constexpr friend inline auto operator ==(type nodecay object, shadow<subalias_t> const& shadow) except(false) -> typeof(disambiguate(object) == shadow.valueOf()) { return disambiguate(object) == shadow.valueOf(); }
+                    template <typename subalias_t, typename type> constexpr friend inline auto operator !=(shadow<subalias_t> const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() != disambiguate(object)) { return shadow.valueOf() != disambiguate(object); }
+                    template <typename subalias_t, typename type> constexpr friend inline auto operator !=(type nodecay object, shadow<subalias_t> const& shadow) except(false) -> typeof(disambiguate(object) != shadow.valueOf()) { return disambiguate(object) != shadow.valueOf(); }
+                    template <typename subalias_t, typename type> constexpr friend inline auto operator <=(shadow<subalias_t> const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() <= disambiguate(object)) { return shadow.valueOf() <= disambiguate(object); }
+                    template <typename subalias_t, typename type> constexpr friend inline auto operator <=(type nodecay object, shadow<subalias_t> const& shadow) except(false) -> typeof(disambiguate(object) <= shadow.valueOf()) { return disambiguate(object) <= shadow.valueOf(); }
+                    template <typename subalias_t, typename type> constexpr friend inline auto operator >=(shadow<subalias_t> const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() >= disambiguate(object)) { return shadow.valueOf() >= disambiguate(object); }
+                    template <typename subalias_t, typename type> constexpr friend inline auto operator >=(type nodecay object, shadow<subalias_t> const& shadow) except(false) -> typeof(disambiguate(object) >= shadow.valueOf()) { return disambiguate(object) >= shadow.valueOf(); }
+                    template <typename subalias_t, typename type> constexpr friend inline auto operator &&(shadow<subalias_t> const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() && disambiguate(object)) { return shadow.valueOf() && disambiguate(object); }
+                    template <typename subalias_t, typename type> constexpr friend inline auto operator &&(type nodecay object, shadow<subalias_t> const& shadow) except(false) -> typeof(disambiguate(object) && shadow.valueOf()) { return disambiguate(object) && shadow.valueOf(); }
+                    template <typename subalias_t, typename type> constexpr friend inline auto operator ||(shadow<subalias_t> const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() || disambiguate(object)) { return shadow.valueOf() || disambiguate(object); }
+                    template <typename subalias_t, typename type> constexpr friend inline auto operator ||(type nodecay object, shadow<subalias_t> const& shadow) except(false) -> typeof(disambiguate(object) || shadow.valueOf()) { return disambiguate(object) || shadow.valueOf(); }
+                    template <typename subalias_t, typename type> constexpr friend inline auto operator ,(shadow<subalias_t> const& shadow, type nodecay object) except(false) -> typeof((shadow.valueOf(), disambiguate(object))) { return (shadow.valueOf(), disambiguate(object)); }
+                    template <typename subalias_t, typename type> constexpr friend inline auto operator ,(type nodecay object, shadow<subalias_t> const& shadow) except(false) -> typeof((disambiguate(object), shadow.valueOf())) { return (disambiguate(object), shadow.valueOf()); }
 
                     template <typename type = alias_t, typename conditional_alias<false == is_array<type>::value, bool>::type = 0x0> constexpr inline auto operator =(shadow const& shadow) except(false) -> typeof(this -> valueOf() = shadow.valueOf()) { return (this -> valueOf() = shadow.valueOf()); }
                     template <typename type> constexpr inline auto operator +=(type nodecay value) except(false) -> typeof(this -> valueOf() += value) { return this -> valueOf() += value; }
@@ -848,8 +842,8 @@ namespace Lapys {
                     #endif
                 #endif
                 #if __CPP__VERSION__ >= 2020uL
-                    template <typename type> constexpr friend inline auto operator <=>(shadow const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() <=> disambiguate(object)) { return shadow.valueOf() <=> disambiguate(object); }
-                    template <typename type> constexpr friend inline auto operator <=>(type nodecay object, shadow const& shadow) except(false) -> typeof(disambiguate(object) <=> shadow.valueOf()) { return disambiguate(object) <=> shadow.valueOf(); }
+                    template <typename subalias_t, typename type> constexpr friend inline auto operator <=>(shadow<subalias_t> const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() <=> disambiguate(object)) { return shadow.valueOf() <=> disambiguate(object); }
+                    template <typename subalias_t, typename type> constexpr friend inline auto operator <=>(type nodecay object, shadow<subalias_t> const& shadow) except(false) -> typeof(disambiguate(object) <=> shadow.valueOf()) { return disambiguate(object) <=> shadow.valueOf(); }
                 #endif
         };
 
