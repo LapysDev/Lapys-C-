@@ -1,6 +1,6 @@
 /* ... Error */
 #if __CPP__VERSION__ < 2011uL
-#   error [LAPYS]: Lacking support for C++ versions before the ISO C++11 standard (variadic templates required)
+#   error [LAPYS]: Lacking support for C++ versions before the ISO C++11 standard (trailing function return type & variadic templates required)
 #endif
 
 /* ... > Utility --- NOTE (Lapys) */
