@@ -738,7 +738,7 @@ namespace Lapys {
             template <bool, typename>
             struct shadow_deference final {};
 
-            template <typename alias_t>
+            template <typename alias_t> // For non-enumeration types.
             struct shadow_deference<false, alias_t> : public shadow_layout_alias<alias_t>::type { public:
                 template <typename... types>
                 constexpr inline shadow_deference(types nodecay... arguments) except(false) : shadow_layout_alias<alias_t>::type(Utility::forward<types nodecay>(arguments)...) {}
@@ -746,7 +746,7 @@ namespace Lapys {
                 constexpr inline operator typename conditional_alias<is_array<alias_t>::value || is_function<alias_t>::value, alias_t, typename decay_of<alias_t>::type>::type&(void) const except(false) { return const_cast<typename conditional_alias<is_array<alias_t>::value || is_function<alias_t>::value, alias_t&, typename decay_of<alias_t>::type>::type&>(this -> valueOf()); }
             };
 
-            template <typename alias_t>
+            template <typename alias_t> // -> For enumeration types.
             struct shadow_deference<true, alias_t> : public shadow_layout_alias<alias_t>::type { public:
                 template <typename... types>
                 constexpr inline shadow_deference(types nodecay... arguments) except(false) : shadow_layout_alias<alias_t>::type super(Utility::forward<types nodecay>(arguments)...) {}
@@ -774,6 +774,12 @@ namespace Lapys {
                 template <typename... types> constexpr inline shadow(types nodecay... arguments) except(false) : shadow_deference_alias<alias_t>::type super(Utility::forward<types nodecay>(arguments)...) {}
 
                 constexpr inline typename remove_reference<alias_t>::type& operator ->(void) const except(false) { return this -> valueOf(); }
+
+                template <typename type = alias_t>
+                constexpr inline auto operator ++(void) const except(false) -> typeof(++(shadow<type>{}.valueOf())) { return ++(this -> valueOf()); }
+                template <typename type = alias_t>
+                constexpr inline auto operator ++(int const) const except(false) -> typeof((shadow<type>{}.valueOf())++) { return (this -> valueOf())++; }
+
                 #if __CPP__VERSION__ >= 2014uL
                     constexpr inline auto operator +(void) const except(false) { return +(this -> valueOf()); }
                     constexpr inline auto operator *(void) const except(false) { return *(this -> valueOf()); }
