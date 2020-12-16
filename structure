@@ -70,9 +70,9 @@ namespace Lapys {
         template <bool, typename, typename> struct method;
         template <typename, typename> struct method_accessor;
         template <typename, typename> struct method_mutator;
-        template <bool, typename, typename> struct property;
-        template <typename, typename> struct property_accessor;
-        template <typename, typename> struct property_mutator;
+        template <class, typename> struct property;
+        template <class, typename> struct property_accessor;
+        template <class, typename> struct property_mutator;
         template <typename> struct remove_bound;
         template <typename> struct remove_bounds;
         template <typename> struct remove_const;
@@ -89,10 +89,11 @@ namespace Lapys {
         template <typename> struct to_unsigned;
 
         // ...
-        template <typename return_t, typename cast_t> return_t cast(cast_t&&);
-        template <typename type> constexpr typename decay_of<type>::type decay(type&&);
+        template <typename return_t, typename cast_t> return_t cast(cast_t nodecay);
+        template <typename type> constexpr typename decay_of<type>::type decay(type nodecay);
         #if __CPP__VERSION__ < 2011uL
-            template <typename type> constexpr inline type forward(typename remove_const<typename remove_reference<type>::type>::type const& argument) except(false);
+            template <typename type> constexpr inline typename remove_const<typename remove_reference<type>::type>::type& forward(typename remove_const<typename remove_reference<type>::type>::type& argument) except(false);
+            template <typename type> constexpr inline typename remove_const<typename remove_reference<type>::type>::type const& forward(typename remove_const<typename remove_reference<type>::type>::type const& argument) except(false);
         #else
             template <typename type> constexpr inline type&& forward(typename remove_reference<type>::type&) except(false);
             template <typename type> constexpr inline type&& forward(typename remove_reference<type>::type&&) except(false);
@@ -274,8 +275,9 @@ namespace Lapys {
             // ...
             template <class base, class derived>
             struct is_base_of_t : public boolean<
-                (is_class<base>::value && is_class<derived>::value) &&
-                sizeof(bool[true + 1]) == sizeof(disambiguate<base, derived>(0))
+                (is_class<base>::value && is_class<derived>::value) ?
+                    sizeof(bool[true + 1]) == sizeof(disambiguate<base, derived>(0)) :
+                    is_same<base, derived>::value
             > {};
 
             template <class type> struct is_base_of_t<type, type> : public boolean<false> {};
@@ -288,7 +290,7 @@ namespace Lapys {
         struct is_base<type> : public is_base_t<
             typename conditional_alias<
                 is_array<type>::value || is_array_reference<type>::value,
-                typename base_of<type, void /* -> Enforce `base_of` to always evaluate a type (although it may never actually be computed). */>::type,
+                typename base_of<type, type /* -> Enforce `base_of` to always evaluate a type (although it may never actually be computed). */>::type,
                 typename remove_reference<type>::type
             >::type
         > {};
@@ -533,6 +535,44 @@ namespace Lapys {
         template <typename base> struct length_of<base []> : public integer<std::size_t, 0u> {};
         template <typename base, std::size_t length> struct length_of<base [length]> : public integer<std::size_t, length> {};
 
+        // Property
+        template <class object, typename type>
+        struct property : public shadow<type> {
+            friend object;
+
+            public:
+                constexpr inline property(property const& property) except(false) : shadow<type> super(static_cast<shadow<type> const&>(property)) {}
+                template <typename... types> constexpr inline property(types nodecay... arguments) except(false) : shadow<type> super(Utility::forward<types nodecay>(arguments)...) {}
+                #if __CPP__VERSION__ >= 2011uL
+                    constexpr inline property(property&& property) except(false) : shadow<type> super(static_cast<shadow<type>&&>(property)) {}
+                #endif
+
+                constexpr inline property& operator =(property const& property) except(false) { return this -> shadow<type>::operator =(static_cast<shadow<type> const&>(property)); }
+                #if __CPP__VERSION__ >= 2011uL
+                    constexpr inline property& operator =(property&& property) except(false) { return this -> shadow<type>::operator =(static_cast<shadow<type>&&>(property)); }
+                #endif
+        };
+
+        template <class object, typename type>
+        struct property_accessor : public property<object, type> {
+            friend object;
+
+            public:
+                constexpr inline property_accessor(property_accessor const& accessor) except(false) : property<object, type> super(static_cast<property<object, type> const&>(accessor)) {}
+                template <typename... types> constexpr inline property_accessor(types nodecay... arguments) except(false) : property<object, type> super(Utility::forward<types nodecay>(arguments)...) {}
+                #if __CPP__VERSION__ >= 2011uL
+                    constexpr inline property_accessor(property_accessor&& accessor) except(false) : property<object, type> super(static_cast<property<object, type>&&>(accessor)) {}
+                #endif
+
+            protected:
+                constexpr inline property_accessor& operator =(property_accessor const& accessor) except(false) { return this -> property<object, type>::operator =(static_cast<property<object, type> const&>(accessor)); }
+                #if __CPP__VERSION__ >= 2011uL
+                    constexpr inline property_accessor& operator =(property_accessor&& accessor) except(false) { return this -> property<object, type>::operator =(static_cast<property<object, type>&&>(accessor)); }
+                #endif
+        };
+
+        // template <typename, typename> struct property_mutator;
+
         // Remove Bound
         template <typename type> struct remove_bound : public alias<type> {};
         template <typename base> struct remove_bound<base []> : public alias<base> {};
@@ -572,31 +612,34 @@ namespace Lapys {
         // Remove Specifications
         template <typename type> struct remove_specifications : public alias<type> {};
         template <typename base, typename... types> struct remove_specifications<base (types...)&> : public alias<base (types...)> {};
-        template <typename base, typename... types> struct remove_specifications<base (types...)&&> : public alias<base (types...)> {};
         template <typename base, typename... types> struct remove_specifications<base (types...) const> : public alias<base (types...)> {};
         template <typename base, typename... types> struct remove_specifications<base (types...) const&> : public alias<base (types...)> {};
-        template <typename base, typename... types> struct remove_specifications<base (types...) const&&> : public alias<base (types...)> {};
         template <typename base, typename... types> struct remove_specifications<base (types...) const volatile> : public alias<base (types...)> {};
         template <typename base, typename... types> struct remove_specifications<base (types...) const volatile&> : public alias<base (types...)> {};
-        template <typename base, typename... types> struct remove_specifications<base (types...) const volatile&&> : public alias<base (types...)> {};
         template <typename base, typename... types> struct remove_specifications<base (types...) volatile> : public alias<base (types...)> {};
         template <typename base, typename... types> struct remove_specifications<base (types...) volatile&> : public alias<base (types...)> {};
-        template <typename base, typename... types> struct remove_specifications<base (types...) volatile&&> : public alias<base (types...)> {};
+
         template <typename base, typename... types> struct remove_specifications<base (types..., ...)&> : public alias<base (types..., ...)> {};
-        template <typename base, typename... types> struct remove_specifications<base (types..., ...)&&> : public alias<base (types..., ...)> {};
         template <typename base, typename... types> struct remove_specifications<base (types..., ...) const> : public alias<base (types..., ...)> {};
         template <typename base, typename... types> struct remove_specifications<base (types..., ...) const&> : public alias<base (types..., ...)> {};
-        template <typename base, typename... types> struct remove_specifications<base (types..., ...) const&&> : public alias<base (types..., ...)> {};
         template <typename base, typename... types> struct remove_specifications<base (types..., ...) const volatile> : public alias<base (types..., ...)> {};
         template <typename base, typename... types> struct remove_specifications<base (types..., ...) const volatile&> : public alias<base (types..., ...)> {};
-        template <typename base, typename... types> struct remove_specifications<base (types..., ...) const volatile&&> : public alias<base (types..., ...)> {};
         template <typename base, typename... types> struct remove_specifications<base (types..., ...) volatile> : public alias<base (types..., ...)> {};
         template <typename base, typename... types> struct remove_specifications<base (types..., ...) volatile&> : public alias<base (types..., ...)> {};
-        template <typename base, typename... types> struct remove_specifications<base (types..., ...) volatile&&> : public alias<base (types..., ...)> {};
         template <typename base, typename object> struct remove_specifications<base object::*> : public alias<base object::*> {};
         template <typename base, typename object> struct remove_specifications<base object::* const> : public alias<base object::*> {};
         template <typename base, typename object> struct remove_specifications<base object::* const volatile> : public alias<base object::*> {};
         template <typename base, typename object> struct remove_specifications<base object::* volatile> : public alias<base object::*> {};
+        #if __CPP__VERSION__ >= 2011uL
+            template <typename base, typename... types> struct remove_specifications<base (types...)&&> : public alias<base (types...)> {};
+            template <typename base, typename... types> struct remove_specifications<base (types...) const&&> : public alias<base (types...)> {};
+            template <typename base, typename... types> struct remove_specifications<base (types...) const volatile&&> : public alias<base (types...)> {};
+            template <typename base, typename... types> struct remove_specifications<base (types...) volatile&&> : public alias<base (types...)> {};
+            template <typename base, typename... types> struct remove_specifications<base (types..., ...)&&> : public alias<base (types..., ...)> {};
+            template <typename base, typename... types> struct remove_specifications<base (types..., ...) const&&> : public alias<base (types..., ...)> {};
+            template <typename base, typename... types> struct remove_specifications<base (types..., ...) const volatile&&> : public alias<base (types..., ...)> {};
+            template <typename base, typename... types> struct remove_specifications<base (types..., ...) volatile&&> : public alias<base (types..., ...)> {};
+        #endif
         #if __CPP__VERSION__ >= 2017uL
             template <typename base, typename... types> struct remove_specifications<base (types...)& noexcept> : public alias<base (types...)> {};
             template <typename base, typename... types> struct remove_specifications<base (types...)&& noexcept> : public alias<base (types...)> {};
@@ -627,7 +670,9 @@ namespace Lapys {
         template <typename type> struct remove_lvalue_reference<type&> : public alias<type> {};
 
         template <typename type> struct remove_rvalue_reference : public alias<type> {};
-        template <typename type> struct remove_rvalue_reference<type&&> : public alias<type> {};
+        #if __CPP__VERSION__ >= 2011uL
+            template <typename type> struct remove_rvalue_reference<type&&> : public alias<type> {};
+        #endif
 
         template <typename type>
         struct remove_reference : public alias<typename remove_lvalue_reference<typename remove_rvalue_reference<type>::type>::type> {};
@@ -649,7 +694,7 @@ namespace Lapys {
             struct shadow_layout<shadow_layout_t::deferred, alias_t> {
                 protected: alias_t value;
                 public:
-                    template <typename... types> constexpr inline shadow_layout(types&&... arguments) except(false) : value super(Utility::forward<types&&>(arguments)...) {}
+                    template <typename... types> constexpr inline shadow_layout(types nodecay... arguments) except(false) : value super(Utility::forward<types nodecay>(arguments)...) {}
                     constexpr inline alias_t& valueOf(void) const except(false) { return const_cast<alias_t&>(this -> value); }
             };
 
@@ -657,8 +702,10 @@ namespace Lapys {
             struct shadow_layout<shadow_layout_t::derived, alias_t> : public alias_t {
                 public:
                     constexpr inline shadow_layout(alias_t const& object) except(false) : alias_t(Utility::forward<alias_t const&>(object)) {}
-                    constexpr inline shadow_layout(alias_t&& object) except(false) : alias_t(Utility::forward<alias_t&&>(object)) {}
-                    template <typename... types> constexpr inline shadow_layout(types&&... arguments) except(false) : alias_t(Utility::forward<types&&>(arguments)...) {}
+                    template <typename... types> constexpr inline shadow_layout(types nodecay... arguments) except(false) : alias_t(Utility::forward<types nodecay>(arguments)...) {}
+                    #if __CPP__VERSION__ >= 2011uL
+                        constexpr inline shadow_layout(alias_t&& object) except(false) : alias_t(Utility::forward<alias_t&&>(object)) {}
+                    #endif
 
                     constexpr inline alias_t& valueOf(void) const except(false) { return *const_cast<alias_t*>(static_cast<alias_t const*>(this)); }
             };
@@ -694,15 +741,15 @@ namespace Lapys {
             template <typename alias_t>
             struct shadow_deference<false, alias_t> : public shadow_layout_alias<alias_t>::type { public:
                 template <typename... types>
-                constexpr inline shadow_deference(types&&... arguments) except(false) : shadow_layout_alias<alias_t>::type(Utility::forward<types&&>(arguments)...) {}
+                constexpr inline shadow_deference(types nodecay... arguments) except(false) : shadow_layout_alias<alias_t>::type(Utility::forward<types nodecay>(arguments)...) {}
 
-                constexpr inline operator typename conditional_alias<is_array<alias_t>::value || is_function<alias_t>::value, alias_t&, typename decay_of<alias_t>::type>::type&(void) const except(false) { return const_cast<typename conditional_alias<is_array<alias_t>::value || is_function<alias_t>::value, alias_t&, typename decay_of<alias_t>::type>::type&>(this -> valueOf()); }
+                constexpr inline operator typename conditional_alias<is_array<alias_t>::value || is_function<alias_t>::value, alias_t, typename decay_of<alias_t>::type>::type&(void) const except(false) { return const_cast<typename conditional_alias<is_array<alias_t>::value || is_function<alias_t>::value, alias_t&, typename decay_of<alias_t>::type>::type&>(this -> valueOf()); }
             };
 
             template <typename alias_t>
             struct shadow_deference<true, alias_t> : public shadow_layout_alias<alias_t>::type { public:
                 template <typename... types>
-                constexpr inline shadow_deference(types&&... arguments) except(false) : shadow_layout_alias<alias_t>::type super(Utility::forward<types&&>(arguments)...) {}
+                constexpr inline shadow_deference(types nodecay... arguments) except(false) : shadow_layout_alias<alias_t>::type super(Utility::forward<types nodecay>(arguments)...) {}
 
                 constexpr inline operator typename base_of<alias_t, unsigned int>::type(void) const except(false) { return static_cast<typename base_of<alias_t, unsigned int>::type>(this -> valueOf()); }
                 constexpr inline specific operator alias_t&(void) const except(false) { return const_cast<alias_t&>(this -> valueOf()); }
@@ -715,114 +762,89 @@ namespace Lapys {
         }
 
         template <typename alias_t>
-        struct shadow : public shadow_deference_alias<alias_t>::type { public:
-            constexpr inline shadow(shadow const& shadow) except(false) : shadow_deference_alias<alias_t>::type super(shadow.valueOf()) {}
-            constexpr inline shadow(shadow&& shadow) except(false) : shadow_deference_alias<alias_t>::type super(shadow.valueOf()) {}
-            template <typename... types> constexpr inline shadow(types&&... arguments) except(false) : shadow_deference_alias<alias_t>::type super(Utility::forward<types&&>(arguments)...) {}
+        struct shadow : public shadow_deference_alias<alias_t>::type {
+            private:
+                template <typename type> constexpr inline static auto disambiguate(shadow<type>& shadow) except(false) -> typeof(shadow.valueOf()) { return shadow.valueOf(); }
+                template <typename type> constexpr inline static auto disambiguate(shadow<type> const& shadow) except(false) -> typeof(shadow.valueOf()) { return shadow.valueOf(); }
 
-            constexpr inline typename remove_reference<alias_t>::type& operator ->(void) const except(false) { return this -> valueOf(); }
-            #if __CPP__VERSION__ >= 2014uL
-                constexpr inline auto operator +(void) const except(false) { return +(this -> valueOf()); }
-                constexpr inline auto operator *(void) const except(false) { return *(this -> valueOf()); }
-                constexpr inline auto operator &(void) const except(false) { return &(this -> valueOf()); }
-                constexpr inline auto operator ~(void) const except(false) { return ~(this -> valueOf()); }
-                constexpr inline auto operator !(void) const except(false) { return !(this -> valueOf()); }
-                constexpr inline auto operator ++(void) const except(false) { return ++(this -> valueOf()); }
-                constexpr inline auto operator ++(int const) const except(false) { return (this -> valueOf())++; }
-                constexpr inline auto operator --(void) const except(false) { return --(this -> valueOf()); }
-                constexpr inline auto operator --(int const) const except(false) { return (this -> valueOf())--; }
-            #endif
-            #if __CPP__VERSION__ >= 2011uL
-                template <typename type, typename conditional_alias<false == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator +(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() + object) { return shadow.valueOf() + object; }
-                template <typename type, typename conditional_alias<false == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator +(type&& object, shadow const& shadow) except(false) -> typeof(object + shadow.valueOf()) { return object + shadow.valueOf(); }
-                template <typename type, typename conditional_alias<true == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator +(shadow const& shadowA, type&& shadowB) except(false) -> typeof(shadowA.valueOf() + shadowB.valueOf()) { return shadowA.valueOf() + shadowB.valueOf(); }
-                template <typename type, typename conditional_alias<true == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator +(type&& shadowA, shadow const& shadowB) except(false) -> typeof(shadowA.valueOf() + shadowB.valueOf()) { return shadowA.valueOf() + shadowB.valueOf(); }
-                template <typename type, typename conditional_alias<false == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator -(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() - object) { return shadow.valueOf() - object; }
-                template <typename type, typename conditional_alias<false == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator -(type&& object, shadow const& shadow) except(false) -> typeof(object - shadow.valueOf()) { return object - shadow.valueOf(); }
-                template <typename type, typename conditional_alias<true == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator -(shadow const& shadowA, type&& shadowB) except(false) -> typeof(shadowA.valueOf() - shadowB.valueOf()) { return shadowA.valueOf() - shadowB.valueOf(); }
-                template <typename type, typename conditional_alias<true == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator -(type&& shadowA, shadow const& shadowB) except(false) -> typeof(shadowA.valueOf() - shadowB.valueOf()) { return shadowA.valueOf() - shadowB.valueOf(); }
-                template <typename type, typename conditional_alias<false == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator *(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() * object) { return shadow.valueOf() * object; }
-                template <typename type, typename conditional_alias<false == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator *(type&& object, shadow const& shadow) except(false) -> typeof(object * shadow.valueOf()) { return object * shadow.valueOf(); }
-                template <typename type, typename conditional_alias<true == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator *(shadow const& shadowA, type&& shadowB) except(false) -> typeof(shadowA.valueOf() * shadowB.valueOf()) { return shadowA.valueOf() * shadowB.valueOf(); }
-                template <typename type, typename conditional_alias<true == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator *(type&& shadowA, shadow const& shadowB) except(false) -> typeof(shadowA.valueOf() * shadowB.valueOf()) { return shadowA.valueOf() * shadowB.valueOf(); }
-                template <typename type, typename conditional_alias<false == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator /(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() / object) { return shadow.valueOf() / object; }
-                template <typename type, typename conditional_alias<false == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator /(type&& object, shadow const& shadow) except(false) -> typeof(object / shadow.valueOf()) { return object / shadow.valueOf(); }
-                template <typename type, typename conditional_alias<true == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator /(shadow const& shadowA, type&& shadowB) except(false) -> typeof(shadowA.valueOf() / shadowB.valueOf()) { return shadowA.valueOf() / shadowB.valueOf(); }
-                template <typename type, typename conditional_alias<true == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator /(type&& shadowA, shadow const& shadowB) except(false) -> typeof(shadowA.valueOf() / shadowB.valueOf()) { return shadowA.valueOf() / shadowB.valueOf(); }
-                template <typename type, typename conditional_alias<false == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator %(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() % object) { return shadow.valueOf() % object; }
-                template <typename type, typename conditional_alias<false == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator %(type&& object, shadow const& shadow) except(false) -> typeof(object % shadow.valueOf()) { return object % shadow.valueOf(); }
-                template <typename type, typename conditional_alias<true == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator %(shadow const& shadowA, type&& shadowB) except(false) -> typeof(shadowA.valueOf() % shadowB.valueOf()) { return shadowA.valueOf() % shadowB.valueOf(); }
-                template <typename type, typename conditional_alias<true == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator %(type&& shadowA, shadow const& shadowB) except(false) -> typeof(shadowA.valueOf() % shadowB.valueOf()) { return shadowA.valueOf() % shadowB.valueOf(); }
-                template <typename type, typename conditional_alias<false == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator &(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() & object) { return shadow.valueOf() & object; }
-                template <typename type, typename conditional_alias<false == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator &(type&& object, shadow const& shadow) except(false) -> typeof(object & shadow.valueOf()) { return object & shadow.valueOf(); }
-                template <typename type, typename conditional_alias<true == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator &(shadow const& shadowA, type&& shadowB) except(false) -> typeof(shadowA.valueOf() & shadowB.valueOf()) { return shadowA.valueOf() & shadowB.valueOf(); }
-                template <typename type, typename conditional_alias<true == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator &(type&& shadowA, shadow const& shadowB) except(false) -> typeof(shadowA.valueOf() & shadowB.valueOf()) { return shadowA.valueOf() & shadowB.valueOf(); }
-                template <typename type, typename conditional_alias<false == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator |(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() | object) { return shadow.valueOf() | object; }
-                template <typename type, typename conditional_alias<false == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator |(type&& object, shadow const& shadow) except(false) -> typeof(object | shadow.valueOf()) { return object | shadow.valueOf(); }
-                template <typename type, typename conditional_alias<true == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator |(shadow const& shadowA, type&& shadowB) except(false) -> typeof(shadowA.valueOf() | shadowB.valueOf()) { return shadowA.valueOf() | shadowB.valueOf(); }
-                template <typename type, typename conditional_alias<true == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator |(type&& shadowA, shadow const& shadowB) except(false) -> typeof(shadowA.valueOf() | shadowB.valueOf()) { return shadowA.valueOf() | shadowB.valueOf(); }
-                template <typename type, typename conditional_alias<false == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator ^(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() ^ object) { return shadow.valueOf() ^ object; }
-                template <typename type, typename conditional_alias<false == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator ^(type&& object, shadow const& shadow) except(false) -> typeof(object ^ shadow.valueOf()) { return object ^ shadow.valueOf(); }
-                template <typename type, typename conditional_alias<true == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator ^(shadow const& shadowA, type&& shadowB) except(false) -> typeof(shadowA.valueOf() ^ shadowB.valueOf()) { return shadowA.valueOf() ^ shadowB.valueOf(); }
-                template <typename type, typename conditional_alias<true == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator ^(type&& shadowA, shadow const& shadowB) except(false) -> typeof(shadowA.valueOf() ^ shadowB.valueOf()) { return shadowA.valueOf() ^ shadowB.valueOf(); }
-                template <typename type, typename conditional_alias<false == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator <<(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() << object) { return shadow.valueOf() << object; }
-                template <typename type, typename conditional_alias<false == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator <<(type&& object, shadow const& shadow) except(false) -> typeof(object << shadow.valueOf()) { return object << shadow.valueOf(); }
-                template <typename type, typename conditional_alias<true == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator <<(shadow const& shadowA, type&& shadowB) except(false) -> typeof(shadowA.valueOf() << shadowB.valueOf()) { return shadowA.valueOf() << shadowB.valueOf(); }
-                template <typename type, typename conditional_alias<true == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator <<(type&& shadowA, shadow const& shadowB) except(false) -> typeof(shadowA.valueOf() << shadowB.valueOf()) { return shadowA.valueOf() << shadowB.valueOf(); }
-                template <typename type, typename conditional_alias<false == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator >>(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() >> object) { return shadow.valueOf() >> object; }
-                template <typename type, typename conditional_alias<false == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator >>(type&& object, shadow const& shadow) except(false) -> typeof(object >> shadow.valueOf()) { return object >> shadow.valueOf(); }
-                template <typename type, typename conditional_alias<true == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator >>(shadow const& shadowA, type&& shadowB) except(false) -> typeof(shadowA.valueOf() >> shadowB.valueOf()) { return shadowA.valueOf() >> shadowB.valueOf(); }
-                template <typename type, typename conditional_alias<true == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator >>(type&& shadowA, shadow const& shadowB) except(false) -> typeof(shadowA.valueOf() >> shadowB.valueOf()) { return shadowA.valueOf() >> shadowB.valueOf(); }
-                template <typename type, typename conditional_alias<false == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator ==(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() == object) { return shadow.valueOf() == object; }
-                template <typename type, typename conditional_alias<false == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator ==(type&& object, shadow const& shadow) except(false) -> typeof(object == shadow.valueOf()) { return object == shadow.valueOf(); }
-                template <typename type, typename conditional_alias<true == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator ==(shadow const& shadowA, type&& shadowB) except(false) -> typeof(shadowA.valueOf() == shadowB.valueOf()) { return shadowA.valueOf() == shadowB.valueOf(); }
-                template <typename type, typename conditional_alias<true == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator ==(type&& shadowA, shadow const& shadowB) except(false) -> typeof(shadowA.valueOf() == shadowB.valueOf()) { return shadowA.valueOf() == shadowB.valueOf(); }
-                template <typename type, typename conditional_alias<false == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator !=(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() != object) { return shadow.valueOf() != object; }
-                template <typename type, typename conditional_alias<false == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator !=(type&& object, shadow const& shadow) except(false) -> typeof(object != shadow.valueOf()) { return object != shadow.valueOf(); }
-                template <typename type, typename conditional_alias<true == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator !=(shadow const& shadowA, type&& shadowB) except(false) -> typeof(shadowA.valueOf() != shadowB.valueOf()) { return shadowA.valueOf() != shadowB.valueOf(); }
-                template <typename type, typename conditional_alias<true == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator !=(type&& shadowA, shadow const& shadowB) except(false) -> typeof(shadowA.valueOf() != shadowB.valueOf()) { return shadowA.valueOf() != shadowB.valueOf(); }
-                template <typename type, typename conditional_alias<false == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator <=(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() <= object) { return shadow.valueOf() <= object; }
-                template <typename type, typename conditional_alias<false == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator <=(type&& object, shadow const& shadow) except(false) -> typeof(object <= shadow.valueOf()) { return object <= shadow.valueOf(); }
-                template <typename type, typename conditional_alias<true == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator <=(shadow const& shadowA, type&& shadowB) except(false) -> typeof(shadowA.valueOf() <= shadowB.valueOf()) { return shadowA.valueOf() <= shadowB.valueOf(); }
-                template <typename type, typename conditional_alias<true == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator <=(type&& shadowA, shadow const& shadowB) except(false) -> typeof(shadowA.valueOf() <= shadowB.valueOf()) { return shadowA.valueOf() <= shadowB.valueOf(); }
-                template <typename type, typename conditional_alias<false == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator >=(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() >= object) { return shadow.valueOf() >= object; }
-                template <typename type, typename conditional_alias<false == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator >=(type&& object, shadow const& shadow) except(false) -> typeof(object >= shadow.valueOf()) { return object >= shadow.valueOf(); }
-                template <typename type, typename conditional_alias<true == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator >=(shadow const& shadowA, type&& shadowB) except(false) -> typeof(shadowA.valueOf() >= shadowB.valueOf()) { return shadowA.valueOf() >= shadowB.valueOf(); }
-                template <typename type, typename conditional_alias<true == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator >=(type&& shadowA, shadow const& shadowB) except(false) -> typeof(shadowA.valueOf() >= shadowB.valueOf()) { return shadowA.valueOf() >= shadowB.valueOf(); }
-                template <typename type, typename conditional_alias<false == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator &&(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() && object) { return shadow.valueOf() && object; }
-                template <typename type, typename conditional_alias<false == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator &&(type&& object, shadow const& shadow) except(false) -> typeof(object && shadow.valueOf()) { return object && shadow.valueOf(); }
-                template <typename type, typename conditional_alias<true == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator &&(shadow const& shadowA, type&& shadowB) except(false) -> typeof(shadowA.valueOf() && shadowB.valueOf()) { return shadowA.valueOf() && shadowB.valueOf(); }
-                template <typename type, typename conditional_alias<true == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator &&(type&& shadowA, shadow const& shadowB) except(false) -> typeof(shadowA.valueOf() && shadowB.valueOf()) { return shadowA.valueOf() && shadowB.valueOf(); }
-                template <typename type, typename conditional_alias<false == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator ||(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() || object) { return shadow.valueOf() || object; }
-                template <typename type, typename conditional_alias<false == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator ||(type&& object, shadow const& shadow) except(false) -> typeof(object || shadow.valueOf()) { return object || shadow.valueOf(); }
-                template <typename type, typename conditional_alias<true == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator ||(shadow const& shadowA, type&& shadowB) except(false) -> typeof(shadowA.valueOf() || shadowB.valueOf()) { return shadowA.valueOf() || shadowB.valueOf(); }
-                template <typename type, typename conditional_alias<true == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator ||(type&& shadowA, shadow const& shadowB) except(false) -> typeof(shadowA.valueOf() || shadowB.valueOf()) { return shadowA.valueOf() || shadowB.valueOf(); }
-                template <typename type, typename conditional_alias<false == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator ,(shadow const& shadow, type&& object) except(false) -> typeof((shadow.valueOf(), object)) { return shadow.valueOf(), object; }
-                template <typename type, typename conditional_alias<false == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator ,(type&& object, shadow const& shadow) except(false) -> typeof((object, shadow.valueOf())) { return object, shadow.valueOf(); }
-                template <typename type, typename conditional_alias<true == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator ,(shadow const& shadowA, type&& shadowB) except(false) -> typeof((shadowA.valueOf(), shadowB.valueOf())) { return shadowA.valueOf(), shadowB.valueOf(); }
-                template <typename type, typename conditional_alias<true == is_same<shadow, typename decay_of<type>::type>::value, bool>::type = false> constexpr friend inline auto operator ,(type&& shadowA, shadow const& shadowB) except(false) -> typeof((shadowA.valueOf(), shadowB.valueOf())) { return shadowA.valueOf(), shadowB.valueOf(); }
+                #if __CPP__VERSION__ >= 2011uL
+                    template <typename type> constexpr inline static auto disambiguate(shadow<type>&& shadow) except(false) -> typeof(shadow.valueOf()) { return shadow.valueOf(); }
+                    template <typename type> constexpr inline static type&& disambiguate(type&& argument) except(false) { return static_cast<type&&>(argument); }
+                #endif
 
-                template <typename type = alias_t, typename conditional_alias<false == is_array<type>::value, bool>::type = 0x0> constexpr inline auto operator =(shadow const& shadow) except(false) -> typeof(this -> valueOf() = shadow.valueOf()) { return (this -> valueOf() = shadow.valueOf()); }
-                template <typename type = alias_t, typename conditional_alias<false == is_array<type>::value, bool>::type = 0x0> constexpr inline auto operator =(shadow&& shadow) except(false) -> typeof(this -> valueOf() = shadow.valueOf()) { return (this -> valueOf() = shadow.valueOf()); }
-                template <typename type> constexpr inline auto operator =(type&& value) except(false) -> typeof((this -> valueOf() = value)) { return this -> valueOf() = value; }
-                template <typename type> constexpr inline auto operator +=(type&& value) except(false) -> typeof((this -> valueOf() += value)) { return this -> valueOf() += value; }
-                template <typename type> constexpr inline auto operator -=(type&& value) except(false) -> typeof((this -> valueOf() -= value)) { return this -> valueOf() -= value; }
-                template <typename type> constexpr inline auto operator *=(type&& value) except(false) -> typeof((this -> valueOf() *= value)) { return this -> valueOf() *= value; }
-                template <typename type> constexpr inline auto operator /=(type&& value) except(false) -> typeof((this -> valueOf() /= value)) { return this -> valueOf() /= value; }
-                template <typename type> constexpr inline auto operator %=(type&& value) except(false) -> typeof((this -> valueOf() %= value)) { return this -> valueOf() %= value; }
-                template <typename type> constexpr inline auto operator &=(type&& value) except(false) -> typeof((this -> valueOf() &= value)) { return this -> valueOf() &= value; }
-                template <typename type> constexpr inline auto operator |=(type&& value) except(false) -> typeof((this -> valueOf() |= value)) { return this -> valueOf() |= value; }
-                template <typename type> constexpr inline auto operator ^=(type&& value) except(false) -> typeof((this -> valueOf() ^= value)) { return this -> valueOf() ^= value; }
-                template <typename type> constexpr inline auto operator <<=(type&& value) except(false) -> typeof((this -> valueOf() <<= value)) { return this -> valueOf() <<= value; }
-                template <typename type> constexpr inline auto operator >>=(type&& value) except(false) -> typeof((this -> valueOf() >>= value)) { return this -> valueOf() >>= value; }
-                template <typename type> constexpr inline auto operator ->*(type&& object) except(false) -> typeof(this -> valueOf() ->* object) { return this -> valueOf() ->* object; }
-                template <typename... types> constexpr inline auto operator ()(types... arguments) except(false) -> typeof(this -> valueOf()(forward<types>(arguments)...)) { return this -> valueOf()(forward<types>(arguments)...); }
-                template <typename type> constexpr inline auto operator [](type&& index) except(false) -> typeof(this -> valueOf()[index]) { return this -> valueOf()[index]; }
-            #endif
-            #if __CPP__VERSION__ >= 2020uL
-                template <typename type> constexpr friend inline auto operator <=>(shadow const& shadow, type&& object) except(false) -> typeof(shadow.valueOf() <=> *static_cast<type*>(NULL)) { return shadow.valueOf() <=> object; }
-                template <typename type> constexpr friend inline auto operator <=>(type&& object, shadow const& shadow) except(false) -> typeof(*static_cast<type*>(NULL) <=> shadow.valueOf()) { return object <=> shadow.valueOf(); }
-            #endif
+            public:
+                template <typename... types> constexpr inline shadow(types nodecay... arguments) except(false) : shadow_deference_alias<alias_t>::type super(Utility::forward<types nodecay>(arguments)...) {}
+
+                constexpr inline typename remove_reference<alias_t>::type& operator ->(void) const except(false) { return this -> valueOf(); }
+                #if __CPP__VERSION__ >= 2014uL
+                    constexpr inline auto operator +(void) const except(false) { return +(this -> valueOf()); }
+                    constexpr inline auto operator *(void) const except(false) { return *(this -> valueOf()); }
+                    constexpr inline auto operator &(void) const except(false) { return &(this -> valueOf()); }
+                    constexpr inline auto operator ~(void) const except(false) { return ~(this -> valueOf()); }
+                    constexpr inline auto operator !(void) const except(false) { return !(this -> valueOf()); }
+                    constexpr inline auto operator ++(void) const except(false) { return ++(this -> valueOf()); }
+                    constexpr inline auto operator ++(int const) const except(false) { return (this -> valueOf())++; }
+                    constexpr inline auto operator --(void) const except(false) { return --(this -> valueOf()); }
+                    constexpr inline auto operator --(int const) const except(false) { return (this -> valueOf())--; }
+                #endif
+                #if __CPP__VERSION__ >= 2011uL
+                    template <typename type> constexpr friend inline auto operator +(shadow const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() + disambiguate(object)) { return shadow.valueOf() + disambiguate(object); }
+                    template <typename type> constexpr friend inline auto operator +(type nodecay object, shadow const& shadow) except(false) -> typeof(disambiguate(object) + shadow.valueOf()) { return disambiguate(object) + shadow.valueOf(); }
+                    template <typename type> constexpr friend inline auto operator -(shadow const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() - disambiguate(object)) { return shadow.valueOf() - disambiguate(object); }
+                    template <typename type> constexpr friend inline auto operator -(type nodecay object, shadow const& shadow) except(false) -> typeof(disambiguate(object) - shadow.valueOf()) { return disambiguate(object) - shadow.valueOf(); }
+                    template <typename type> constexpr friend inline auto operator *(shadow const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() * disambiguate(object)) { return shadow.valueOf() * disambiguate(object); }
+                    template <typename type> constexpr friend inline auto operator *(type nodecay object, shadow const& shadow) except(false) -> typeof(disambiguate(object) * shadow.valueOf()) { return disambiguate(object) * shadow.valueOf(); }
+                    template <typename type> constexpr friend inline auto operator /(shadow const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() / disambiguate(object)) { return shadow.valueOf() / disambiguate(object); }
+                    template <typename type> constexpr friend inline auto operator /(type nodecay object, shadow const& shadow) except(false) -> typeof(disambiguate(object) / shadow.valueOf()) { return disambiguate(object) / shadow.valueOf(); }
+                    template <typename type> constexpr friend inline auto operator %(shadow const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() % disambiguate(object)) { return shadow.valueOf() % disambiguate(object); }
+                    template <typename type> constexpr friend inline auto operator %(type nodecay object, shadow const& shadow) except(false) -> typeof(disambiguate(object) % shadow.valueOf()) { return disambiguate(object) % shadow.valueOf(); }
+                    template <typename type> constexpr friend inline auto operator &(shadow const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() & disambiguate(object)) { return shadow.valueOf() & disambiguate(object); }
+                    template <typename type> constexpr friend inline auto operator &(type nodecay object, shadow const& shadow) except(false) -> typeof(disambiguate(object) & shadow.valueOf()) { return disambiguate(object) & shadow.valueOf(); }
+                    template <typename type> constexpr friend inline auto operator |(shadow const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() | disambiguate(object)) { return shadow.valueOf() | disambiguate(object); }
+                    template <typename type> constexpr friend inline auto operator |(type nodecay object, shadow const& shadow) except(false) -> typeof(disambiguate(object) | shadow.valueOf()) { return disambiguate(object) | shadow.valueOf(); }
+                    template <typename type> constexpr friend inline auto operator ^(shadow const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() ^ disambiguate(object)) { return shadow.valueOf() ^ disambiguate(object); }
+                    template <typename type> constexpr friend inline auto operator ^(type nodecay object, shadow const& shadow) except(false) -> typeof(disambiguate(object) ^ shadow.valueOf()) { return disambiguate(object) ^ shadow.valueOf(); }
+                    template <typename type> constexpr friend inline auto operator <<(shadow const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() << disambiguate(object)) { return shadow.valueOf() << disambiguate(object); }
+                    template <typename type> constexpr friend inline auto operator <<(type nodecay object, shadow const& shadow) except(false) -> typeof(disambiguate(object) << shadow.valueOf()) { return disambiguate(object) << shadow.valueOf(); }
+                    template <typename type> constexpr friend inline auto operator >>(shadow const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() >> disambiguate(object)) { return shadow.valueOf() >> disambiguate(object); }
+                    template <typename type> constexpr friend inline auto operator >>(type nodecay object, shadow const& shadow) except(false) -> typeof(disambiguate(object) >> shadow.valueOf()) { return disambiguate(object) >> shadow.valueOf(); }
+                    template <typename type> constexpr friend inline auto operator ==(shadow const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() == disambiguate(object)) { return shadow.valueOf() == disambiguate(object); }
+                    template <typename type> constexpr friend inline auto operator ==(type nodecay object, shadow const& shadow) except(false) -> typeof(disambiguate(object) == shadow.valueOf()) { return disambiguate(object) == shadow.valueOf(); }
+                    template <typename type> constexpr friend inline auto operator !=(shadow const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() != disambiguate(object)) { return shadow.valueOf() != disambiguate(object); }
+                    template <typename type> constexpr friend inline auto operator !=(type nodecay object, shadow const& shadow) except(false) -> typeof(disambiguate(object) != shadow.valueOf()) { return disambiguate(object) != shadow.valueOf(); }
+                    template <typename type> constexpr friend inline auto operator <=(shadow const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() <= disambiguate(object)) { return shadow.valueOf() <= disambiguate(object); }
+                    template <typename type> constexpr friend inline auto operator <=(type nodecay object, shadow const& shadow) except(false) -> typeof(disambiguate(object) <= shadow.valueOf()) { return disambiguate(object) <= shadow.valueOf(); }
+                    template <typename type> constexpr friend inline auto operator >=(shadow const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() >= disambiguate(object)) { return shadow.valueOf() >= disambiguate(object); }
+                    template <typename type> constexpr friend inline auto operator >=(type nodecay object, shadow const& shadow) except(false) -> typeof(disambiguate(object) >= shadow.valueOf()) { return disambiguate(object) >= shadow.valueOf(); }
+                    template <typename type> constexpr friend inline auto operator &&(shadow const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() && disambiguate(object)) { return shadow.valueOf() && disambiguate(object); }
+                    template <typename type> constexpr friend inline auto operator &&(type nodecay object, shadow const& shadow) except(false) -> typeof(disambiguate(object) && shadow.valueOf()) { return disambiguate(object) && shadow.valueOf(); }
+                    template <typename type> constexpr friend inline auto operator ||(shadow const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() || disambiguate(object)) { return shadow.valueOf() || disambiguate(object); }
+                    template <typename type> constexpr friend inline auto operator ||(type nodecay object, shadow const& shadow) except(false) -> typeof(disambiguate(object) || shadow.valueOf()) { return disambiguate(object) || shadow.valueOf(); }
+                    template <typename type> constexpr friend inline auto operator ,(shadow const& shadow, type nodecay object) except(false) -> typeof((shadow.valueOf(), disambiguate(object))) { return (shadow.valueOf(), disambiguate(object)); }
+                    template <typename type> constexpr friend inline auto operator ,(type nodecay object, shadow const& shadow) except(false) -> typeof((disambiguate(object), shadow.valueOf())) { return (disambiguate(object), shadow.valueOf()); }
+
+                    template <typename type = alias_t, typename conditional_alias<false == is_array<type>::value, bool>::type = 0x0> constexpr inline auto operator =(shadow const& shadow) except(false) -> typeof(this -> valueOf() = shadow.valueOf()) { return (this -> valueOf() = shadow.valueOf()); }
+                    template <typename type> constexpr inline auto operator +=(type nodecay value) except(false) -> typeof(this -> valueOf() += value) { return this -> valueOf() += value; }
+                    template <typename type> constexpr inline auto operator -=(type nodecay value) except(false) -> typeof(this -> valueOf() -= value) { return this -> valueOf() -= value; }
+                    template <typename type> constexpr inline auto operator *=(type nodecay value) except(false) -> typeof(this -> valueOf() *= value) { return this -> valueOf() *= value; }
+                    template <typename type> constexpr inline auto operator /=(type nodecay value) except(false) -> typeof(this -> valueOf() /= value) { return this -> valueOf() /= value; }
+                    template <typename type> constexpr inline auto operator %=(type nodecay value) except(false) -> typeof(this -> valueOf() %= value) { return this -> valueOf() %= value; }
+                    template <typename type> constexpr inline auto operator &=(type nodecay value) except(false) -> typeof(this -> valueOf() &= value) { return this -> valueOf() &= value; }
+                    template <typename type> constexpr inline auto operator |=(type nodecay value) except(false) -> typeof(this -> valueOf() |= value) { return this -> valueOf() |= value; }
+                    template <typename type> constexpr inline auto operator ^=(type nodecay value) except(false) -> typeof(this -> valueOf() ^= value) { return this -> valueOf() ^= value; }
+                    template <typename type> constexpr inline auto operator <<=(type nodecay value) except(false) -> typeof(this -> valueOf() <<= value) { return this -> valueOf() <<= value; }
+                    template <typename type> constexpr inline auto operator >>=(type nodecay value) except(false) -> typeof(this -> valueOf() >>= value) { return this -> valueOf() >>= value; }
+                    template <typename type> constexpr inline auto operator ->*(type nodecay object) except(false) -> typeof(this -> valueOf() ->* object) { return this -> valueOf() ->* object; }
+                    template <typename... types> constexpr inline auto operator ()(types... arguments) except(false) -> typeof(this -> valueOf()(forward<types>(arguments)...)) { return this -> valueOf()(forward<types>(arguments)...); }
+                    template <typename type> constexpr inline auto operator [](type nodecay index) except(false) -> typeof(this -> valueOf()[index]) { return this -> valueOf()[index]; }
+                    #if __CPP__VERSION__ >= 2011uL
+                        template <typename type = alias_t, typename conditional_alias<false == is_array<type>::value, bool>::type = 0x0> constexpr inline auto operator =(shadow&& shadow) except(false) -> typeof(this -> valueOf() = shadow.valueOf()) { return (this -> valueOf() = shadow.valueOf()); }
+                    #endif
+                #endif
+                #if __CPP__VERSION__ >= 2020uL
+                    template <typename type> constexpr friend inline auto operator <=>(shadow const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() <=> disambiguate(object)) { return shadow.valueOf() <=> disambiguate(object); }
+                    template <typename type> constexpr friend inline auto operator <=>(type nodecay object, shadow const& shadow) except(false) -> typeof(disambiguate(object) <=> shadow.valueOf()) { return disambiguate(object) <=> shadow.valueOf(); }
+                #endif
         };
 
         // To (Un)Signed
@@ -879,11 +901,15 @@ namespace Lapys {
     inline namespace Utility {
         // PENDING (Lapys)
         // template <typename return_t, typename cast_t> return_t cast(cast_t&&);
-        // template <typename type> constexpr typename decay_of<type>::type decay(type&&);
+
+        // Decay Of
+        template <typename type>
+        constexpr typename decay_of<type>::type decay(type nodecay argument) { return static_cast<typename decay_of<type>::type>(argument); }
 
         // Forward
         #if __CPP__VERSION__ < 2011uL
-            template <typename type> constexpr inline type forward(typename remove_const<typename remove_reference<type>::type>::type const& argument) except(false) { return argument; }
+            template <typename type> constexpr inline typename remove_const<typename remove_reference<type>::type>::type& forward(typename remove_const<typename remove_reference<type>::type>::type& argument) except(false) { return static_cast<typename remove_const<typename remove_reference<type>::type>::type&>(argument); }
+            template <typename type> constexpr inline typename remove_const<typename remove_reference<type>::type>::type const& forward(typename remove_const<typename remove_reference<type>::type>::type const& argument) except(false) { return static_cast<typename remove_const<typename remove_reference<type>::type>::type const&>(argument); }
         #else
             template <typename type> constexpr inline type&& forward(typename remove_reference<type>::type& argument) except(false) { return static_cast<type&&>(argument); }
             template <typename type> constexpr inline type&& forward(typename remove_reference<type>::type&& argument) except(false) { return static_cast<type&&>(argument); }

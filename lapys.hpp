@@ -54,6 +54,7 @@
     #undef final
     #undef inline
     #undef is_except
+    #undef nodecay
     #undef override
     #undef specific
     #undef super

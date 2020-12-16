@@ -202,6 +202,7 @@
 #         define final
 #         define inline
 #         define is_except(boolean) false // -> Fallback for the `noexcept(...)` operator.
+#         define nodecay
 #         define override
 #         define specific // -> explicit
 #         define super(...) (__VA_ARGS__) // -> Initialization method.
@@ -233,6 +234,7 @@
 
 #         define except(boolean) noexcept(boolean ? false : true)
 #         define is_except(boolean) noexcept(boolean ? false : true)
+#         define nodecay &&
 #         define specific explicit
 #         define super(...) {__VA_ARGS__} // -> Initialization method.
 
