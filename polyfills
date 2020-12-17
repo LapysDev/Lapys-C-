@@ -201,7 +201,7 @@
 #         define except(boolean) except__tokenizer_delay(except__state_, except__selector_delay(except__value_##boolean, unknown, ))
 #         define final
 #         define inline
-#         define is_except(boolean) false // -> Fallback for the `noexcept(...)` operator.
+#         define is_except(boolean) true // -> Fallback for the `noexcept(...)` operator.
 #         define nodecay
 #         define override
 #         define specific // -> explicit

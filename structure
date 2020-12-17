@@ -1,6 +1,6 @@
 /* ... Error */
 #if __CPP__VERSION__ < 2011uL
-#   error [LAPYS]: Lacking support for C++ versions before the ISO C++11 standard (trailing function return type & variadic templates required)
+#   error [LAPYS]: Lacking support for C++ versions before the ISO C++11 standard; Features required include: [*] Lookup deference via `using` declaration, [*] Trailing function return type, [*] Variadic template parameter
 #endif
 
 /* ... > Utility --- NOTE (Lapys) */
@@ -315,8 +315,8 @@ namespace Lapys {
         template <class type> struct is_class<type, typename to_void_t<void_t type::*>::type> : public boolean<false == is_union<type>::value> {};
 
         // Is Constant
-        template <typename> struct is_constant : public boolean<false> {};
-        template <typename type> struct is_constant<type const> : public boolean<true> {};
+        template <typename> struct is_const : public boolean<false> {};
+        template <typename type> struct is_const<type const> : public boolean<true> {};
 
         // Is Final
         template <class type>
@@ -564,11 +564,23 @@ namespace Lapys {
                     constexpr inline property_accessor(property_accessor&& accessor) except(false) : property<object, type> super(static_cast<property<object, type>&&>(accessor)) {}
                 #endif
 
+                // ...
+                constexpr inline auto operator +(void) except(false) ->
+                    typeof(
+                        (this -> property<object, type>::operator +())
+                    )
+                {
+                    return this -> property<object, type>::operator +(), "[modified]";
+                }
+
             protected:
                 constexpr inline property_accessor& operator =(property_accessor const& accessor) except(false) { return this -> property<object, type>::operator =(static_cast<property<object, type> const&>(accessor)); }
                 #if __CPP__VERSION__ >= 2011uL
                     constexpr inline property_accessor& operator =(property_accessor&& accessor) except(false) { return this -> property<object, type>::operator =(static_cast<property<object, type>&&>(accessor)); }
                 #endif
+
+                // using property<object, type>::template shadow<type>::operator ++;
+                // using property<object, type>::template shadow<type>::operator --;
         };
 
         // template <typename, typename> struct property_mutator;
@@ -828,19 +840,19 @@ namespace Lapys {
 
                     template <typename type = alias_t, typename conditional_alias<false == is_array<type>::value, bool>::type = 0x0> constexpr inline auto operator =(shadow const& shadow) except(false) -> typeof(this -> valueOf() = shadow.valueOf()) { return (this -> valueOf() = shadow.valueOf()); }
                     template <typename type = alias_t, typename conditional_alias<false == is_array<type>::value, bool>::type = 0x0> constexpr inline auto operator =(shadow&& shadow) except(false) -> typeof(this -> valueOf() = shadow.valueOf()) { return (this -> valueOf() = shadow.valueOf()); }
-                    template <typename type> constexpr inline auto operator +=(type nodecay value) except(false) -> typeof(this -> valueOf() += value) { return this -> valueOf() += value; }
-                    template <typename type> constexpr inline auto operator -=(type nodecay value) except(false) -> typeof(this -> valueOf() -= value) { return this -> valueOf() -= value; }
-                    template <typename type> constexpr inline auto operator *=(type nodecay value) except(false) -> typeof(this -> valueOf() *= value) { return this -> valueOf() *= value; }
-                    template <typename type> constexpr inline auto operator /=(type nodecay value) except(false) -> typeof(this -> valueOf() /= value) { return this -> valueOf() /= value; }
-                    template <typename type> constexpr inline auto operator %=(type nodecay value) except(false) -> typeof(this -> valueOf() %= value) { return this -> valueOf() %= value; }
-                    template <typename type> constexpr inline auto operator &=(type nodecay value) except(false) -> typeof(this -> valueOf() &= value) { return this -> valueOf() &= value; }
-                    template <typename type> constexpr inline auto operator |=(type nodecay value) except(false) -> typeof(this -> valueOf() |= value) { return this -> valueOf() |= value; }
-                    template <typename type> constexpr inline auto operator ^=(type nodecay value) except(false) -> typeof(this -> valueOf() ^= value) { return this -> valueOf() ^= value; }
-                    template <typename type> constexpr inline auto operator <<=(type nodecay value) except(false) -> typeof(this -> valueOf() <<= value) { return this -> valueOf() <<= value; }
-                    template <typename type> constexpr inline auto operator >>=(type nodecay value) except(false) -> typeof(this -> valueOf() >>= value) { return this -> valueOf() >>= value; }
-                    template <typename type> constexpr inline auto operator ->*(type nodecay object) except(false) -> typeof(this -> valueOf() ->* object) { return this -> valueOf() ->* object; }
-                    template <typename... types> constexpr inline auto operator ()(types... arguments) except(false) -> typeof(this -> valueOf()(forward<types>(arguments)...)) { return this -> valueOf()(forward<types>(arguments)...); }
-                    template <typename type> constexpr inline auto operator [](type nodecay index) except(false) -> typeof(this -> valueOf()[index]) { return this -> valueOf()[index]; }
+                    template <typename type> constexpr inline auto operator +=(type nodecay value) const except(false) -> typeof(this -> valueOf() += value) { return this -> valueOf() += value; }
+                    template <typename type> constexpr inline auto operator -=(type nodecay value) const except(false) -> typeof(this -> valueOf() -= value) { return this -> valueOf() -= value; }
+                    template <typename type> constexpr inline auto operator *=(type nodecay value) const except(false) -> typeof(this -> valueOf() *= value) { return this -> valueOf() *= value; }
+                    template <typename type> constexpr inline auto operator /=(type nodecay value) const except(false) -> typeof(this -> valueOf() /= value) { return this -> valueOf() /= value; }
+                    template <typename type> constexpr inline auto operator %=(type nodecay value) const except(false) -> typeof(this -> valueOf() %= value) { return this -> valueOf() %= value; }
+                    template <typename type> constexpr inline auto operator &=(type nodecay value) const except(false) -> typeof(this -> valueOf() &= value) { return this -> valueOf() &= value; }
+                    template <typename type> constexpr inline auto operator |=(type nodecay value) const except(false) -> typeof(this -> valueOf() |= value) { return this -> valueOf() |= value; }
+                    template <typename type> constexpr inline auto operator ^=(type nodecay value) const except(false) -> typeof(this -> valueOf() ^= value) { return this -> valueOf() ^= value; }
+                    template <typename type> constexpr inline auto operator <<=(type nodecay value) const except(false) -> typeof(this -> valueOf() <<= value) { return this -> valueOf() <<= value; }
+                    template <typename type> constexpr inline auto operator >>=(type nodecay value) const except(false) -> typeof(this -> valueOf() >>= value) { return this -> valueOf() >>= value; }
+                    template <typename type> constexpr inline auto operator ->*(type nodecay object) const except(false) -> typeof(this -> valueOf() ->* object) { return this -> valueOf() ->* object; }
+                    template <typename... types> constexpr inline auto operator ()(types... arguments) const except(false) -> typeof(this -> valueOf()(forward<types>(arguments)...)) { return this -> valueOf()(forward<types>(arguments)...); }
+                    template <typename type> constexpr inline auto operator [](type nodecay index) const except(false) -> typeof(this -> valueOf()[index]) { return this -> valueOf()[index]; }
                 #endif
                 #if __CPP__VERSION__ >= 2020uL
                     template <typename subalias_t, typename type> constexpr friend inline auto operator <=>(shadow<subalias_t> const& shadow, type nodecay object) except(false) -> typeof(shadow.valueOf() <=> disambiguate(object)) { return shadow.valueOf() <=> disambiguate(object); }

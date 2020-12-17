@@ -4,33 +4,27 @@
 
 /* ... Lapys::Main(ArgumentList const); */
 int main(void) {
-    class Object {};
+    class Object final { public:
+        struct string_t {
+            private: char const *value;
+            public:
+                constexpr string_t(char const value[]) noexcept : value{value} {}
+                // inline string_t& operator =(char const value[]) noexcept { return (this -> value = value), *this; }
 
-    Lapys::shadow<int> integer = 2019;
-    Lapys::shadow<Object> object = {};
+                constexpr inline char const* operator +(void) const noexcept { return +(this -> value); }
+                // inline char const* operator +(void) noexcept { return ++(this -> value); }
+                constexpr operator char const*&(void) const noexcept { return const_cast<char const*&>(this -> value); }
+        };
 
-    (void) object;
-    std::cout << "[...]: " << ++integer << std::endl;
+        Lapys::property_accessor<Object, string_t> name;
+        Lapys::property_accessor<Object, string_t> subname;
 
-    // class Object final { public:
-    //     struct string_t {
-    //         private: mutable char const *value;
-    //         public:
-    //             constexpr string_t(char const value[]) noexcept : value{value} {}
-    //             // inline string_t& operator =(char const value[]) noexcept { return (this -> value = value), *this; }
+        constexpr string_t& getName(void) const noexcept { return const_cast<string_t&>(static_cast<string_t const&>(this -> name)); }
+        constexpr string_t& getSubname(void) const noexcept { return const_cast<string_t&>(static_cast<string_t const&>(this -> subname)); }
+    } object = {"Lapys", "Gyrnet"};
 
-    //             constexpr operator char const*&(void) const noexcept { return const_cast<char const*&>(this -> value); }
-    //     };
-
-    //     Lapys::property_accessor<Object, string_t> name;
-    //     Lapys::property_accessor<Object, string_t> subname;
-
-    //     constexpr string_t& getName(void) const noexcept { return const_cast<string_t&>(static_cast<string_t const&>(this -> name)); }
-    //     constexpr string_t& getSubname(void) const noexcept { return const_cast<string_t&>(static_cast<string_t const&>(this -> subname)); }
-    // } object = {"Lapys", "Gyrnet"};
-
-    // {} std::cout << "[...]: " << object.name << std::endl;
-    // {} std::cout << "[...]: " << +object.name << std::endl;
+    {} std::cout << "[...]: " << object.name << std::endl;
+    {} std::cout << "[...]: " << +object.name << std::endl;
     // {} std::cout << "[...]: " << (object.name + 1) << std::endl;
     // {} std::cout << "[...]: " << (1 + object.name) << std::endl;
     // { ++object.name; } std::cout << "[...]: " << object.name << std::endl;
