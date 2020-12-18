@@ -209,25 +209,28 @@
 
 #       if __COMPILER_IS__ARM__
 #         if defined(__typeof__)
-#         define typeof(expression) Lapys::Utility::alias<__typeof__(expression)>::type
+#         define typeof(expression) ::Lapys::Utility::alias<__typeof__(expression)>::type
 #         endif
 #       elif __COMPILER_IS__CLANG__
 #         if defined(__typeof__)
-#         define typeof(expression) Lapys::Utility::alias<__typeof__(expression)>::type
+#         define typeof(expression) ::Lapys::Utility::alias<__typeof__(expression)>::type
 #         elif defined(__typeof)
-#         define typeof(expression) Lapys::Utility::alias<__typeof(expression)>::type
+#         define typeof(expression) ::Lapys::Utility::alias<__typeof(expression)>::type
 #         endif
 #       elif __COMPILER_IS__GNU__
-#         define typeof(expression) Lapys::Utility::alias<__typeof(expression)>::type
+#         define typeof(expression) ::Lapys::Utility::alias<__typeof(expression)>::type
 #       elif __COMPILER_IS__ICC__
-//#       define typeof(expression) Lapys::Utility::alias<typeof(expression)>::type
+//#       define typeof(expression) ::Lapys::Utility::alias<typeof(expression)>::type
 #       elif __COMPILER_IS__MSVC__
-#         define typeof(expression) Lapys::Utility::alias<decltype(expression)>::type
+#         define typeof(expression) ::Lapys::Utility::alias<decltype(expression)>::type
 #       endif
 
 #   else
 #       if __CPP__VERSION__ == 2011uL
 #         define constable // -> constexpr
+#         if __COMPILER_IS__MSVC__ && (_MSC_VER > 1700)
+#           define constexpr
+#         endif
 #       else
 #         define constable constexpr
 #       endif
