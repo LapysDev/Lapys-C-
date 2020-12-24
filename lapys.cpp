@@ -43,7 +43,13 @@
 // };
 
 int main(void) /* ... Lapys::Main(ArgumentList const); */ {
-    class Number { public: operator int(void) const { return 0; } };
+    class Number {
+        public:
+            int operator &(void) const { return 1337; }
+            operator int(void) const { return 0; }
+    };
+
+    std::cout << "[  ]: " << &Lapys::shadow<Number>() << std::endl;
     std::cout << "[L ]: " << (Lapys::shadow<Number>() + 69) << std::endl;
     std::cout << "[ R]: " << (69 + Lapys::shadow<Number>()) << std::endl;
     std::cout << "[LR]: " << (Lapys::shadow<Number>() + Lapys::shadow<Number>()) << std::endl;

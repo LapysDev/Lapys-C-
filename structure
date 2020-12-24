@@ -760,7 +760,7 @@ namespace Lapys {
                 constexpr inline static auto disambiguate(type nodecay argument) except(false) -> typeof(argument.valueOf()) { return argument.valueOf(); }
 
                 // ...
-                template <class, class, typename = null_t, typename = null_t> struct has_operator : public boolean<false> {};
+                template <class, class, typename = null_t, typename = null_t, typename...> struct has_operator : public boolean<false> {};
 
                 template <class object> struct has_operator<shadow_overlay_t::address, object, typename to_null_t<typeof(instanceof<object>().operator &())>::type> : public boolean<true> {};
                 template <class object> struct has_operator<shadow_overlay_t::complement, object, typename to_null_t<typeof(instanceof<object>().operator ~())>::type> : public boolean<true> {};
@@ -774,12 +774,13 @@ namespace Lapys {
                 template <class object> struct has_operator<shadow_overlay_t::unary_subtract, object, typename to_null_t<typeof(instanceof<object>().operator -())>::type> : public boolean<true> {};
 
                 template <class object, typename type> struct has_operator<shadow_overlay_t::add, object, type, typename to_null_t<typeof(instanceof<object>().operator +(instanceof<type>()))>::type> : public boolean<true> {};
-                // enum bitwise_and {};
-                // enum bitwise_or {};
-                // enum bitwise_xor {};
-                // enum boolean_and {};
-                // enum boolean_or {};
-                // enum comma {};
+                template <class object, typename type> struct has_operator<shadow_overlay_t::bitwise_and, object, type, typename to_null_t<typeof(instanceof<object>().operator &(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<shadow_overlay_t::bitwise_or, object, type, typename to_null_t<typeof(instanceof<object>().operator |(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<shadow_overlay_t::bitwise_xor, object, type, typename to_null_t<typeof(instanceof<object>().operator ^(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<shadow_overlay_t::boolean_and, object, type, typename to_null_t<typeof(instanceof<object>().operator &&(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<shadow_overlay_t::boolean_or, object, type, typename to_null_t<typeof(instanceof<object>().operator ||(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<shadow_overlay_t::comma, object, type, typename to_null_t<typeof((instanceof<object>().operator ,(instanceof<type>())))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<shadow_overlay_t::divide, object, type, typename to_null_t<typeof(instanceof<object>().operator /(instanceof<type>()))>::type> : public boolean<true> {};
                 // enum divide {};
                 // enum equal {};
                 // enum greater_equal {};
