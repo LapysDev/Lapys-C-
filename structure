@@ -13,7 +13,7 @@ namespace Lapys {
             enum null_t {};
 
             #if __CPP__VERSION__ < 2011uL
-                template <typename>
+                template <typename = null_t>
                 struct to_null_t final { public: typedef null_t type; }; // -> doesn't defer to `alias<...>`
             #else
                 template <typename...>
@@ -709,37 +709,20 @@ namespace Lapys {
             };
 
             enum shadow_overlay_t {
-                add, address,
-                bitwise_and, bitwise_or, bitwise_xor, boolean_and, boolean_or,
-                comma, complement,
-                dereference, divide,
+                add, add_assign, address, assign,
+                bitwise_and, bitwise_and_assign, bitwise_or, bitwise_or_assign, bitwise_xor, bitwise_xor_assign, boolean_and, boolean_or,
+                call, comma, complement,
+                dereference, divide, divide_assign,
                 equal,
                 greater, greater_equal,
-                left_shift, lesser, lesser_equal,
-                modulo, multiply,
+                left_shift, left_shift_assign, lesser, lesser_equal,
+                modulo, modulo_assign, multiply, multiply_assign,
                 negate, negate_equal,
-                post_decrement, post_increment,
-                pre_decrement, pre_increment,
-                right_shift,
-                subtract,
+                pointer_to_member, post_decrement, post_increment, pre_decrement, pre_increment,
+                right_shift, right_shift_assign,
+                subscript, subtract, subtract_assign,
                 ternary_equal,
                 unary_add, unary_subtract
-
-                // assign
-                // add_assign
-                // subtract_assign
-                // multiply_assign
-                // divide_assign
-                // modulo_assign
-                // bitwise_and_assign
-                // bitwise_or_assign
-                // bitwise_xor_assign
-                // left_shift_assign
-                // right_shift_assign
-
-                // pointer_to_member
-                // call
-                // subscript
             };
 
             // ...
@@ -796,6 +779,22 @@ namespace Lapys {
                 #if __CPP__VERSION__ >= 2020uL
                     template <class object, typename type> struct has_operator<shadow_overlay_t::ternary_equal, object, type, typename to_null_t<typeof(instanceof<object>().operator <=>(instanceof<type>()))>::type> : public boolean<true> {};
                 #endif
+
+                template <class object, typename type> struct has_operator<shadow_overlay_t::add_assign, object, type, typename to_null_t<typeof(instanceof<object>().operator +=(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<shadow_overlay_t::assign, object, type, typename to_null_t<typeof(instanceof<object>().operator =(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<shadow_overlay_t::bitwise_and_assign, object, type, typename to_null_t<typeof(instanceof<object>().operator &=(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<shadow_overlay_t::bitwise_or_assign, object, type, typename to_null_t<typeof(instanceof<object>().operator |=(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<shadow_overlay_t::bitwise_xor_assign, object, type, typename to_null_t<typeof(instanceof<object>().operator ^=(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<shadow_overlay_t::divide_assign, object, type, typename to_null_t<typeof(instanceof<object>().operator /=(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<shadow_overlay_t::left_shift_assign, object, type, typename to_null_t<typeof(instanceof<object>().operator <<=(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<shadow_overlay_t::modulo_assign, object, type, typename to_null_t<typeof(instanceof<object>().operator %=(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<shadow_overlay_t::multiply_assign, object, type, typename to_null_t<typeof(instanceof<object>().operator *=(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<shadow_overlay_t::right_shift_assign, object, type, typename to_null_t<typeof(instanceof<object>().operator >>=(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<shadow_overlay_t::subtract_assign, object, type, typename to_null_t<typeof(instanceof<object>().operator -=(instanceof<type>()))>::type> : public boolean<true> {};
+
+                template <class object, typename... types> struct has_operator<shadow_overlay_t::call, object, typename to_null_t<typeof(instanceof<object>().operator ()(instanceof<types>()...))>::type, typename to_null_t<>::type, types...> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<shadow_overlay_t::pointer_to_member, object, type, typename to_null_t<typeof(instanceof<object>().operator ->*(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<shadow_overlay_t::subscript, object, type, typename to_null_t<typeof(instanceof<object>().operator [](instanceof<type>()))>::type> : public boolean<true> {};
 
             // [Layout] ... -> Configure the memory layout of `shadow` to be seamless with the specified `alias_t`.
             template <typename alias_t> // -> For non-derivable types: PODs, `final` `class`es & `struct`s, `union`s, ...
@@ -964,6 +963,32 @@ namespace Lapys {
                         template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::subtract, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto subtract(shadow_overlay const& shadow, type nodecay object) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() - disambiguate(object))) { return shadow.valueOf() - disambiguate(object); }
                         template <typename type, typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::subtract, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto subtract(shadow_overlay const& shadow, type nodecay object) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator -(disambiguate(object)))) { return shadow.valueOf().operator -(disambiguate(object)); }
                         template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline static auto subtract(type nodecay object, shadow_overlay const& shadow) except(false) -> typeof(disambiguate(object) - shadow.valueOf()) { return disambiguate(object) - shadow.valueOf(); }
+
+                        // add_assign
+                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::add_assign, alias_t, type>::value, bool>::type = 0x0>
+                        constexpr inline static auto add_assign(shadow_overlay const& shadow, type nodecay object) except(false)
+                            -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() += disambiguate(object)))
+                        { return shadow.valueOf() += disambiguate(object); }
+
+                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::add_assign, alias_t, type>::value, bool>::type = 0x0>
+                        constexpr inline static auto add_assign(shadow_overlay const& shadow, type nodecay object) except(false)
+                            -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator +=(disambiguate(object))))
+                        { return shadow.valueOf().operator +=(disambiguate(object)); }
+
+                        // assign
+                        // bitwise_and_assign
+                        // bitwise_or_assign
+                        // bitwise_xor_assign
+                        // divide_assign
+                        // left_shift_assign
+                        // modulo_assign
+                        // multiply_assign
+                        // right_shift_assign
+                        // subtract_assign
+                        //
+                        // call
+                        // pointer_to_member
+                        // subscript
                     #endif
                     #if __CPP__VERSION__ >= 2020uL
                         template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::ternary_equal, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto ternary_equal(shadow_overlay const& shadow, type nodecay object) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() <=> disambiguate(object))) { return shadow.valueOf() <=> disambiguate(object); }
@@ -1027,6 +1052,21 @@ namespace Lapys {
                         template <typename subalias_t, typename type> constexpr friend inline auto operator ,(shadow_overlay<false, subalias_t> const& shadow, type nodecay object) except(false) -> typeof((shadow_overlay<false, subalias_t>::comma(shadow, object))) { return shadow_overlay::comma(shadow, object); }
                         template <typename subalias_t, typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr friend inline auto operator ,(type nodecay object, shadow_overlay<false, subalias_t> const& shadow) except(false) -> typeof((shadow_overlay<false, subalias_t>::comma(object, shadow))) { return shadow_overlay::comma(object, shadow); }
 
+                        // assign
+                        // add_assign
+                        // subtract_assign
+                        // multiply_assign
+                        // divide_assign
+                        // modulo_assign
+                        // bitwise_and_assign
+                        // bitwise_or_assign
+                        // bitwise_xor_assign
+                        // left_shift_assign
+                        // right_shift_assign
+                        //
+                        // pointer_to_member
+                        // call
+                        // subscript
                         template <typename type> constexpr inline auto operator +=(type nodecay value) const except(false) -> typeof(this -> valueOf() += value) { return this -> valueOf() += value; }
                         template <typename type> constexpr inline auto operator -=(type nodecay value) const except(false) -> typeof(this -> valueOf() -= value) { return this -> valueOf() -= value; }
                         template <typename type> constexpr inline auto operator *=(type nodecay value) const except(false) -> typeof(this -> valueOf() *= value) { return this -> valueOf() *= value; }
