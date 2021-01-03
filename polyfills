@@ -235,10 +235,15 @@
 #         define constable constexpr
 #       endif
 
+#       if __CPP__VERSION__ >= 2020uL
+#         define specific explicit(true)
+#       else
+#         define specific explicit
+#       endif
+
 #         define except(boolean) noexcept(boolean ? false : true)
 #         define is_except(boolean) noexcept(boolean ? false : true)
 #         define nodecay &&
-#         define specific explicit
 #         define super(...) {__VA_ARGS__} // -> Initialization method.
 
 #       undef typeof
@@ -267,42 +272,45 @@ namespace {
         public:
             constexpr inline char_t(type const value) except(false) : value super(value) {}
 
-            constable inline char_t operator +(void) const except(false) { return char_t super(static_cast<type>(+(this -> value))); }
-            constable inline char_t operator -(void) const except(false) { return char_t super(static_cast<type>(-(this -> value))); }
-            constable inline char_t operator ~(void) const except(false) { return char_t super(static_cast<type>(~(this -> value))); }
-            constable inline char_t operator !(void) const except(false) { return char_t super(static_cast<type>(!(this -> value))); }
-            constable friend inline char_t<type> operator +(char_t const& characterA, char_t const& characterB) except(false) { return char_t super(static_cast<type>(characterA.value + characterB.value)); }
-            constable friend inline char_t<type> operator -(char_t const& characterA, char_t const& characterB) except(false) { return char_t super(static_cast<type>(characterA.value - characterB.value)); }
-            constable friend inline char_t<type> operator *(char_t const& characterA, char_t const& characterB) except(false) { return char_t super(static_cast<type>(characterA.value * characterB.value)); }
-            constable friend inline char_t<type> operator /(char_t const& characterA, char_t const& characterB) except(false) { return char_t super(static_cast<type>(characterA.value / characterB.value)); }
-            constable friend inline char_t<type> operator %(char_t const& characterA, char_t const& characterB) except(false) { return char_t super(static_cast<type>(characterA.value % characterB.value)); }
-            constable friend inline char_t<type> operator &(char_t const& characterA, char_t const& characterB) except(false) { return char_t super(static_cast<type>(characterA.value & characterB.value)); }
-            constable friend inline char_t<type> operator |(char_t const& characterA, char_t const& characterB) except(false) { return char_t super(static_cast<type>(characterA.value | characterB.value)); }
-            constable friend inline char_t<type> operator ^(char_t const& characterA, char_t const& characterB) except(false) { return char_t super(static_cast<type>(characterA.value ^ characterB.value)); }
-            constable friend inline char_t<type> operator <<(char_t const& characterA, char_t const& characterB) except(false) { return char_t super(static_cast<type>(characterA.value << characterB.value)); }
-            constable friend inline char_t<type> operator >>(char_t const& characterA, char_t const& characterB) except(false) { return char_t super(static_cast<type>(characterA.value >> characterB.value)); }
-            constable friend inline bool operator <(char_t const& characterA, char_t const& characterB) except(false) { return characterA.value < characterB.value; }
-            constable friend inline bool operator >(char_t const& characterA, char_t const& characterB) except(false) { return characterA.value < characterB.value; }
-            constable friend inline bool operator <=(char_t const& characterA, char_t const& characterB) except(false) { return characterA.value <= characterB.value; }
-            constable friend inline bool operator >=(char_t const& characterA, char_t const& characterB) except(false) { return characterA.value >= characterB.value; }
-            constable friend inline bool operator &&(char_t const& characterA, char_t const& characterB) except(false) { return characterA.value && characterB.value; }
-            constable friend inline bool operator ||(char_t const& characterA, char_t const& characterB) except(false) { return characterA.value || characterB.value; }
+            constable friend inline char_t<type> operator +(char_t<type> const& character) except(false) { return char_t super(static_cast<type>(+(character.value))); }
+            constable friend inline char_t<type> operator -(char_t<type> const& character) except(false) { return char_t super(static_cast<type>(-(character.value))); }
+            constable friend inline char_t<type> operator ~(char_t<type> const& character) except(false) { return char_t super(static_cast<type>(~(character.value))); }
+            constable friend inline char_t<type> operator !(char_t<type> const& character) except(false) { return char_t super(static_cast<type>(!(character.value))); }
+            constable friend inline char_t<type> operator +(char_t<type> const& characterA, char_t<type> const& characterB) except(false) { return char_t<type> super(static_cast<type>(characterA.value + characterB.value)); }
+            constable friend inline char_t<type> operator -(char_t<type> const& characterA, char_t<type> const& characterB) except(false) { return char_t<type> super(static_cast<type>(characterA.value - characterB.value)); }
+            constable friend inline char_t<type> operator *(char_t<type> const& characterA, char_t<type> const& characterB) except(false) { return char_t<type> super(static_cast<type>(characterA.value * characterB.value)); }
+            constable friend inline char_t<type> operator /(char_t<type> const& characterA, char_t<type> const& characterB) except(false) { return char_t<type> super(static_cast<type>(characterA.value / characterB.value)); }
+            constable friend inline char_t<type> operator %(char_t<type> const& characterA, char_t<type> const& characterB) except(false) { return char_t<type> super(static_cast<type>(characterA.value % characterB.value)); }
+            constable friend inline char_t<type> operator &(char_t<type> const& characterA, char_t<type> const& characterB) except(false) { return char_t<type> super(static_cast<type>(characterA.value & characterB.value)); }
+            constable friend inline char_t<type> operator |(char_t<type> const& characterA, char_t<type> const& characterB) except(false) { return char_t<type> super(static_cast<type>(characterA.value | characterB.value)); }
+            constable friend inline char_t<type> operator ^(char_t<type> const& characterA, char_t<type> const& characterB) except(false) { return char_t<type> super(static_cast<type>(characterA.value ^ characterB.value)); }
+            constable friend inline char_t<type> operator <<(char_t<type> const& characterA, char_t<type> const& characterB) except(false) { return char_t<type> super(static_cast<type>(characterA.value << characterB.value)); }
+            constable friend inline char_t<type> operator >>(char_t<type> const& characterA, char_t<type> const& characterB) except(false) { return char_t<type> super(static_cast<type>(characterA.value >> characterB.value)); }
+            constable friend inline bool operator <(char_t<type> const& characterA, char_t<type> const& characterB) except(false) { return characterA.value < characterB.value; }
+            constable friend inline bool operator >(char_t<type> const& characterA, char_t<type> const& characterB) except(false) { return characterA.value < characterB.value; }
+            constable friend inline bool operator <=(char_t<type> const& characterA, char_t<type> const& characterB) except(false) { return characterA.value <= characterB.value; }
+            constable friend inline bool operator >=(char_t<type> const& characterA, char_t<type> const& characterB) except(false) { return characterA.value >= characterB.value; }
+            constable friend inline bool operator &&(char_t<type> const& characterA, char_t<type> const& characterB) except(false) { return characterA.value && characterB.value; }
+            constable friend inline bool operator ||(char_t<type> const& characterA, char_t<type> const& characterB) except(false) { return characterA.value || characterB.value; }
             constable inline char_t& operator =(char_t const& character) except(false) { this -> value = character.value; return *this; }
-            constable inline char_t& operator +=(char_t const& character) except(false) { this -> value += character.value; return *this; }
-            constable inline char_t& operator -=(char_t const& character) except(false) { this -> value -= character.value; return *this; }
-            constable inline char_t& operator *=(char_t const& character) except(false) { this -> value *= character.value; return *this; }
-            constable inline char_t& operator /=(char_t const& character) except(false) { this -> value /= character.value; return *this; }
-            constable inline char_t& operator %=(char_t const& character) except(false) { this -> value %= character.value; return *this; }
-            constable inline char_t& operator &=(char_t const& character) except(false) { this -> value &= character.value; return *this; }
-            constable inline char_t& operator |=(char_t const& character) except(false) { this -> value |= character.value; return *this; }
-            constable inline char_t& operator ^=(char_t const& character) except(false) { this -> value ^= character.value; return *this; }
-            constable inline char_t& operator <<=(char_t const& character) except(false) { this -> value <<= character.value; return *this; }
-            constable inline char_t& operator >>=(char_t const& character) except(false) { this -> value >>= character.value; return *this; }
-            constable inline char_t& operator ++(void) except(false) { ++(this -> value); return *this; }
-            constable inline char_t operator ++(int const) except(false) { return char_t super((this -> value)++); }
-            constable inline char_t& operator --(void) except(false) { --(this -> value); return *this; }
-            constable inline char_t operator --(int const) except(false) { return char_t super((this -> value)--); }
+            constable friend inline char_t<type>& operator +=(char_t<type>& characterA, char_t<type> const& characterB) except(false) { characterA.value += characterB.value; return characterA; }
+            constable friend inline char_t<type>& operator -=(char_t<type>& characterA, char_t<type> const& characterB) except(false) { characterA.value -= characterB.value; return characterA; }
+            constable friend inline char_t<type>& operator *=(char_t<type>& characterA, char_t<type> const& characterB) except(false) { characterA.value *= characterB.value; return characterA; }
+            constable friend inline char_t<type>& operator /=(char_t<type>& characterA, char_t<type> const& characterB) except(false) { characterA.value /= characterB.value; return characterA; }
+            constable friend inline char_t<type>& operator %=(char_t<type>& characterA, char_t<type> const& characterB) except(false) { characterA.value %= characterB.value; return characterA; }
+            constable friend inline char_t<type>& operator &=(char_t<type>& characterA, char_t<type> const& characterB) except(false) { characterA.value &= characterB.value; return characterA; }
+            constable friend inline char_t<type>& operator |=(char_t<type>& characterA, char_t<type> const& characterB) except(false) { characterA.value |= characterB.value; return characterA; }
+            constable friend inline char_t<type>& operator ^=(char_t<type>& characterA, char_t<type> const& characterB) except(false) { characterA.value ^= characterB.value; return characterA; }
+            constable friend inline char_t<type>& operator <<=(char_t<type>& characterA, char_t<type> const& characterB) except(false) { characterA.value <<= characterB.value; return characterA; }
+            constable friend inline char_t<type>& operator >>=(char_t<type>& characterA, char_t<type> const& characterB) except(false) { characterA.value >>= characterB.value; return characterA; }
+            constable friend inline char_t<type>& operator ++(char_t<type>& character) except(false) { ++(character.value); return character; }
+            constable friend inline char_t<type> operator ++(char_t<type>& character, int const) except(false) { return char_t<type> super((character.value)++); }
+            constable friend inline char_t<type>& operator --(char_t<type>& character) except(false) { --(character.value); return character; }
+            constable friend inline char_t<type> operator --(char_t<type>& character, int const) except(false) { return char_t<type> super((character.value)--); }
             constexpr specific inline operator type&(void) const except(false) { return const_cast<type&>(this -> value); }
+            #if __CPP__VERSION__ >= 2020uL
+                constable friend inline auto operator <=>(char_t<type> const& characterA, char_t<type> const& characterB) except(false) { return characterA.value <=> characterB.value; }
+            #endif
     };
 }
 

@@ -27,12 +27,11 @@
     #else
     #   include <cstdbool> // C Standard Boolean
     #endif
-
     #if __CPP__VERSION__ > 1997uL
     #   include <type_traits> // Type Traits
     #endif
 
-    #include "structure" // Structure
+    #include "utility" // Utility
 
     /* Deletion > ... --- NOTE (Lapys) -> Matches the order of definitions. */
     #undef __MAIN__

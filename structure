@@ -35,6 +35,11 @@ namespace Lapys {
         template <typename, typename = null_t> struct baseof;
         template <bool> struct boolean;
         template <bool, typename, typename = null_t> struct conditional_alias;
+        #if __CPP__VERSION__ >= 2011uL
+            template <typename...> struct collapse;
+        #else
+            template <typename = null_t> struct collapse;
+        #endif
         template <typename> struct decayof;
         template <typename> struct depthof;
         template <typename type, type> struct integer;
@@ -135,7 +140,10 @@ namespace Lapys {
 
         // Add (Constant, Volatile)
         template <typename type> struct add_const : public alias<type const> {};
+        template <typename type> struct add_const<type const> : public alias<type const> {};
+
         template <typename type> struct add_volatile : public alias<type volatile> {};
+        template <typename type> struct add_const<type volatile> : public alias<type volatile> {};
 
         template <typename type>
         struct add_cv : public alias<typename add_const<typename add_volatile<type>::type>::type> {};
@@ -150,8 +158,10 @@ namespace Lapys {
 
         // Add ... Reference
         template <typename type> struct add_lvalue_reference : public alias<type&> {};
+        template <typename type> struct add_lvalue_reference<type&> : public alias<type&> {};
         #if __CPP__VERSION__ >= 2011uL
             template <typename type> struct add_rvalue_reference : public alias<type&&> {};
+            template <typename type> struct add_rvalue_reference<type&&> : public alias<type&&> {};
         #endif
 
         template <typename type>
@@ -207,6 +217,17 @@ namespace Lapys {
                 subtype
             >::type
         > {};
+
+        // Collapse
+        namespace {
+            enum collapse_t {};
+        }
+
+        #if __CPP__VERSION__ >= 2011uL
+            template <typename...> struct collapse final { public: typedef collapse_t type; };
+        #else
+            template <typename = null_t> struct collapse final { public: typedef collapse_t type; };
+        #endif
 
         // Decay Of
         namespace {
@@ -385,24 +406,16 @@ namespace Lapys {
 
         // Is Member ...
         template <typename> struct is_member_pointer : public boolean<false> {};
-        template <typename base, typename object> struct is_member_pointer<base object::*> : public boolean<true> {};
-        // template <typename type> struct is_member_pointer<type*> : public boolean<is_member_pointer<type>::value> {};
-        // template <typename type> struct is_member_pointer<type const*> : public boolean<is_member_pointer<type>::value> {};
-        // template <typename type> struct is_member_pointer<type const volatile*> : public boolean<is_member_pointer<type>::value> {};
-        // template <typename type> struct is_member_pointer<type volatile*> : public boolean<is_member_pointer<type>::value> {};
-        template <typename base, typename object> struct is_member_pointer<base object::* const> : public boolean<is_member_pointer<base object::*>::value> {};
-        template <typename base, typename object> struct is_member_pointer<base object::* const volatile> : public boolean<is_member_pointer<base object::*>::value> {};
-        template <typename base, typename object> struct is_member_pointer<base object::* volatile> : public boolean<is_member_pointer<base object::*>::value> {};
+        template <class object, typename base> struct is_member_pointer<base object::*> : public boolean<true> {};
+        template <class object, typename base> struct is_member_pointer<base object::* const> : public boolean<is_member_pointer<base object::*>::value> {};
+        template <class object, typename base> struct is_member_pointer<base object::* const volatile> : public boolean<is_member_pointer<base object::*>::value> {};
+        template <class object, typename base> struct is_member_pointer<base object::* volatile> : public boolean<is_member_pointer<base object::*>::value> {};
 
         template <typename> struct is_member_function_pointer : public boolean<false> {};
-        template <typename base, typename object> struct is_member_function_pointer<base object::*> : public boolean<is_function<base>::value> {};
-        // template <typename type> struct is_member_function_pointer<type*> : public boolean<is_member_function_pointer<type>::value> {};
-        // template <typename type> struct is_member_function_pointer<type const*> : public boolean<is_member_function_pointer<type>::value> {};
-        // template <typename type> struct is_member_function_pointer<type const volatile*> : public boolean<is_member_function_pointer<type>::value> {};
-        // template <typename type> struct is_member_function_pointer<type volatile*> : public boolean<is_member_function_pointer<type>::value> {};
-        template <typename base, typename object> struct is_member_function_pointer<base object::* const> : public boolean<is_member_function_pointer<base object::*>::value> {};
-        template <typename base, typename object> struct is_member_function_pointer<base object::* const volatile> : public boolean<is_member_function_pointer<base object::*>::value> {};
-        template <typename base, typename object> struct is_member_function_pointer<base object::* volatile> : public boolean<is_member_function_pointer<base object::*>::value> {};
+        template <class object, typename base> struct is_member_function_pointer<base object::*> : public boolean<is_function<base>::value> {};
+        template <class object, typename base> struct is_member_function_pointer<base object::* const> : public boolean<is_member_function_pointer<base object::*>::value> {};
+        template <class object, typename base> struct is_member_function_pointer<base object::* const volatile> : public boolean<is_member_function_pointer<base object::*>::value> {};
+        template <class object, typename base> struct is_member_function_pointer<base object::* volatile> : public boolean<is_member_function_pointer<base object::*>::value> {};
 
         template <typename type>
         struct is_member_object_pointer : public boolean<is_member_pointer<type>::value && false == is_member_function_pointer<type>::value> {};
@@ -411,7 +424,7 @@ namespace Lapys {
         namespace {
             template <typename type> struct is_noexcept_t : public boolean<false> {};
             template <typename base, typename... types> struct is_noexcept_t<base (types...) except(false)> : public boolean<true> {};
-            template <typename base, typename object, typename... types> struct is_noexcept_t<base (object::*)(types...) except(false)> : public boolean<true> {};
+            template <class object, typename base, typename... types> struct is_noexcept_t<base (object::*)(types...) except(false)> : public boolean<true> {};
         }
 
         template <typename type>
@@ -597,10 +610,10 @@ namespace Lapys {
         template <typename base, typename... types> struct remove_specifications<base (types..., ...) const volatile&> : public alias<base (types..., ...)> {};
         template <typename base, typename... types> struct remove_specifications<base (types..., ...) volatile> : public alias<base (types..., ...)> {};
         template <typename base, typename... types> struct remove_specifications<base (types..., ...) volatile&> : public alias<base (types..., ...)> {};
-        template <typename base, typename object> struct remove_specifications<base object::*> : public alias<base object::*> {};
-        template <typename base, typename object> struct remove_specifications<base object::* const> : public alias<base object::*> {};
-        template <typename base, typename object> struct remove_specifications<base object::* const volatile> : public alias<base object::*> {};
-        template <typename base, typename object> struct remove_specifications<base object::* volatile> : public alias<base object::*> {};
+        template <class object, typename base> struct remove_specifications<base object::*> : public alias<base object::*> {};
+        template <class object, typename base> struct remove_specifications<base object::* const> : public alias<base object::*> {};
+        template <class object, typename base> struct remove_specifications<base object::* const volatile> : public alias<base object::*> {};
+        template <class object, typename base> struct remove_specifications<base object::* volatile> : public alias<base object::*> {};
         #if __CPP__VERSION__ >= 2011uL
             template <typename base, typename... types> struct remove_specifications<base (types...)&&> : public alias<base (types...)> {};
             template <typename base, typename... types> struct remove_specifications<base (types...) const&&> : public alias<base (types...)> {};
@@ -650,17 +663,14 @@ namespace Lapys {
 
         // Shadow
         namespace {
-            // [Selection & State] ...
-            enum shadow_layout_t {
-                deferred, // -> Non-derivable types.
-                derived, // -> Derivable types.
-                function_reference, // -> Function reference types.
-                undefined // -> ...
-            };
+            // ...
+            enum deference_t { enumerated, instantiated };
+            enum layout_t { deferred, derived, undefined };
+            enum overlay_t { base, defined };
 
-            enum shadow_overlay_t {
+            enum operator_t {
                 add, add_assign, address, assign,
-                bitwise_and, bitwise_and_assign, bitwise_or, bitwise_or_assign, bitwise_xor, bitwise_xor_assign, boolean_and, boolean_or,
+                bit_and, bit_and_assign, bit_or, bit_or_assign, bit_xor, bit_xor_assign, boolean_and, boolean_or,
                 call, comma, complement,
                 dereference, divide, divide_assign,
                 equal,
@@ -676,497 +686,234 @@ namespace Lapys {
             };
 
             // ...
+            template <typename type>
+            struct is_derivable : public boolean<is_class<type>::value && (false == is_final<type>::value && false == is_union<type>::value)> {};
+
+            // ...
             struct shadow_base {};
-            template <bool, typename> struct shadow_deference final {};
-            template <shadow_layout_t, typename> struct shadow_layout final {};
-            template <bool, typename> struct shadow_overlay final {};
+            template <deference_t, typename> struct shadow_deference final {};
+            template <layout_t, typename> struct shadow_layout final {};
+            template <overlay_t, typename> struct shadow_overlay final {};
 
-            // [Assertion] ... -> Differentiate between `shadow` & other types in ambiguous compile-time assertions.
-                // ...
-                template <typename type>
-                struct is_shadow : public boolean<is_base<shadow_base, typename remove_cv<typename remove_reference<type>::type>::type>::value> {};
+            template <typename type> struct is_shadow : public boolean<is_base<shadow_base, typename remove_qualifiers<type>::type>::value> {};
+            template <layout_t layout, typename alias_t> constexpr inline typename add_lvalue_reference<alias_t>::type shadow_cast(shadow_layout<layout, alias_t> const&) except(false);
+            template <layout_t layout, typename type> constexpr inline typeof(shadow_cast<type>(instanceof<shadow_layout<layout, type> const>())) disambiguate(shadow_layout<layout, type> const& shadow) except(false) { return shadow_cast<type>(shadow); }
+            template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline typeof(instanceof<type>()) disambiguate(type nodecay value) except(false) { return forward<type>(value); }
 
-                // ...
-                template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0>
-                constexpr inline static type nodecay disambiguate(type nodecay argument) except(false) { return forward<type>(argument); }
+                template <operator_t, class, typename = typename to_null_t<>::type, typename = typename to_null_t<>::type, typename...> struct has_operator : public boolean<false> {};
 
-                template <typename type, typename conditional_alias<true == is_shadow<type>::value, bool>::type = 0x0>
-                constexpr inline static auto disambiguate(type nodecay argument) except(false) -> typeof(argument.valueOf()) { return argument.valueOf(); }
+                template <class object> struct has_operator<operator_t::address, object, typename to_null_t<typeof(instanceof<object>().operator &())>::type> : public boolean<true> {};
+                template <class object> struct has_operator<operator_t::complement, object, typename to_null_t<typeof(instanceof<object>().operator ~())>::type> : public boolean<true> {};
+                template <class object> struct has_operator<operator_t::dereference, object, typename to_null_t<typeof(instanceof<object>().operator *())>::type> : public boolean<true> {};
+                template <class object> struct has_operator<operator_t::negate, object, typename to_null_t<typeof(instanceof<object>().operator !())>::type> : public boolean<true> {};
+                template <class object> struct has_operator<operator_t::post_decrement, object, typename to_null_t<typeof(instanceof<object>().operator --(0x0))>::type> : public boolean<true> {};
+                template <class object> struct has_operator<operator_t::post_increment, object, typename to_null_t<typeof(instanceof<object>().operator ++(0x0))>::type> : public boolean<true> {};
+                template <class object> struct has_operator<operator_t::pre_decrement, object, typename to_null_t<typeof(instanceof<object>().operator --())>::type> : public boolean<true> {};
+                template <class object> struct has_operator<operator_t::pre_increment, object, typename to_null_t<typeof(instanceof<object>().operator ++())>::type> : public boolean<true> {};
+                template <class object> struct has_operator<operator_t::unary_add, object, typename to_null_t<typeof(instanceof<object>().operator +())>::type> : public boolean<true> {};
+                template <class object> struct has_operator<operator_t::unary_subtract, object, typename to_null_t<typeof(instanceof<object>().operator -())>::type> : public boolean<true> {};
 
-                // ...
-                template <shadow_overlay_t, class, typename = null_t, typename = null_t, typename...> struct has_operator : public boolean<false> {};
-
-                template <class object> struct has_operator<shadow_overlay_t::address, object, typename to_null_t<typeof(instanceof<object>().operator &())>::type> : public boolean<true> {};
-                template <class object> struct has_operator<shadow_overlay_t::complement, object, typename to_null_t<typeof(instanceof<object>().operator ~())>::type> : public boolean<true> {};
-                template <class object> struct has_operator<shadow_overlay_t::dereference, object, typename to_null_t<typeof(instanceof<object>().operator *())>::type> : public boolean<true> {};
-                template <class object> struct has_operator<shadow_overlay_t::negate, object, typename to_null_t<typeof(instanceof<object>().operator !())>::type> : public boolean<true> {};
-                template <class object> struct has_operator<shadow_overlay_t::post_decrement, object, typename to_null_t<typeof(instanceof<object>().operator --(0x0))>::type> : public boolean<true> {};
-                template <class object> struct has_operator<shadow_overlay_t::post_increment, object, typename to_null_t<typeof(instanceof<object>().operator ++(0x0))>::type> : public boolean<true> {};
-                template <class object> struct has_operator<shadow_overlay_t::pre_decrement, object, typename to_null_t<typeof(instanceof<object>().operator --())>::type> : public boolean<true> {};
-                template <class object> struct has_operator<shadow_overlay_t::pre_increment, object, typename to_null_t<typeof(instanceof<object>().operator ++())>::type> : public boolean<true> {};
-                template <class object> struct has_operator<shadow_overlay_t::unary_add, object, typename to_null_t<typeof(instanceof<object>().operator +())>::type> : public boolean<true> {};
-                template <class object> struct has_operator<shadow_overlay_t::unary_subtract, object, typename to_null_t<typeof(instanceof<object>().operator -())>::type> : public boolean<true> {};
-
-                template <class object, typename type> struct has_operator<shadow_overlay_t::add, object, type, typename to_null_t<typeof(instanceof<object>().operator +(instanceof<type>()))>::type> : public boolean<true> {};
-                template <class object, typename type> struct has_operator<shadow_overlay_t::bitwise_and, object, type, typename to_null_t<typeof(instanceof<object>().operator &(instanceof<type>()))>::type> : public boolean<true> {};
-                template <class object, typename type> struct has_operator<shadow_overlay_t::bitwise_or, object, type, typename to_null_t<typeof(instanceof<object>().operator |(instanceof<type>()))>::type> : public boolean<true> {};
-                template <class object, typename type> struct has_operator<shadow_overlay_t::bitwise_xor, object, type, typename to_null_t<typeof(instanceof<object>().operator ^(instanceof<type>()))>::type> : public boolean<true> {};
-                template <class object, typename type> struct has_operator<shadow_overlay_t::boolean_and, object, type, typename to_null_t<typeof(instanceof<object>().operator &&(instanceof<type>()))>::type> : public boolean<true> {};
-                template <class object, typename type> struct has_operator<shadow_overlay_t::boolean_or, object, type, typename to_null_t<typeof(instanceof<object>().operator ||(instanceof<type>()))>::type> : public boolean<true> {};
-                template <class object, typename type> struct has_operator<shadow_overlay_t::comma, object, type, typename to_null_t<typeof((instanceof<object>().operator ,(instanceof<type>())))>::type> : public boolean<true> {};
-                template <class object, typename type> struct has_operator<shadow_overlay_t::divide, object, type, typename to_null_t<typeof(instanceof<object>().operator /(instanceof<type>()))>::type> : public boolean<true> {};
-                template <class object, typename type> struct has_operator<shadow_overlay_t::equal, object, type, typename to_null_t<typeof(instanceof<object>().operator ==(instanceof<type>()))>::type> : public boolean<true> {};
-                template <class object, typename type> struct has_operator<shadow_overlay_t::greater, object, type, typename to_null_t<typeof(instanceof<object>().operator >(instanceof<type>()))>::type> : public boolean<true> {};
-                template <class object, typename type> struct has_operator<shadow_overlay_t::greater_equal, object, type, typename to_null_t<typeof(instanceof<object>().operator >=(instanceof<type>()))>::type> : public boolean<true> {};
-                template <class object, typename type> struct has_operator<shadow_overlay_t::left_shift, object, type, typename to_null_t<typeof(instanceof<object>().operator <<(instanceof<type>()))>::type> : public boolean<true> {};
-                template <class object, typename type> struct has_operator<shadow_overlay_t::lesser, object, type, typename to_null_t<typeof(instanceof<object>().operator <(instanceof<type>()))>::type> : public boolean<true> {};
-                template <class object, typename type> struct has_operator<shadow_overlay_t::lesser_equal, object, type, typename to_null_t<typeof(instanceof<object>().operator <=(instanceof<type>()))>::type> : public boolean<true> {};
-                template <class object, typename type> struct has_operator<shadow_overlay_t::modulo, object, type, typename to_null_t<typeof(instanceof<object>().operator %(instanceof<type>()))>::type> : public boolean<true> {};
-                template <class object, typename type> struct has_operator<shadow_overlay_t::multiply, object, type, typename to_null_t<typeof(instanceof<object>().operator *(instanceof<type>()))>::type> : public boolean<true> {};
-                template <class object, typename type> struct has_operator<shadow_overlay_t::negate_equal, object, type, typename to_null_t<typeof(instanceof<object>().operator !=(instanceof<type>()))>::type> : public boolean<true> {};
-                template <class object, typename type> struct has_operator<shadow_overlay_t::right_shift, object, type, typename to_null_t<typeof(instanceof<object>().operator >>(instanceof<type>()))>::type> : public boolean<true> {};
-                template <class object, typename type> struct has_operator<shadow_overlay_t::subtract, object, type, typename to_null_t<typeof(instanceof<object>().operator -(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<operator_t::add, object, type, typename to_null_t<typeof(instanceof<object>().operator +(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<operator_t::bit_and, object, type, typename to_null_t<typeof(instanceof<object>().operator &(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<operator_t::bit_or, object, type, typename to_null_t<typeof(instanceof<object>().operator |(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<operator_t::bit_xor, object, type, typename to_null_t<typeof(instanceof<object>().operator ^(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<operator_t::boolean_and, object, type, typename to_null_t<typeof(instanceof<object>().operator &&(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<operator_t::boolean_or, object, type, typename to_null_t<typeof(instanceof<object>().operator ||(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<operator_t::comma, object, type, typename to_null_t<typeof((instanceof<object>().operator ,(instanceof<type>())))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<operator_t::divide, object, type, typename to_null_t<typeof(instanceof<object>().operator /(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<operator_t::equal, object, type, typename to_null_t<typeof(instanceof<object>().operator ==(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<operator_t::greater, object, type, typename to_null_t<typeof(instanceof<object>().operator >(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<operator_t::greater_equal, object, type, typename to_null_t<typeof(instanceof<object>().operator >=(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<operator_t::left_shift, object, type, typename to_null_t<typeof(instanceof<object>().operator <<(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<operator_t::lesser, object, type, typename to_null_t<typeof(instanceof<object>().operator <(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<operator_t::lesser_equal, object, type, typename to_null_t<typeof(instanceof<object>().operator <=(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<operator_t::modulo, object, type, typename to_null_t<typeof(instanceof<object>().operator %(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<operator_t::multiply, object, type, typename to_null_t<typeof(instanceof<object>().operator *(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<operator_t::negate_equal, object, type, typename to_null_t<typeof(instanceof<object>().operator !=(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<operator_t::right_shift, object, type, typename to_null_t<typeof(instanceof<object>().operator >>(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<operator_t::subtract, object, type, typename to_null_t<typeof(instanceof<object>().operator -(instanceof<type>()))>::type> : public boolean<true> {};
                 #if __CPP__VERSION__ >= 2020uL
-                    template <class object, typename type> struct has_operator<shadow_overlay_t::ternary_equal, object, type, typename to_null_t<typeof(instanceof<object>().operator <=>(instanceof<type>()))>::type> : public boolean<true> {};
+                    template <class object, typename type> struct has_operator<operator_t::ternary_equal, object, type, typename to_null_t<typeof(instanceof<object>().operator <=>(instanceof<type>()))>::type> : public boolean<true> {};
                 #endif
 
-                template <class object, typename type> struct has_operator<shadow_overlay_t::add_assign, object, type, typename to_null_t<typeof(instanceof<object>().operator +=(instanceof<type>()))>::type> : public boolean<true> {};
-                template <class object, typename type> struct has_operator<shadow_overlay_t::assign, object, type, typename to_null_t<typeof(instanceof<object>().operator =(instanceof<type>()))>::type> : public boolean<true> {};
-                template <class object, typename type> struct has_operator<shadow_overlay_t::bitwise_and_assign, object, type, typename to_null_t<typeof(instanceof<object>().operator &=(instanceof<type>()))>::type> : public boolean<true> {};
-                template <class object, typename type> struct has_operator<shadow_overlay_t::bitwise_or_assign, object, type, typename to_null_t<typeof(instanceof<object>().operator |=(instanceof<type>()))>::type> : public boolean<true> {};
-                template <class object, typename type> struct has_operator<shadow_overlay_t::bitwise_xor_assign, object, type, typename to_null_t<typeof(instanceof<object>().operator ^=(instanceof<type>()))>::type> : public boolean<true> {};
-                template <class object, typename type> struct has_operator<shadow_overlay_t::divide_assign, object, type, typename to_null_t<typeof(instanceof<object>().operator /=(instanceof<type>()))>::type> : public boolean<true> {};
-                template <class object, typename type> struct has_operator<shadow_overlay_t::left_shift_assign, object, type, typename to_null_t<typeof(instanceof<object>().operator <<=(instanceof<type>()))>::type> : public boolean<true> {};
-                template <class object, typename type> struct has_operator<shadow_overlay_t::modulo_assign, object, type, typename to_null_t<typeof(instanceof<object>().operator %=(instanceof<type>()))>::type> : public boolean<true> {};
-                template <class object, typename type> struct has_operator<shadow_overlay_t::multiply_assign, object, type, typename to_null_t<typeof(instanceof<object>().operator *=(instanceof<type>()))>::type> : public boolean<true> {};
-                template <class object, typename type> struct has_operator<shadow_overlay_t::right_shift_assign, object, type, typename to_null_t<typeof(instanceof<object>().operator >>=(instanceof<type>()))>::type> : public boolean<true> {};
-                template <class object, typename type> struct has_operator<shadow_overlay_t::subtract_assign, object, type, typename to_null_t<typeof(instanceof<object>().operator -=(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<operator_t::add_assign, object, type, typename to_null_t<typeof(instanceof<object>().operator +=(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<operator_t::assign, object, type, typename to_null_t<typeof(instanceof<object>().operator =(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<operator_t::bit_and_assign, object, type, typename to_null_t<typeof(instanceof<object>().operator &=(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<operator_t::bit_or_assign, object, type, typename to_null_t<typeof(instanceof<object>().operator |=(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<operator_t::bit_xor_assign, object, type, typename to_null_t<typeof(instanceof<object>().operator ^=(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<operator_t::divide_assign, object, type, typename to_null_t<typeof(instanceof<object>().operator /=(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<operator_t::left_shift_assign, object, type, typename to_null_t<typeof(instanceof<object>().operator <<=(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<operator_t::modulo_assign, object, type, typename to_null_t<typeof(instanceof<object>().operator %=(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<operator_t::multiply_assign, object, type, typename to_null_t<typeof(instanceof<object>().operator *=(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<operator_t::right_shift_assign, object, type, typename to_null_t<typeof(instanceof<object>().operator >>=(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<operator_t::subtract_assign, object, type, typename to_null_t<typeof(instanceof<object>().operator -=(instanceof<type>()))>::type> : public boolean<true> {};
 
-                template <class object, typename... types> struct has_operator<shadow_overlay_t::call, object, typename to_null_t<typeof(instanceof<object>().operator ()(instanceof<types>()...))>::type, typename to_null_t<>::type, types...> : public boolean<true> {};
-                template <class object, typename type> struct has_operator<shadow_overlay_t::pointer_to_member, object, type, typename to_null_t<typeof(instanceof<object>().operator ->*(instanceof<type>()))>::type> : public boolean<true> {};
-                template <class object, typename type> struct has_operator<shadow_overlay_t::subscript, object, type, typename to_null_t<typeof(instanceof<object>().operator [](instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename... types> struct has_operator<operator_t::call, object, typename to_null_t<typeof(instanceof<object>().operator ()(instanceof<types>()...))>::type, typename to_null_t<>::type, types...> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<operator_t::pointer_to_member, object, type, typename to_null_t<typeof(instanceof<object>().operator ->*(instanceof<type>()))>::type> : public boolean<true> {};
+                template <class object, typename type> struct has_operator<operator_t::subscript, object, type, typename to_null_t<typeof(instanceof<object>().operator [](instanceof<type>()))>::type> : public boolean<true> {};
 
-            // [Layout] ... -> Configure the memory layout of `shadow` to be seamless with the specified `alias_t`.
-            template <typename alias_t> // -> For non-derivable types: PODs, `final` `class`es & `struct`s, `union`s, ...
-            struct shadow_layout<shadow_layout_t::deferred, alias_t> : public shadow_base {
-                private: alias_t value;
+            // [Layout] ... -> Configure the data layout of `shadow` to be seamless with the specified `alias_t`.
+            template <typename alias_t>
+            struct shadow_layout<layout_t::deferred, alias_t> : public shadow_base {
+                private:
+                    alias_t value;
+                    template <typename subalias_t = alias_t> constexpr friend inline typename add_lvalue_reference<alias_t>::type shadow_cast(shadow_layout<layout_t::deferred, subalias_t> const& shadow) except(false) { return const_cast<typename add_lvalue_reference<alias_t>::type>(shadow.value); }
+
                 public:
-                    template <typename... types> constexpr inline shadow_layout(types nodecay... arguments) except(false) : value super(Utility::forward<types>(arguments)...) {}
-                    constexpr inline alias_t& valueOf(void) const except(false) { return const_cast<alias_t&>(this -> value); }
+                    template <typename subalias_t = alias_t, typename conditional_alias<false == is_function_reference<subalias_t>::value, bool>::type = 0x0, typename... types> constexpr inline shadow_layout(types nodecay... arguments) except(false) : value super(forward<types>(arguments)...) {}
+                    template <typename subalias_t = alias_t, typename conditional_alias<true == is_function_reference<subalias_t>::value, bool>::type = 0x0> constexpr inline shadow_layout(typename add_pointer<typename remove_reference<alias_t>::type>::type const argument) except(false) : value super(*argument) {}
             };
 
-            template <class alias_t> // -> For derivable `class` or `struct` objects.
-            struct shadow_layout<shadow_layout_t::derived, alias_t> : public alias_t, public shadow_base {
+            template <class alias_t>
+            struct shadow_layout<layout_t::derived, alias_t> : public alias_t, public shadow_base {
+                private: template <typename subalias_t = alias_t> constexpr friend inline typename add_lvalue_reference<alias_t>::type shadow_cast(shadow_layout<layout_t::derived, subalias_t> const& shadow) except(false) { return const_cast<class remove_const<alias_t>::type&>(static_cast<class add_const<alias_t>::type&>(shadow)); }
                 public:
-                    constexpr inline shadow_layout(alias_t const& object) except(false) : alias_t(Utility::forward<alias_t const&>(object)) {}
-                    template <typename... types> constexpr inline shadow_layout(types nodecay... arguments) except(false) : alias_t(Utility::forward<types>(arguments)...) {}
+                    constexpr inline shadow_layout(typename add_lvalue_reference<typename add_const<alias_t>::type>::type object) except(false) : alias_t super(forward<typename add_lvalue_reference<typename add_const<alias_t>::type>::type>(object)) {}
+                    template <typename... types> constexpr inline shadow_layout(types nodecay... arguments) except(false) : alias_t super(forward<types>(arguments)...) {}
                     #if __CPP__VERSION__ >= 2011uL
-                        constexpr inline shadow_layout(alias_t&& object) except(false) : alias_t(Utility::forward<alias_t&&>(object)) {}
+                        constexpr inline shadow_layout(typename add_rvalue_reference<alias_t>::type object) except(false) : alias_t super(forward<typename add_rvalue_reference<alias_t>::type>(object)) {}
                     #endif
-
-                    constexpr inline alias_t& valueOf(void) const except(false) { return *const_cast<alias_t*>(static_cast<alias_t const*>(this)); }
-            };
-
-            template <typename alias_t> // -> For function reference types.
-            struct shadow_layout<shadow_layout_t::function_reference, alias_t> : public shadow_base {
-                private: alias_t value;
-                public:
-                    constexpr inline shadow_layout(typename add_pointer<typename remove_reference<alias_t>::type>::type argument) except(false) : value(*argument) {}
-                    constexpr inline alias_t valueOf(void) const except(false) { return this -> value; }
             };
                 // ...
                 template <typename alias_t>
-                struct shadow_layout_alias final { public:
-                    typedef shadow_layout<
-                        // ...
-                        // -> Functions can't be instantiated as variables.
-                        is_function<alias_t>::value ?
-                            shadow_layout_t::undefined :
-
-                        // -> Function references require a constructor to handle decayed function pointers.
-                        is_function_reference<alias_t>::value ?
-                            shadow_layout_t::function_reference :
-
-                        // -> ...
-                        is_class<alias_t>::value && (false == is_final<alias_t>::value && false == is_union<alias_t>::value) ?
-                            shadow_layout_t::derived :
-                            shadow_layout_t::deferred,
-
-                        // ...
-                        // -> Refine the underlying `alias_t` type:
-                        typename conditional_alias<
-                            // -- Allow derivable types be derivable.
-                            is_class<alias_t>::value && (false == is_final<alias_t>::value && false == is_union<alias_t>::value),
+                struct shadow_layout_t final : public alias<shadow_layout<
+                    is_function<alias_t>::value ?
+                        layout_t::undefined :
+                        is_derivable<alias_t>::value ? layout_t::derived : layout_t::deferred,
+                    typename conditional_alias<
+                        is_derivable<alias_t>::value,
                             typename remove_cv<typename remove_reference<alias_t>::type>::type,
+                            alias_t
+                    >::type
+                >> {};
 
-                        typename conditional_alias<
-                            // -- Allow function types be referable instead.
-                            is_function<alias_t>::value,
-                            typename add_lvalue_reference<alias_t>::type,
-                        alias_t >::type >::type
-                    > type;
-                };
+            // [Deference] ... -> Configure the conversion operator of `shadow` (really only to make `enum` types implicitly convertible to their base, instead)
+            template <typename alias_t>
+            struct shadow_deference<deference_t::enumerated, alias_t> : public shadow_layout_t<alias_t>::type { public:
+                constexpr inline shadow_deference(alias_t const argument) except(false) : shadow_layout_t<alias_t>::type super(argument) {}
+                constexpr inline shadow_deference(typename baseof<alias_t, unsigned int>::type const argument) except(false) : shadow_layout_t<alias_t>::type super(static_cast<alias_t>(argument)) {}
 
-            // [Deference] ... -> Configure the conversion operator of `shadow` (really only to make `enum` types implicitly convertible to their base).
-            template <typename alias_t> // For non-enumeration types.
-            struct shadow_deference<false, alias_t> : public shadow_layout_alias<alias_t>::type { public:
-                template <typename... types>
-                constexpr inline shadow_deference(types nodecay... arguments) except(false) : shadow_layout_alias<alias_t>::type super(Utility::forward<types>(arguments)...) {}
-
-                constexpr inline operator typename conditional_alias<is_array<alias_t>::value || is_function<alias_t>::value, alias_t, typename decayof<alias_t>::type>::type&(void) const except(false) { return const_cast<typename conditional_alias<is_array<alias_t>::value || is_function<alias_t>::value, alias_t&, typename decayof<alias_t>::type>::type&>(this -> valueOf()); }
+                constexpr inline operator typename baseof<alias_t, unsigned int>::type(void) const except(false) { return static_cast<typename baseof<alias_t, unsigned int>::type>(shadow_cast<alias_t>(*this)); }
+                constexpr inline specific operator typename add_lvalue_reference<alias_t>::type(void) const except(false) { return shadow_cast<alias_t>(*this); }
             };
 
-            template <typename alias_t> // -> For enumeration types.
-            struct shadow_deference<true, alias_t> : public shadow_layout_alias<alias_t>::type { public:
-                template <typename... types>
-                constexpr inline shadow_deference(types nodecay... arguments) except(false) : shadow_layout_alias<alias_t>::type super(Utility::forward<types>(arguments)...) {}
+            template <typename alias_t>
+            struct shadow_deference<deference_t::instantiated, alias_t> : public shadow_layout_t<alias_t>::type { public:
+                template <typename... types> constexpr inline shadow_deference(types nodecay... arguments) except(false) : shadow_layout_t<alias_t>::type super(forward<types>(arguments)...) {}
 
-                constexpr inline operator typename baseof<alias_t, unsigned int>::type(void) const except(false) { return static_cast<typename baseof<alias_t, unsigned int>::type>(this -> valueOf()); }
-                constexpr inline specific operator alias_t&(void) const except(false) { return const_cast<alias_t&>(this -> valueOf()); }
+                constexpr inline operator typename add_lvalue_reference<alias_t>::type(void) const except(false) { return shadow_cast<alias_t>(*this); }
+                template <typename subalias_t> constexpr inline specific operator subalias_t(void) const except(false) { return static_cast<subalias_t>(shadow_cast<alias_t>(*this)); }
             };
                 // ...
                 template <typename alias_t>
-                struct shadow_deference_alias final { public:
-                    typedef shadow_deference<is_enum<alias_t>::value, alias_t> type;
-                };
+                struct shadow_deference_t final : public alias<shadow_deference<
+                    is_enum<typename remove_qualifiers<alias_t>::type>::value ? deference_t::enumerated : deference_t::instantiated,
+                    alias_t
+                >> {};
 
             // [Overlay] ... -> Configure the behavior operator overloads of `shadow`.
-            template <typename alias_t> // -> For user-defined types.
-            struct shadow_overlay<false, alias_t> : public shadow_deference_alias<alias_t>::type {
-                protected:
-                    #if __CPP__VERSION__ >= 2011uL
-                        template <typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::address, subalias_t>::value, bool>::type = 0x0> constexpr inline static auto address(shadow_overlay const& shadow) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator &())) { return shadow.valueOf().operator &(); }
-                        template <typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::complement, subalias_t>::value, bool>::type = 0x0> constexpr inline static auto complement(shadow_overlay const& shadow) except(false) -> typeof(~(instanceof<shadow_overlay<false, subalias_t>>().valueOf())) { return ~(shadow.valueOf()); }
-                        template <typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::complement, subalias_t>::value, bool>::type = 0x0> constexpr inline static auto complement(shadow_overlay const& shadow) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator ~())) { return shadow.valueOf().operator ~(); }
-                        template <typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::dereference, subalias_t>::value, bool>::type = 0x0> constexpr inline static auto dereference(shadow_overlay const& shadow) except(false) -> typeof(*(instanceof<shadow_overlay<false, subalias_t>>().valueOf())) { return *(shadow.valueOf()); }
-                        template <typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::dereference, subalias_t>::value, bool>::type = 0x0> constexpr inline static auto dereference(shadow_overlay const& shadow) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator *())) { return shadow.valueOf().operator *(); }
-                        template <typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::negate, subalias_t>::value, bool>::type = 0x0> constexpr inline static auto negate(shadow_overlay const& shadow) except(false) -> typeof(!(instanceof<shadow_overlay<false, subalias_t>>().valueOf())) { return !(shadow.valueOf()); }
-                        template <typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::negate, subalias_t>::value, bool>::type = 0x0> constexpr inline static auto negate(shadow_overlay const& shadow) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator !())) { return shadow.valueOf().operator !(); }
-                        template <typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::post_decrement, subalias_t>::value, bool>::type = 0x0> constexpr inline static auto post_decrement(shadow_overlay const& shadow) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf())--) { return (shadow.valueOf())--; }
-                        template <typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::post_decrement, subalias_t>::value, bool>::type = 0x0> constexpr inline static auto post_decrement(shadow_overlay const& shadow) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator --(int super()))) { return shadow.valueOf().operator --(int super()); }
-                        template <typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::post_increment, subalias_t>::value, bool>::type = 0x0> constexpr inline static auto post_increment(shadow_overlay const& shadow) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf())++) { return (shadow.valueOf())++; }
-                        template <typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::post_increment, subalias_t>::value, bool>::type = 0x0> constexpr inline static auto post_increment(shadow_overlay const& shadow) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator ++(int super()))) { return shadow.valueOf().operator ++(int super()); }
-                        template <typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::pre_decrement, subalias_t>::value, bool>::type = 0x0> constexpr inline static auto pre_decrement(shadow_overlay const& shadow) except(false) -> typeof(--(instanceof<shadow_overlay<false, subalias_t>>().valueOf())) { return --(shadow.valueOf()); }
-                        template <typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::pre_decrement, subalias_t>::value, bool>::type = 0x0> constexpr inline static auto pre_decrement(shadow_overlay const& shadow) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator --())) { return shadow.valueOf().operator --(); }
-                        template <typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::pre_increment, subalias_t>::value, bool>::type = 0x0> constexpr inline static auto pre_increment(shadow_overlay const& shadow) except(false) -> typeof(++(instanceof<shadow_overlay<false, subalias_t>>().valueOf())) { return ++(shadow.valueOf()); }
-                        template <typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::pre_increment, subalias_t>::value, bool>::type = 0x0> constexpr inline static auto pre_increment(shadow_overlay const& shadow) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator ++())) { return shadow.valueOf().operator ++(); }
-                        template <typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::unary_add, subalias_t>::value, bool>::type = 0x0> constexpr inline static auto unary_add(shadow_overlay const& shadow) except(false) -> typeof(+(instanceof<shadow_overlay<false, subalias_t>>().valueOf())) { return +(shadow.valueOf()); }
-                        template <typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::unary_add, subalias_t>::value, bool>::type = 0x0> constexpr inline static auto unary_add(shadow_overlay const& shadow) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator +())) { return shadow.valueOf().operator +(); }
-                        template <typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::unary_subtract, subalias_t>::value, bool>::type = 0x0> constexpr inline static auto unary_subtract(shadow_overlay const& shadow) except(false) -> typeof(-(instanceof<shadow_overlay<false, subalias_t>>().valueOf())) { return -(shadow.valueOf()); }
-                        template <typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::unary_subtract, subalias_t>::value, bool>::type = 0x0> constexpr inline static auto unary_subtract(shadow_overlay const& shadow) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator -())) { return shadow.valueOf().operator -(); }
+            template <typename alias_t>
+            struct shadow_overlay<overlay_t::base, alias_t> : public shadow_deference_t<alias_t>::type { public:
+                template <typename... types> constexpr inline shadow_overlay(types nodecay... arguments) except(false) : shadow_deference_t<alias_t>::type super(forward<types>(arguments)...) {}
 
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::add, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto add(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() + disambiguate(value))) { return shadow.valueOf() + disambiguate(value); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::add, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto add(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator +(disambiguate(value)))) { return shadow.valueOf().operator +(disambiguate(value)); }
-                        template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline static auto add(type nodecay value, shadow_overlay const& shadow) except(false) -> typeof(disambiguate(value) + shadow.valueOf()) { return disambiguate(value) + shadow.valueOf(); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::bitwise_and, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto bitwise_and(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() & disambiguate(value))) { return shadow.valueOf() & disambiguate(value); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::bitwise_and, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto bitwise_and(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator &(disambiguate(value)))) { return shadow.valueOf().operator &(disambiguate(value)); }
-                        template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline static auto bitwise_and(type nodecay value, shadow_overlay const& shadow) except(false) -> typeof(disambiguate(value) & shadow.valueOf()) { return disambiguate(value) & shadow.valueOf(); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::bitwise_or, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto bitwise_or(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() | disambiguate(value))) { return shadow.valueOf() | disambiguate(value); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::bitwise_or, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto bitwise_or(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator |(disambiguate(value)))) { return shadow.valueOf().operator |(disambiguate(value)); }
-                        template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline static auto bitwise_or(type nodecay value, shadow_overlay const& shadow) except(false) -> typeof(disambiguate(value) | shadow.valueOf()) { return disambiguate(value) | shadow.valueOf(); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::bitwise_xor, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto bitwise_xor(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() ^ disambiguate(value))) { return shadow.valueOf() ^ disambiguate(value); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::bitwise_xor, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto bitwise_xor(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator ^(disambiguate(value)))) { return shadow.valueOf().operator ^(disambiguate(value)); }
-                        template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline static auto bitwise_xor(type nodecay value, shadow_overlay const& shadow) except(false) -> typeof(disambiguate(value) ^ shadow.valueOf()) { return disambiguate(value) ^ shadow.valueOf(); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::boolean_and, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto boolean_and(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() && disambiguate(value))) { return shadow.valueOf() && disambiguate(value); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::boolean_and, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto boolean_and(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator &&(disambiguate(value)))) { return shadow.valueOf().operator &&(disambiguate(value)); }
-                        template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline static auto boolean_and(type nodecay value, shadow_overlay const& shadow) except(false) -> typeof(disambiguate(value) && shadow.valueOf()) { return disambiguate(value) && shadow.valueOf(); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::boolean_or, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto boolean_or(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() || disambiguate(value))) { return shadow.valueOf() || disambiguate(value); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::boolean_or, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto boolean_or(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator ||(disambiguate(value)))) { return shadow.valueOf().operator ||(disambiguate(value)); }
-                        template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline static auto boolean_or(type nodecay value, shadow_overlay const& shadow) except(false) -> typeof(disambiguate(value) || shadow.valueOf()) { return disambiguate(value) || shadow.valueOf(); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::comma, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto comma(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf(), disambiguate(value))) { return shadow.valueOf(), disambiguate(value); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::comma, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto comma(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator ,(disambiguate(value)))) { return shadow.valueOf().operator ,(disambiguate(value)); }
-                        template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline static auto comma(type nodecay value, shadow_overlay const& shadow) except(false) -> typeof((disambiguate(value), shadow.valueOf())) { return disambiguate(value), shadow.valueOf(); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::divide, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto divide(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() / disambiguate(value))) { return shadow.valueOf() / disambiguate(value); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::divide, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto divide(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator /(disambiguate(value)))) { return shadow.valueOf().operator /(disambiguate(value)); }
-                        template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline static auto divide(type nodecay value, shadow_overlay const& shadow) except(false) -> typeof(disambiguate(value) / shadow.valueOf()) { return disambiguate(value) / shadow.valueOf(); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::equal, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto equal(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() == disambiguate(value))) { return shadow.valueOf() == disambiguate(value); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::equal, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto equal(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator ==(disambiguate(value)))) { return shadow.valueOf().operator ==(disambiguate(value)); }
-                        template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline static auto equal(type nodecay value, shadow_overlay const& shadow) except(false) -> typeof(disambiguate(value) == shadow.valueOf()) { return disambiguate(value) == shadow.valueOf(); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::greater, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto greater(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() > disambiguate(value))) { return shadow.valueOf() > disambiguate(value); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::greater, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto greater(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator >(disambiguate(value)))) { return shadow.valueOf().operator >(disambiguate(value)); }
-                        template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline static auto greater(type nodecay value, shadow_overlay const& shadow) except(false) -> typeof(disambiguate(value) > shadow.valueOf()) { return disambiguate(value) > shadow.valueOf(); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::greater_equal, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto greater_equal(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() >= disambiguate(value))) { return shadow.valueOf() >= disambiguate(value); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::greater_equal, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto greater_equal(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator >=(disambiguate(value)))) { return shadow.valueOf().operator >=(disambiguate(value)); }
-                        template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline static auto greater_equal(type nodecay value, shadow_overlay const& shadow) except(false) -> typeof(disambiguate(value) >= shadow.valueOf()) { return disambiguate(value) >= shadow.valueOf(); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::left_shift, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto left_shift(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() << disambiguate(value))) { return shadow.valueOf() << disambiguate(value); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::left_shift, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto left_shift(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator <<(disambiguate(value)))) { return shadow.valueOf().operator <<(disambiguate(value)); }
-                        template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline static auto left_shift(type nodecay value, shadow_overlay const& shadow) except(false) -> typeof(disambiguate(value) << shadow.valueOf()) { return disambiguate(value) << shadow.valueOf(); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::lesser, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto lesser(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() < disambiguate(value))) { return shadow.valueOf() < disambiguate(value); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::lesser, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto lesser(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator <(disambiguate(value)))) { return shadow.valueOf().operator <(disambiguate(value)); }
-                        template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline static auto lesser(type nodecay value, shadow_overlay const& shadow) except(false) -> typeof(disambiguate(value) < shadow.valueOf()) { return disambiguate(value) < shadow.valueOf(); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::lesser_equal, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto lesser_equal(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() <= disambiguate(value))) { return shadow.valueOf() <= disambiguate(value); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::lesser_equal, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto lesser_equal(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator <=(disambiguate(value)))) { return shadow.valueOf().operator <=(disambiguate(value)); }
-                        template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline static auto lesser_equal(type nodecay value, shadow_overlay const& shadow) except(false) -> typeof(disambiguate(value) <= shadow.valueOf()) { return disambiguate(value) <= shadow.valueOf(); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::modulo, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto modulo(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() % disambiguate(value))) { return shadow.valueOf() % disambiguate(value); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::modulo, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto modulo(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator %(disambiguate(value)))) { return shadow.valueOf().operator %(disambiguate(value)); }
-                        template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline static auto modulo(type nodecay value, shadow_overlay const& shadow) except(false) -> typeof(disambiguate(value) % shadow.valueOf()) { return disambiguate(value) % shadow.valueOf(); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::multiply, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto multiply(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() * disambiguate(value))) { return shadow.valueOf() * disambiguate(value); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::multiply, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto multiply(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator *(disambiguate(value)))) { return shadow.valueOf().operator *(disambiguate(value)); }
-                        template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline static auto multiply(type nodecay value, shadow_overlay const& shadow) except(false) -> typeof(disambiguate(value) * shadow.valueOf()) { return disambiguate(value) * shadow.valueOf(); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::negate_equal, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto negate_equal(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() != disambiguate(value))) { return shadow.valueOf() != disambiguate(value); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::negate_equal, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto negate_equal(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator !=(disambiguate(value)))) { return shadow.valueOf().operator !=(disambiguate(value)); }
-                        template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline static auto negate_equal(type nodecay value, shadow_overlay const& shadow) except(false) -> typeof(disambiguate(value) != shadow.valueOf()) { return disambiguate(value) != shadow.valueOf(); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::right_shift, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto right_shift(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() >> disambiguate(value))) { return shadow.valueOf() >> disambiguate(value); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::right_shift, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto right_shift(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator >>(disambiguate(value)))) { return shadow.valueOf().operator >>(disambiguate(value)); }
-                        template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline static auto right_shift(type nodecay value, shadow_overlay const& shadow) except(false) -> typeof(disambiguate(value) >> shadow.valueOf()) { return disambiguate(value) >> shadow.valueOf(); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::subtract, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto subtract(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() - disambiguate(value))) { return shadow.valueOf() - disambiguate(value); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::subtract, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto subtract(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator -(disambiguate(value)))) { return shadow.valueOf().operator -(disambiguate(value)); }
-                        template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline static auto subtract(type nodecay value, shadow_overlay const& shadow) except(false) -> typeof(disambiguate(value) - shadow.valueOf()) { return disambiguate(value) - shadow.valueOf(); }
+                template <typename subalias_t = alias_t> constexpr friend inline typeof(+shadow_cast<subalias_t>(instanceof<shadow_overlay const>())) operator +(shadow_overlay const& shadow) except(false) { return +shadow_cast<alias_t>(shadow); }
+                template <typename subalias_t = alias_t> constexpr friend inline typeof(-shadow_cast<subalias_t>(instanceof<shadow_overlay const>())) operator -(shadow_overlay const& shadow) except(false) { return -shadow_cast<alias_t>(shadow); }
+                template <typename subalias_t = alias_t> constexpr friend inline typeof(*shadow_cast<subalias_t>(instanceof<shadow_overlay const>())) operator *(shadow_overlay const& shadow) except(false) { return *shadow_cast<alias_t>(shadow); }
+                template <typename subalias_t = alias_t> constexpr friend inline typeof(~shadow_cast<subalias_t>(instanceof<shadow_overlay const>())) operator ~(shadow_overlay const& shadow) except(false) { return ~shadow_cast<alias_t>(shadow); }
+                template <typename subalias_t = alias_t> constexpr friend inline typeof(!shadow_cast<subalias_t>(instanceof<shadow_overlay const>())) operator !(shadow_overlay const& shadow) except(false) { return !shadow_cast<alias_t>(shadow); }
+                template <typename subalias_t = alias_t> constexpr inline typeof(shadow_cast<subalias_t>(instanceof<shadow_overlay const>())) operator ->(void) const except(false) { return shadow_cast<alias_t>(*this); }
+                template <typename subalias_t = alias_t> constexpr friend inline typeof(++shadow_cast<subalias_t>(instanceof<shadow_overlay const>())) operator ++(shadow_overlay const& shadow) except(false) { return ++shadow_cast<alias_t>(shadow); }
+                template <typename subalias_t = alias_t> constexpr friend inline typeof(shadow_cast<subalias_t>(instanceof<shadow_overlay const>())++) operator ++(shadow_overlay const& shadow, int const) except(false) { return shadow_cast<alias_t>(shadow)++; }
+                template <typename subalias_t = alias_t> constexpr friend inline typeof(--shadow_cast<subalias_t>(instanceof<shadow_overlay const>())) operator --(shadow_overlay const& shadow) except(false) { return --shadow_cast<alias_t>(shadow); }
+                template <typename subalias_t = alias_t> constexpr friend inline typeof(shadow_cast<subalias_t>(instanceof<shadow_overlay const>())--) operator --(shadow_overlay const& shadow, int const) except(false) { return shadow_cast<alias_t>(shadow)--; }
 
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::add_assign, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto add_assign(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() += disambiguate(value))) { return shadow.valueOf() += disambiguate(value); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::add_assign, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto add_assign(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator +=(disambiguate(value)))) { return shadow.valueOf().operator +=(disambiguate(value)); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::assign, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto assign(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() = disambiguate(value))) { return shadow.valueOf() = disambiguate(value); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::assign, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto assign(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator =(disambiguate(value)))) { return shadow.valueOf().operator =(disambiguate(value)); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::bitwise_and_assign, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto bitwise_and_assign(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() &= disambiguate(value))) { return shadow.valueOf() &= disambiguate(value); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::bitwise_and_assign, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto bitwise_and_assign(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator &=(disambiguate(value)))) { return shadow.valueOf().operator &=(disambiguate(value)); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::bitwise_or_assign, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto bitwise_or_assign(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() |= disambiguate(value))) { return shadow.valueOf() |= disambiguate(value); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::bitwise_or_assign, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto bitwise_or_assign(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator |=(disambiguate(value)))) { return shadow.valueOf().operator |=(disambiguate(value)); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::bitwise_xor_assign, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto bitwise_xor_assign(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() ^= disambiguate(value))) { return shadow.valueOf() ^= disambiguate(value); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::bitwise_xor_assign, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto bitwise_xor_assign(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator ^=(disambiguate(value)))) { return shadow.valueOf().operator ^=(disambiguate(value)); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::divide_assign, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto divide_assign(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() /= disambiguate(value))) { return shadow.valueOf() /= disambiguate(value); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::divide_assign, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto divide_assign(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator /=(disambiguate(value)))) { return shadow.valueOf().operator /=(disambiguate(value)); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::left_shift_assign, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto left_shift_assign(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() <<= disambiguate(value))) { return shadow.valueOf() <<= disambiguate(value); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::left_shift_assign, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto left_shift_assign(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator <<=(disambiguate(value)))) { return shadow.valueOf().operator <<=(disambiguate(value)); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::modulo_assign, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto modulo_assign(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() %= disambiguate(value))) { return shadow.valueOf() %= disambiguate(value); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::modulo_assign, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto modulo_assign(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator %=(disambiguate(value)))) { return shadow.valueOf().operator %=(disambiguate(value)); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::multiply_assign, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto multiply_assign(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() *= disambiguate(value))) { return shadow.valueOf() *= disambiguate(value); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::multiply_assign, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto multiply_assign(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator *=(disambiguate(value)))) { return shadow.valueOf().operator *=(disambiguate(value)); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::right_shift_assign, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto right_shift_assign(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() >>= disambiguate(value))) { return shadow.valueOf() >>= disambiguate(value); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::right_shift_assign, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto right_shift_assign(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator >>=(disambiguate(value)))) { return shadow.valueOf().operator >>=(disambiguate(value)); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::subtract_assign, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto subtract_assign(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() -= disambiguate(value))) { return shadow.valueOf() -= disambiguate(value); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::subtract_assign, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto subtract_assign(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator -=(disambiguate(value)))) { return shadow.valueOf().operator -=(disambiguate(value)); }
+                template <typename type, typename subalias_t = alias_t> constexpr friend inline typeof(shadow_cast<subalias_t>(instanceof<shadow_overlay const>()) + disambiguate(instanceof<type>())) operator +(shadow_overlay<overlay_t::base, subalias_t> const& shadow, type nodecay value) except(false) { return shadow_cast<alias_t>(shadow) + disambiguate(value); }
+                template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr friend inline typeof(instanceof<type>() + shadow_cast<subalias_t>(instanceof<shadow_overlay const>())) operator +(type nodecay value, shadow_overlay const& shadow) except(false) { return value + shadow_cast<alias_t>(shadow); }
+                template <typename type, typename subalias_t = alias_t> constexpr friend inline typeof(shadow_cast<subalias_t>(instanceof<shadow_overlay const>()) - disambiguate(instanceof<type>())) operator -(shadow_overlay<overlay_t::base, subalias_t> const& shadow, type nodecay value) except(false) { return shadow_cast<alias_t>(shadow) - disambiguate(value); }
+                template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr friend inline typeof(instanceof<type>() - shadow_cast<subalias_t>(instanceof<shadow_overlay const>())) operator -(type nodecay value, shadow_overlay const& shadow) except(false) { return value - shadow_cast<alias_t>(shadow); }
+                template <typename type, typename subalias_t = alias_t> constexpr friend inline typeof(shadow_cast<subalias_t>(instanceof<shadow_overlay const>()) * disambiguate(instanceof<type>())) operator *(shadow_overlay<overlay_t::base, subalias_t> const& shadow, type nodecay value) except(false) { return shadow_cast<alias_t>(shadow) * disambiguate(value); }
+                template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr friend inline typeof(instanceof<type>() * shadow_cast<subalias_t>(instanceof<shadow_overlay const>())) operator *(type nodecay value, shadow_overlay const& shadow) except(false) { return value * shadow_cast<alias_t>(shadow); }
+                template <typename type, typename subalias_t = alias_t> constexpr friend inline typeof(shadow_cast<subalias_t>(instanceof<shadow_overlay const>()) / disambiguate(instanceof<type>())) operator /(shadow_overlay<overlay_t::base, subalias_t> const& shadow, type nodecay value) except(false) { return shadow_cast<alias_t>(shadow) / disambiguate(value); }
+                template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr friend inline typeof(instanceof<type>() / shadow_cast<subalias_t>(instanceof<shadow_overlay const>())) operator /(type nodecay value, shadow_overlay const& shadow) except(false) { return value / shadow_cast<alias_t>(shadow); }
+                template <typename type, typename subalias_t = alias_t> constexpr friend inline typeof(shadow_cast<subalias_t>(instanceof<shadow_overlay const>()) % disambiguate(instanceof<type>())) operator %(shadow_overlay<overlay_t::base, subalias_t> const& shadow, type nodecay value) except(false) { return shadow_cast<alias_t>(shadow) % disambiguate(value); }
+                template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr friend inline typeof(instanceof<type>() % shadow_cast<subalias_t>(instanceof<shadow_overlay const>())) operator %(type nodecay value, shadow_overlay const& shadow) except(false) { return value % shadow_cast<alias_t>(shadow); }
+                template <typename type, typename subalias_t = alias_t> constexpr friend inline typeof(shadow_cast<subalias_t>(instanceof<shadow_overlay const>()) & disambiguate(instanceof<type>())) operator &(shadow_overlay<overlay_t::base, subalias_t> const& shadow, type nodecay value) except(false) { return shadow_cast<alias_t>(shadow) & disambiguate(value); }
+                template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr friend inline typeof(instanceof<type>() & shadow_cast<subalias_t>(instanceof<shadow_overlay const>())) operator &(type nodecay value, shadow_overlay const& shadow) except(false) { return value & shadow_cast<alias_t>(shadow); }
+                template <typename type, typename subalias_t = alias_t> constexpr friend inline typeof(shadow_cast<subalias_t>(instanceof<shadow_overlay const>()) | disambiguate(instanceof<type>())) operator |(shadow_overlay<overlay_t::base, subalias_t> const& shadow, type nodecay value) except(false) { return shadow_cast<alias_t>(shadow) | disambiguate(value); }
+                template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr friend inline typeof(instanceof<type>() | shadow_cast<subalias_t>(instanceof<shadow_overlay const>())) operator |(type nodecay value, shadow_overlay const& shadow) except(false) { return value | shadow_cast<alias_t>(shadow); }
+                template <typename type, typename subalias_t = alias_t> constexpr friend inline typeof(shadow_cast<subalias_t>(instanceof<shadow_overlay const>()) ^ disambiguate(instanceof<type>())) operator ^(shadow_overlay<overlay_t::base, subalias_t> const& shadow, type nodecay value) except(false) { return shadow_cast<alias_t>(shadow) ^ disambiguate(value); }
+                template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr friend inline typeof(instanceof<type>() ^ shadow_cast<subalias_t>(instanceof<shadow_overlay const>())) operator ^(type nodecay value, shadow_overlay const& shadow) except(false) { return value ^ shadow_cast<alias_t>(shadow); }
+                template <typename type, typename subalias_t = alias_t> constexpr friend inline typeof(shadow_cast<subalias_t>(instanceof<shadow_overlay const>()) << disambiguate(instanceof<type>())) operator <<(shadow_overlay<overlay_t::base, subalias_t> const& shadow, type nodecay value) except(false) { return shadow_cast<alias_t>(shadow) << disambiguate(value); }
+                template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr friend inline typeof(instanceof<type>() << shadow_cast<subalias_t>(instanceof<shadow_overlay const>())) operator <<(type nodecay value, shadow_overlay const& shadow) except(false) { return value << shadow_cast<alias_t>(shadow); }
+                template <typename type, typename subalias_t = alias_t> constexpr friend inline typeof(shadow_cast<subalias_t>(instanceof<shadow_overlay const>()) >> disambiguate(instanceof<type>())) operator >>(shadow_overlay<overlay_t::base, subalias_t> const& shadow, type nodecay value) except(false) { return shadow_cast<alias_t>(shadow) >> disambiguate(value); }
+                template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr friend inline typeof(instanceof<type>() >> shadow_cast<subalias_t>(instanceof<shadow_overlay const>())) operator >>(type nodecay value, shadow_overlay const& shadow) except(false) { return value >> shadow_cast<alias_t>(shadow); }
+                template <typename type, typename subalias_t = alias_t> constexpr friend inline bool operator ==(shadow_overlay<overlay_t::base, subalias_t> const& shadow, type nodecay value) except(false) { return shadow_cast<alias_t>(shadow) == disambiguate(value); }
+                template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr friend inline bool operator ==(type nodecay value, shadow_overlay const& shadow) except(false) { return value == shadow_cast<alias_t>(shadow); }
+                template <typename type, typename subalias_t = alias_t> constexpr friend inline bool operator !=(shadow_overlay<overlay_t::base, subalias_t> const& shadow, type nodecay value) except(false) { return shadow_cast<alias_t>(shadow) != disambiguate(value); }
+                template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr friend inline bool operator !=(type nodecay value, shadow_overlay const& shadow) except(false) { return value != shadow_cast<alias_t>(shadow); }
+                template <typename type, typename subalias_t = alias_t> constexpr friend inline bool operator <(shadow_overlay<overlay_t::base, subalias_t> const& shadow, type nodecay value) except(false) { return shadow_cast<alias_t>(shadow) < disambiguate(value); }
+                template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr friend inline bool operator <(type nodecay value, shadow_overlay const& shadow) except(false) { return value < shadow_cast<alias_t>(shadow); }
+                template <typename type, typename subalias_t = alias_t> constexpr friend inline bool operator >(shadow_overlay<overlay_t::base, subalias_t> const& shadow, type nodecay value) except(false) { return shadow_cast<alias_t>(shadow) > disambiguate(value); }
+                template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr friend inline bool operator >(type nodecay value, shadow_overlay const& shadow) except(false) { return value > shadow_cast<alias_t>(shadow); }
+                template <typename type, typename subalias_t = alias_t> constexpr friend inline bool operator <=(shadow_overlay<overlay_t::base, subalias_t> const& shadow, type nodecay value) except(false) { return shadow_cast<alias_t>(shadow) <= disambiguate(value); }
+                template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr friend inline bool operator <=(type nodecay value, shadow_overlay const& shadow) except(false) { return value <= shadow_cast<alias_t>(shadow); }
+                template <typename type, typename subalias_t = alias_t> constexpr friend inline bool operator >=(shadow_overlay<overlay_t::base, subalias_t> const& shadow, type nodecay value) except(false) { return shadow_cast<alias_t>(shadow) >= disambiguate(value); }
+                template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr friend inline bool operator >=(type nodecay value, shadow_overlay const& shadow) except(false) { return value >= shadow_cast<alias_t>(shadow); }
+                template <typename type, typename subalias_t = alias_t> constexpr friend inline bool operator &&(shadow_overlay<overlay_t::base, subalias_t> const& shadow, type nodecay value) except(false) { return shadow_cast<alias_t>(shadow) && disambiguate(value); }
+                template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr friend inline bool operator &&(type nodecay value, shadow_overlay const& shadow) except(false) { return value && shadow_cast<alias_t>(shadow); }
+                template <typename type, typename subalias_t = alias_t> constexpr friend inline bool operator ||(shadow_overlay<overlay_t::base, subalias_t> const& shadow, type nodecay value) except(false) { return shadow_cast<alias_t>(shadow) || disambiguate(value); }
+                template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr friend inline bool operator ||(type nodecay value, shadow_overlay const& shadow) except(false) { return value || shadow_cast<alias_t>(shadow); }
+                template <typename type, typename subalias_t = alias_t> constexpr friend inline typeof(shadow_cast<subalias_t>(instanceof<shadow_overlay const>()) ->* disambiguate(instanceof<type>())) operator ->*(shadow_overlay const& shadow, type nodecay value) except(false) { return shadow_cast<alias_t>(shadow) ->* disambiguate(value); }
+                template <typename type, typename subalias_t = alias_t> constexpr friend inline typeof((shadow_cast<subalias_t>(instanceof<shadow_overlay const>()), disambiguate(instanceof<type>()))) operator ,(shadow_overlay<overlay_t::base, subalias_t> const& shadow, type nodecay value) except(false) { return shadow_cast<alias_t>(shadow), disambiguate(value); }
+                template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr friend inline typeof((instanceof<type>(), shadow_cast<subalias_t>(instanceof<shadow_overlay const>()))) operator ,(type nodecay value, shadow_overlay const& shadow) except(false) { return value, shadow_cast<alias_t>(shadow); }
+                template <typename type, typename subalias_t = alias_t> constexpr inline typeof(shadow_cast<subalias_t>(instanceof<shadow_overlay const>())[disambiguate(instanceof<type>())]) operator [](type nodecay index) const except(false) { return shadow_cast<alias_t>(*this)[disambiguate(index)]; }
+                template <typename subalias_t = alias_t, typename... types> constexpr inline typeof((shadow_cast<subalias_t>(instanceof<shadow_overlay const>()))(instanceof<types>()...)) operator ()(types nodecay... arguments) const except(false) { return (shadow_cast<alias_t>(*this))(forward<types>(arguments)...); }
+                #if __CPP__VERSION__ >= 2020uL
+                    template <typename type, typename subalias_t = alias_t> constexpr friend inline typeof(shadow_cast<subalias_t>(instanceof<shadow_overlay const>()) <=> disambiguate(instanceof<type>())) operator <=>(shadow_overlay<overlay_t::base, subalias_t> const& shadow, type nodecay value) except(false) { return shadow_cast<alias_t>(shadow) <=> disambiguate(value); }
+                    template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr friend inline typeof(instanceof<type>() <=> shadow_cast<subalias_t>(instanceof<shadow_overlay const>())) operator <=>(type nodecay value, shadow_overlay const& shadow) except(false) { return value <=> shadow_cast<alias_t>(shadow); }
+                #endif
 
-                        template <typename subalias_t = alias_t, typename... types> constexpr inline static auto call(shadow_overlay const& shadow, types nodecay... arguments) except(false) -> typename conditional_alias<false == has_operator<shadow_overlay_t::call, alias_t, types...>::value, typeof(((instanceof<shadow_overlay<false, subalias_t>>().valueOf())(instanceof<types>()...)))>::type { return (shadow.valueOf())(forward<types>(arguments)...); }
-                        template <typename subalias_t = alias_t, typename... types> constexpr inline static auto call(shadow_overlay const& shadow, types nodecay... arguments) except(false) -> typename conditional_alias<true == has_operator<shadow_overlay_t::call, alias_t, types...>::value, typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator ()(instanceof<types>()...)))>::type { return shadow.valueOf().operator ()(forward<types>(arguments)...); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::pointer_to_member, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto pointer_to_member(shadow_overlay const& shadow, type nodecay object) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() ->* disambiguate(object))) { return shadow.valueOf() ->* disambiguate(object); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::pointer_to_member, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto pointer_to_member(shadow_overlay const& shadow, type nodecay object) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator ->*(disambiguate(object)))) { return shadow.valueOf().operator ->*(disambiguate(object)); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::subscript, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto subscript(shadow_overlay const& shadow, type nodecay index) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf()[disambiguate(index)])) { return shadow.valueOf()[disambiguate(index)]; }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::subscript, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto subscript(shadow_overlay const& shadow, type nodecay index) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator [](disambiguate(index)))) { return shadow.valueOf().operator [](disambiguate(index)); }
-                    #endif
-                    #if __CPP__VERSION__ >= 2020uL
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == has_operator<shadow_overlay_t::ternary_equal, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto ternary_equal(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() <=> disambiguate(value))) { return shadow.valueOf() <=> disambiguate(value); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<true == has_operator<shadow_overlay_t::ternary_equal, alias_t, type>::value, bool>::type = 0x0> constexpr inline static auto ternary_equal(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf().operator <=>(disambiguate(value)))) { return shadow.valueOf().operator <=>(disambiguate(value)); }
-                        template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline static auto ternary_equal(type nodecay value, shadow_overlay const& shadow) except(false) -> typeof(disambiguate(value) <=> shadow.valueOf()) { return disambiguate(value) <=> shadow.valueOf(); }
-                    #endif
-
-                public:
-                    template <typename... types>
-                    constexpr inline shadow_overlay(types nodecay... arguments) except(false) : shadow_deference_alias<alias_t>::type super(Utility::forward<types>(arguments)...) {}
-
-                    constexpr inline typename remove_reference<alias_t>::type& operator ->(void) const except(false) { return this -> valueOf(); }
-                    #if __CPP__VERSION__ >= 2011uL
-                        template <typename subalias_t = alias_t> constexpr friend inline auto operator +(shadow_overlay const& shadow) except(false) -> typeof((shadow_overlay<false, subalias_t>::unary_add(shadow))) { return shadow_overlay::unary_add(shadow); }
-                        template <typename subalias_t = alias_t> constexpr friend inline auto operator -(shadow_overlay const& shadow) except(false) -> typeof((shadow_overlay<false, subalias_t>::unary_subtract(shadow))) { return shadow_overlay::unary_subtract(shadow); }
-                        template <typename subalias_t = alias_t> constexpr friend inline auto operator *(shadow_overlay const& shadow) except(false) -> typeof((shadow_overlay<false, subalias_t>::dereference(shadow))) { return shadow_overlay::dereference(shadow); }
-                        template <typename subalias_t = alias_t> constexpr friend inline auto operator &(shadow_overlay const& shadow) except(false) -> typeof((shadow_overlay<false, subalias_t>::address(shadow))) { return shadow_overlay::address(shadow); }
-                        template <typename subalias_t = alias_t> constexpr friend inline auto operator ~(shadow_overlay const& shadow) except(false) -> typeof((shadow_overlay<false, subalias_t>::complement(shadow))) { return shadow_overlay::complement(shadow); }
-                        template <typename subalias_t = alias_t> constexpr friend inline auto operator !(shadow_overlay const& shadow) except(false) -> typeof((shadow_overlay<false, subalias_t>::negate(shadow))) { return shadow_overlay::negate(shadow); }
-                        template <typename subalias_t = alias_t> constexpr friend inline auto operator ++(shadow_overlay const& shadow) except(false) -> typeof((shadow_overlay<false, subalias_t>::pre_increment(shadow))) { return shadow_overlay::pre_increment(shadow); }
-                        template <typename subalias_t = alias_t> constexpr friend inline auto operator ++(shadow_overlay const& shadow, int const) except(false) -> typeof((shadow_overlay<false, subalias_t>::post_increment(shadow))) { return shadow_overlay::post_increment(shadow); }
-                        template <typename subalias_t = alias_t> constexpr friend inline auto operator --(shadow_overlay const& shadow) except(false) -> typeof((shadow_overlay<false, subalias_t>::pre_decrement(shadow))) { return shadow_overlay::pre_decrement(shadow); }
-                        template <typename subalias_t = alias_t> constexpr friend inline auto operator --(shadow_overlay const& shadow, int const) except(false) -> typeof((shadow_overlay<false, subalias_t>::post_decrement(shadow))) { return shadow_overlay::post_decrement(shadow); }
-
-                        template <typename type, typename subalias_t = alias_t> constexpr friend inline auto operator +(shadow_overlay<false, subalias_t> const& shadow, type nodecay value) except(false) -> typeof((shadow_overlay<false, subalias_t>::add(shadow, forward<type>(value)))) { return shadow_overlay::add(shadow, forward<type>(value)); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr friend inline auto operator +(type nodecay value, shadow_overlay<false, subalias_t> const& shadow) except(false) -> typeof((shadow_overlay<false, subalias_t>::add(forward<type>(value), shadow))) { return shadow_overlay::add(forward<type>(value), shadow); }
-                        template <typename type, typename subalias_t = alias_t> constexpr friend inline auto operator -(shadow_overlay<false, subalias_t> const& shadow, type nodecay value) except(false) -> typeof((shadow_overlay<false, subalias_t>::subtract(shadow, forward<type>(value)))) { return shadow_overlay::subtract(shadow, forward<type>(value)); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr friend inline auto operator -(type nodecay value, shadow_overlay<false, subalias_t> const& shadow) except(false) -> typeof((shadow_overlay<false, subalias_t>::subtract(forward<type>(value), shadow))) { return shadow_overlay::subtract(forward<type>(value), shadow); }
-                        template <typename type, typename subalias_t = alias_t> constexpr friend inline auto operator *(shadow_overlay<false, subalias_t> const& shadow, type nodecay value) except(false) -> typeof((shadow_overlay<false, subalias_t>::multiply(shadow, forward<type>(value)))) { return shadow_overlay::multiply(shadow, forward<type>(value)); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr friend inline auto operator *(type nodecay value, shadow_overlay<false, subalias_t> const& shadow) except(false) -> typeof((shadow_overlay<false, subalias_t>::multiply(forward<type>(value), shadow))) { return shadow_overlay::multiply(forward<type>(value), shadow); }
-                        template <typename type, typename subalias_t = alias_t> constexpr friend inline auto operator /(shadow_overlay<false, subalias_t> const& shadow, type nodecay value) except(false) -> typeof((shadow_overlay<false, subalias_t>::divide(shadow, forward<type>(value)))) { return shadow_overlay::divide(shadow, forward<type>(value)); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr friend inline auto operator /(type nodecay value, shadow_overlay<false, subalias_t> const& shadow) except(false) -> typeof((shadow_overlay<false, subalias_t>::divide(forward<type>(value), shadow))) { return shadow_overlay::divide(forward<type>(value), shadow); }
-                        template <typename type, typename subalias_t = alias_t> constexpr friend inline auto operator %(shadow_overlay<false, subalias_t> const& shadow, type nodecay value) except(false) -> typeof((shadow_overlay<false, subalias_t>::modulo(shadow, forward<type>(value)))) { return shadow_overlay::modulo(shadow, forward<type>(value)); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr friend inline auto operator %(type nodecay value, shadow_overlay<false, subalias_t> const& shadow) except(false) -> typeof((shadow_overlay<false, subalias_t>::modulo(forward<type>(value), shadow))) { return shadow_overlay::modulo(forward<type>(value), shadow); }
-                        template <typename type, typename subalias_t = alias_t> constexpr friend inline auto operator &(shadow_overlay<false, subalias_t> const& shadow, type nodecay value) except(false) -> typeof((shadow_overlay<false, subalias_t>::bitwise_and(shadow, forward<type>(value)))) { return shadow_overlay::bitwise_and(shadow, forward<type>(value)); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr friend inline auto operator &(type nodecay value, shadow_overlay<false, subalias_t> const& shadow) except(false) -> typeof((shadow_overlay<false, subalias_t>::bitwise_and(forward<type>(value), shadow))) { return shadow_overlay::bitwise_and(forward<type>(value), shadow); }
-                        template <typename type, typename subalias_t = alias_t> constexpr friend inline auto operator |(shadow_overlay<false, subalias_t> const& shadow, type nodecay value) except(false) -> typeof((shadow_overlay<false, subalias_t>::bitwise_or(shadow, forward<type>(value)))) { return shadow_overlay::bitwise_or(shadow, forward<type>(value)); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr friend inline auto operator |(type nodecay value, shadow_overlay<false, subalias_t> const& shadow) except(false) -> typeof((shadow_overlay<false, subalias_t>::bitwise_or(forward<type>(value), shadow))) { return shadow_overlay::bitwise_or(forward<type>(value), shadow); }
-                        template <typename type, typename subalias_t = alias_t> constexpr friend inline auto operator ^(shadow_overlay<false, subalias_t> const& shadow, type nodecay value) except(false) -> typeof((shadow_overlay<false, subalias_t>::bitwise_xor(shadow, forward<type>(value)))) { return shadow_overlay::bitwise_xor(shadow, forward<type>(value)); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr friend inline auto operator ^(type nodecay value, shadow_overlay<false, subalias_t> const& shadow) except(false) -> typeof((shadow_overlay<false, subalias_t>::bitwise_xor(forward<type>(value), shadow))) { return shadow_overlay::bitwise_xor(forward<type>(value), shadow); }
-                        template <typename type, typename subalias_t = alias_t> constexpr friend inline auto operator <<(shadow_overlay<false, subalias_t> const& shadow, type nodecay value) except(false) -> typeof((shadow_overlay<false, subalias_t>::left_shift(shadow, forward<type>(value)))) { return shadow_overlay::left_shift(shadow, forward<type>(value)); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr friend inline auto operator <<(type nodecay value, shadow_overlay<false, subalias_t> const& shadow) except(false) -> typeof((shadow_overlay<false, subalias_t>::left_shift(forward<type>(value), shadow))) { return shadow_overlay::left_shift(forward<type>(value), shadow); }
-                        template <typename type, typename subalias_t = alias_t> constexpr friend inline auto operator >>(shadow_overlay<false, subalias_t> const& shadow, type nodecay value) except(false) -> typeof((shadow_overlay<false, subalias_t>::right_shift(shadow, forward<type>(value)))) { return shadow_overlay::right_shift(shadow, forward<type>(value)); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr friend inline auto operator >>(type nodecay value, shadow_overlay<false, subalias_t> const& shadow) except(false) -> typeof((shadow_overlay<false, subalias_t>::right_shift(forward<type>(value), shadow))) { return shadow_overlay::right_shift(forward<type>(value), shadow); }
-                        template <typename type, typename subalias_t = alias_t> constexpr friend inline auto operator ==(shadow_overlay<false, subalias_t> const& shadow, type nodecay value) except(false) -> typeof((shadow_overlay<false, subalias_t>::equal(shadow, forward<type>(value)))) { return shadow_overlay::equal(shadow, forward<type>(value)); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr friend inline auto operator ==(type nodecay value, shadow_overlay<false, subalias_t> const& shadow) except(false) -> typeof((shadow_overlay<false, subalias_t>::equal(forward<type>(value), shadow))) { return shadow_overlay::equal(forward<type>(value), shadow); }
-                        template <typename type, typename subalias_t = alias_t> constexpr friend inline auto operator !=(shadow_overlay<false, subalias_t> const& shadow, type nodecay value) except(false) -> typeof((shadow_overlay<false, subalias_t>::negate_equal(shadow, forward<type>(value)))) { return shadow_overlay::negate_equal(shadow, forward<type>(value)); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr friend inline auto operator !=(type nodecay value, shadow_overlay<false, subalias_t> const& shadow) except(false) -> typeof((shadow_overlay<false, subalias_t>::negate_equal(forward<type>(value), shadow))) { return shadow_overlay::negate_equal(forward<type>(value), shadow); }
-                        template <typename type, typename subalias_t = alias_t> constexpr friend inline auto operator <(shadow_overlay<false, subalias_t> const& shadow, type nodecay value) except(false) -> typeof((shadow_overlay<false, subalias_t>::lesser(shadow, forward<type>(value)))) { return shadow_overlay::lesser(shadow, forward<type>(value)); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr friend inline auto operator <(type nodecay value, shadow_overlay<false, subalias_t> const& shadow) except(false) -> typeof((shadow_overlay<false, subalias_t>::lesser(forward<type>(value), shadow))) { return shadow_overlay::lesser(forward<type>(value), shadow); }
-                        template <typename type, typename subalias_t = alias_t> constexpr friend inline auto operator >(shadow_overlay<false, subalias_t> const& shadow, type nodecay value) except(false) -> typeof((shadow_overlay<false, subalias_t>::greater(shadow, forward<type>(value)))) { return shadow_overlay::greater(shadow, forward<type>(value)); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr friend inline auto operator >(type nodecay value, shadow_overlay<false, subalias_t> const& shadow) except(false) -> typeof((shadow_overlay<false, subalias_t>::greater(forward<type>(value), shadow))) { return shadow_overlay::greater(forward<type>(value), shadow); }
-                        template <typename type, typename subalias_t = alias_t> constexpr friend inline auto operator <=(shadow_overlay<false, subalias_t> const& shadow, type nodecay value) except(false) -> typeof((shadow_overlay<false, subalias_t>::lesser_equal(shadow, forward<type>(value)))) { return shadow_overlay::lesser_equal(shadow, forward<type>(value)); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr friend inline auto operator <=(type nodecay value, shadow_overlay<false, subalias_t> const& shadow) except(false) -> typeof((shadow_overlay<false, subalias_t>::lesser_equal(forward<type>(value), shadow))) { return shadow_overlay::lesser_equal(forward<type>(value), shadow); }
-                        template <typename type, typename subalias_t = alias_t> constexpr friend inline auto operator >=(shadow_overlay<false, subalias_t> const& shadow, type nodecay value) except(false) -> typeof((shadow_overlay<false, subalias_t>::greater_equal(shadow, forward<type>(value)))) { return shadow_overlay::greater_equal(shadow, forward<type>(value)); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr friend inline auto operator >=(type nodecay value, shadow_overlay<false, subalias_t> const& shadow) except(false) -> typeof((shadow_overlay<false, subalias_t>::greater_equal(forward<type>(value), shadow))) { return shadow_overlay::greater_equal(forward<type>(value), shadow); }
-                        template <typename type, typename subalias_t = alias_t> constexpr friend inline auto operator &&(shadow_overlay<false, subalias_t> const& shadow, type nodecay value) except(false) -> typeof((shadow_overlay<false, subalias_t>::boolean_and(shadow, forward<type>(value)))) { return shadow_overlay::boolean_and(shadow, forward<type>(value)); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr friend inline auto operator &&(type nodecay value, shadow_overlay<false, subalias_t> const& shadow) except(false) -> typeof((shadow_overlay<false, subalias_t>::boolean_and(forward<type>(value), shadow))) { return shadow_overlay::boolean_and(forward<type>(value), shadow); }
-                        template <typename type, typename subalias_t = alias_t> constexpr friend inline auto operator ||(shadow_overlay<false, subalias_t> const& shadow, type nodecay value) except(false) -> typeof((shadow_overlay<false, subalias_t>::boolean_or(shadow, forward<type>(value)))) { return shadow_overlay::boolean_or(shadow, forward<type>(value)); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr friend inline auto operator ||(type nodecay value, shadow_overlay<false, subalias_t> const& shadow) except(false) -> typeof((shadow_overlay<false, subalias_t>::boolean_or(forward<type>(value), shadow))) { return shadow_overlay::boolean_or(forward<type>(value), shadow); }
-                        template <typename type, typename subalias_t = alias_t> constexpr friend inline auto operator ,(shadow_overlay<false, subalias_t> const& shadow, type nodecay value) except(false) -> typeof((shadow_overlay<false, subalias_t>::comma(shadow, forward<type>(value)))) { return shadow_overlay::comma(shadow, forward<type>(value)); }
-                        template <typename type, typename subalias_t = alias_t, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr friend inline auto operator ,(type nodecay value, shadow_overlay<false, subalias_t> const& shadow) except(false) -> typeof((shadow_overlay<false, subalias_t>::comma(forward<type>(value), shadow))) { return shadow_overlay::comma(forward<type>(value), shadow); }
-
-                        template <typename type, typename subalias_t = alias_t> constexpr friend inline auto operator +=(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((shadow_overlay<false, subalias_t>::add_assign(shadow, forward<type>(value)))) { return shadow_overlay::add_assign(shadow, forward<type>(value)); }
-                        template <typename type, typename subalias_t = alias_t> constexpr friend inline auto operator -=(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((shadow_overlay<false, subalias_t>::subtract_assign(shadow, forward<type>(value)))) { return shadow_overlay::subtract_assign(shadow, forward<type>(value)); }
-                        template <typename type, typename subalias_t = alias_t> constexpr friend inline auto operator *=(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((shadow_overlay<false, subalias_t>::multiply_assign(shadow, forward<type>(value)))) { return shadow_overlay::multiply_assign(shadow, forward<type>(value)); }
-                        template <typename type, typename subalias_t = alias_t> constexpr friend inline auto operator /=(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((shadow_overlay<false, subalias_t>::divide_assign(shadow, forward<type>(value)))) { return shadow_overlay::divide_assign(shadow, forward<type>(value)); }
-                        template <typename type, typename subalias_t = alias_t> constexpr friend inline auto operator %=(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((shadow_overlay<false, subalias_t>::modulo_assign(shadow, forward<type>(value)))) { return shadow_overlay::modulo_assign(shadow, forward<type>(value)); }
-                        template <typename type, typename subalias_t = alias_t> constexpr friend inline auto operator &=(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((shadow_overlay<false, subalias_t>::bitwise_and_assign(shadow, forward<type>(value)))) { return shadow_overlay::bitwise_and_assign(shadow, forward<type>(value)); }
-                        template <typename type, typename subalias_t = alias_t> constexpr friend inline auto operator |=(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((shadow_overlay<false, subalias_t>::bitwise_or_assign(shadow, forward<type>(value)))) { return shadow_overlay::bitwise_or_assign(shadow, forward<type>(value)); }
-                        template <typename type, typename subalias_t = alias_t> constexpr friend inline auto operator ^=(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((shadow_overlay<false, subalias_t>::bitwise_xor_assign(shadow, forward<type>(value)))) { return shadow_overlay::bitwise_xor_assign(shadow, forward<type>(value)); }
-                        template <typename type, typename subalias_t = alias_t> constexpr friend inline auto operator <<=(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((shadow_overlay<false, subalias_t>::left_shift_assign(shadow, forward<type>(value)))) { return shadow_overlay::left_shift_assign(shadow, forward<type>(value)); }
-                        template <typename type, typename subalias_t = alias_t> constexpr friend inline auto operator >>=(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((shadow_overlay<false, subalias_t>::right_shift_assign(shadow, forward<type>(value)))) { return shadow_overlay::right_shift_assign(shadow, forward<type>(value)); }
-
-                        template <typename type, typename subalias_t = alias_t> constexpr friend inline auto operator ->*(shadow_overlay const& shadow, type nodecay object) except(false) -> typeof((shadow_overlay<false, subalias_t>::pointer_to_member(shadow, forward<type>(object)))) { return shadow_overlay::pointer_to_member(shadow, forward<type>(object)); }
-                        template <typename subalias_t = alias_t, typename... types> constexpr inline auto operator ()(types nodecay... arguments) const except(false) -> typeof((shadow_overlay<false, subalias_t>::call(instanceof<shadow_overlay>(), instanceof<types>()...))) { return shadow_overlay::call(*this, forward<types>(arguments)...); }
-                        template <typename type, typename subalias_t = alias_t> constexpr inline auto operator [](type nodecay index) const except(false) -> typeof((shadow_overlay<false, subalias_t>::subscript(instanceof<shadow_overlay>(), forward<type>(index)))) { return shadow_overlay::subscript(*this, forward<type>(index)); }
-                    #endif
-                    #if __CPP__VERSION__ >= 2020uL
-                        template <typename subalias_t, typename type> constexpr friend inline auto operator <=>(shadow_overlay<false, subalias_t> const& shadow, type nodecay value) except(false) -> typeof((shadow_overlay<false, subalias_t>::ternary_equal(shadow, value))) { return shadow_overlay::ternary_equal(shadow, value); }
-                        template <typename subalias_t, typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr friend inline auto operator <=>(type nodecay value, shadow_overlay<false, subalias_t> const& shadow) except(false) -> typeof((shadow_overlay<false, subalias_t>::ternary_equal(value, shadow))) { return shadow_overlay::ternary_equal(value, shadow); }
-                    #endif
+                template <typename type, typename subalias_t = alias_t> constexpr inline typeof(shadow_cast<subalias_t>(instanceof<shadow_overlay const>()) = disambiguate(instanceof<type>())) operator =(type nodecay value) const except(false) { return shadow_cast<alias_t>(*this) = disambiguate(value); }
+                template <typename type, typename subalias_t = alias_t> constexpr friend inline typeof(shadow_cast<subalias_t>(instanceof<shadow_overlay const>()) += disambiguate(instanceof<type>())) operator +=(shadow_overlay const& shadow, type nodecay value) except(false) { return shadow_cast<alias_t>(shadow) += disambiguate(value); }
+                template <typename type, typename subalias_t = alias_t> constexpr friend inline typeof(shadow_cast<subalias_t>(instanceof<shadow_overlay const>()) -= disambiguate(instanceof<type>())) operator -=(shadow_overlay const& shadow, type nodecay value) except(false) { return shadow_cast<alias_t>(shadow) -= disambiguate(value); }
+                template <typename type, typename subalias_t = alias_t> constexpr friend inline typeof(shadow_cast<subalias_t>(instanceof<shadow_overlay const>()) *= disambiguate(instanceof<type>())) operator *=(shadow_overlay const& shadow, type nodecay value) except(false) { return shadow_cast<alias_t>(shadow) *= disambiguate(value); }
+                template <typename type, typename subalias_t = alias_t> constexpr friend inline typeof(shadow_cast<subalias_t>(instanceof<shadow_overlay const>()) /= disambiguate(instanceof<type>())) operator /=(shadow_overlay const& shadow, type nodecay value) except(false) { return shadow_cast<alias_t>(shadow) /= disambiguate(value); }
+                template <typename type, typename subalias_t = alias_t> constexpr friend inline typeof(shadow_cast<subalias_t>(instanceof<shadow_overlay const>()) %= disambiguate(instanceof<type>())) operator %=(shadow_overlay const& shadow, type nodecay value) except(false) { return shadow_cast<alias_t>(shadow) %= disambiguate(value); }
+                template <typename type, typename subalias_t = alias_t> constexpr friend inline typeof(shadow_cast<subalias_t>(instanceof<shadow_overlay const>()) &= disambiguate(instanceof<type>())) operator &=(shadow_overlay const& shadow, type nodecay value) except(false) { return shadow_cast<alias_t>(shadow) &= disambiguate(value); }
+                template <typename type, typename subalias_t = alias_t> constexpr friend inline typeof(shadow_cast<subalias_t>(instanceof<shadow_overlay const>()) |= disambiguate(instanceof<type>())) operator |=(shadow_overlay const& shadow, type nodecay value) except(false) { return shadow_cast<alias_t>(shadow) |= disambiguate(value); }
+                template <typename type, typename subalias_t = alias_t> constexpr friend inline typeof(shadow_cast<subalias_t>(instanceof<shadow_overlay const>()) ^= disambiguate(instanceof<type>())) operator ^=(shadow_overlay const& shadow, type nodecay value) except(false) { return shadow_cast<alias_t>(shadow) ^= disambiguate(value); }
+                template <typename type, typename subalias_t = alias_t> constexpr friend inline typeof(shadow_cast<subalias_t>(instanceof<shadow_overlay const>()) <<= disambiguate(instanceof<type>())) operator <<=(shadow_overlay const& shadow, type nodecay value) except(false) { return shadow_cast<alias_t>(shadow) <<= disambiguate(value); }
+                template <typename type, typename subalias_t = alias_t> constexpr friend inline typeof(shadow_cast<subalias_t>(instanceof<shadow_overlay const>()) >>= disambiguate(instanceof<type>())) operator >>=(shadow_overlay const& shadow, type nodecay value) except(false) { return shadow_cast<alias_t>(shadow) >>= disambiguate(value); }
             };
 
-            template <typename alias_t> // -> For base types.
-            struct shadow_overlay<true, alias_t> : public shadow_deference_alias<alias_t>::type {
-                protected:
-                    #if __CPP__VERSION__ >= 2011uL
-                        template <typename subalias_t = alias_t> constexpr inline auto address(shadow_overlay const& shadow) except(false) -> typeof(&(instanceof<shadow_overlay<false, subalias_t>>().valueOf())) { return &(shadow.valueOf()); }
-                        template <typename subalias_t = alias_t> constexpr inline auto complement(shadow_overlay const& shadow) except(false) -> typeof(~(instanceof<shadow_overlay<false, subalias_t>>().valueOf())) { return ~(shadow.valueOf()); }
-                        template <typename subalias_t = alias_t> constexpr inline auto dereference(shadow_overlay const& shadow) except(false) -> typeof(*(instanceof<shadow_overlay<false, subalias_t>>().valueOf())) { return *(shadow.valueOf()); }
-                        template <typename subalias_t = alias_t> constexpr inline auto negate(shadow_overlay const& shadow) except(false) -> typeof(!(instanceof<shadow_overlay<false, subalias_t>>().valueOf())) { return !(shadow.valueOf()); }
-                        template <typename subalias_t = alias_t> constexpr inline auto pre_decrement(shadow_overlay const& shadow) except(false) -> typeof(--(instanceof<shadow_overlay<false, subalias_t>>().valueOf())) { return --(shadow.valueOf()); }
-                        template <typename subalias_t = alias_t> constexpr inline auto pre_increment(shadow_overlay const& shadow) except(false) -> typeof(++(instanceof<shadow_overlay<false, subalias_t>>().valueOf())) { return ++(shadow.valueOf()); }
-                        template <typename subalias_t = alias_t> constexpr inline auto post_decrement(shadow_overlay const& shadow) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf())--) { return (shadow.valueOf())--; }
-                        template <typename subalias_t = alias_t> constexpr inline auto post_increment(shadow_overlay const& shadow) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf())++) { return (shadow.valueOf())++; }
-                        template <typename subalias_t = alias_t> constexpr inline auto unary_add(shadow_overlay const& shadow) except(false) -> typeof(+(instanceof<shadow_overlay<false, subalias_t>>().valueOf())) { return +(shadow.valueOf()); }
-                        template <typename subalias_t = alias_t> constexpr inline auto unary_subtract(shadow_overlay const& shadow) except(false) -> typeof(-(instanceof<shadow_overlay<false, subalias_t>>().valueOf())) { return -(shadow.valueOf()); }
+            template <typename alias_t>
+            struct shadow_overlay<overlay_t::defined, alias_t> : public shadow_deference_t<alias_t>::type { public:
+                template <typename... types> constexpr inline shadow_overlay(types nodecay... arguments) except(false) : shadow_deference_t<alias_t>::type super(forward<types>(arguments)...) {}
 
-                        template <typename type, typename subalias_t = alias_t> constexpr inline static auto add(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() + disambiguate(value))) { return shadow.valueOf() + disambiguate(value); }
-                        template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline static auto add(type nodecay value, shadow_overlay const& shadow) except(false) -> typeof(disambiguate(value) + shadow.valueOf()) { return disambiguate(value) + shadow.valueOf(); }
-                        template <typename type, typename subalias_t = alias_t> constexpr inline static auto bitwise_and(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() & disambiguate(value))) { return shadow.valueOf() & disambiguate(value); }
-                        template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline static auto bitwise_and(type nodecay value, shadow_overlay const& shadow) except(false) -> typeof(disambiguate(value) & shadow.valueOf()) { return disambiguate(value) & shadow.valueOf(); }
-                        template <typename type, typename subalias_t = alias_t> constexpr inline static auto bitwise_or(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() | disambiguate(value))) { return shadow.valueOf() | disambiguate(value); }
-                        template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline static auto bitwise_or(type nodecay value, shadow_overlay const& shadow) except(false) -> typeof(disambiguate(value) | shadow.valueOf()) { return disambiguate(value) | shadow.valueOf(); }
-                        template <typename type, typename subalias_t = alias_t> constexpr inline static auto bitwise_xor(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() ^ disambiguate(value))) { return shadow.valueOf() ^ disambiguate(value); }
-                        template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline static auto bitwise_xor(type nodecay value, shadow_overlay const& shadow) except(false) -> typeof(disambiguate(value) ^ shadow.valueOf()) { return disambiguate(value) ^ shadow.valueOf(); }
-                        template <typename type, typename subalias_t = alias_t> constexpr inline static auto boolean_and(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() && disambiguate(value))) { return shadow.valueOf() && disambiguate(value); }
-                        template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline static auto boolean_and(type nodecay value, shadow_overlay const& shadow) except(false) -> typeof(disambiguate(value) && shadow.valueOf()) { return disambiguate(value) && shadow.valueOf(); }
-                        template <typename type, typename subalias_t = alias_t> constexpr inline static auto boolean_or(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() || disambiguate(value))) { return shadow.valueOf() || disambiguate(value); }
-                        template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline static auto boolean_or(type nodecay value, shadow_overlay const& shadow) except(false) -> typeof(disambiguate(value) || shadow.valueOf()) { return disambiguate(value) || shadow.valueOf(); }
-                        template <typename type, typename subalias_t = alias_t> constexpr inline static auto comma(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf(), disambiguate(value))) { return shadow.valueOf(), disambiguate(value); }
-                        template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline static auto comma(type nodecay value, shadow_overlay const& shadow) except(false) -> typeof((disambiguate(value), shadow.valueOf())) { return disambiguate(value), shadow.valueOf(); }
-                        template <typename type, typename subalias_t = alias_t> constexpr inline static auto divide(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() / disambiguate(value))) { return shadow.valueOf() / disambiguate(value); }
-                        template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline static auto divide(type nodecay value, shadow_overlay const& shadow) except(false) -> typeof(disambiguate(value) / shadow.valueOf()) { return disambiguate(value) / shadow.valueOf(); }
-                        template <typename type, typename subalias_t = alias_t> constexpr inline static auto equal(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() == disambiguate(value))) { return shadow.valueOf() == disambiguate(value); }
-                        template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline static auto equal(type nodecay value, shadow_overlay const& shadow) except(false) -> typeof(disambiguate(value) == shadow.valueOf()) { return disambiguate(value) == shadow.valueOf(); }
-                        template <typename type, typename subalias_t = alias_t> constexpr inline static auto greater(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() > disambiguate(value))) { return shadow.valueOf() > disambiguate(value); }
-                        template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline static auto greater(type nodecay value, shadow_overlay const& shadow) except(false) -> typeof(disambiguate(value) > shadow.valueOf()) { return disambiguate(value) > shadow.valueOf(); }
-                        template <typename type, typename subalias_t = alias_t> constexpr inline static auto greater_equal(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() >= disambiguate(value))) { return shadow.valueOf() >= disambiguate(value); }
-                        template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline static auto greater_equal(type nodecay value, shadow_overlay const& shadow) except(false) -> typeof(disambiguate(value) >= shadow.valueOf()) { return disambiguate(value) >= shadow.valueOf(); }
-                        template <typename type, typename subalias_t = alias_t> constexpr inline static auto left_shift(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() << disambiguate(value))) { return shadow.valueOf() << disambiguate(value); }
-                        template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline static auto left_shift(type nodecay value, shadow_overlay const& shadow) except(false) -> typeof(disambiguate(value) << shadow.valueOf()) { return disambiguate(value) << shadow.valueOf(); }
-                        template <typename type, typename subalias_t = alias_t> constexpr inline static auto lesser(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() < disambiguate(value))) { return shadow.valueOf() < disambiguate(value); }
-                        template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline static auto lesser(type nodecay value, shadow_overlay const& shadow) except(false) -> typeof(disambiguate(value) < shadow.valueOf()) { return disambiguate(value) < shadow.valueOf(); }
-                        template <typename type, typename subalias_t = alias_t> constexpr inline static auto lesser_equal(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() <= disambiguate(value))) { return shadow.valueOf() <= disambiguate(value); }
-                        template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline static auto lesser_equal(type nodecay value, shadow_overlay const& shadow) except(false) -> typeof(disambiguate(value) <= shadow.valueOf()) { return disambiguate(value) <= shadow.valueOf(); }
-                        template <typename type, typename subalias_t = alias_t> constexpr inline static auto modulo(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() % disambiguate(value))) { return shadow.valueOf() % disambiguate(value); }
-                        template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline static auto modulo(type nodecay value, shadow_overlay const& shadow) except(false) -> typeof(disambiguate(value) % shadow.valueOf()) { return disambiguate(value) % shadow.valueOf(); }
-                        template <typename type, typename subalias_t = alias_t> constexpr inline static auto multiply(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() * disambiguate(value))) { return shadow.valueOf() * disambiguate(value); }
-                        template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline static auto multiply(type nodecay value, shadow_overlay const& shadow) except(false) -> typeof(disambiguate(value) * shadow.valueOf()) { return disambiguate(value) * shadow.valueOf(); }
-                        template <typename type, typename subalias_t = alias_t> constexpr inline static auto negate_equal(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() != disambiguate(value))) { return shadow.valueOf() != disambiguate(value); }
-                        template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline static auto negate_equal(type nodecay value, shadow_overlay const& shadow) except(false) -> typeof(disambiguate(value) != shadow.valueOf()) { return disambiguate(value) != shadow.valueOf(); }
-                        template <typename type, typename subalias_t = alias_t> constexpr inline static auto right_shift(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() >> disambiguate(value))) { return shadow.valueOf() >> disambiguate(value); }
-                        template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline static auto right_shift(type nodecay value, shadow_overlay const& shadow) except(false) -> typeof(disambiguate(value) >> shadow.valueOf()) { return disambiguate(value) >> shadow.valueOf(); }
-                        template <typename type, typename subalias_t = alias_t> constexpr inline static auto subtract(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() - disambiguate(value))) { return shadow.valueOf() - disambiguate(value); }
-                        template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline static auto subtract(type nodecay value, shadow_overlay const& shadow) except(false) -> typeof(disambiguate(value) - shadow.valueOf()) { return disambiguate(value) - shadow.valueOf(); }
+                // UNARY
+                // + - * & ~ ! ++ --
 
-                        template <typename type, typename subalias_t = alias_t> constexpr inline static auto add_assign(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() += disambiguate(value))) { return shadow.valueOf() += disambiguate(value); }
-                        template <typename type, typename subalias_t = alias_t> constexpr inline static auto assign(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() = disambiguate(value))) { return shadow.valueOf() = disambiguate(value); }
-                        template <typename type, typename subalias_t = alias_t> constexpr inline static auto bitwise_and_assign(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() &= disambiguate(value))) { return shadow.valueOf() &= disambiguate(value); }
-                        template <typename type, typename subalias_t = alias_t> constexpr inline static auto bitwise_or_assign(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() |= disambiguate(value))) { return shadow.valueOf() |= disambiguate(value); }
-                        template <typename type, typename subalias_t = alias_t> constexpr inline static auto bitwise_xor_assign(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() ^= disambiguate(value))) { return shadow.valueOf() ^= disambiguate(value); }
-                        template <typename type, typename subalias_t = alias_t> constexpr inline static auto divide_assign(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() /= disambiguate(value))) { return shadow.valueOf() /= disambiguate(value); }
-                        template <typename type, typename subalias_t = alias_t> constexpr inline static auto left_shift_assign(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() <<= disambiguate(value))) { return shadow.valueOf() <<= disambiguate(value); }
-                        template <typename type, typename subalias_t = alias_t> constexpr inline static auto modulo_assign(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() %= disambiguate(value))) { return shadow.valueOf() %= disambiguate(value); }
-                        template <typename type, typename subalias_t = alias_t> constexpr inline static auto multiply_assign(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() *= disambiguate(value))) { return shadow.valueOf() *= disambiguate(value); }
-                        template <typename type, typename subalias_t = alias_t> constexpr inline static auto right_shift_assign(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() >>= disambiguate(value))) { return shadow.valueOf() >>= disambiguate(value); }
-                        template <typename type, typename subalias_t = alias_t> constexpr inline static auto right_shift_assign(shadow_overlay const& shadow, type nodecay value) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() -= disambiguate(value))) { return shadow.valueOf() -= disambiguate(value); }
+                // BINARY
+                // + - * / % & | ^ << >> == != < > <= >= <=> && || -> ->* , [] ()
 
-                        template <typename subalias_t = alias_t, typename... types> constexpr inline static auto call(shadow_overlay const& shadow, types nodecay... arguments) except(false) -> typeof(((instanceof<shadow_overlay<false, subalias_t>>().valueOf())(instanceof<types>()...))) { return (shadow.valueOf())(forward<types>(arguments)...); }
-                        template <typename type, typename subalias_t = alias_t> constexpr inline static auto pointer_to_member(shadow_overlay const& shadow, type nodecay object) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() ->* disambiguate(object))) { return shadow.valueOf() ->* disambiguate(object); }
-                        template <typename type, typename subalias_t = alias_t> constexpr inline static auto subscript(shadow_overlay const& shadow, type nodecay index) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf()[disambiguate(index)])) { return shadow.valueOf()[disambiguate(index)]; }
-                    #endif
-                    #if __CPP__VERSION__ >= 2020uL
-                        template <typename type, typename subalias_t = alias_t> constexpr inline static auto ternary_equal(shadow_overlay const& shadow, type nodecay object) except(false) -> typeof((instanceof<shadow_overlay<false, subalias_t>>().valueOf() <=> disambiguate(object))) { return shadow.valueOf() <=> disambiguate(object); }
-                        template <typename type, typename conditional_alias<false == is_shadow<type>::value, bool>::type = 0x0> constexpr inline static auto ternary_equal(type nodecay object, shadow_overlay const& shadow) except(false) -> typeof(disambiguate(object) <=> shadow.valueOf()) { return disambiguate(object) <=> shadow.valueOf(); }
-                    #endif
-
-                public:
-                    template <typename... types>
-                    inline shadow_overlay(types nodecay... arguments) except(false) : shadow_deference_alias<alias_t>::type super(Utility::forward<types>(arguments)...) {}
+                // ASSIGNMENT
+                // = += -= *= /= %= &= |= ^= <<= >>=
             };
                 // ...
                 template <typename alias_t>
-                struct shadow_overlay_alias final { public:
-                    typedef shadow_overlay<is_base<alias_t>::value, alias_t> type;
-                };
+                struct shadow_overlay_t final : public alias<shadow_overlay<
+                    is_base<typename remove_qualifiers<alias_t>::type>::value ? overlay_t::base : overlay_t::defined,
+                    alias_t
+                >> {};
         }
 
-        template <typename alias_t>
-        struct shadow : public shadow_overlay_alias<alias_t>::type {
-            public:
-                template <typename... types>
-                constexpr inline shadow(types nodecay... arguments) except(false) : shadow_overlay_alias<alias_t>::type super(Utility::forward<types>(arguments)...) {}
+        template <typename type>
+        struct shadow : public shadow_overlay_t<type>::type {
+            template <typename... types> constexpr inline shadow(types nodecay... arguments) except(false) : shadow_overlay_t<type>::type super(forward<types>(arguments)...) {}
         };
 
-        // Property
-        template <class object, typename alias_t>
-        struct property : public shadow<alias_t> {
-            friend object;
-
-            public:
-                constexpr inline property(property const& property) except(false) : shadow<alias_t> super(static_cast<shadow<alias_t> const&>(property)) {}
-                template <typename... types> constexpr inline property(types nodecay... arguments) except(false) : shadow<alias_t> super(Utility::forward<types>(arguments)...) {}
-                #if __CPP__VERSION__ >= 2011uL
-                    constexpr inline property(property&& property) except(false) : shadow<alias_t> super(static_cast<shadow<alias_t>&&>(property)) {}
-                #endif
-
-                constexpr inline auto operator =(property const& property) except(false) -> typeof(static_cast<shadow<alias_t>&>(const_cast<Utility::property<object, alias_t>&>(*this)) = static_cast<shadow<alias_t> const&>(property)) { return static_cast<shadow<alias_t>&>(const_cast<Utility::property<object, alias_t>&>(*this)) = static_cast<shadow<alias_t> const&>(property); }
-                #if __CPP__VERSION__ >= 2011uL
-                    constexpr inline auto operator =(property&& property) except(false) -> typeof(static_cast<shadow<alias_t>&>(const_cast<Utility::property<object, alias_t>&>(*this)) = static_cast<shadow<alias_t>&&>(property)) { return static_cast<shadow<alias_t>&>(const_cast<Utility::property<object, alias_t>&>(*this)) = static_cast<shadow<alias_t>&&>(property); }
-                #endif
-        };
-
-        template <class object, typename alias_t>
-        struct property_accessor : public property<object, alias_t> {
-            friend object;
-
-            protected:
-                constexpr inline property_accessor& operator =(property_accessor const& accessor) except(false) { return this -> property<object, alias_t>::operator =(static_cast<property<object, alias_t> const&>(accessor)); }
-                #if __CPP__VERSION__ >= 2011uL
-                    constexpr inline property_accessor& operator =(property_accessor&& accessor) except(false) { return this -> property<object, alias_t>::operator =(static_cast<property<object, alias_t>&&>(accessor)); }
-                #endif
-
-                template <typename type = alias_t>
-                constable inline auto operator +(void) except(false) -> typeof(
-                    instanceof<typename remove_reference<typeof((instanceof<property<object, type>>().valueOf()))>::type>()
-                    .operator +()
-                ) { return static_cast<property<object, type>*>(this) -> operator +(); }
-
-            public:
-                constexpr inline property_accessor(property_accessor const& accessor) except(false) : property<object, alias_t> super(static_cast<property<object, alias_t> const&>(accessor)) {}
-                template <typename... types> constexpr inline property_accessor(types nodecay... arguments) except(false) : property<object, alias_t> super(Utility::forward<types>(arguments)...) {}
-                #if __CPP__VERSION__ >= 2011uL
-                    constexpr inline property_accessor(property_accessor&& accessor) except(false) : property<object, alias_t> super(static_cast<property<object, alias_t>&&>(accessor)) {}
-                #endif
-
-                template <typename type = alias_t>
-                constexpr inline auto operator +(void) const except(false) -> typeof(
-                    instanceof<typename add_const<typename remove_reference<typeof((instanceof<property<object, type> const*>().valueOf()))>::type>::type>()
-                    .operator +()
-                ) { return static_cast<property<object, type> const*>(this) -> operator +(); }
-        };
-
+        // template <typename, typename> struct property;
+        // template <typename, typename> struct property_accessor;
         // template <typename, typename> struct property_mutator;
 
         // To (Un)Signed
