@@ -370,6 +370,7 @@ namespace {
 #   define O_TEXT 0x4000
 #endif
 
-#define __MAIN__ int main(void)
+#define __MAIN__ int main(int const, char* const [])
 #define __WINDOWS__MAIN__ int WinMain(HINSTANCE const, HINSTANCE const, LPSTR const, int const)
 #define __WINDOWS_DLL__MAIN__ BOOL WINAPI DllMain(HINSTANCE const, DWORD const, LPVOID const)
+#define __WINDOWS_UNICODE__MAIN__ int wmain(int const, wchar_t* const [])

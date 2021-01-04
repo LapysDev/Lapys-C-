@@ -33,6 +33,10 @@
 
     #include "utility" // Utility
 
+    /* Main */
+    namespace Lapys { void Main(...); }
+    __MAIN__ except(false) { Lapys::Main(); return EXIT_SUCCESS; }
+
     /* Deletion > ... --- NOTE (Lapys) -> Matches the order of definitions. */
     #undef __MAIN__
     #undef __WINDOWS__MAIN__
