@@ -417,8 +417,7 @@ namespace Lapys {
         template <class object, typename base> struct is_member_function_pointer<base object::* const volatile> : public boolean<is_member_function_pointer<base object::*>::value> {};
         template <class object, typename base> struct is_member_function_pointer<base object::* volatile> : public boolean<is_member_function_pointer<base object::*>::value> {};
 
-        template <typename type>
-        struct is_member_object_pointer : public boolean<is_member_pointer<type>::value && false == is_member_function_pointer<type>::value> {};
+        template <typename type> struct is_member_object_pointer : public boolean<is_member_pointer<type>::value && false == is_member_function_pointer<type>::value> {};
 
         // Is Non-Exception
         namespace {
