@@ -59,7 +59,6 @@
     #undef is_except
     #undef nodecay
     #undef override
-    #undef specific
     #undef super
     #if false == __COMPILER_IS__ICC__
     #  undef typeof
@@ -88,22 +87,22 @@
 #endif
 
 /*
-Set the Floating-Point Environment on initiate
+Set the Floating-Point Environment on initiation
 
 template <typename type>
 struct is_complete {
-  constexpr static bool test(...) noexcept { return false; }
-  template <typename subtype> constexpr static decltype(sizeof(subtype)) test(subtype* const) noexcept { return true; }
+  constexpr inline static bool disambiguate(...) except(false) { return false; }
+  template <typename subtype> constexpr inline static typeof(sizeof(subtype)) disambiguate(subtype* const) except(false) { return true; }
 
-  constexpr static bool const value = test((type*) 0);
+  constexpr static bool const value = disambiguate(static_cast<type*>(NULL));
 };
 
-inline bool isBigEndian(void) noexcept {
+inline bool isBigEndian(void) except(false) {
     constexpr unsigned int value = 1u;
     return 0u == *reinterpret_cast<unsigned char const*>(value);
 }
 
-inline bool isLittleEndian(void) noexcept {
+inline bool isLittleEndian(void) except(false) {
     constexpr unsigned int value = 1u;
     return 0u != *reinterpret_cast<unsigned char const*>(value);
 }
