@@ -5,7 +5,7 @@
 
 enum Enumeration { ANY = 1337 };
 int function(void) { return 0x45; }
-class Object { public: int value; inline Object(void) : value(420) {} };
+union Object { public: int identity; inline Object(void) : identity(420) {} };
 struct String {
     String(char const[], ...) {}
 
@@ -17,10 +17,11 @@ struct String {
 void Lapys::Main(... /* ArgumentList const */) {
     std::boolalpha(std::cout);
 
+    Lapys::Utility::shadow<int [3]> const array(1, 2, 3);
     Lapys::Utility::shadow<Enumeration> const enumeration = ANY;
     Lapys::Utility::shadow<int> const integer = 0x44;
     Lapys::Utility::shadow<Object> const object = Object();
-    int Object::* const member = &Object::value;
+    int Object::* const member = &Object::identity;
     Lapys::Utility::shadow<Object*> const pointer = new Object;
     Lapys::Utility::shadow<String> const string = "...";
     String stronk = "***"; {
@@ -37,9 +38,14 @@ void Lapys::Main(... /* ArgumentList const */) {
         std::cout << "[int + s-int]: " << 1 + integer << std::endl;
         std::cout << "[s-int + s-int]: " << integer + integer << std::endl;
 
+        std::cout << "[s-int [3]]: {" << array[0] << ", " << array[1] << ", " << array[2] << "}" << std::endl;
+        std::cout << "[s-int [3]]: {" << *array << ", " << *(array + 1) << ", " << *(array + 2) << "}" << std::endl;
+
         std::cout << "[s-Enumeration]: " << enumeration << std::endl;
 
-        std::cout << "[s-Object*]: " << pointer -> value << std::endl;
+        std::cout << "[s-Object]: " << static_cast<Object&>(object).identity << std::endl;
+        std::cout << "[s-Object]: " << static_cast<Object&>(object).*member << std::endl;
+        std::cout << "[s-Object*]: " << pointer -> identity << std::endl;
         std::cout << "[s-Object*]: " << pointer ->* member << std::endl;
 
         std::cout << "[s-String]: " << +string << std::endl;
@@ -48,6 +54,7 @@ void Lapys::Main(... /* ArgumentList const */) {
         std::cout << "[s-String]: " << (string = "???") << std::endl;
 
         // ...
+        static_cast<void>(array);
         static_cast<void>(object);
     }
 
