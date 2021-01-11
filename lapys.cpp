@@ -6,19 +6,25 @@
 enum Enumeration { ANY = 1337 };
 int function(void) { return 0x45; }
 class Object {};
-class String { public: String(char const[], ...) {} };
+struct String {
+    String(char const[], ...) {}
+    inline int operator +(void) const { return 42; }
+};
 
 void Lapys::Main(... /* ArgumentList const */) {
     std::boolalpha(std::cout);
 
-    Lapys::Utility::shadow<int> const integer = 0x44; {
+    Lapys::Utility::shadow<int> const integer = 0x44;
+    Lapys::Utility::shadow<String> string = "..."; {
         // would not work if `int const` was shadowed, instead
         std::cout << "[int]: " << ++integer << std::endl;
         std::cout << "[int]: " << integer++ << std::endl;
 
+        // test for shadowed operator overloads
+        std::cout << "[String]: " << +string << std::endl;
+
         // test for incompatible operator overloads...
         new Lapys::Utility::shadow<Object>();
-        new Lapys::Utility::shadow<String>("...");
     }
 
     std::printf("%18s", "[PROGRAM EXECUTED]");

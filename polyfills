@@ -208,20 +208,20 @@
 
 #       if __COMPILER_IS__ARM__
 #         if defined(__typeof__)
-#         define typeof(expression) typename ::Lapys::Utility::alias<__typeof__(expression)>::type
+#         define typeof(expression) __typeof__(expression)
 #         endif
 #       elif __COMPILER_IS__CLANG__
 #         if defined(__typeof__)
-#         define typeof(expression) typename ::Lapys::Utility::alias<__typeof__(expression)>::type
+#         define typeof(expression) __typeof__(expression)
 #         elif defined(__typeof)
-#         define typeof(expression) typename ::Lapys::Utility::alias<__typeof(expression)>::type
+#         define typeof(expression) __typeof(expression)
 #         endif
 #       elif __COMPILER_IS__GNU__
-#         define typeof(expression) typename ::Lapys::Utility::alias<__typeof(expression)>::type
+#         define typeof(expression) __decltype(expression)
 #       elif __COMPILER_IS__ICC__
-//#       define typeof(expression) typename ::Lapys::Utility::alias<typeof(expression)>::type
+//#       define typeof(expression) typeof(expression)
 #       elif __COMPILER_IS__MSVC__
-#         define typeof(expression) typename ::Lapys::Utility::alias<decltype(expression)>::type
+#         define typeof(expression) decltype(expression)
 #       endif
 
 #   else
