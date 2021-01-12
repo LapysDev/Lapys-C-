@@ -14,6 +14,11 @@ struct String {
     inline int operator +(void) const { return 42; }
 };
 
+class Element {
+    public:
+    property<Element, char const[], &accessor, &mutator> innerText = "...";
+};
+
 void Lapys::Main(... /* ArgumentList const */) {
     std::boolalpha(std::cout);
 
@@ -47,15 +52,13 @@ void Lapys::Main(... /* ArgumentList const */) {
         std::cout << "[s-Object]: " << static_cast<Object&>(object).*member << std::endl;
         std::cout << "[s-Object*]: " << pointer -> identity << std::endl;
         std::cout << "[s-Object*]: " << pointer ->* member << std::endl;
+        std::cout << "[s-Object*]: " << (*pointer).identity << std::endl;
+        std::cout << "[s-Object*]: " << (*pointer).*member << std::endl;
 
         std::cout << "[s-String]: " << +string << std::endl;
         std::cout << "[s-String]: " << string.operator +() << std::endl;
         std::cout << "[String]: " << (stronk = "???") << std::endl;
         std::cout << "[s-String]: " << (string = "???") << std::endl;
-
-        // ...
-        static_cast<void>(array);
-        static_cast<void>(object);
     }
 
     std::printf("%18s", "[PROGRAM EXECUTED]");
