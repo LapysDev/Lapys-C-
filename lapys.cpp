@@ -3,6 +3,7 @@
 #include <iostream>
 #include "lapys.hpp" // Lapys
 
+// ...
 enum Enumeration { ANY = 1337 };
 int function(void) { return 0x45; }
 union Object { public: int identity; inline Object(void) : identity(420) {} };
@@ -14,14 +15,12 @@ struct String {
     inline int operator +(void) const { return 42; }
 };
 
-class Element {
-    public:
-    property<Element, char const[], &accessor, &mutator> innerText = "...";
-};
-
+/* Main */
 void Lapys::Main(... /* ArgumentList const */) {
     std::boolalpha(std::cout);
 
+    /* [property] */
+    /* [shadow] */
     Lapys::Utility::shadow<int [3]> const array(1, 2, 3);
     Lapys::Utility::shadow<Enumeration> const enumeration = ANY;
     Lapys::Utility::shadow<int> const integer = 0x44;
@@ -39,8 +38,8 @@ void Lapys::Main(... /* ArgumentList const */) {
         std::cout << "[s-int (+= int)]: " << (integer += 420) << std::endl;
 
         // test for shadowed operator overloads
-        std::cout << "[s-int + int]: " << integer + 1 << std::endl;
-        std::cout << "[int + s-int]: " << 1 + integer << std::endl;
+        std::cout << "[s-int + int]: " << integer + 840 << std::endl;
+        std::cout << "[int + s-int]: " << 840 + integer << std::endl;
         std::cout << "[s-int + s-int]: " << integer + integer << std::endl;
 
         std::cout << "[s-int [3]]: {" << array[0] << ", " << array[1] << ", " << array[2] << "}" << std::endl;
