@@ -16,30 +16,27 @@ struct String {
 };
 
 /* Main */
+class Dummy {
+    private:
+        static int getName(char const*&) { return 69; }
+        static void setName(char const*&, ...) {}
+
+    public:
+        // Lapys::Utility::property<
+        //     Dummy, char const*,
+        //     decltype(getName), &getName,
+        //     decltype(setName), &setName
+        // > name;
+        // Lapys::Utility::property<Dummy, char const*> name = "\"Hello, World!\"";
+        Lapys::Utility::property<Dummy, char const*> name;
+
+        inline Dummy(char const name[]) : name(name) {}
+};
 void Lapys::Main(... /* ArgumentList const */) {
     std::boolalpha(std::cout);
 
     /* [property] */
-    class Dummy {
-        private:
-            static int getName(char const*&) { return 69; }
-            static void setName(...) {}
-
-        public:
-            // Lapys::Utility::property<
-            //     Dummy, char const*,
-            //     decltype(getName), &getName,
-            //     decltype(setName), &setName
-            // > name;
-            // Lapys::Utility::property<Dummy, char const*> name = "\"Hello, World!\"";
-            Lapys::Utility::property<Dummy, int> name = 69;
-
-            inline Dummy(...) {}
-    } dummy = Dummy(); {
-        // testing...
-        std::cout << "[p-char const* {char const*} (char const*)]: " << dummy.name << std::endl;
-        // std::cout << "[p-char const* {char const*} (char const*)]: " << static_cast<char const*>(dummy.name) << std::endl;
-    }
+    std::cout << "[p-char const* {char const*} (char const*)]: " << Dummy("Lapys").name << std::endl;
 
     /* [shadow] */
     Lapys::Utility::shadow<int [3]> const array(1, 2, 3);
