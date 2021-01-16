@@ -20,8 +20,33 @@ struct String {
 //     Lapys::Utility::property<Dummy, char const*> name;
 //     inline Dummy(char const name[]) : name(name) {}
 // };
+struct Dummy {
+    friend void operator +(Dummy);
+    friend void operator +(Dummy, int);
+    friend void operator +(int, Dummy);
+
+    void operator ()(void) const;
+    void operator ()(int) const;
+    void operator ()(char, int) const;
+};
 void Lapys::Main(... /* ArgumentList const */) {
     std::boolalpha(std::cout);
+
+    std::cout << "[void (*)(int) : ((int))]: " << Lapys::Utility::is_immutable_operation<void (*)(int), Lapys::Utility::operation::call, int>::value << std::endl;
+    std::cout << "[void (&)(int) : ((int))]: " << Lapys::Utility::is_immutable_operation<void (&)(int), Lapys::Utility::operation::call, int>::value << std::endl;
+    std::cout << "[Dummy : ((int))]: " << Lapys::Utility::is_immutable_operation<Dummy, Lapys::Utility::operation::call, int>::value << std::endl;
+
+    std::cout << "[void (*)(void) : (())]: " << Lapys::Utility::is_immutable_operation<void (*)(void), Lapys::Utility::operation::call>::value << std::endl;
+    std::cout << "[void (&)(void) : (())]: " << Lapys::Utility::is_immutable_operation<void (&)(void), Lapys::Utility::operation::call>::value << std::endl;
+    std::cout << "[Dummy : (())]: " << Lapys::Utility::is_immutable_operation<Dummy, Lapys::Utility::operation::call>::value << std::endl;
+
+    std::cout << "[void (*)(char, int) : ((char, int))]: " << Lapys::Utility::is_immutable_operation<void (*)(char, int), Lapys::Utility::operation::call, char, int>::value << std::endl;
+    std::cout << "[void (&)(char, int) : ((char, int))]: " << Lapys::Utility::is_immutable_operation<void (&)(char, int), Lapys::Utility::operation::call, char, int>::value << std::endl;
+    std::cout << "[Dummy : ((char, int))]: " << Lapys::Utility::is_immutable_operation<Dummy, Lapys::Utility::operation::call, char, int>::value << std::endl;
+
+    std::cout << "[Dummy : (+)]: " << Lapys::Utility::is_immutable_operation<Dummy, Lapys::Utility::operation::unary_add>::value << std::endl;
+    std::cout << "[Dummy : (+ ...)]: " << Lapys::Utility::is_immutable_operation<Dummy, Lapys::Utility::operation::pre_add, int>::value << std::endl;
+    std::cout << "[Dummy : (... +)]: " << Lapys::Utility::is_immutable_operation<Dummy, Lapys::Utility::operation::post_add, int>::value << std::endl;
 
     // /* [property] */
     // std::cout << "[p-char const* {char const*} (+)]: " << +(Dummy("Lapys").name) << std::endl;
