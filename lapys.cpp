@@ -21,6 +21,8 @@ struct String {
 //     inline Dummy(char const name[]) : name(name) {}
 // };
 struct Dummy {
+    int value;
+
     friend void operator +(Dummy);
     friend void operator +(Dummy, int);
     friend void operator +(int, Dummy);
@@ -47,6 +49,8 @@ void Lapys::Main(... /* ArgumentList const */) {
     std::cout << "[Dummy : (+)]: " << Lapys::Utility::is_immutable_operation<Dummy, Lapys::Utility::operation::unary_add>::value << std::endl;
     std::cout << "[Dummy : (+ ...)]: " << Lapys::Utility::is_immutable_operation<Dummy, Lapys::Utility::operation::pre_add, int>::value << std::endl;
     std::cout << "[Dummy : (... +)]: " << Lapys::Utility::is_immutable_operation<Dummy, Lapys::Utility::operation::post_add, int>::value << std::endl;
+
+    std::cout << "[Dummy : (->* ...)]: " << Lapys::Utility::is_immutable_operation<Dummy*, Lapys::Utility::operation::pre_member_pointer, int Dummy::*>::value << std::endl;
 
     // /* [property] */
     // std::cout << "[p-char const* {char const*} (+)]: " << +(Dummy("Lapys").name) << std::endl;
