@@ -9,7 +9,7 @@ class Object {
         struct NonInteger {};
 
     public:
-        struct sus : public Lapys::Utility::accessor<Object, int> { template <typename type> sus(type argument) : Lapys::Utility::accessor<Object, int>(argument) {} } index;
+        Lapys::Utility::accessor<Object, int> index;
 
         inline Object(int index = 1, ...) : index(index) {}
         int getIndex(void) const { return +(this -> index); }
@@ -19,7 +19,6 @@ class Object {
 void Lapys::Main(... /* ArgumentList const */) {
     std::boolalpha(std::cout);
 
-    std::cout << "[...]: " << Lapys::Utility::is_const_operation<int, Lapys::Utility::operation::post_add, int>::value << std::endl;
     std::cout << "[accessor<int> + int]          : " << Object().index + 1 << std::endl;
     std::cout << "[int + accessor<int>]          : " << 1 + Object().index << std::endl;
     std::cout << "[accessor<int> + accessor<int>]: " << Object().index + Object().index << std::endl;
