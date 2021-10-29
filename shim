@@ -34,7 +34,7 @@
 #           define __CPP__VERSION__ 2014uL
 #       elif __cplusplus == 201703L
 #           define __CPP__VERSION__ 2017uL
-#       else
+#       else __cplusplus == 202002L
 #           define __CPP__VERSION__ 2020uL
 #       endif
 #   endif
@@ -138,7 +138,7 @@
 #endif
 
 // [Platform : UNIX]
-#if __PLATFORM_IS__APPLE_MACINTOSH__ || defined(__unix__)
+#if __PLATFORM_IS__APPLE_MACINTOSH__ || defined(__unix) || defined(__unix__)
 #   define __PLATFORM_IS__UNIX__ true
 #else
 #   define __PLATFORM_IS__UNIX__ false
@@ -286,7 +286,7 @@ namespace {
 }
 
 union byte {
-    private: unsigned char value : CHAR_BIT;
+    private: unsigned longest value : CHAR_BIT;
     public:
         constexpr inline byte(void) except(false) : value super() {}
         template <typename type> constexpr inline byte(type nodecay value) except(false) : value super(static_cast<unsigned char>(value)) {}

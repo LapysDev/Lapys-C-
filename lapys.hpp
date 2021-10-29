@@ -1,109 +1,610 @@
 /* ... */
-#ifndef __LAPYS__
-    /* Definition > ... */
-    #define __LAPYS__
+#ifndef LAPYS
+# define LAPYS
+  /* Pragmatic */
+  #pragma once
 
-    /* Pragmatic > ... */
-    // #pragma once
-    //
-    // #pragma STDC CX_LIMITED_RANGE OFF
-    // #pragma STDC FENV_ACCESS ON
-    // #pragma STDC FP_CONTRACT ON
+  /* Import > ... */
+  // : [C++ Standard Library]
+  #include <cfloat>  // C Float
+  #include <climits> // C Limits
+  #include <cstddef> // C Standard Definition
+  #include <cstdio>  // C Standard Input/ Output
+  #include <cstdlib> // C Standard Library
+  #if CPP_VERSION >= 2020uL
+  # include <compare> // Compare
+  #endif
 
-    /* Namespace */
-    namespace Lapys {}
+  // : [C Standard Library]
+  #include <errno.h>   // Error No.
+  #include <stdbool.h> // Standard Booleans
+  #include <stdint.h>  // Standard Integers
+  #include <wchar.h>   // Wide Characters
 
-    /* Import */
-    // : C++ Standard Library; ...
-    #include <climits> // C Limits
-    #include <cstddef> // C Standard Definitions
-    #include <cstdlib> // C Standard Library
+  // : [...]
+  #include "lapys/extensions.h"    // Extensions
+  #include "lapys/macro.h"         // Macro
+  #include "lapys/traits.hpp"      // Traits
+  #include "lapys/parity.hpp"      // Parity
+  #include "lapys/definitions.hpp" // Definitions
+  #include "lapys/entry.hpp"       // Entry
 
-    #include "shim" // Shim
-
-    // : C/ C++ Standard Library; ...
-    #if __CPP__VERSION__ > 1997uL || __CPP__VERSION__ < 2020uL
-    #   include <stdbool.h> // Standard Boolean
-    #else
-    #   include <cstdbool> // C Standard Boolean
-    #endif
-    #if __CPP__VERSION__ > 1997uL
-    #   include <type_traits> // Type Traits
-    #endif
-
-    #include "utility" // Utility
-
-    /* Main */
-    namespace Lapys { void Main(...); }
-    __MAIN__ except(false) { Lapys::Main(); return EXIT_SUCCESS; }
-
-    /* Deletion > ... --- NOTE (Lapys) -> Matches the order of definitions. */
-    #undef __MAIN__
-    #undef __WINDOWS__MAIN__
-    #undef __WINDOWS_DLL__MAIN__
-
-    #undef except__selector
-    #undef except__selector_delay
-    #undef except__state_anticipated
-    #undef except__state_unexpected
-    #undef except__state_unknown
-    #undef except__tokenizer
-    #undef except__tokenizer_delay
-    #undef except__value_false
-    #undef except__value_true
-    #undef constable
-    #undef constexpr
-    #undef except
-    #undef final
-    #undef inline
-    #undef is_except
-    #undef nodecay
-    #undef override
-    #undef super
-    #if false == __COMPILER_IS__ICC__
-    #  undef typeof
-    #endif
-
-    #undef __PLATFORM_IS__APPLE_MACINTOSH__
-    #undef __PLATFORM_IS__LINUX__
-    #undef __PLATFORM_IS__MICROSOFT_WINDOWS__
-    #undef __PLATFORM_IS__POSIX__
-    #undef __PLATFORM_IS__UNIX__
-
-    #undef __COMPILER_IS__ARM__
-    #undef __COMPILER_IS__CLANG__
-    #undef __COMPILER_IS__GNU__
-    #undef __COMPILER_IS__ICC__
-    #undef __COMPILER_IS__MSVC__
-
-    #undef __C__VERSION__
-    #undef __CPP__VERSION__
-    #undef __CPP_COMMAND_LINE_INTERFACE__VERSION__
-    #undef __CPP_EMBEDDED__VERSION__
-    #undef __ENVIRONMENT_IS__C__
-    #undef __ENVIRONMENT_IS__CPP__
-    #undef __ENVIRONMENT_IS__CPP_COMMAND_LINE_INTERFACE__
-    #undef __ENVIRONMENT_IS__CPP_EMBEDDED__
+  /* Definitions > ... */
+  #undef CPP_COMPILER
+  # undef CPP__CLANG__COMPILER
+  # undef CPP__GCC__COMPILER
+  # undef CPP__ICC__COMPILER
+  # undef CPP__MSVC__COMPILER
+  #undef CPP_PREPROCESSOR
+  # undef CPP_PREPROCESSOR_CHECK
+  # undef CPP_PREPROCESSOR_SELECT
+  # undef CPP_STANDARD_PREPROCESSOR
+  # undef CPP__MSVC__PREPROCESSOR
+  #undef CPP_VERSION
+  #undef apply
+  # undef apply_0
+  # undef apply_1
+  # undef apply_2
+  # undef apply_3
+  # undef apply_4
+  # undef apply_5
+  # undef apply_6
+  # undef apply_7
+  # undef apply_8
+  # undef apply_9
+  # undef apply_10
+  # undef apply_11
+  # undef apply_12
+  # undef apply_13
+  # undef apply_14
+  # undef apply_15
+  # undef apply_16
+  # undef apply_17
+  # undef apply_18
+  # undef apply_19
+  # undef apply_20
+  # undef apply_21
+  # undef apply_22
+  # undef apply_23
+  # undef apply_24
+  # undef apply_25
+  # undef apply_26
+  # undef apply_27
+  # undef apply_28
+  # undef apply_29
+  # undef apply_30
+  # undef apply_31
+  # undef apply_32
+  # undef apply_33
+  # undef apply_34
+  # undef apply_35
+  # undef apply_36
+  # undef apply_37
+  # undef apply_38
+  # undef apply_39
+  # undef apply_40
+  # undef apply_41
+  # undef apply_42
+  # undef apply_43
+  # undef apply_44
+  # undef apply_45
+  # undef apply_46
+  # undef apply_47
+  # undef apply_48
+  # undef apply_49
+  # undef apply_50
+  # undef apply_51
+  # undef apply_52
+  # undef apply_53
+  # undef apply_54
+  # undef apply_55
+  # undef apply_56
+  # undef apply_57
+  # undef apply_58
+  # undef apply_59
+  # undef apply_60
+  # undef apply_61
+  # undef apply_62
+  # undef apply_63
+  # undef apply_64
+  # undef apply_65
+  # undef apply_66
+  # undef apply_67
+  # undef apply_68
+  # undef apply_69
+  # undef apply_70
+  # undef apply_71
+  # undef apply_72
+  # undef apply_73
+  # undef apply_74
+  # undef apply_75
+  # undef apply_76
+  # undef apply_77
+  # undef apply_78
+  # undef apply_79
+  # undef apply_80
+  # undef apply_81
+  # undef apply_82
+  # undef apply_83
+  # undef apply_84
+  # undef apply_85
+  # undef apply_86
+  # undef apply_87
+  # undef apply_88
+  # undef apply_89
+  # undef apply_90
+  # undef apply_91
+  # undef apply_92
+  # undef apply_93
+  # undef apply_94
+  # undef apply_95
+  # undef apply_96
+  # undef apply_97
+  # undef apply_98
+  # undef apply_99
+  # undef apply_100
+  # undef apply_101
+  # undef apply_102
+  # undef apply_103
+  # undef apply_104
+  # undef apply_105
+  # undef apply_106
+  # undef apply_107
+  # undef apply_108
+  # undef apply_109
+  # undef apply_110
+  # undef apply_111
+  # undef apply_112
+  # undef apply_113
+  # undef apply_114
+  # undef apply_115
+  # undef apply_116
+  # undef apply_117
+  # undef apply_118
+  # undef apply_119
+  # undef apply_120
+  # undef apply_121
+  # undef apply_122
+  # undef apply_123
+  # undef apply_124
+  # undef apply_125
+  # undef apply_126
+  # undef apply_127
+  # undef apply_128
+  # undef apply_129
+  # undef apply_130
+  # undef apply_131
+  # undef apply_132
+  # undef apply_133
+  # undef apply_134
+  # undef apply_135
+  # undef apply_136
+  # undef apply_137
+  # undef apply_138
+  # undef apply_139
+  # undef apply_140
+  # undef apply_141
+  # undef apply_142
+  # undef apply_143
+  # undef apply_144
+  # undef apply_145
+  # undef apply_146
+  # undef apply_147
+  # undef apply_148
+  # undef apply_149
+  # undef apply_150
+  # undef apply_151
+  # undef apply_152
+  # undef apply_153
+  # undef apply_154
+  # undef apply_155
+  # undef apply_156
+  # undef apply_157
+  # undef apply_158
+  # undef apply_159
+  # undef apply_160
+  # undef apply_161
+  # undef apply_162
+  # undef apply_163
+  # undef apply_164
+  # undef apply_165
+  # undef apply_166
+  # undef apply_167
+  # undef apply_168
+  # undef apply_169
+  # undef apply_170
+  # undef apply_171
+  # undef apply_172
+  # undef apply_173
+  # undef apply_174
+  # undef apply_175
+  # undef apply_176
+  # undef apply_177
+  # undef apply_178
+  # undef apply_179
+  # undef apply_180
+  # undef apply_181
+  # undef apply_182
+  # undef apply_183
+  # undef apply_184
+  # undef apply_185
+  # undef apply_186
+  # undef apply_187
+  # undef apply_188
+  # undef apply_189
+  # undef apply_190
+  # undef apply_191
+  # undef apply_192
+  # undef apply_193
+  # undef apply_194
+  # undef apply_195
+  # undef apply_196
+  # undef apply_197
+  # undef apply_198
+  # undef apply_199
+  # undef apply_200
+  # undef apply_201
+  # undef apply_202
+  # undef apply_203
+  # undef apply_204
+  # undef apply_205
+  # undef apply_206
+  # undef apply_207
+  # undef apply_208
+  # undef apply_209
+  # undef apply_210
+  # undef apply_211
+  # undef apply_212
+  # undef apply_213
+  # undef apply_214
+  # undef apply_215
+  # undef apply_216
+  # undef apply_217
+  # undef apply_218
+  # undef apply_219
+  # undef apply_220
+  # undef apply_221
+  # undef apply_222
+  # undef apply_223
+  # undef apply_224
+  # undef apply_225
+  # undef apply_226
+  # undef apply_227
+  # undef apply_228
+  # undef apply_229
+  # undef apply_230
+  # undef apply_231
+  # undef apply_232
+  # undef apply_233
+  # undef apply_234
+  # undef apply_235
+  # undef apply_236
+  # undef apply_237
+  # undef apply_238
+  # undef apply_239
+  # undef apply_240
+  # undef apply_241
+  # undef apply_242
+  # undef apply_243
+  # undef apply_244
+  # undef apply_245
+  # undef apply_246
+  # undef apply_247
+  # undef apply_248
+  # undef apply_249
+  # undef apply_250
+  # undef apply_251
+  # undef apply_252
+  # undef apply_253
+  # undef apply_254
+  # undef apply_255
+  #undef arity
+  # undef arity_0
+  # undef arity_1
+  # undef arity_2
+  # undef arity_3
+  # undef arity_4
+  # undef arity_5
+  # undef arity_6
+  # undef arity_7
+  # undef arity_8
+  # undef arity_9
+  # undef arity_10
+  # undef arity_11
+  # undef arity_12
+  # undef arity_13
+  # undef arity_14
+  # undef arity_15
+  # undef arity_16
+  # undef arity_17
+  # undef arity_18
+  # undef arity_19
+  # undef arity_20
+  # undef arity_21
+  # undef arity_22
+  # undef arity_23
+  # undef arity_24
+  # undef arity_25
+  # undef arity_26
+  # undef arity_27
+  # undef arity_28
+  # undef arity_29
+  # undef arity_30
+  # undef arity_31
+  # undef arity_32
+  # undef arity_33
+  # undef arity_34
+  # undef arity_35
+  # undef arity_36
+  # undef arity_37
+  # undef arity_38
+  # undef arity_39
+  # undef arity_40
+  # undef arity_41
+  # undef arity_42
+  # undef arity_43
+  # undef arity_44
+  # undef arity_45
+  # undef arity_46
+  # undef arity_47
+  # undef arity_48
+  # undef arity_49
+  # undef arity_50
+  # undef arity_51
+  # undef arity_52
+  # undef arity_53
+  # undef arity_54
+  # undef arity_55
+  # undef arity_56
+  # undef arity_57
+  # undef arity_58
+  # undef arity_59
+  # undef arity_60
+  # undef arity_61
+  # undef arity_62
+  # undef arity_63
+  # undef arity_64
+  # undef arity_65
+  # undef arity_66
+  # undef arity_67
+  # undef arity_68
+  # undef arity_69
+  # undef arity_70
+  # undef arity_71
+  # undef arity_72
+  # undef arity_73
+  # undef arity_74
+  # undef arity_75
+  # undef arity_76
+  # undef arity_77
+  # undef arity_78
+  # undef arity_79
+  # undef arity_80
+  # undef arity_81
+  # undef arity_82
+  # undef arity_83
+  # undef arity_84
+  # undef arity_85
+  # undef arity_86
+  # undef arity_87
+  # undef arity_88
+  # undef arity_89
+  # undef arity_90
+  # undef arity_91
+  # undef arity_92
+  # undef arity_93
+  # undef arity_94
+  # undef arity_95
+  # undef arity_96
+  # undef arity_97
+  # undef arity_98
+  # undef arity_99
+  # undef arity_100
+  # undef arity_101
+  # undef arity_102
+  # undef arity_103
+  # undef arity_104
+  # undef arity_105
+  # undef arity_106
+  # undef arity_107
+  # undef arity_108
+  # undef arity_109
+  # undef arity_110
+  # undef arity_111
+  # undef arity_112
+  # undef arity_113
+  # undef arity_114
+  # undef arity_115
+  # undef arity_116
+  # undef arity_117
+  # undef arity_118
+  # undef arity_119
+  # undef arity_120
+  # undef arity_121
+  # undef arity_122
+  # undef arity_123
+  # undef arity_124
+  # undef arity_125
+  # undef arity_126
+  # undef arity_127
+  # undef arity_128
+  # undef arity_129
+  # undef arity_130
+  # undef arity_131
+  # undef arity_132
+  # undef arity_133
+  # undef arity_134
+  # undef arity_135
+  # undef arity_136
+  # undef arity_137
+  # undef arity_138
+  # undef arity_139
+  # undef arity_140
+  # undef arity_141
+  # undef arity_142
+  # undef arity_143
+  # undef arity_144
+  # undef arity_145
+  # undef arity_146
+  # undef arity_147
+  # undef arity_148
+  # undef arity_149
+  # undef arity_150
+  # undef arity_151
+  # undef arity_152
+  # undef arity_153
+  # undef arity_154
+  # undef arity_155
+  # undef arity_156
+  # undef arity_157
+  # undef arity_158
+  # undef arity_159
+  # undef arity_160
+  # undef arity_161
+  # undef arity_162
+  # undef arity_163
+  # undef arity_164
+  # undef arity_165
+  # undef arity_166
+  # undef arity_167
+  # undef arity_168
+  # undef arity_169
+  # undef arity_170
+  # undef arity_171
+  # undef arity_172
+  # undef arity_173
+  # undef arity_174
+  # undef arity_175
+  # undef arity_176
+  # undef arity_177
+  # undef arity_178
+  # undef arity_179
+  # undef arity_180
+  # undef arity_181
+  # undef arity_182
+  # undef arity_183
+  # undef arity_184
+  # undef arity_185
+  # undef arity_186
+  # undef arity_187
+  # undef arity_188
+  # undef arity_189
+  # undef arity_190
+  # undef arity_191
+  # undef arity_192
+  # undef arity_193
+  # undef arity_194
+  # undef arity_195
+  # undef arity_196
+  # undef arity_197
+  # undef arity_198
+  # undef arity_199
+  # undef arity_200
+  # undef arity_201
+  # undef arity_202
+  # undef arity_203
+  # undef arity_204
+  # undef arity_205
+  # undef arity_206
+  # undef arity_207
+  # undef arity_208
+  # undef arity_209
+  # undef arity_210
+  # undef arity_211
+  # undef arity_212
+  # undef arity_213
+  # undef arity_214
+  # undef arity_215
+  # undef arity_216
+  # undef arity_217
+  # undef arity_218
+  # undef arity_219
+  # undef arity_220
+  # undef arity_221
+  # undef arity_222
+  # undef arity_223
+  # undef arity_224
+  # undef arity_225
+  # undef arity_226
+  # undef arity_227
+  # undef arity_228
+  # undef arity_229
+  # undef arity_230
+  # undef arity_231
+  # undef arity_232
+  # undef arity_233
+  # undef arity_234
+  # undef arity_235
+  # undef arity_236
+  # undef arity_237
+  # undef arity_238
+  # undef arity_239
+  # undef arity_240
+  # undef arity_241
+  # undef arity_242
+  # undef arity_243
+  # undef arity_244
+  # undef arity_245
+  # undef arity_246
+  # undef arity_247
+  # undef arity_248
+  # undef arity_249
+  # undef arity_250
+  # undef arity_251
+  # undef arity_252
+  # undef arity_253
+  # undef arity_254
+  # undef arity_255
+  #undef concatenate
+  #undef constfunc
+  #undef defer
+  # undef defer_parse
+  #undef empty
+  #undef exceptof
+  #undef exceptspec
+  #undef final
+  #undef first
+  #undef noexcept
+  #undef noinline
+  #undef parse
+  # undef parse_1
+  # undef parse_2
+  # undef parse_3
+  # undef parse_4
+  # undef parse_5
+  # undef parse_6
+  # undef parse_7
+  # undef parse_8
+  # undef parse_9
+  # undef parse_10
+  # undef parse_11
+  # undef parse_12
+  #undef repeat
+  # undef repeat_begin
+  # undef  repeat_condition
+  #   undef repeat_condition_accept
+  #   undef repeat_condition_fallback
+  #   undef repeat_condition_fail
+  #   undef repeat_condition_pass
+  #   undef repeat_condition_is_false
+  #   undef repeat_condition_is_true
+  #     undef repeat_condition_found_until
+  #     undef repeat_condition_selection_default
+  # undef repeat_continue
+  # undef repeat_end
+  # undef repeat_function
+  #   undef repeat_function_accept
+  #   undef repeat_function_fallback
+  #     undef repeat_function_selection_default
+  # undef repeat_separator
+  #   undef repeat_separator_accept
+  #   undef repeat_separator_fallback
+  #     undef repeat_separator_selection_default
+  # undef  repeat_setup
+  # undef repeat_recurse
+  #undef second
+  #undef stall
+  # undef stall_1
+  # undef stall_2
+  #undef typeof
 #endif
-
-/*
-Set the Floating-Point Environment on initiation
-
-template <typename type>
-struct is_complete {
-  constexpr inline static bool disambiguate(...) except(false) { return false; }
-  template <typename subtype> constexpr inline static typeof(sizeof(subtype)) disambiguate(subtype* const) except(false) { return true; }
-
-  constexpr static bool const value = disambiguate(static_cast<type*>(NULL));
-};
-
-inline bool isBigEndian(void) except(false) {
-    constexpr unsigned int value = 1u;
-    return 0u == *reinterpret_cast<unsigned char const*>(value);
-}
-
-inline bool isLittleEndian(void) except(false) {
-    constexpr unsigned int value = 1u;
-    return 0u != *reinterpret_cast<unsigned char const*>(value);
-}
-*/
