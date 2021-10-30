@@ -3,11 +3,6 @@
 #undef _MSVC_
 #undef _PREPROCESSOR
 
-/* ... */
-#if CPP_COMPILER == CPP__GCC__COMPILER
-# pragma GCC system_header
-#endif
-
 /* Definition > ... */
 // : [C++ Compiler]
 #define CPP_COMPILER true
@@ -69,11 +64,51 @@
 #   define CPP_PREPROCESSOR_SELECT(arguments, ...) defer(concatenate, defer(concatenate, CPP_, second(arguments, STANDARD, ~)), _PREPROCESSOR)
 #endif
 
+// : [C++ Vendor]
+#define CPP_VENDOR true
+# define CPP__APPLE_MACINTOSH__VENDOR   false
+# define CPP__LINUX__VENDOR             false
+# define CPP__MICROSOFT_WINDOWS__VENDOR false
+# define CPP__NINTENDO__VENDOR          false
+# define CPP__UNIX__VENDOR              false
+
+#if defined(__APPLE__) && defined(__MACH__)
+# undef  CPP__APPLE_MACINTOSH__VENDOR
+# define CPP__APPLE_MACINTOSH__VENDOR true
+# undef  CPP__UNIX__VENDOR
+# define CPP__UNIX__VENDOR true
+#elif defined(__unix) || defined(__unix__)
+# undef  CPP__UNIX__VENDOR
+# define CPP__UNIX__VENDOR true
+#endif
+#
+#if defined(__gnu_linux__) || defined(linux) || defined(__linux) || defined(__linux__)
+# undef  CPP__LINUX__VENDOR
+# define CPP__LINUX__VENDOR true
+#endif
+#
+#if defined(ARM9) || defined(_3DS) || defined(__SWITCH__)
+# undef  CPP__NINTENDO__VENDOR
+# define CPP__NINTENDO__VENDOR true
+#endif
+#
+#if defined(__NT__) || defined(__TOS_WIN__) || defined(_WIN16) || defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(_WIN32_WCE) || defined(_WIN64) || defined(__WINDOWS__)
+# undef  CPP__MICROSOFT_WINDOWS__VENDOR
+# define CPP__MICROSOFT_WINDOWS__VENDOR true
+#endif
+
 // : [Constant Expression Specifier]
 #if CPP_VERSION < 2011uL
 # define constfunc
 #else
 # define constfunc constexpr
+#endif
+
+// : [Deleted Function Specifier]
+#if CPP_VERSION < 2011uL
+# define deleted ;
+#else
+# define deleted = delete;
 #endif
 
 // : [Exception Operator]
@@ -85,14 +120,18 @@
 
 // : [Exception Specifier]
 #if CPP_VERSION < 2011uL
-# define exceptspec(specification)
+# define exceptspec(specification) defer(concatenate, exceptspec_, defer(second, exceptspec_check_ ## specification, fail, ~))
+#   define exceptspec_fail
+#   define exceptspec_pass noexcept
+#     define exceptspec_check_true ~, pass
+
 # if CPP_COMPILER == CPP__MSVC__COMPILER
 #   define noexcept throw(...)
 # else
 #   define noexcept throw()
 # endif
 #else
-# define exceptspec(...) noexcept(__VA_ARGS__)
+# define exceptspec(specification) noexcept(specification)
 #endif
 
 // : [Inheritance Specifier]
@@ -113,6 +152,15 @@
 #   define noinline __declspec(noinline)
 #else
 #   define noinline
+#endif
+
+// : [Reference Qualifier]
+#if CPP_VERSION < 2011uL
+# define lvalued
+# define rvalued
+#else
+# define lvalued &
+# define rvalued &&
 #endif
 
 // : [Type Inspection Specifier]

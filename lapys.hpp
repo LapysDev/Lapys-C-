@@ -14,6 +14,7 @@
   #if CPP_VERSION >= 2020uL
   # include <compare> // Compare
   #endif
+  #include <new>     // New
 
   // : [C Standard Library]
   #include <errno.h>   // Error No.
@@ -22,12 +23,17 @@
   #include <wchar.h>   // Wide Characters
 
   // : [...]
-  #include "lapys/extensions.h"    // Extensions
-  #include "lapys/macro.h"         // Macro
-  #include "lapys/traits.hpp"      // Traits
-  #include "lapys/parity.hpp"      // Parity
-  #include "lapys/definitions.hpp" // Definitions
-  #include "lapys/entry.hpp"       // Entry
+  #include "lapys/extensions.h" // Extensions
+  #include "lapys/macro.h"      // Macro
+  #include "lapys/traits.hpp"   // Traits
+  #include "lapys/parity.hpp"   // Parity
+  #
+  #include "lapys/memory.hpp"  // Memory
+  #include "lapys/array.hpp"   // Array
+  #include "lapys/string.hpp"  // String
+  #include "lapys/program.hpp" // Program
+  #
+  #include "lapys/entry.hpp" // Entry
 
   /* Definitions > ... */
   #undef CPP_COMPILER
@@ -40,6 +46,12 @@
   # undef CPP_PREPROCESSOR_SELECT
   # undef CPP_STANDARD_PREPROCESSOR
   # undef CPP__MSVC__PREPROCESSOR
+  #undef CPP_VENDOR
+  # undef CPP__APPLE_MACINTOSH__VENDOR
+  # undef CPP__LINUX__VENDOR
+  # undef CPP__MICROSOFT_WINDOWS__VENDOR
+  # undef CPP__NINTENDO__VENDOR
+  # undef CPP__UNIX__VENDOR
   #undef CPP_VERSION
   #undef apply
   # undef apply_0
@@ -298,313 +310,20 @@
   # undef apply_253
   # undef apply_254
   # undef apply_255
-  #undef arity
-  # undef arity_0
-  # undef arity_1
-  # undef arity_2
-  # undef arity_3
-  # undef arity_4
-  # undef arity_5
-  # undef arity_6
-  # undef arity_7
-  # undef arity_8
-  # undef arity_9
-  # undef arity_10
-  # undef arity_11
-  # undef arity_12
-  # undef arity_13
-  # undef arity_14
-  # undef arity_15
-  # undef arity_16
-  # undef arity_17
-  # undef arity_18
-  # undef arity_19
-  # undef arity_20
-  # undef arity_21
-  # undef arity_22
-  # undef arity_23
-  # undef arity_24
-  # undef arity_25
-  # undef arity_26
-  # undef arity_27
-  # undef arity_28
-  # undef arity_29
-  # undef arity_30
-  # undef arity_31
-  # undef arity_32
-  # undef arity_33
-  # undef arity_34
-  # undef arity_35
-  # undef arity_36
-  # undef arity_37
-  # undef arity_38
-  # undef arity_39
-  # undef arity_40
-  # undef arity_41
-  # undef arity_42
-  # undef arity_43
-  # undef arity_44
-  # undef arity_45
-  # undef arity_46
-  # undef arity_47
-  # undef arity_48
-  # undef arity_49
-  # undef arity_50
-  # undef arity_51
-  # undef arity_52
-  # undef arity_53
-  # undef arity_54
-  # undef arity_55
-  # undef arity_56
-  # undef arity_57
-  # undef arity_58
-  # undef arity_59
-  # undef arity_60
-  # undef arity_61
-  # undef arity_62
-  # undef arity_63
-  # undef arity_64
-  # undef arity_65
-  # undef arity_66
-  # undef arity_67
-  # undef arity_68
-  # undef arity_69
-  # undef arity_70
-  # undef arity_71
-  # undef arity_72
-  # undef arity_73
-  # undef arity_74
-  # undef arity_75
-  # undef arity_76
-  # undef arity_77
-  # undef arity_78
-  # undef arity_79
-  # undef arity_80
-  # undef arity_81
-  # undef arity_82
-  # undef arity_83
-  # undef arity_84
-  # undef arity_85
-  # undef arity_86
-  # undef arity_87
-  # undef arity_88
-  # undef arity_89
-  # undef arity_90
-  # undef arity_91
-  # undef arity_92
-  # undef arity_93
-  # undef arity_94
-  # undef arity_95
-  # undef arity_96
-  # undef arity_97
-  # undef arity_98
-  # undef arity_99
-  # undef arity_100
-  # undef arity_101
-  # undef arity_102
-  # undef arity_103
-  # undef arity_104
-  # undef arity_105
-  # undef arity_106
-  # undef arity_107
-  # undef arity_108
-  # undef arity_109
-  # undef arity_110
-  # undef arity_111
-  # undef arity_112
-  # undef arity_113
-  # undef arity_114
-  # undef arity_115
-  # undef arity_116
-  # undef arity_117
-  # undef arity_118
-  # undef arity_119
-  # undef arity_120
-  # undef arity_121
-  # undef arity_122
-  # undef arity_123
-  # undef arity_124
-  # undef arity_125
-  # undef arity_126
-  # undef arity_127
-  # undef arity_128
-  # undef arity_129
-  # undef arity_130
-  # undef arity_131
-  # undef arity_132
-  # undef arity_133
-  # undef arity_134
-  # undef arity_135
-  # undef arity_136
-  # undef arity_137
-  # undef arity_138
-  # undef arity_139
-  # undef arity_140
-  # undef arity_141
-  # undef arity_142
-  # undef arity_143
-  # undef arity_144
-  # undef arity_145
-  # undef arity_146
-  # undef arity_147
-  # undef arity_148
-  # undef arity_149
-  # undef arity_150
-  # undef arity_151
-  # undef arity_152
-  # undef arity_153
-  # undef arity_154
-  # undef arity_155
-  # undef arity_156
-  # undef arity_157
-  # undef arity_158
-  # undef arity_159
-  # undef arity_160
-  # undef arity_161
-  # undef arity_162
-  # undef arity_163
-  # undef arity_164
-  # undef arity_165
-  # undef arity_166
-  # undef arity_167
-  # undef arity_168
-  # undef arity_169
-  # undef arity_170
-  # undef arity_171
-  # undef arity_172
-  # undef arity_173
-  # undef arity_174
-  # undef arity_175
-  # undef arity_176
-  # undef arity_177
-  # undef arity_178
-  # undef arity_179
-  # undef arity_180
-  # undef arity_181
-  # undef arity_182
-  # undef arity_183
-  # undef arity_184
-  # undef arity_185
-  # undef arity_186
-  # undef arity_187
-  # undef arity_188
-  # undef arity_189
-  # undef arity_190
-  # undef arity_191
-  # undef arity_192
-  # undef arity_193
-  # undef arity_194
-  # undef arity_195
-  # undef arity_196
-  # undef arity_197
-  # undef arity_198
-  # undef arity_199
-  # undef arity_200
-  # undef arity_201
-  # undef arity_202
-  # undef arity_203
-  # undef arity_204
-  # undef arity_205
-  # undef arity_206
-  # undef arity_207
-  # undef arity_208
-  # undef arity_209
-  # undef arity_210
-  # undef arity_211
-  # undef arity_212
-  # undef arity_213
-  # undef arity_214
-  # undef arity_215
-  # undef arity_216
-  # undef arity_217
-  # undef arity_218
-  # undef arity_219
-  # undef arity_220
-  # undef arity_221
-  # undef arity_222
-  # undef arity_223
-  # undef arity_224
-  # undef arity_225
-  # undef arity_226
-  # undef arity_227
-  # undef arity_228
-  # undef arity_229
-  # undef arity_230
-  # undef arity_231
-  # undef arity_232
-  # undef arity_233
-  # undef arity_234
-  # undef arity_235
-  # undef arity_236
-  # undef arity_237
-  # undef arity_238
-  # undef arity_239
-  # undef arity_240
-  # undef arity_241
-  # undef arity_242
-  # undef arity_243
-  # undef arity_244
-  # undef arity_245
-  # undef arity_246
-  # undef arity_247
-  # undef arity_248
-  # undef arity_249
-  # undef arity_250
-  # undef arity_251
-  # undef arity_252
-  # undef arity_253
-  # undef arity_254
-  # undef arity_255
   #undef concatenate
   #undef constfunc
   #undef defer
   # undef defer_parse
-  #undef empty
+  #undef deleted
   #undef exceptof
   #undef exceptspec
+  # undef exceptspec_fail
+  # undef exceptspec_pass
+  #   undef exceptspec_check_true
   #undef final
   #undef first
+  #undef lvalued
   #undef noexcept
   #undef noinline
-  #undef parse
-  # undef parse_1
-  # undef parse_2
-  # undef parse_3
-  # undef parse_4
-  # undef parse_5
-  # undef parse_6
-  # undef parse_7
-  # undef parse_8
-  # undef parse_9
-  # undef parse_10
-  # undef parse_11
-  # undef parse_12
-  #undef repeat
-  # undef repeat_begin
-  # undef  repeat_condition
-  #   undef repeat_condition_accept
-  #   undef repeat_condition_fallback
-  #   undef repeat_condition_fail
-  #   undef repeat_condition_pass
-  #   undef repeat_condition_is_false
-  #   undef repeat_condition_is_true
-  #     undef repeat_condition_found_until
-  #     undef repeat_condition_selection_default
-  # undef repeat_continue
-  # undef repeat_end
-  # undef repeat_function
-  #   undef repeat_function_accept
-  #   undef repeat_function_fallback
-  #     undef repeat_function_selection_default
-  # undef repeat_separator
-  #   undef repeat_separator_accept
-  #   undef repeat_separator_fallback
-  #     undef repeat_separator_selection_default
-  # undef  repeat_setup
-  # undef repeat_recurse
-  #undef second
-  #undef stall
-  # undef stall_1
-  # undef stall_2
-  #undef typeof
+  #undef rvalued
 #endif

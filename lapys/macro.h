@@ -277,6 +277,7 @@
   #define concatenate(argument1, argument2) argument1 ## argument2
   #define defer(function, ...) defer_parse(function, (__VA_ARGS__))
   # define defer_parse(function, call) function call
+  #define second(argument1, argument2, ...) argument2
 
 #if   CPP_COMPILER == CPP__CLANG__COMPILER
 # pragma clang diagnostic pop
