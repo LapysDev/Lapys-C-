@@ -23,10 +23,11 @@
   #include <wchar.h>   // Wide Characters
 
   // : [...]
-  #include "lapys/extensions.h" // Extensions
-  #include "lapys/macro.h"      // Macro
-  #include "lapys/traits.hpp"   // Traits
-  #include "lapys/parity.hpp"   // Parity
+  #include "lapys/extensions.h"  // Extensions
+  #include "lapys/macros.h"      // Macros
+  #include "lapys/traits.hpp"    // Traits
+  #include "lapys/constants.hpp" // Traits
+  #include "lapys/parity.hpp"    // Parity
   #
   #include "lapys/memory.hpp"  // Memory
   #include "lapys/array.hpp"   // Array
@@ -53,6 +54,8 @@
   # undef CPP__NINTENDO__VENDOR
   # undef CPP__UNIX__VENDOR
   #undef CPP_VERSION
+  #undef align
+  #undef alignmentof
   #undef apply
   # undef apply_0
   # undef apply_1
@@ -312,6 +315,9 @@
   # undef apply_255
   #undef concatenate
   #undef constfunc
+  # undef constfunc_false
+  # undef constfunc_true
+  #undef constvar
   #undef defer
   # undef defer_parse
   #undef deleted
@@ -323,7 +329,9 @@
   #undef final
   #undef first
   #undef lvalued
+  #undef nodecay
   #undef noexcept
   #undef noinline
+  #undef noreturn
   #undef rvalued
 #endif

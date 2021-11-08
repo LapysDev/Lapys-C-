@@ -97,11 +97,23 @@
 # define CPP__MICROSOFT_WINDOWS__VENDOR true
 #endif
 
-// : [Constant Expression Specifier]
+// : [Constant Expression]
+#define constfunc(strict) constfunc_ ## strict
 #if CPP_VERSION < 2011uL
-# define constfunc
+# define constfunc_false
+# define constfunc_true
+#elif CPP_VERSION < 2014uL
+# define constfunc_false
+# define constfunc_true constexpr
 #else
-# define constfunc constexpr
+# define constfunc_false constexpr
+# define constfunc_true  constexpr
+#endif
+
+#if CPP_VERSION < 2011uL
+# define constvar
+#else
+# define constvar constexpr
 #endif
 
 // : [Deleted Function Specifier]
@@ -121,17 +133,23 @@
 // : [Exception Specifier]
 #if CPP_VERSION < 2011uL
 # define exceptspec(specification) defer(concatenate, exceptspec_, defer(second, exceptspec_check_ ## specification, fail, ~))
-#   define exceptspec_fail
 #   define exceptspec_pass noexcept
+#   if CPP_COMPILER == CPP__MSVC__COMPILER
+#     define exceptspec_fail throw(...)
+#   else
+#     define exceptspec_fail
+#   endif
 #     define exceptspec_check_true ~, pass
-
-# if CPP_COMPILER == CPP__MSVC__COMPILER
-#   define noexcept throw(...)
-# else
-#   define noexcept throw()
-# endif
+# define noexcept throw()
 #else
 # define exceptspec(specification) noexcept(specification)
+#endif
+
+// : [Forwarding]
+#if CPP_VERSION < 2011uL
+# define nodecay const&
+#else
+# define nodecay &&
 #endif
 
 // : [Inheritance Specifier]
@@ -161,6 +179,25 @@
 #else
 # define lvalued &
 # define rvalued &&
+#endif
+
+// : [Return Specifier]
+#if CPP_VERSION < 2011uL
+# if CPP_COMPILER == CPP__CLANG__COMPILER
+#   if __has_attribute(noreturn)
+#     define noreturn __attribute__((noreturn))
+#   else
+#     define noreturn
+#   endif
+# elif CPP_COMPILER == CPP__GCC__COMPILER
+#     define noreturn __attribute__((noreturn))
+# elif CPP_COMPILER == CPP__MSVC__COMPILER
+#     define noreturn __declspec(noreturn)
+# else
+#     define noreturn
+# endif
+#else
+# define noreturn [[noreturn]]
 #endif
 
 // : [Type Inspection Specifier]

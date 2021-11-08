@@ -4,4 +4,4 @@
 using namespace Lapys;
 
 /* Main */
-void Lapys::Main(CommandLineArguments const&) {}
+// void Lapys::Main(CommandLineArguments const&) {}
