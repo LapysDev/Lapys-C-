@@ -1,5 +1,5 @@
 /* ... */
-#if   CPP_COMPILER == CPP__CLANG__COMPILER
+#if CPP_COMPILER == CPP__CLANG__COMPILER
 # pragma clang diagnostic push
 # pragma clang diagnostic ignored "-Wvariadic-macros"
 #elif CPP_COMPILER == CPP__GCC__COMPILER

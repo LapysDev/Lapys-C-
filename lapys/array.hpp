@@ -13,8 +13,8 @@ namespace Lapys {
   };
 
   // : [Dynamic Array]
-  template <typename base, class allocator>
-  class Array<base, DYNAMIC, allocator> {
+  template <typename base, class allocator_t>
+  class Array<base, DYNAMIC, allocator_t> {
     private:
       struct lookup {
         unsigned char const reallocate;
@@ -25,7 +25,7 @@ namespace Lapys {
       base *end;
       std::size_t capacity;
 
-      allocator<base> allocator;
+      allocator_t allocator;
 
     public:
   };
@@ -42,10 +42,10 @@ namespace Lapys {
   // struct lenient_allocator {};
   // struct strict_allocator { void reallocate() {} };
 
-  /* Main */
-  int main() {
-    std::printf("[lenient]: %4.5s" "\r\n", has_reallocate<lenient_allocator>::value ? "true" : "false");
-    std::printf("[strict] : %4.5s" "\r\n", has_reallocate<strict_allocator >::value ? "true" : "false");
-  }
+  // /* Main */
+  // int main() {
+  //   std::printf("[lenient]: %4.5s" "\r\n", has_reallocate<lenient_allocator>::value ? "true" : "false");
+  //   std::printf("[strict] : %4.5s" "\r\n", has_reallocate<strict_allocator >::value ? "true" : "false");
+  // }
 }
 
