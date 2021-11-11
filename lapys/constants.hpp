@@ -1,5 +1,7 @@
 /* Constant > ... */
-enum { DYNAMIC = 0u };
+namespace Lapys {
+  enum { DYNAMIC = 0u };
+}
 
 enum {
   LAPYS_BUILTIN_MAX_ALIGNMENT =
@@ -67,3 +69,7 @@ enum {
     sizeof(void*)
   >::value
 };
+
+#ifndef LAPYS_MAX_TEMPLATE_INSTANTIATION
+# define LAPYS_MAX_TEMPLATE_INSTANTIATION static_cast<unsigned char>(LAPYS_MAX_ARITY)
+#endif

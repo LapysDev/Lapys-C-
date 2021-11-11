@@ -11,9 +11,6 @@
   #include <cstddef> // C Standard Definition
   #include <cstdio>  // C Standard Input/ Output
   #include <cstdlib> // C Standard Library
-  #if CPP_VERSION >= 2020uL
-  # include <compare> // Compare
-  #endif
   #include <new>     // New
 
   // : [C Standard Library]
@@ -26,7 +23,7 @@
   #include "lapys/extensions.h"  // Extensions
   #include "lapys/macros.h"      // Macros
   #include "lapys/traits.hpp"    // Traits
-  #include "lapys/constants.hpp" // Traits
+  #include "lapys/constants.hpp" // Constants
   #include "lapys/parity.hpp"    // Parity
   #
   #include "lapys/memory.hpp"  // Memory
@@ -54,6 +51,9 @@
   # undef CPP__NINTENDO__VENDOR
   # undef CPP__UNIX__VENDOR
   #undef CPP_VERSION
+  #undef LAPYS_MAX_ARITY
+  #undef LAPYS_MAX_TEMPLATE_INSTANTIATION
+  #
   #undef align
   #undef alignmentof
   #undef apply

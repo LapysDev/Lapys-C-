@@ -10,24 +10,45 @@ namespace Lapys {
   class Array {
     public:
       base value[length];
+
+    private:
+      base *end;
+
+    // ...
+    public:
+      constfunc(true) Array() noexcept :
+        value(), end()
+      {}
+
+      template <std::size_t capacity>
+      Array(typename conditional<capacity <= length, base>::type const volatile (&)[capacity]) noexcept :
+        value(), end()
+      {}
+
+      template <std::size_t capacity>
+      Array(typename conditional<(capacity > length), base>::type const volatile (&)[capacity]) noexcept :
+        value(), end()
+      {}
   };
 
   // : [Dynamic Array]
   template <typename base, class allocator_t>
   class Array<base, DYNAMIC, allocator_t> {
-    private:
-      struct lookup {
-        unsigned char const reallocate;
-      };
-
-      // ...
+    protected:
       union { base *begin, *value; };
+
+    private:
       base *end;
       std::size_t capacity;
 
       allocator_t allocator;
 
+    // ...
     public:
+      constfunc(true) Array() noexcept {}
+
+      template <std::size_t capacity>
+      Array(base const volatile (&)[capacity]) noexcept {}
   };
 
   /* ... */

@@ -14,7 +14,9 @@
   #undef until
 
   /* ... */
-  #define LAPYS_MAXIMUM_ARITY 255 // ->> of 255
+  #ifndef LAPYS_MAX_ARITY
+  # define LAPYS_MAX_ARITY 255
+  #endif
 
   /* ... */
   #if CPP_VERSION < 2011uL
