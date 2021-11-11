@@ -51,7 +51,7 @@ namespace Lapys {
       {}
 
       template <typename type>
-      String(type const volatile) noexcept :
+      String(type const) noexcept :
         CharacterArray<base, size, allocator_t>(typename conditional<is_pointer<type>::value, dummy_t>::type())
       {}
   };

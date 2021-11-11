@@ -97,6 +97,20 @@
 # define CPP__MICROSOFT_WINDOWS__VENDOR true
 #endif
 
+/* Definition > ... */
+// : [Address Specifier]
+#if CPP_VERSION < 2020uL
+# if (CPP_COMPILER == CPP__CLANG__COMPILER || CPP_COMPILER == CPP__GCC__COMPILER) && CPP_VERSION >= 2011uL
+#   define nouniqueaddr [[no_unique_address]]
+# elif CPP_COMPILER == CPP__ICC__COMPILER
+#   define nouniqueaddr [[no_unique_address]]
+# else
+#   define nouniqueaddr
+# endif
+#else
+# define nouniqueaddr [[no_unique_address]]
+#endif
+
 // : [Constant Expression]
 #define constfunc(strict) constfunc_ ## strict
 #if CPP_VERSION < 2011uL

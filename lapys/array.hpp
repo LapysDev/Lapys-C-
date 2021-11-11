@@ -21,12 +21,12 @@ namespace Lapys {
       {}
 
       template <std::size_t capacity>
-      Array(typename conditional<capacity <= length, base>::type const volatile (&)[capacity]) noexcept :
+      constfunc(true) Array(typename conditional<capacity <= length, base>::type const volatile (&)[capacity]) noexcept :
         value(), end()
       {}
 
       template <std::size_t capacity>
-      Array(typename conditional<(capacity > length), base>::type const volatile (&)[capacity]) noexcept :
+      constfunc(false) Array(typename conditional<(capacity > length), base>::type const volatile (&)[capacity]) noexcept :
         value(), end()
       {}
   };
@@ -41,14 +41,14 @@ namespace Lapys {
       base *end;
       std::size_t capacity;
 
-      allocator_t allocator;
+      nouniqueaddr allocator_t allocator;
 
     // ...
     public:
       constfunc(true) Array() noexcept {}
 
       template <std::size_t capacity>
-      Array(base const volatile (&)[capacity]) noexcept {}
+      constfunc(false) Array(base const volatile (&)[capacity]) noexcept {}
   };
 
   /* ... */

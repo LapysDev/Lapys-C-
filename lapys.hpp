@@ -333,5 +333,6 @@
   #undef noexcept
   #undef noinline
   #undef noreturn
+  #undef nouniqueaddr
   #undef rvalued
 #endif
