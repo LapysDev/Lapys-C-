@@ -1,6 +1,28 @@
 /* ... */
 namespace Lapys {
   namespace Memory {
+    namespace {
+      class Allocation {
+        private:
+          void *const value;
+
+        public:
+          constfunc(true) inline Allocation(void const volatile* const rvalue value) noexcept :
+            value(const_cast<void*>(value))
+          {}
+
+          // ...
+          constfunc(true) inline operator void*() const rvalue noexcept {
+            return const_cast<void*>(this -> value);
+          }
+
+          template <typename type>
+          constfunc(true) inline operator type*() const rvalue noexcept {
+            return static_cast<type*>(this -> value);
+          }
+      };
+    }
+
     template <typename>              class HeapAllocator;
     template <typename, std::size_t> class StackAllocator;
 
@@ -9,18 +31,18 @@ namespace Lapys {
     static byte *STACK_POINTER = STACK_BUFFER;
 
     // ...
-    void* allocateHeap(std::size_t const) exceptspec(true);
-    void* allocateHeap(std::size_t const, std::size_t const) exceptspec(true);
+    Allocation allocateHeap(std::size_t const) exceptspec(true);
+    Allocation allocateHeap(std::size_t const, std::size_t const) exceptspec(true);
 
-    void* allocateStack(std::size_t const) exceptspec(true);
-    void* allocateStack(std::size_t const, std::size_t const) exceptspec(true);
+    Allocation allocateStack(std::size_t const) exceptspec(true);
+    Allocation allocateStack(std::size_t const, std::size_t const) exceptspec(true);
 
-    inline void* reallocateHeap(void* const, std::size_t const) exceptspec(false);
-    void* reallocateHeap(void* const, std::size_t const, std::size_t const) exceptspec(false);
+    inline Allocation reallocateHeap(void* const, std::size_t const) exceptspec(false);
+    Allocation reallocateHeap(void* const, std::size_t const, std::size_t const) exceptspec(false);
     template <typename type> constfunc(true) inline type* reallocateHeap(type* const, std::size_t const, std::size_t const = alignmentof(type)) exceptspec(false);
 
-    inline void* reallocateStack(void* const, std::size_t const) exceptspec(false);
-    void* reallocateStack(void* const, std::size_t const, std::size_t const) exceptspec(false);
+    inline Allocation reallocateStack(void* const, std::size_t const) exceptspec(false);
+    Allocation reallocateStack(void* const, std::size_t const, std::size_t const) exceptspec(false);
     template <typename type> constfunc(true) inline type* reallocateStack(type* const, std::size_t const, std::size_t const = alignmentof(type)) exceptspec(false);
 
     void releaseHeap(void* const) exceptspec(false);
@@ -232,11 +254,11 @@ namespace Lapys {
     };
 
     /* Function > ... */
-    void* allocateHeap(std::size_t const size) exceptspec(true) {
+    Allocation allocateHeap(std::size_t const size) exceptspec(true) {
       return allocateHeap(size, LAPYS_BUILTIN_MAX_ALIGNMENT);
     }
 
-    void* allocateHeap(std::size_t const size, std::size_t const alignment) exceptspec(true) {
+    Allocation allocateHeap(std::size_t const size, std::size_t const alignment) exceptspec(true) {
       #if CPP_VERSION < 2017uL
         static_cast<void>(alignment);
         return std::malloc(size);
@@ -246,11 +268,11 @@ namespace Lapys {
     }
 
     // ...
-    void* allocateStack(std::size_t const size) exceptspec(true) {
+    Allocation allocateStack(std::size_t const size) exceptspec(true) {
       return allocateStack(size, LAPYS_BUILTIN_MAX_ALIGNMENT);
     }
 
-    void* allocateStack(std::size_t const size, std::size_t const alignment) exceptspec(true) {
+    Allocation allocateStack(std::size_t const size, std::size_t const alignment) exceptspec(true) {
       typedef std::size_t header_t;
 
       byte *data = NULL;
@@ -283,11 +305,11 @@ namespace Lapys {
     }
 
     // ...
-    void* reallocateHeap(void* const pointer, std::size_t const size) exceptspec(false) {
+    Allocation reallocateHeap(void* const pointer, std::size_t const size) exceptspec(false) {
       return reallocateHeap(pointer, size, LAPYS_BUILTIN_MAX_ALIGNMENT);
     }
 
-    void* reallocateHeap(void* const pointer, std::size_t const size, std::size_t const alignment) exceptspec(false) {
+    Allocation reallocateHeap(void* const pointer, std::size_t const size, std::size_t const alignment) exceptspec(false) {
       #if CPP_VERSION < 2017uL
         static_cast<void>(alignment);
         return std::realloc(pointer, size);
@@ -303,11 +325,11 @@ namespace Lapys {
     }
 
     // ...
-    void* reallocateStack(void* const pointer, std::size_t const size) exceptspec(false) {
+    Allocation reallocateStack(void* const pointer, std::size_t const size) exceptspec(false) {
       return reallocateStack(pointer, size, LAPYS_BUILTIN_MAX_ALIGNMENT);
     }
 
-    void* reallocateStack(void* const pointer, std::size_t const size, std::size_t const alignment) exceptspec(false) {
+    Allocation reallocateStack(void* const pointer, std::size_t const size, std::size_t const alignment) exceptspec(false) {
       releaseStack(pointer);
       return allocateStack(size, alignment);
     }

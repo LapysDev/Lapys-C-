@@ -320,7 +320,7 @@
   #undef constvar
   #undef defer
   # undef defer_parse
-  #undef deleted
+  #undef discard
   #undef exceptof
   #undef exceptspec
   # undef exceptspec_fail
@@ -328,11 +328,11 @@
   #   undef exceptspec_check_true
   #undef final
   #undef first
-  #undef lvalued
+  #undef lvalue
   #undef nodecay
   #undef noexcept
   #undef noinline
   #undef noreturn
   #undef nouniqueaddr
-  #undef rvalued
+  #undef rvalue
 #endif

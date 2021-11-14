@@ -15,7 +15,7 @@
 
   /* ... */
   #ifndef LAPYS_MAX_ARITY
-  # define LAPYS_MAX_ARITY 127 // of 255
+  # define LAPYS_MAX_ARITY 32 // of 255
   #endif
 
   /* ... */

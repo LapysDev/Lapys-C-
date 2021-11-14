@@ -132,9 +132,9 @@
 
 // : [Deleted Function Specifier]
 #if CPP_VERSION < 2011uL
-# define deleted ;
+# define discard ;
 #else
-# define deleted = delete;
+# define discard = delete;
 #endif
 
 // : [Exception Operator]
@@ -188,11 +188,11 @@
 
 // : [Reference Qualifier]
 #if CPP_VERSION < 2011uL
-# define lvalued
-# define rvalued
+# define lvalue
+# define rvalue
 #else
-# define lvalued &
-# define rvalued &&
+# define lvalue &
+# define rvalue &&
 #endif
 
 // : [Return Specifier]

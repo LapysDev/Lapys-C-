@@ -5,68 +5,97 @@ namespace Lapys {
 }
 
 namespace Lapys {
-  // : [Static Array]
-  template <typename base, std::size_t length, class>
-  class Array {
-    public:
-      base value[length];
+  namespace {
+    template <typename = void, class = void_t, bool = false, bool = false>
+    class ArrayLayout {};
+      template <typename base, class allocator_t, bool emptiness>
+      class ArrayLayout<base, allocator_t, emptiness, false> {
+        template <typename, std::size_t, class>
+        friend class Array;
 
-    private:
-      base *end;
+        private:
+          union { base *begin, *value; };
+          base *end;
+          std::size_t capacity;
+          allocator_t allocator;
+      };
 
-    // ...
-    public:
-      constfunc(true) Array() noexcept :
-        value(), end()
-      {}
+      template <typename base, class allocator_t, bool emptiness>
+      class ArrayLayout<base, allocator_t, emptiness, true> {
+        template <typename, std::size_t, class>
+        friend class Array;
 
-      template <std::size_t capacity>
-      constfunc(true) Array(typename conditional<capacity <= length, base>::type const volatile (&)[capacity]) noexcept :
-        value(), end()
-      {}
+        private:
+          union { base *begin, *value; };
+          base *end;
+          std::size_t capacity;
+          nouniqueaddr allocator_t allocator;
+      };
+        template <typename base, class allocator_t, bool compactness> class ArrayLayout<base, allocator_t, true, compactness> : private ArrayLayout<base, allocator_t, true, true> {};
+        template <typename base, typename type, bool compactness> class ArrayLayout<base, Memory::HeapAllocator<type>, false, compactness> : private ArrayLayout<base, Memory::HeapAllocator<base>, true, true> {};
+        template <typename base, typename type, bool compactness> class ArrayLayout<base, Memory::HeapAllocator<type>, true,  compactness> : private ArrayLayout<base, Memory::HeapAllocator<base>, true, true> {};
 
-      template <std::size_t capacity>
-      constfunc(false) Array(typename conditional<(capacity > length), base>::type const volatile (&)[capacity]) noexcept :
-        value(), end()
-      {}
-  };
+    template <typename array_t = void_t>
+    class ArrayLength {
+      friend class array_t;
+
+      private:
+        array_t const *const array;
+
+        constfunc(true) inline ArrayLength(array_t const* const array) noexcept :
+          array(array)
+        {}
+
+      public:
+        constfunc(true) std::size_t const* operator &() const noexcept discard;
+        constfunc(true) inline operator std::size_t() const noexcept = 0;
+    };
+      template <>
+      class ArrayLength<void_t> {
+        private:
+          constfunc(true) inline ArrayLength(void const* const) noexcept {}
+      };
+  }
 
   // : [Dynamic Array]
   template <typename base, class allocator_t>
-  class Array<base, DYNAMIC, allocator_t> {
-    protected:
-      union { base *begin, *value; };
-
-    private:
-      base *end;
-      std::size_t capacity;
-
-      nouniqueaddr allocator_t allocator;
-
-    // ...
+  class Array<base, DYNAMIC, allocator_t> : private ArrayLayout<base, typename remove_qualifiers<allocator_t>::type, is_empty<allocator_t>::value> {
     public:
-      constfunc(true) Array() noexcept {}
-
-      template <std::size_t capacity>
-      constfunc(false) Array(base const volatile (&)[capacity]) noexcept {}
+      class Length final : ArrayLength<Array> {
+        constfunc(true) inline Length(Array const* const array) noexcept : ArrayLength<Array>::ArrayLength(array) {}
+        constfunc(true) inline operator std::size_t() const noexcept { return array -> end - array -> begin; }
+      } length;
   };
 
-  /* ... */
-  // struct lookup { unsigned char const reallocate; };
-  // template <class object> struct member_name_lookup : public object, public lookup {};
+  // : [View Array]
+  template <typename base, class allocator_t>
+  class Array<base, VIEW, allocator_t> : private ArrayLayout<> {
+    private:
+      base *value;
 
-  // template <class object, typename = typename std::integral_constant<std::size_t, 0u>::value_type, bool derivable = false == (std::is_final<object>::value || std::is_union<object>::value)> union has_reallocate { static bool const value = false == derivable; };
-  // template <class object> union has_reallocate<object, typename std::integral_constant<std::size_t, sizeof(member_name_lookup<object>::reallocate)>::value_type, false> { static bool const value = false; };
-  // template <class object> union has_reallocate<object, typeof(sizeof(&object::reallocate)), true> { static bool const value = true; };
+    public:
+      nouniqueaddr class Length final : ArrayLength<> {
+        constfunc(true) inline Length(Array const* const array) noexcept : ArrayLength<>::ArrayLength(array) {}
+        constfunc(true) inline operator std::size_t() const noexcept discard;
+      } length;
+  };
 
-  // ...
-  // struct lenient_allocator {};
-  // struct strict_allocator { void reallocate() {} };
+  berries.length
 
-  // /* Main */
-  // int main() {
-  //   std::printf("[lenient]: %4.5s" "\r\n", has_reallocate<lenient_allocator>::value ? "true" : "false");
-  //   std::printf("[strict] : %4.5s" "\r\n", has_reallocate<strict_allocator >::value ? "true" : "false");
-  // }
+  // : [Static Array]
+  template <typename base, std::size_t length, class>
+  class Array : private ArrayLayout<> {
+    private:
+      union {
+        base begin[length];
+        base value[length];
+      };
+      base *end;
+
+    public:
+      class Length final : ArrayLength<Array> {
+        constfunc(true) inline Length(Array const* const array) noexcept : ArrayLength<Array>::ArrayLength(array) {}
+        constfunc(true) inline operator std::size_t() const noexcept { return array -> end - array -> begin; }
+      } length;
+  };
 }
-
