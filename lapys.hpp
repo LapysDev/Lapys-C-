@@ -1,9 +1,6 @@
 /* ... */
 #ifndef LAPYS
 # define LAPYS
-  /* Pragmatic */
-  #pragma once
-
   /* Import > ... */
   // : [C++ Standard Library]
   #include <cfloat>  // C Float
@@ -23,26 +20,27 @@
   #include "lapys/extensions.h"  // Extensions
   #include "lapys/macros.h"      // Macros
   #include "lapys/traits.hpp"    // Traits
-  #include "lapys/constants.hpp" // Constants
-  #include "lapys/parity.hpp"    // Parity
-  #
-  #include "lapys/memory.hpp"  // Memory
-  #include "lapys/array.hpp"   // Array
-  #include "lapys/string.hpp"  // String
-  #include "lapys/program.hpp" // Program
-  #
-  #include "lapys/entry.hpp" // Entry
+  // #include "lapys/constants.hpp" // Constants
 
-  /* Definitions > ... */
+  // #include "lapys/memory.hpp"  // Memory
+  // #include "lapys/array.hpp"   // Array
+  // #include "lapys/string.hpp"  // String
+  // #include "lapys/program.hpp" // Program
+
+  // #include "lapys/entry.hpp" // Entry
+
+  /* ... */
   #undef CPP_COMPILER
   # undef CPP__CLANG__COMPILER
   # undef CPP__GCC__COMPILER
   # undef CPP__ICC__COMPILER
   # undef CPP__MSVC__COMPILER
-  #undef CPP_PREPROCESSOR
-  # undef CPP_PREPROCESSOR_CHECK
-  # undef CPP_PREPROCESSOR_SELECT
-  # undef CPP_STANDARD_PREPROCESSOR
+  #undef CPP_ENDIAN
+  # undef CPP__BIG__ENDIAN
+  # undef CPP__LITTLE__ENDIAN
+  # undef CPP__MIXED__ENDIAN
+  # undef CPP__WORDS_LITTLE__ENDIAN
+  #undef CPP_STANDARD_PREPROCESSOR
   # undef CPP__MSVC__PREPROCESSOR
   #undef CPP_VENDOR
   # undef CPP__APPLE_MACINTOSH__VENDOR
@@ -51,12 +49,11 @@
   # undef CPP__NINTENDO__VENDOR
   # undef CPP__UNIX__VENDOR
   #undef CPP_VERSION
-  #undef LAPYS_MAX_ARITY
-  #undef LAPYS_MAX_TEMPLATE_INSTANTIATION
   #
   #undef align
   #undef alignmentof
   #undef apply
+  # undef apply_parse
   # undef apply_0
   # undef apply_1
   # undef apply_2
@@ -318,21 +315,549 @@
   # undef constfunc_false
   # undef constfunc_true
   #undef constvar
-  #undef defer
-  # undef defer_parse
   #undef discard
+  #undef empty
   #undef exceptof
   #undef exceptspec
   # undef exceptspec_fail
   # undef exceptspec_pass
   #   undef exceptspec_check_true
   #undef final
-  #undef first
-  #undef lvalue
+  #undef init
+  #undef meminit
+  #undef next
+  # undef next_0
+  # undef next_1
+  # undef next_2
+  # undef next_3
+  # undef next_4
+  # undef next_5
+  # undef next_6
+  # undef next_7
+  # undef next_8
+  # undef next_9
+  # undef next_10
+  # undef next_11
+  # undef next_12
+  # undef next_13
+  # undef next_14
+  # undef next_15
+  # undef next_16
+  # undef next_17
+  # undef next_18
+  # undef next_19
+  # undef next_20
+  # undef next_21
+  # undef next_22
+  # undef next_23
+  # undef next_24
+  # undef next_25
+  # undef next_26
+  # undef next_27
+  # undef next_28
+  # undef next_29
+  # undef next_30
+  # undef next_31
+  # undef next_32
+  # undef next_33
+  # undef next_34
+  # undef next_35
+  # undef next_36
+  # undef next_37
+  # undef next_38
+  # undef next_39
+  # undef next_40
+  # undef next_41
+  # undef next_42
+  # undef next_43
+  # undef next_44
+  # undef next_45
+  # undef next_46
+  # undef next_47
+  # undef next_48
+  # undef next_49
+  # undef next_50
+  # undef next_51
+  # undef next_52
+  # undef next_53
+  # undef next_54
+  # undef next_55
+  # undef next_56
+  # undef next_57
+  # undef next_58
+  # undef next_59
+  # undef next_60
+  # undef next_61
+  # undef next_62
+  # undef next_63
+  # undef next_64
+  # undef next_65
+  # undef next_66
+  # undef next_67
+  # undef next_68
+  # undef next_69
+  # undef next_70
+  # undef next_71
+  # undef next_72
+  # undef next_73
+  # undef next_74
+  # undef next_75
+  # undef next_76
+  # undef next_77
+  # undef next_78
+  # undef next_79
+  # undef next_80
+  # undef next_81
+  # undef next_82
+  # undef next_83
+  # undef next_84
+  # undef next_85
+  # undef next_86
+  # undef next_87
+  # undef next_88
+  # undef next_89
+  # undef next_90
+  # undef next_91
+  # undef next_92
+  # undef next_93
+  # undef next_94
+  # undef next_95
+  # undef next_96
+  # undef next_97
+  # undef next_98
+  # undef next_99
+  # undef next_100
+  # undef next_101
+  # undef next_102
+  # undef next_103
+  # undef next_104
+  # undef next_105
+  # undef next_106
+  # undef next_107
+  # undef next_108
+  # undef next_109
+  # undef next_110
+  # undef next_111
+  # undef next_112
+  # undef next_113
+  # undef next_114
+  # undef next_115
+  # undef next_116
+  # undef next_117
+  # undef next_118
+  # undef next_119
+  # undef next_120
+  # undef next_121
+  # undef next_122
+  # undef next_123
+  # undef next_124
+  # undef next_125
+  # undef next_126
+  # undef next_127
+  # undef next_128
+  # undef next_129
+  # undef next_130
+  # undef next_131
+  # undef next_132
+  # undef next_133
+  # undef next_134
+  # undef next_135
+  # undef next_136
+  # undef next_137
+  # undef next_138
+  # undef next_139
+  # undef next_140
+  # undef next_141
+  # undef next_142
+  # undef next_143
+  # undef next_144
+  # undef next_145
+  # undef next_146
+  # undef next_147
+  # undef next_148
+  # undef next_149
+  # undef next_150
+  # undef next_151
+  # undef next_152
+  # undef next_153
+  # undef next_154
+  # undef next_155
+  # undef next_156
+  # undef next_157
+  # undef next_158
+  # undef next_159
+  # undef next_160
+  # undef next_161
+  # undef next_162
+  # undef next_163
+  # undef next_164
+  # undef next_165
+  # undef next_166
+  # undef next_167
+  # undef next_168
+  # undef next_169
+  # undef next_170
+  # undef next_171
+  # undef next_172
+  # undef next_173
+  # undef next_174
+  # undef next_175
+  # undef next_176
+  # undef next_177
+  # undef next_178
+  # undef next_179
+  # undef next_180
+  # undef next_181
+  # undef next_182
+  # undef next_183
+  # undef next_184
+  # undef next_185
+  # undef next_186
+  # undef next_187
+  # undef next_188
+  # undef next_189
+  # undef next_190
+  # undef next_191
+  # undef next_192
+  # undef next_193
+  # undef next_194
+  # undef next_195
+  # undef next_196
+  # undef next_197
+  # undef next_198
+  # undef next_199
+  # undef next_200
+  # undef next_201
+  # undef next_202
+  # undef next_203
+  # undef next_204
+  # undef next_205
+  # undef next_206
+  # undef next_207
+  # undef next_208
+  # undef next_209
+  # undef next_210
+  # undef next_211
+  # undef next_212
+  # undef next_213
+  # undef next_214
+  # undef next_215
+  # undef next_216
+  # undef next_217
+  # undef next_218
+  # undef next_219
+  # undef next_220
+  # undef next_221
+  # undef next_222
+  # undef next_223
+  # undef next_224
+  # undef next_225
+  # undef next_226
+  # undef next_227
+  # undef next_228
+  # undef next_229
+  # undef next_230
+  # undef next_231
+  # undef next_232
+  # undef next_233
+  # undef next_234
+  # undef next_235
+  # undef next_236
+  # undef next_237
+  # undef next_238
+  # undef next_239
+  # undef next_240
+  # undef next_241
+  # undef next_242
+  # undef next_243
+  # undef next_244
+  # undef next_245
+  # undef next_246
+  # undef next_247
+  # undef next_248
+  # undef next_249
+  # undef next_250
+  # undef next_251
+  # undef next_252
+  # undef next_253
+  # undef next_254
+  # undef next_255
   #undef nodecay
   #undef noexcept
   #undef noinline
   #undef noreturn
   #undef nouniqueaddr
-  #undef rvalue
+  #undef previous
+  # undef previous_0
+  # undef previous_1
+  # undef previous_2
+  # undef previous_3
+  # undef previous_4
+  # undef previous_5
+  # undef previous_6
+  # undef previous_7
+  # undef previous_8
+  # undef previous_9
+  # undef previous_10
+  # undef previous_11
+  # undef previous_12
+  # undef previous_13
+  # undef previous_14
+  # undef previous_15
+  # undef previous_16
+  # undef previous_17
+  # undef previous_18
+  # undef previous_19
+  # undef previous_20
+  # undef previous_21
+  # undef previous_22
+  # undef previous_23
+  # undef previous_24
+  # undef previous_25
+  # undef previous_26
+  # undef previous_27
+  # undef previous_28
+  # undef previous_29
+  # undef previous_30
+  # undef previous_31
+  # undef previous_32
+  # undef previous_33
+  # undef previous_34
+  # undef previous_35
+  # undef previous_36
+  # undef previous_37
+  # undef previous_38
+  # undef previous_39
+  # undef previous_40
+  # undef previous_41
+  # undef previous_42
+  # undef previous_43
+  # undef previous_44
+  # undef previous_45
+  # undef previous_46
+  # undef previous_47
+  # undef previous_48
+  # undef previous_49
+  # undef previous_50
+  # undef previous_51
+  # undef previous_52
+  # undef previous_53
+  # undef previous_54
+  # undef previous_55
+  # undef previous_56
+  # undef previous_57
+  # undef previous_58
+  # undef previous_59
+  # undef previous_60
+  # undef previous_61
+  # undef previous_62
+  # undef previous_63
+  # undef previous_64
+  # undef previous_65
+  # undef previous_66
+  # undef previous_67
+  # undef previous_68
+  # undef previous_69
+  # undef previous_70
+  # undef previous_71
+  # undef previous_72
+  # undef previous_73
+  # undef previous_74
+  # undef previous_75
+  # undef previous_76
+  # undef previous_77
+  # undef previous_78
+  # undef previous_79
+  # undef previous_80
+  # undef previous_81
+  # undef previous_82
+  # undef previous_83
+  # undef previous_84
+  # undef previous_85
+  # undef previous_86
+  # undef previous_87
+  # undef previous_88
+  # undef previous_89
+  # undef previous_90
+  # undef previous_91
+  # undef previous_92
+  # undef previous_93
+  # undef previous_94
+  # undef previous_95
+  # undef previous_96
+  # undef previous_97
+  # undef previous_98
+  # undef previous_99
+  # undef previous_100
+  # undef previous_101
+  # undef previous_102
+  # undef previous_103
+  # undef previous_104
+  # undef previous_105
+  # undef previous_106
+  # undef previous_107
+  # undef previous_108
+  # undef previous_109
+  # undef previous_110
+  # undef previous_111
+  # undef previous_112
+  # undef previous_113
+  # undef previous_114
+  # undef previous_115
+  # undef previous_116
+  # undef previous_117
+  # undef previous_118
+  # undef previous_119
+  # undef previous_120
+  # undef previous_121
+  # undef previous_122
+  # undef previous_123
+  # undef previous_124
+  # undef previous_125
+  # undef previous_126
+  # undef previous_127
+  # undef previous_128
+  # undef previous_129
+  # undef previous_130
+  # undef previous_131
+  # undef previous_132
+  # undef previous_133
+  # undef previous_134
+  # undef previous_135
+  # undef previous_136
+  # undef previous_137
+  # undef previous_138
+  # undef previous_139
+  # undef previous_140
+  # undef previous_141
+  # undef previous_142
+  # undef previous_143
+  # undef previous_144
+  # undef previous_145
+  # undef previous_146
+  # undef previous_147
+  # undef previous_148
+  # undef previous_149
+  # undef previous_150
+  # undef previous_151
+  # undef previous_152
+  # undef previous_153
+  # undef previous_154
+  # undef previous_155
+  # undef previous_156
+  # undef previous_157
+  # undef previous_158
+  # undef previous_159
+  # undef previous_160
+  # undef previous_161
+  # undef previous_162
+  # undef previous_163
+  # undef previous_164
+  # undef previous_165
+  # undef previous_166
+  # undef previous_167
+  # undef previous_168
+  # undef previous_169
+  # undef previous_170
+  # undef previous_171
+  # undef previous_172
+  # undef previous_173
+  # undef previous_174
+  # undef previous_175
+  # undef previous_176
+  # undef previous_177
+  # undef previous_178
+  # undef previous_179
+  # undef previous_180
+  # undef previous_181
+  # undef previous_182
+  # undef previous_183
+  # undef previous_184
+  # undef previous_185
+  # undef previous_186
+  # undef previous_187
+  # undef previous_188
+  # undef previous_189
+  # undef previous_190
+  # undef previous_191
+  # undef previous_192
+  # undef previous_193
+  # undef previous_194
+  # undef previous_195
+  # undef previous_196
+  # undef previous_197
+  # undef previous_198
+  # undef previous_199
+  # undef previous_200
+  # undef previous_201
+  # undef previous_202
+  # undef previous_203
+  # undef previous_204
+  # undef previous_205
+  # undef previous_206
+  # undef previous_207
+  # undef previous_208
+  # undef previous_209
+  # undef previous_210
+  # undef previous_211
+  # undef previous_212
+  # undef previous_213
+  # undef previous_214
+  # undef previous_215
+  # undef previous_216
+  # undef previous_217
+  # undef previous_218
+  # undef previous_219
+  # undef previous_220
+  # undef previous_221
+  # undef previous_222
+  # undef previous_223
+  # undef previous_224
+  # undef previous_225
+  # undef previous_226
+  # undef previous_227
+  # undef previous_228
+  # undef previous_229
+  # undef previous_230
+  # undef previous_231
+  # undef previous_232
+  # undef previous_233
+  # undef previous_234
+  # undef previous_235
+  # undef previous_236
+  # undef previous_237
+  # undef previous_238
+  # undef previous_239
+  # undef previous_240
+  # undef previous_241
+  # undef previous_242
+  # undef previous_243
+  # undef previous_244
+  # undef previous_245
+  # undef previous_246
+  # undef previous_247
+  # undef previous_248
+  # undef previous_249
+  # undef previous_250
+  # undef previous_251
+  # undef previous_252
+  # undef previous_253
+  # undef previous_254
+  # undef previous_255
+  #undef second
+  #undef stall
+  # undef stall_1
+  # undef stall_2
+  # undef stall_3
+  # undef stall_4
+  # undef stall_5
+  # undef stall_6
+  # undef stall_7
+  # undef stall_8
+  # undef stall_9
+  # undef stall_10
+  # undef stall_11
+  # undef stall_12
+  #undef subapply
+  #undef typeof
 #endif

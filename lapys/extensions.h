@@ -1,28 +1,30 @@
 /* ... */
 #undef CPP_
-#undef _MSVC_
+#undef CPP_ENDIAN
+#undef STANDARD
 #undef _PREPROCESSOR
+#undef _MSVC_
+#
+#undef exceptspec_
+#undef exceptspec_check_
+#undef fail
+#undef pass
 
 /* Definition > ... */
 // : [C++ Compiler]
-#define CPP_COMPILER true
-# define CPP__CLANG__COMPILER false
-# define CPP__GCC__COMPILER   false
-# define CPP__ICC__COMPILER   false
-# define CPP__MSVC__COMPILER  false
+# define CPP__CLANG__COMPILER 0x1u
+# define CPP__GCC__COMPILER   0x2u
+# define CPP__ICC__COMPILER   0x4u
+# define CPP__MSVC__COMPILER  0x8u
 
 #if defined(__clang__)
-# undef  CPP__CLANG__COMPILER
-# define CPP__CLANG__COMPILER true
+# define CPP_COMPILER CPP__CLANG__COMPILER
 #elif defined(__GNUC__)
-# undef  CPP__GCC__COMPILER
-# define CPP__GCC__COMPILER   true
+# define CPP_COMPILER CPP__GCC__COMPILER
 #elif defined(__INTEL_COMPILER)
-# undef  CPP__ICC__COMPILER
-# define CPP__ICC__COMPILER   true
+# define CPP_COMPILER CPP__ICC__COMPILER
 #elif defined(_MSC_VER)
-# undef  CPP__MSVC__COMPILER
-# define CPP__MSVC__COMPILER  true
+# define CPP_COMPILER CPP__MSVC__COMPILER
 #endif
 
 // : [C++ Version]
@@ -52,9 +54,63 @@
 # endif
 #endif
 
+// : [C++ Endianness]
+# define CPP__BIG__ENDIAN          0x1u
+# define CPP__LITTLE__ENDIAN       0x2u
+# define CPP__MIXED__ENDIAN        0x4u
+# define CPP__WORDS_LITTLE__ENDIAN 0x8u
+
+#ifdef __cpp_lib_endian
+# include <bit>
+# define CPP_ENDIAN (std::endian::native == std::endian::little ? CPP__LITTLE__ENDIAN : CPP__BIG__ENDIAN)
+#else
+# if false == defined(CPP_ENDIAN) && defined(__GLIBC__)
+#   include <endian.h>
+#   ifdef __BYTE_ORDER
+#     if defined(__LITTLE_ENDIAN) && __BYTE_ORDER == __LITTLE_ENDIAN
+#       define CPP_ENDIAN CPP__LITTLE__ENDIAN
+#     elif defined(__BIG_ENDIAN) && __BYTE_ORDER == __BIG_ENDIAN
+#       define CPP_ENDIAN CPP__BIG__ENDIAN
+#     endif
+#   endif
+# endif
+#
+# if false == defined(CPP_ENDIAN) && defined(__GNUC__)
+#   ifdef __BYTE_ORDER__
+#     if defined(__ORDER_LITTLE_ENDIAN__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+#       define CPP_ENDIAN CPP__LITTLE__ENDIAN
+#     elif defined(__ORDER_BIG_ENDIAN__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+#       define CPP_ENDIAN CPP__BIG__ENDIAN
+#     endif
+#   endif
+# endif
+#
+# ifndef CPP_ENDIAN
+#   ifdef __BYTE_ORDER__
+#     if defined(_LITTLE_ENDIAN) && false == defined(_BIG_ENDIAN)
+#       define CPP_ENDIAN CPP__LITTLE__ENDIAN
+#     elif defined(_BIG_ENDIAN) && false == defined(_LITTLE_ENDIAN)
+#       define CPP_ENDIAN CPP__BIG__ENDIAN
+#     endif
+#   endif
+# endif
+#
+# ifndef CPP_ENDIAN
+#   if (defined(_MSC_VER) && (defined(_M_ARM) || defined(_M_ARM64))) || (defined(__amd64) || defined(__amd64__) || defined(__bfin__) || defined(__i386__) || defined(__alpha__) || defined(__ia64) || defined(__ia64__) || defined(_M_ALPHA) || defined(_M_AMD64) || defined(_M_IA64) || defined(_M_IX86) || defined(_M_X64) || defined(__x86_64) || defined(__x86_64__))
+#     define CPP_ENDIAN CPP__LITTLE__ENDIAN
+#   elif defined(__hppa) || defined(__hpux) || defined(_MIPSEB) || defined(_POWER) || defined(__powerpc__) || defined(__ppc__) || defined(_POWER) || defined(__s390__) || defined(__sparc) || defined(__sparc__)
+#     define CPP_ENDIAN CPP__BIG__ENDIAN
+#   endif
+# endif
+#
+# ifndef CPP_ENDIAN
+#   define CPP_ENDIAN (1u == *static_cast<uint8_t const*>(static_cast<void const*>(&static_cast<uint16_t const&>(1u))) ? CPP__LITTLE__ENDIAN : CPP__BIG__ENDIAN)
+# endif
+#endif
+
 // : [C++ Pre-processor]
-#define CPP_STANDARD_PREPROCESSOR 0u
-#define CPP__MSVC__PREPROCESSOR   1u
+#define CPP_STANDARD_PREPROCESSOR 0x1u
+#define CPP__MSVC__PREPROCESSOR   0x2u
 
 #if CPP_VERSION < 2011uL
 # define CPP_PREPROCESSOR CPP_STANDARD_PREPROCESSOR
@@ -65,36 +121,28 @@
 #endif
 
 // : [C++ Vendor]
-#define CPP_VENDOR true
-# define CPP__APPLE_MACINTOSH__VENDOR   false
-# define CPP__LINUX__VENDOR             false
-# define CPP__MICROSOFT_WINDOWS__VENDOR false
-# define CPP__NINTENDO__VENDOR          false
-# define CPP__UNIX__VENDOR              false
+# define CPP__APPLE_MACINTOSH__VENDOR   0x01u
+# define CPP__LINUX__VENDOR             0x02u
+# define CPP__MICROSOFT_WINDOWS__VENDOR 0x04u
+# define CPP__NINTENDO__VENDOR          0x08u
+# define CPP__UNIX__VENDOR              0x10u
 
 #if defined(__APPLE__) && defined(__MACH__)
-# undef  CPP__APPLE_MACINTOSH__VENDOR
-# define CPP__APPLE_MACINTOSH__VENDOR true
-# undef  CPP__UNIX__VENDOR
-# define CPP__UNIX__VENDOR true
+# define CPP_VENDOR CPP__APPLE_MACINTOSH__VENDOR | CPP__UNIX__VENDOR
 #elif defined(__unix) || defined(__unix__)
-# undef  CPP__UNIX__VENDOR
-# define CPP__UNIX__VENDOR true
+# define CPP_VENDOR CPP__UNIX__VENDOR
 #endif
 #
 #if defined(__gnu_linux__) || defined(linux) || defined(__linux) || defined(__linux__)
-# undef  CPP__LINUX__VENDOR
-# define CPP__LINUX__VENDOR true
+# define CPP_VENDOR CPP__LINUX__VENDOR
 #endif
 #
 #if defined(ARM9) || defined(_3DS) || defined(__SWITCH__)
-# undef  CPP__NINTENDO__VENDOR
-# define CPP__NINTENDO__VENDOR true
+# define CPP_VENDOR CPP__NINTENDO__VENDOR
 #endif
 #
 #if defined(__NT__) || defined(__TOS_WIN__) || defined(_WIN16) || defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(_WIN32_WCE) || defined(_WIN64) || defined(__WINDOWS__)
-# undef  CPP__MICROSOFT_WINDOWS__VENDOR
-# define CPP__MICROSOFT_WINDOWS__VENDOR true
+# define CPP_VENDOR CPP__MICROSOFT_WINDOWS__VENDOR
 #endif
 
 /* Definition > ... */
@@ -112,7 +160,7 @@
 #endif
 
 // : [Constant Expression]
-#define constfunc(strict) constfunc_ ## strict
+#define constfunc(unrelaxed) constfunc_ ## unrelaxed
 #if CPP_VERSION < 2011uL
 # define constfunc_false
 # define constfunc_true
@@ -132,9 +180,9 @@
 
 // : [Deleted Function Specifier]
 #if CPP_VERSION < 2011uL
-# define discard ;
+# define discard
 #else
-# define discard = delete;
+# define discard = delete
 #endif
 
 // : [Exception Operator]
@@ -147,11 +195,12 @@
 // : [Exception Specifier]
 #if CPP_VERSION < 2011uL
 # define exceptspec(specification) defer(concatenate, exceptspec_, defer(second, exceptspec_check_ ## specification, fail, ~))
-#   define exceptspec_pass noexcept
 #   if CPP_COMPILER == CPP__MSVC__COMPILER
 #     define exceptspec_fail throw(...)
+#     define exceptspec_pass noexcept
 #   else
 #     define exceptspec_fail
+#     define exceptspec_pass noexcept
 #   endif
 #     define exceptspec_check_true ~, pass
 # define noexcept throw()
@@ -159,16 +208,25 @@
 # define exceptspec(specification) noexcept(specification)
 #endif
 
-// : [Forwarding]
-#if CPP_VERSION < 2011uL
-# define nodecay const&
-#else
+// : [Forwarding Reference]
+#ifdef __cpp_rvalue_references
 # define nodecay &&
+#else
+# define nodecay const&
 #endif
 
 // : [Inheritance Specifier]
 #if CPP_VERSION < 2011uL
 # define final
+#endif
+
+// : [Initialization]
+#if CPP_VERSION < 2011uL
+# define init(arguments) = arguments
+# define meminit(arguments) (arguments)
+#else
+# define init(arguments) {arguments}
+# define meminit(arguments) {arguments}
 #endif
 
 // : [Inline Specifier]
@@ -184,15 +242,6 @@
 #   define noinline __declspec(noinline)
 #else
 #   define noinline
-#endif
-
-// : [Reference Qualifier]
-#if CPP_VERSION < 2011uL
-# define lvalue
-# define rvalue
-#else
-# define lvalue &
-# define rvalue &&
 #endif
 
 // : [Return Specifier]
@@ -212,6 +261,49 @@
 # endif
 #else
 # define noreturn [[noreturn]]
+#endif
+
+// : [Type Alignment Specifier]
+#if CPP_VERSION < 2011uL
+# if CPP_COMPILER == CPP__MSVC__COMPILER
+#  define __alignof_is_defined true
+# elif CPP_COMPILER != CPP__CLANG__COMPILER
+#  include <stdalign.h>
+# endif
+#
+# ifdef __alignas_is_defined
+#  ifdef _Alignas
+#    define align(argument) _Alignas(argument)
+#  else
+#    define align(argument) alignas(argument)
+#  endif
+# else
+#   if CPP_COMPILER == CPP__GCC__COMPILER
+#     define align(argument) __attribute__((aligned(argument)))
+#   elif CPP_COMPILER == CPP__MSVC__COMPILER
+#     define align(argument) __declspec(align(argument))
+#   else
+#     define align(argument)
+#   endif
+# endif
+# ifdef __alignof_is_defined
+#   ifdef _Alignof
+#     define alignmentof(type) _Alignof(type)
+#   else
+#     define alignmentof(type) alignof(type)
+#   endif
+# else
+#   if CPP_COMPILER == CPP__GCC__COMPILER
+#     define alignmentof(type) __alignof__(type)
+#   elif CPP_COMPILER == CPP__MSVC__COMPILER
+#     define alignmentof(type) __alignof(type)
+#   else
+#     define alignmentof(type) sizeof(type)
+#   endif
+# endif
+#else
+# define align(argument)   alignas(argument)
+# define alignmentof(type) alignof(type)
 #endif
 
 // : [Type Inspection Specifier]

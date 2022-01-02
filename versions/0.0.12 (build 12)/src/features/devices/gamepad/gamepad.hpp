@@ -1,2 +1,0 @@
-/* Class > Gamepad */
-class Gamepad;

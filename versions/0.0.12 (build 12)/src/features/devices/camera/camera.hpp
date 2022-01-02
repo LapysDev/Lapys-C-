@@ -1,2 +1,0 @@
-/* Class > Camera */
-class Camera;

@@ -1,2 +1,0 @@
-/* Class > Speaker */
-class Speaker;

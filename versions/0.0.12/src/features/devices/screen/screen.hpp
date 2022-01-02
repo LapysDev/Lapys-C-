@@ -1,0 +1,2 @@
+/* Class > Screen */
+class Screen;

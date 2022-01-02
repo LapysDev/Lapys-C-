@@ -1,0 +1,2 @@
+/* Class > Object */
+class Object {};

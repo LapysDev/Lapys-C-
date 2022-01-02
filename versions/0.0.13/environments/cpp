@@ -1,0 +1,6 @@
+/* [C++ Standard Library] Import */
+#include <exception> // Exception
+
+#if cpp__version >= 2017uL
+#include <filesystem> // File System
+#endif

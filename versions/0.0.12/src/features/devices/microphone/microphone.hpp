@@ -1,0 +1,2 @@
+/* Class > Microphone */
+class Microphone;

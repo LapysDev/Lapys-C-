@@ -1,0 +1,372 @@
+/* Definitions > ... --- NOTE (Lapys) */
+// [Environment : C]
+#ifdef __STDC__
+#   define __ENVIRONMENT_IS__C__ true
+#   ifdef __STDC_VERSION__
+#       if __STDC_VERSION__ == 199409L
+#           define __C__VERSION__ 1994uL
+#       elif __STDC_VERSION__ == 199901L
+#           define __C__VERSION__ 1999uL
+#       elif __STDC_VERSION__ == 201112L
+#           define __C__VERSION__ 2011uL
+#       elif __STDC_VERSION__ == 201710L
+#           define __C__VERSION__ 2018uL
+#       else
+#           define __C__VERSION__ 1990uL
+#       endif
+#   else
+#       define __C__VERSION__ 1989uL
+#   endif
+#else
+#   define __C__VERSION__ 0uL
+#   define __ENVIRONMENT_IS__C__ false
+#endif
+
+// [Environment : C++]
+#ifdef __cplusplus
+#   define __ENVIRONMENT_IS__CPP__ true
+#   ifdef __cplusplus
+#       if __cplusplus == 199711L
+#           define __CPP__VERSION__ 1997uL
+#       elif __cplusplus == 201103L
+#           define __CPP__VERSION__ 2011uL
+#       elif __cplusplus == 201402L
+#           define __CPP__VERSION__ 2014uL
+#       elif __cplusplus == 201703L
+#           define __CPP__VERSION__ 2017uL
+#       else __cplusplus == 202002L
+#           define __CPP__VERSION__ 2020uL
+#       endif
+#   endif
+#else
+#   define __CPP__VERSION__ 0uL
+#   define __ENVIRONMENT_IS__CPP__ false
+#endif
+
+// [Miscellaneous : C++ Command-Line Interface]
+#ifdef __cplusplus_cli
+#   define __ENVIRONMENT_IS__CPP_COMMAND_LINE_INTERFACE__ true
+#   if __cplusplus_cli == 200406L
+#       define __CPP_COMMAND_LINE_INTERFACE__VERSION__ 2004uL
+#   endif
+#else
+#   define __CPP_COMMAND_LINE_INTERFACE__VERSION__ 0uL
+#   define __ENVIRONMENT_IS__CPP_COMMAND_LINE_INTERFACE__ false
+#endif
+
+// [Miscellaneous : C++ Embedded]
+#ifdef __embedded_cplusplus
+#   define __ENVIRONMENT_IS__CPP_EMBEDDED__ true
+#   if defined(__CPP__VERSION__)
+#       define __CPP_EMBEDDED__VERSION__ __CPP__VERSION__
+#   else
+#       define __CPP_EMBEDDED__VERSION__ 1uL
+#   endif
+#else
+#   define __CPP_EMBEDDED__VERSION__ 0uL
+#   define __ENVIRONMENT_IS__CPP_EMBEDDED__ false
+#endif
+
+// [Compiler : Advanced RISC Machine]
+#if defined(__arm__)
+#   define __COMPILER_IS__ARM__ true
+#else
+#   define __COMPILER_IS__ARM__ false
+#endif
+
+// [Compiler : Clang]
+#if defined(__clang__) || defined(__clang_major__) || defined(__clang_minor__) || defined(__clang_patchlevel__)
+#   define __COMPILER_IS__CLANG__ true
+#else
+#   define __COMPILER_IS__CLANG__ false
+#endif
+
+// [Compiler : GNU's Not Unix]
+#if defined(__GNUC__) || defined(__GNUG__) || defined(__GNUC_MINOR__) || defined(__GNUC_PATCHLEVEL__)
+#   define __COMPILER_IS__GNU__ true
+#else
+#   define __COMPILER_IS__GNU__ false
+#endif
+
+// [Compiler : Intel C++ Compiler]
+#if defined(__INTEL_COMPILER)
+#   define __COMPILER_IS__ICC__ true
+#else
+#   define __COMPILER_IS__ICC__ false
+#endif
+
+// [Compiler : Microsoft Visual C++]
+#if defined(_MSC_VER)
+#   define __COMPILER_IS__MSVC__ true
+#else
+#   define __COMPILER_IS__MSVC__ false
+#endif
+
+// [Platform : Android]
+#if defined(ANDROID) || defined(__ANDROID__)
+#   define __PLATFORM_IS__ANDROID__ true
+#else
+#   define __PLATFORM_IS__ANDROID__ false
+#endif
+
+// [Platform : Apple Macintosh]
+#if defined(__APPLE__) && defined(__MACH__)
+#   define __PLATFORM_IS__APPLE_MACINTOSH__ true
+#else
+#   define __PLATFORM_IS__APPLE_MACINTOSH__ false
+#endif
+
+// [Platform : Linux]
+#if defined(__gnu_linux__) || defined(linux) || defined(__linux) || defined(__linux__)
+#   define __PLATFORM_IS__LINUX__ true
+#else
+#   define __PLATFORM_IS__LINUX__ false
+#endif
+
+// [Platform : Microsoft Windows]
+#if defined(__NT__) || defined(__TOS_WIN__) || defined(_WIN16) || defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(_WIN32_WCE) || defined(_WIN64) || defined(__WINDOWS__)
+#   define __PLATFORM_IS__MICROSOFT_WINDOWS__ true
+#else
+#   define __PLATFORM_IS__MICROSOFT_WINDOWS__ false
+#endif
+
+// [Platform : Nintendo]
+#if defined(ARM9) || defined(_3DS) || defined(__SWITCH__)
+#   define __PLATFORM_IS__NINTENDO__ true
+#else
+#   define __PLATFORM_IS__NINTENDO__ false
+#endif
+
+// [Platform : UNIX]
+#if __PLATFORM_IS__APPLE_MACINTOSH__ || defined(__unix) || defined(__unix__)
+#   define __PLATFORM_IS__UNIX__ true
+#else
+#   define __PLATFORM_IS__UNIX__ false
+#endif
+
+// [Platform : POSIX]
+#if __PLATFORM_IS__UNIX__ || (__COMPILER_IS__CLANG__ || __COMPILER_IS__GNU__ || __COMPILER_IS__MSVC__)
+#   define __PLATFORM_IS__POSIX__ true
+#else
+#   define __PLATFORM_IS__POSIX__ false
+#endif
+
+// [Miscellaneous : C]
+#if __ENVIRONMENT_IS__C__
+#endif
+
+// [Miscellaneous : C++]
+#if false == __ENVIRONMENT_IS__CPP__
+#   error [LAPYS]: Support required for C++ in current environment
+#else
+// -> Suppress specific warnings.
+#   if __COMPILER_IS__ARM__
+#       pragma push
+// #    pragma ...
+#   elif __COMPILER_IS__CLANG__
+#       pragma clang diagnostic push
+#       if defined(__has_warning) && __has_warning("-Wgnu-zero-variadic-macro-arguments")
+#           pragma clang diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
+#       endif
+#   elif __COMPILER_IS__GNU__
+#       pragma GCC diagnostic push
+#       pragma GCC diagnostic ignored "-Wvariadic-macros"
+#       pragma GCC system_header // -> ..?
+#   elif __COMPILER_IS__ICC__
+#       pragma warning(push)
+// #    pragma warning(disable:xxxx xxxx)
+#   elif __COMPILER_IS__MSVC__
+#       pragma warning(push)
+// #    pragma warning(disable:4xxx)
+#   endif
+
+// -> Definitions...
+#   if __CPP__VERSION__ < 2011uL
+#       define except__selector(A, B, ...) B
+#       define except__selector_delay(A, B, ...) except__selector(A, B, __VA_ARGS__)
+#       if __COMPILER_IS__MSVC__
+#       define except__state_anticipated throw(...)
+#       else
+#       define except__state_anticipated
+#       endif
+#       define except__state_unexpected throw()
+#       define except__state_unknown /* [LAPYS]: Unable to identify expression within `except(...)` specifier */
+#       define except__tokenizer(A, B) A ## B
+#       define except__tokenizer_delay(A, B) except__tokenizer(A, B)
+#       define except__value_false , unexpected
+#       define except__value_true , anticipated
+
+#         define constable // -> constexpr
+#         define constexpr
+#         define except(boolean) except__tokenizer_delay(except__state_, except__selector_delay(except__value_##boolean, unknown, ))
+#         define final
+#         define inline
+#         define is_except(boolean) true // -> Fallback for the `noexcept(...)` operator.
+#         define nodecay const&
+#         define override
+#         define super(...) (__VA_ARGS__) // -> Initialization method.
+
+#       if __COMPILER_IS__ARM__
+#         if defined(__typeof__)
+#         define typeof(expression) __typeof__(expression)
+#         endif
+#       elif __COMPILER_IS__CLANG__
+#         if defined(__typeof__)
+#         define typeof(expression) __typeof__(expression)
+#         elif defined(__typeof)
+#         define typeof(expression) __typeof(expression)
+#         endif
+#       elif __COMPILER_IS__GNU__
+#         define typeof(expression) __decltype(expression)
+#       elif __COMPILER_IS__ICC__
+//#       define typeof(expression) typeof(expression)
+#       elif __COMPILER_IS__MSVC__
+#         define typeof(expression) decltype(expression)
+#       endif
+
+#   else
+#       if __CPP__VERSION__ == 2011uL
+#         define constable // -> constexpr
+#         if __COMPILER_IS__MSVC__ && (_MSC_VER > 1700)
+#           define constexpr
+#         endif
+#       else
+#         define constable constexpr
+#       endif
+
+#         define except(boolean) noexcept(boolean ? false : true)
+#         define is_except(boolean) noexcept(boolean ? false : true)
+#         define nodecay &&
+#         define super(...) {__VA_ARGS__} // -> Initialization method.
+
+#       undef typeof
+#         define typeof(expression) decltype(expression)
+#   endif
+
+// -> Undo the warning suppressions.
+#   if __COMPILER_IS__ARM__
+#       pragma pop
+#   elif __COMPILER_IS__CLANG__
+#       pragma clang diagnostic pop
+#   elif __COMPILER_IS__GNU__
+#       pragma GCC diagnostic pop
+#   elif __COMPILER_IS__ICC__
+#       pragma warning(pop)
+#   elif __COMPILER_IS__MSVC__
+#       pragma warning(pop)
+#   endif
+#endif
+
+// [Miscellaneous : C, C++]
+namespace {
+    template <typename base>
+    struct char_t final {
+        private: base value;
+        public:
+            constexpr inline char_t(void) except(false) : value super() {}
+            template <typename type> constexpr inline char_t(type nodecay value) except(false) : value super(static_cast<base>(value)) {}
+
+            template <typename type> constexpr friend inline char_t<base>& operator +=(char_t<base>& character, type nodecay value) except(false) { return (character.value += static_cast<base>(value)), character; }
+            template <typename type> constexpr friend inline char_t<base>& operator -=(char_t<base>& character, type nodecay value) except(false) { return (character.value -= static_cast<base>(value)), character; }
+            template <typename type> constexpr friend inline char_t<base>& operator *=(char_t<base>& character, type nodecay value) except(false) { return (character.value *= static_cast<base>(value)), character; }
+            template <typename type> constexpr friend inline char_t<base>& operator /=(char_t<base>& character, type nodecay value) except(false) { return (character.value /= static_cast<base>(value)), character; }
+            template <typename type> constexpr friend inline char_t<base>& operator %=(char_t<base>& character, type nodecay value) except(false) { return (character.value %= static_cast<base>(value)), character; }
+            template <typename type> constexpr friend inline char_t<base>& operator &=(char_t<base>& character, type nodecay value) except(false) { return (character.value &= static_cast<base>(value)), character; }
+            template <typename type> constexpr friend inline char_t<base>& operator |=(char_t<base>& character, type nodecay value) except(false) { return (character.value |= static_cast<base>(value)), character; }
+            template <typename type> constexpr friend inline char_t<base>& operator ^=(char_t<base>& character, type nodecay value) except(false) { return (character.value ^= static_cast<base>(value)), character; }
+            template <typename type> constexpr friend inline char_t<base>& operator <<=(char_t<base>& character, type nodecay value) except(false) { return (character.value <<= static_cast<base>(value)), character; }
+            template <typename type> constexpr friend inline char_t<base>& operator >>=(char_t<base>& character, type nodecay value) except(false) { return (character.value >>= static_cast<base>(value)), character; }
+            template <typename = void> constexpr friend inline char_t<base>& operator ++(char_t<base>& character) except(false) { return (++character.value), character; }
+            template <typename = void> constexpr friend inline char_t<base>& operator ++(char_t<base>& character, int const) except(false) { return (character.value++), character; }
+            template <typename = void> constexpr friend inline char_t<base>& operator --(char_t<base>& character) except(false) { return (--character.value), character; }
+            template <typename = void> constexpr friend inline char_t<base>& operator --(char_t<base>& character, int const) except(false) { return (character.value--), character; }
+
+            constexpr inline explicit operator base&(void) const except(false) { return const_cast<base&>(this -> value); }
+    };
+}
+
+union byte {
+    private: unsigned longest value : CHAR_BIT;
+    public:
+        constexpr inline byte(void) except(false) : value super() {}
+        template <typename type> constexpr inline byte(type nodecay value) except(false) : value super(static_cast<unsigned char>(value)) {}
+
+        template <typename type> constexpr friend inline byte& operator +=(byte& byte, type nodecay value) except(false) { return (byte.value += static_cast<unsigned char>(value)), byte; }
+        template <typename type> constexpr friend inline byte& operator -=(byte& byte, type nodecay value) except(false) { return (byte.value -= static_cast<unsigned char>(value)), byte; }
+        template <typename type> constexpr friend inline byte& operator *=(byte& byte, type nodecay value) except(false) { return (byte.value *= static_cast<unsigned char>(value)), byte; }
+        template <typename type> constexpr friend inline byte& operator /=(byte& byte, type nodecay value) except(false) { return (byte.value /= static_cast<unsigned char>(value)), byte; }
+        template <typename type> constexpr friend inline byte& operator %=(byte& byte, type nodecay value) except(false) { return (byte.value %= static_cast<unsigned char>(value)), byte; }
+        template <typename type> constexpr friend inline byte& operator &=(byte& byte, type nodecay value) except(false) { return (byte.value &= static_cast<unsigned char>(value)), byte; }
+        template <typename type> constexpr friend inline byte& operator |=(byte& byte, type nodecay value) except(false) { return (byte.value |= static_cast<unsigned char>(value)), byte; }
+        template <typename type> constexpr friend inline byte& operator ^=(byte& byte, type nodecay value) except(false) { return (byte.value ^= static_cast<unsigned char>(value)), byte; }
+        template <typename type> constexpr friend inline byte& operator <<=(byte& byte, type nodecay value) except(false) { return (byte.value <<= static_cast<unsigned char>(value)), byte; }
+        template <typename type> constexpr friend inline byte& operator >>=(byte& byte, type nodecay value) except(false) { return (byte.value >>= static_cast<unsigned char>(value)), byte; }
+        template <typename = void> constexpr friend inline byte& operator ++(byte& byte) except(false) { return (++byte.value), byte; }
+        template <typename = void> constexpr friend inline byte& operator ++(byte& byte, int const) except(false) { return (byte.value++), byte; }
+        template <typename = void> constexpr friend inline byte& operator --(byte& byte) except(false) { return (--byte.value), byte; }
+        template <typename = void> constexpr friend inline byte& operator --(byte& byte, int const) except(false) { return (byte.value--), byte; }
+
+        constexpr inline operator unsigned char(void) const except(false) { return this -> value; }
+};
+
+
+#if (__C__VERSION__ && __C__VERSION__ < 1999uL) && (__CPP__VERSION__ && __CPP__VERSION__ < 2011uL)
+#   define UINT16_MAX ((((1uL << (16uL - 1uL)) - 1uL) << 1uL) + 1uL)
+#   if UINT16_MAX <= UCHAR_MAX
+        typedef char_t<unsigned char> char16_t;
+#   elif UINT16_MAX <= USHRT_MAX
+        typedef char_t<unsigned short> char16_t;
+#   elif UINT16_MAX <= UINT_MAX
+        typedef char_t<unsigned int> char16_t;
+#   elif UINT16_MAX <= ULONG_MAX
+        typedef char_t<unsigned long> char16_t;
+#   endif
+#   undef UINT16_MAX
+
+#   define UINT32_MAX ((((1uL << (32uL - 1uL)) - 1uL) << 1uL) + 1uL)
+#   if UINT32_MAX <= UCHAR_MAX
+        typedef char_t<unsigned char> char32_t;
+#   elif UINT32_MAX <= USHRT_MAX
+        typedef char_t<unsigned short> char32_t;
+#   elif UINT32_MAX <= UINT_MAX
+        typedef char_t<unsigned int> char32_t;
+#   elif UINT32_MAX <= ULONG_MAX
+        typedef char_t<unsigned long> char32_t;
+#   endif
+#   undef UINT32_MAX
+#endif
+
+#if (__CPP__VERSION__ && __CPP__VERSION__ < 2020uL)
+        typedef char_t<unsigned char> char8_t;
+#endif
+
+// [Miscellaneous : ...]
+#if defined(CLK_TCK) && (false == defined(CLOCKS_PER_SEC)) // Clock Cycles Per Second
+#   define CLOCKS_PER_SEC CLK_TCK
+#elif defined(_SC_CLK_TCK) && (false == defined(CLOCKS_PER_SEC))
+#   define CLOCKS_PER_SEC _SC_CLK_TCK
+#endif
+
+#if (false == defined(INFINITY)) && defined(HUGE_VAL) // Infinity
+#   define INFINITY HUGE_VAL
+#endif
+
+#if (false == defined(NAN)) // [Quiet] Not-A-Number
+    struct NAN_Implementation final { // WARN (Lapys) -> Unfortunately not compile-time optimized.
+        static unsigned long const value[2];
+        inline operator float(void) const except(false) { return *reinterpret_cast<float const*>(value); }
+    };
+    constexpr unsigned long const NAN_Implementation::value[2] = {0x7FF80000uL, 0x00000000uL};
+
+#   define NAN (NAN_Implementation super())
+#endif
+
+#if (false == defined(O_BINARY)) // Open Binary (Mode)
+#   define O_BINARY 0x0000 // -> 0x8000
+#   define O_TEXT 0x4000
+#endif
+
+#define __MAIN__ int main(int const, char* const [])
+#define __WINDOWS__MAIN__ int WinMain(HINSTANCE const, HINSTANCE const, LPSTR const, int const)
+#define __WINDOWS_DLL__MAIN__ BOOL WINAPI DllMain(HINSTANCE const, DWORD const, LPVOID const)
+#define __WINDOWS_UNICODE__MAIN__ int wmain(int const, wchar_t* const [])

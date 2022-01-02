@@ -1,0 +1,2 @@
+/* Class > Function */
+class Function {};
