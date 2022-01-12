@@ -222,11 +222,11 @@
 
 // : [Initialization]
 #if CPP_VERSION < 2011uL
-# define init(arguments) = arguments
-# define meminit(arguments) (arguments)
+# define init(arguments)   (arguments)
+# define varinit(arguments) = arguments
 #else
-# define init(arguments) {arguments}
-# define meminit(arguments) {arguments}
+# define init(arguments)    {arguments}
+# define varinit(arguments) {arguments}
 #endif
 
 // : [Inline Specifier]
