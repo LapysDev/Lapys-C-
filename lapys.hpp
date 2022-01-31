@@ -1,867 +1,1087 @@
+/* Import > ... */
+#include "lapys/includes.hpp"
+
 /* ... */
-#ifndef LAPYS
-# define LAPYS
-  /* Import > ... */
-  // : [C++ Standard Library]
-  #include <cfloat>  // C Float
-  #include <climits> // C Limits
-  #include <cstddef> // C Standard Definition
-  #include <cstdio>  // C Standard Input/ Output
-  #include <cstdlib> // C Standard Library
-  #include <new>     // New
-
-  // : [C Standard Library]
-  #include <errno.h>   // Error No.
-  #include <stdbool.h> // Standard Booleans
-  #include <stdint.h>  // Standard Integers
-  #include <wchar.h>   // Wide Characters
-
-  // : [...]
-  #include "lapys/extensions.h" // Extensions
-  #include "lapys/macros.h"     // Macros
-  #include "lapys/traits.hpp"   // Traits
-
-  #include "lapys/memory.hpp" // Memory
-  // #include "lapys/array.hpp"   // Array
-  // #include "lapys/string.hpp"  // String
-  // #include "lapys/program.hpp" // Program
-
-  // #include "lapys/entry.hpp" // Entry
-
-  /* ... */
-  #undef CPP_COMPILER
-  # undef CPP__CLANG__COMPILER
-  # undef CPP__GCC__COMPILER
-  # undef CPP__ICC__COMPILER
-  # undef CPP__MSVC__COMPILER
-  #undef CPP_ENDIAN
-  # undef CPP__BIG__ENDIAN
-  # undef CPP__LITTLE__ENDIAN
-  # undef CPP__MIXED__ENDIAN
-  # undef CPP__WORDS_LITTLE__ENDIAN
-  #undef CPP_STANDARD_PREPROCESSOR
-  # undef CPP__MSVC__PREPROCESSOR
-  #undef CPP_VENDOR
-  # undef CPP__APPLE_MACINTOSH__VENDOR
-  # undef CPP__LINUX__VENDOR
-  # undef CPP__MICROSOFT_WINDOWS__VENDOR
-  # undef CPP__NINTENDO__VENDOR
-  # undef CPP__UNIX__VENDOR
-  #undef CPP_VERSION
-  #
-  #undef LAPYS_END_ARITY
-  #undef LAPYS_MAX_TEMPLATE_INSTANTIATION
-  #
-  #undef align
-  #undef alignmentof
-  #undef apply
-  # undef apply_empty
-  # undef apply_parse
-  # undef apply_0u
-  # undef apply_1u
-  # undef apply_2u
-  # undef apply_3u
-  # undef apply_4u
-  # undef apply_5u
-  # undef apply_6u
-  # undef apply_7u
-  # undef apply_8u
-  # undef apply_9u
-  # undef apply_10u
-  # undef apply_11u
-  # undef apply_12u
-  # undef apply_13u
-  # undef apply_14u
-  # undef apply_15u
-  # undef apply_16u
-  # undef apply_17u
-  # undef apply_18u
-  # undef apply_19u
-  # undef apply_20u
-  # undef apply_21u
-  # undef apply_22u
-  # undef apply_23u
-  # undef apply_24u
-  # undef apply_25u
-  # undef apply_26u
-  # undef apply_27u
-  # undef apply_28u
-  # undef apply_29u
-  # undef apply_30u
-  # undef apply_31u
-  # undef apply_32u
-  # undef apply_33u
-  # undef apply_34u
-  # undef apply_35u
-  # undef apply_36u
-  # undef apply_37u
-  # undef apply_38u
-  # undef apply_39u
-  # undef apply_40u
-  # undef apply_41u
-  # undef apply_42u
-  # undef apply_43u
-  # undef apply_44u
-  # undef apply_45u
-  # undef apply_46u
-  # undef apply_47u
-  # undef apply_48u
-  # undef apply_49u
-  # undef apply_50u
-  # undef apply_51u
-  # undef apply_52u
-  # undef apply_53u
-  # undef apply_54u
-  # undef apply_55u
-  # undef apply_56u
-  # undef apply_57u
-  # undef apply_58u
-  # undef apply_59u
-  # undef apply_60u
-  # undef apply_61u
-  # undef apply_62u
-  # undef apply_63u
-  # undef apply_64u
-  # undef apply_65u
-  # undef apply_66u
-  # undef apply_67u
-  # undef apply_68u
-  # undef apply_69u
-  # undef apply_70u
-  # undef apply_71u
-  # undef apply_72u
-  # undef apply_73u
-  # undef apply_74u
-  # undef apply_75u
-  # undef apply_76u
-  # undef apply_77u
-  # undef apply_78u
-  # undef apply_79u
-  # undef apply_80u
-  # undef apply_81u
-  # undef apply_82u
-  # undef apply_83u
-  # undef apply_84u
-  # undef apply_85u
-  # undef apply_86u
-  # undef apply_87u
-  # undef apply_88u
-  # undef apply_89u
-  # undef apply_90u
-  # undef apply_91u
-  # undef apply_92u
-  # undef apply_93u
-  # undef apply_94u
-  # undef apply_95u
-  # undef apply_96u
-  # undef apply_97u
-  # undef apply_98u
-  # undef apply_99u
-  # undef apply_100u
-  # undef apply_101u
-  # undef apply_102u
-  # undef apply_103u
-  # undef apply_104u
-  # undef apply_105u
-  # undef apply_106u
-  # undef apply_107u
-  # undef apply_108u
-  # undef apply_109u
-  # undef apply_110u
-  # undef apply_111u
-  # undef apply_112u
-  # undef apply_113u
-  # undef apply_114u
-  # undef apply_115u
-  # undef apply_116u
-  # undef apply_117u
-  # undef apply_118u
-  # undef apply_119u
-  # undef apply_120u
-  # undef apply_121u
-  # undef apply_122u
-  # undef apply_123u
-  # undef apply_124u
-  # undef apply_125u
-  # undef apply_126u
-  # undef apply_127u
-  # undef apply_128u
-  # undef apply_129u
-  # undef apply_130u
-  # undef apply_131u
-  # undef apply_132u
-  # undef apply_133u
-  # undef apply_134u
-  # undef apply_135u
-  # undef apply_136u
-  # undef apply_137u
-  # undef apply_138u
-  # undef apply_139u
-  # undef apply_140u
-  # undef apply_141u
-  # undef apply_142u
-  # undef apply_143u
-  # undef apply_144u
-  # undef apply_145u
-  # undef apply_146u
-  # undef apply_147u
-  # undef apply_148u
-  # undef apply_149u
-  # undef apply_150u
-  # undef apply_151u
-  # undef apply_152u
-  # undef apply_153u
-  # undef apply_154u
-  # undef apply_155u
-  # undef apply_156u
-  # undef apply_157u
-  # undef apply_158u
-  # undef apply_159u
-  # undef apply_160u
-  # undef apply_161u
-  # undef apply_162u
-  # undef apply_163u
-  # undef apply_164u
-  # undef apply_165u
-  # undef apply_166u
-  # undef apply_167u
-  # undef apply_168u
-  # undef apply_169u
-  # undef apply_170u
-  # undef apply_171u
-  # undef apply_172u
-  # undef apply_173u
-  # undef apply_174u
-  # undef apply_175u
-  # undef apply_176u
-  # undef apply_177u
-  # undef apply_178u
-  # undef apply_179u
-  # undef apply_180u
-  # undef apply_181u
-  # undef apply_182u
-  # undef apply_183u
-  # undef apply_184u
-  # undef apply_185u
-  # undef apply_186u
-  # undef apply_187u
-  # undef apply_188u
-  # undef apply_189u
-  # undef apply_190u
-  # undef apply_191u
-  # undef apply_192u
-  # undef apply_193u
-  # undef apply_194u
-  # undef apply_195u
-  # undef apply_196u
-  # undef apply_197u
-  # undef apply_198u
-  # undef apply_199u
-  # undef apply_200u
-  # undef apply_201u
-  # undef apply_202u
-  # undef apply_203u
-  # undef apply_204u
-  # undef apply_205u
-  # undef apply_206u
-  # undef apply_207u
-  # undef apply_208u
-  # undef apply_209u
-  # undef apply_210u
-  # undef apply_211u
-  # undef apply_212u
-  # undef apply_213u
-  # undef apply_214u
-  # undef apply_215u
-  # undef apply_216u
-  # undef apply_217u
-  # undef apply_218u
-  # undef apply_219u
-  # undef apply_220u
-  # undef apply_221u
-  # undef apply_222u
-  # undef apply_223u
-  # undef apply_224u
-  # undef apply_225u
-  # undef apply_226u
-  # undef apply_227u
-  # undef apply_228u
-  # undef apply_229u
-  # undef apply_230u
-  # undef apply_231u
-  # undef apply_232u
-  # undef apply_233u
-  # undef apply_234u
-  # undef apply_235u
-  # undef apply_236u
-  # undef apply_237u
-  # undef apply_238u
-  # undef apply_239u
-  # undef apply_240u
-  # undef apply_241u
-  # undef apply_242u
-  # undef apply_243u
-  # undef apply_244u
-  # undef apply_245u
-  # undef apply_246u
-  # undef apply_247u
-  # undef apply_248u
-  # undef apply_249u
-  # undef apply_250u
-  # undef apply_251u
-  # undef apply_252u
-  # undef apply_253u
-  # undef apply_254u
-  # undef apply_255u
-  #undef comma
-  #undef concatenate
-  #undef constfunc
-  # undef constfunc_false
-  # undef constfunc_true
-  #undef constvar
-  #undef discard
-  #undef empty
-  #undef exceptof
-  #undef exceptspec
-  # undef exceptspec_fail
-  # undef exceptspec_pass
-  #   undef exceptspec_check_true
-  #undef final
-  #undef init
-  #undef next
-  # undef next_0u
-  # undef next_1u
-  # undef next_2u
-  # undef next_3u
-  # undef next_4u
-  # undef next_5u
-  # undef next_6u
-  # undef next_7u
-  # undef next_8u
-  # undef next_9u
-  # undef next_10u
-  # undef next_11u
-  # undef next_12u
-  # undef next_13u
-  # undef next_14u
-  # undef next_15u
-  # undef next_16u
-  # undef next_17u
-  # undef next_18u
-  # undef next_19u
-  # undef next_20u
-  # undef next_21u
-  # undef next_22u
-  # undef next_23u
-  # undef next_24u
-  # undef next_25u
-  # undef next_26u
-  # undef next_27u
-  # undef next_28u
-  # undef next_29u
-  # undef next_30u
-  # undef next_31u
-  # undef next_32u
-  # undef next_33u
-  # undef next_34u
-  # undef next_35u
-  # undef next_36u
-  # undef next_37u
-  # undef next_38u
-  # undef next_39u
-  # undef next_40u
-  # undef next_41u
-  # undef next_42u
-  # undef next_43u
-  # undef next_44u
-  # undef next_45u
-  # undef next_46u
-  # undef next_47u
-  # undef next_48u
-  # undef next_49u
-  # undef next_50u
-  # undef next_51u
-  # undef next_52u
-  # undef next_53u
-  # undef next_54u
-  # undef next_55u
-  # undef next_56u
-  # undef next_57u
-  # undef next_58u
-  # undef next_59u
-  # undef next_60u
-  # undef next_61u
-  # undef next_62u
-  # undef next_63u
-  # undef next_64u
-  # undef next_65u
-  # undef next_66u
-  # undef next_67u
-  # undef next_68u
-  # undef next_69u
-  # undef next_70u
-  # undef next_71u
-  # undef next_72u
-  # undef next_73u
-  # undef next_74u
-  # undef next_75u
-  # undef next_76u
-  # undef next_77u
-  # undef next_78u
-  # undef next_79u
-  # undef next_80u
-  # undef next_81u
-  # undef next_82u
-  # undef next_83u
-  # undef next_84u
-  # undef next_85u
-  # undef next_86u
-  # undef next_87u
-  # undef next_88u
-  # undef next_89u
-  # undef next_90u
-  # undef next_91u
-  # undef next_92u
-  # undef next_93u
-  # undef next_94u
-  # undef next_95u
-  # undef next_96u
-  # undef next_97u
-  # undef next_98u
-  # undef next_99u
-  # undef next_100u
-  # undef next_101u
-  # undef next_102u
-  # undef next_103u
-  # undef next_104u
-  # undef next_105u
-  # undef next_106u
-  # undef next_107u
-  # undef next_108u
-  # undef next_109u
-  # undef next_110u
-  # undef next_111u
-  # undef next_112u
-  # undef next_113u
-  # undef next_114u
-  # undef next_115u
-  # undef next_116u
-  # undef next_117u
-  # undef next_118u
-  # undef next_119u
-  # undef next_120u
-  # undef next_121u
-  # undef next_122u
-  # undef next_123u
-  # undef next_124u
-  # undef next_125u
-  # undef next_126u
-  # undef next_127u
-  # undef next_128u
-  # undef next_129u
-  # undef next_130u
-  # undef next_131u
-  # undef next_132u
-  # undef next_133u
-  # undef next_134u
-  # undef next_135u
-  # undef next_136u
-  # undef next_137u
-  # undef next_138u
-  # undef next_139u
-  # undef next_140u
-  # undef next_141u
-  # undef next_142u
-  # undef next_143u
-  # undef next_144u
-  # undef next_145u
-  # undef next_146u
-  # undef next_147u
-  # undef next_148u
-  # undef next_149u
-  # undef next_150u
-  # undef next_151u
-  # undef next_152u
-  # undef next_153u
-  # undef next_154u
-  # undef next_155u
-  # undef next_156u
-  # undef next_157u
-  # undef next_158u
-  # undef next_159u
-  # undef next_160u
-  # undef next_161u
-  # undef next_162u
-  # undef next_163u
-  # undef next_164u
-  # undef next_165u
-  # undef next_166u
-  # undef next_167u
-  # undef next_168u
-  # undef next_169u
-  # undef next_170u
-  # undef next_171u
-  # undef next_172u
-  # undef next_173u
-  # undef next_174u
-  # undef next_175u
-  # undef next_176u
-  # undef next_177u
-  # undef next_178u
-  # undef next_179u
-  # undef next_180u
-  # undef next_181u
-  # undef next_182u
-  # undef next_183u
-  # undef next_184u
-  # undef next_185u
-  # undef next_186u
-  # undef next_187u
-  # undef next_188u
-  # undef next_189u
-  # undef next_190u
-  # undef next_191u
-  # undef next_192u
-  # undef next_193u
-  # undef next_194u
-  # undef next_195u
-  # undef next_196u
-  # undef next_197u
-  # undef next_198u
-  # undef next_199u
-  # undef next_200u
-  # undef next_201u
-  # undef next_202u
-  # undef next_203u
-  # undef next_204u
-  # undef next_205u
-  # undef next_206u
-  # undef next_207u
-  # undef next_208u
-  # undef next_209u
-  # undef next_210u
-  # undef next_211u
-  # undef next_212u
-  # undef next_213u
-  # undef next_214u
-  # undef next_215u
-  # undef next_216u
-  # undef next_217u
-  # undef next_218u
-  # undef next_219u
-  # undef next_220u
-  # undef next_221u
-  # undef next_222u
-  # undef next_223u
-  # undef next_224u
-  # undef next_225u
-  # undef next_226u
-  # undef next_227u
-  # undef next_228u
-  # undef next_229u
-  # undef next_230u
-  # undef next_231u
-  # undef next_232u
-  # undef next_233u
-  # undef next_234u
-  # undef next_235u
-  # undef next_236u
-  # undef next_237u
-  # undef next_238u
-  # undef next_239u
-  # undef next_240u
-  # undef next_241u
-  # undef next_242u
-  # undef next_243u
-  # undef next_244u
-  # undef next_245u
-  # undef next_246u
-  # undef next_247u
-  # undef next_248u
-  # undef next_249u
-  # undef next_250u
-  # undef next_251u
-  # undef next_252u
-  # undef next_253u
-  # undef next_254u
-  # undef next_255u
-  #undef nodecay
-  #undef noexcept
-  #undef noinline
-  #undef noreturn
-  #undef nouniqueaddr
-  #undef previous
-  # undef previous_0u
-  # undef previous_1u
-  # undef previous_2u
-  # undef previous_3u
-  # undef previous_4u
-  # undef previous_5u
-  # undef previous_6u
-  # undef previous_7u
-  # undef previous_8u
-  # undef previous_9u
-  # undef previous_10u
-  # undef previous_11u
-  # undef previous_12u
-  # undef previous_13u
-  # undef previous_14u
-  # undef previous_15u
-  # undef previous_16u
-  # undef previous_17u
-  # undef previous_18u
-  # undef previous_19u
-  # undef previous_20u
-  # undef previous_21u
-  # undef previous_22u
-  # undef previous_23u
-  # undef previous_24u
-  # undef previous_25u
-  # undef previous_26u
-  # undef previous_27u
-  # undef previous_28u
-  # undef previous_29u
-  # undef previous_30u
-  # undef previous_31u
-  # undef previous_32u
-  # undef previous_33u
-  # undef previous_34u
-  # undef previous_35u
-  # undef previous_36u
-  # undef previous_37u
-  # undef previous_38u
-  # undef previous_39u
-  # undef previous_40u
-  # undef previous_41u
-  # undef previous_42u
-  # undef previous_43u
-  # undef previous_44u
-  # undef previous_45u
-  # undef previous_46u
-  # undef previous_47u
-  # undef previous_48u
-  # undef previous_49u
-  # undef previous_50u
-  # undef previous_51u
-  # undef previous_52u
-  # undef previous_53u
-  # undef previous_54u
-  # undef previous_55u
-  # undef previous_56u
-  # undef previous_57u
-  # undef previous_58u
-  # undef previous_59u
-  # undef previous_60u
-  # undef previous_61u
-  # undef previous_62u
-  # undef previous_63u
-  # undef previous_64u
-  # undef previous_65u
-  # undef previous_66u
-  # undef previous_67u
-  # undef previous_68u
-  # undef previous_69u
-  # undef previous_70u
-  # undef previous_71u
-  # undef previous_72u
-  # undef previous_73u
-  # undef previous_74u
-  # undef previous_75u
-  # undef previous_76u
-  # undef previous_77u
-  # undef previous_78u
-  # undef previous_79u
-  # undef previous_80u
-  # undef previous_81u
-  # undef previous_82u
-  # undef previous_83u
-  # undef previous_84u
-  # undef previous_85u
-  # undef previous_86u
-  # undef previous_87u
-  # undef previous_88u
-  # undef previous_89u
-  # undef previous_90u
-  # undef previous_91u
-  # undef previous_92u
-  # undef previous_93u
-  # undef previous_94u
-  # undef previous_95u
-  # undef previous_96u
-  # undef previous_97u
-  # undef previous_98u
-  # undef previous_99u
-  # undef previous_100u
-  # undef previous_101u
-  # undef previous_102u
-  # undef previous_103u
-  # undef previous_104u
-  # undef previous_105u
-  # undef previous_106u
-  # undef previous_107u
-  # undef previous_108u
-  # undef previous_109u
-  # undef previous_110u
-  # undef previous_111u
-  # undef previous_112u
-  # undef previous_113u
-  # undef previous_114u
-  # undef previous_115u
-  # undef previous_116u
-  # undef previous_117u
-  # undef previous_118u
-  # undef previous_119u
-  # undef previous_120u
-  # undef previous_121u
-  # undef previous_122u
-  # undef previous_123u
-  # undef previous_124u
-  # undef previous_125u
-  # undef previous_126u
-  # undef previous_127u
-  # undef previous_128u
-  # undef previous_129u
-  # undef previous_130u
-  # undef previous_131u
-  # undef previous_132u
-  # undef previous_133u
-  # undef previous_134u
-  # undef previous_135u
-  # undef previous_136u
-  # undef previous_137u
-  # undef previous_138u
-  # undef previous_139u
-  # undef previous_140u
-  # undef previous_141u
-  # undef previous_142u
-  # undef previous_143u
-  # undef previous_144u
-  # undef previous_145u
-  # undef previous_146u
-  # undef previous_147u
-  # undef previous_148u
-  # undef previous_149u
-  # undef previous_150u
-  # undef previous_151u
-  # undef previous_152u
-  # undef previous_153u
-  # undef previous_154u
-  # undef previous_155u
-  # undef previous_156u
-  # undef previous_157u
-  # undef previous_158u
-  # undef previous_159u
-  # undef previous_160u
-  # undef previous_161u
-  # undef previous_162u
-  # undef previous_163u
-  # undef previous_164u
-  # undef previous_165u
-  # undef previous_166u
-  # undef previous_167u
-  # undef previous_168u
-  # undef previous_169u
-  # undef previous_170u
-  # undef previous_171u
-  # undef previous_172u
-  # undef previous_173u
-  # undef previous_174u
-  # undef previous_175u
-  # undef previous_176u
-  # undef previous_177u
-  # undef previous_178u
-  # undef previous_179u
-  # undef previous_180u
-  # undef previous_181u
-  # undef previous_182u
-  # undef previous_183u
-  # undef previous_184u
-  # undef previous_185u
-  # undef previous_186u
-  # undef previous_187u
-  # undef previous_188u
-  # undef previous_189u
-  # undef previous_190u
-  # undef previous_191u
-  # undef previous_192u
-  # undef previous_193u
-  # undef previous_194u
-  # undef previous_195u
-  # undef previous_196u
-  # undef previous_197u
-  # undef previous_198u
-  # undef previous_199u
-  # undef previous_200u
-  # undef previous_201u
-  # undef previous_202u
-  # undef previous_203u
-  # undef previous_204u
-  # undef previous_205u
-  # undef previous_206u
-  # undef previous_207u
-  # undef previous_208u
-  # undef previous_209u
-  # undef previous_210u
-  # undef previous_211u
-  # undef previous_212u
-  # undef previous_213u
-  # undef previous_214u
-  # undef previous_215u
-  # undef previous_216u
-  # undef previous_217u
-  # undef previous_218u
-  # undef previous_219u
-  # undef previous_220u
-  # undef previous_221u
-  # undef previous_222u
-  # undef previous_223u
-  # undef previous_224u
-  # undef previous_225u
-  # undef previous_226u
-  # undef previous_227u
-  # undef previous_228u
-  # undef previous_229u
-  # undef previous_230u
-  # undef previous_231u
-  # undef previous_232u
-  # undef previous_233u
-  # undef previous_234u
-  # undef previous_235u
-  # undef previous_236u
-  # undef previous_237u
-  # undef previous_238u
-  # undef previous_239u
-  # undef previous_240u
-  # undef previous_241u
-  # undef previous_242u
-  # undef previous_243u
-  # undef previous_244u
-  # undef previous_245u
-  # undef previous_246u
-  # undef previous_247u
-  # undef previous_248u
-  # undef previous_249u
-  # undef previous_250u
-  # undef previous_251u
-  # undef previous_252u
-  # undef previous_253u
-  # undef previous_254u
-  # undef previous_255u
-  #undef reapply
-  #undef second
-  #undef stall
-  # undef stall_1
-  # undef stall_2
-  # undef stall_3
-  # undef stall_4
-  # undef stall_5
-  # undef stall_6
-  # undef stall_7
-  # undef stall_8
-  # undef stall_9
-  # undef stall_10
-  # undef stall_11
-  # undef stall_12
-  #undef typeof
-  #undef varinit
-#endif
+#undef CPP_COMPILER
+# undef CPP__CLANG__COMPILER
+# undef CPP__GCC__COMPILER
+# undef CPP__ICC__COMPILER
+# undef CPP__MSVC__COMPILER
+#undef CPP_ENDIAN
+# undef CPP__BIG__ENDIAN
+# undef CPP__LITTLE__ENDIAN
+# undef CPP__MIXED__ENDIAN
+# undef CPP__WORDS_LITTLE__ENDIAN
+#undef CPP_STANDARD_PREPROCESSOR
+# undef CPP__MSVC__PREPROCESSOR
+#undef CPP_VENDOR
+# undef CPP__APPLE_MACINTOSH__VENDOR
+# undef CPP__LINUX__VENDOR
+# undef CPP__MICROSOFT_WINDOWS__VENDOR
+# undef CPP__NINTENDO__VENDOR
+# undef CPP__UNIX__VENDOR
+#undef CPP_VERSION
+#
+#undef LAPYS_END_ARITY
+#undef LAPYS_MAX_TEMPLATE_INSTANTIATION
+#
+#undef alignmentas
+#undef alignmentof
+#undef apply
+# undef apply_empty
+# undef apply_parse
+# undef apply_0u
+# undef apply_1u
+# undef apply_2u
+# undef apply_3u
+# undef apply_4u
+# undef apply_5u
+# undef apply_6u
+# undef apply_7u
+# undef apply_8u
+# undef apply_9u
+# undef apply_10u
+# undef apply_11u
+# undef apply_12u
+# undef apply_13u
+# undef apply_14u
+# undef apply_15u
+# undef apply_16u
+# undef apply_17u
+# undef apply_18u
+# undef apply_19u
+# undef apply_20u
+# undef apply_21u
+# undef apply_22u
+# undef apply_23u
+# undef apply_24u
+# undef apply_25u
+# undef apply_26u
+# undef apply_27u
+# undef apply_28u
+# undef apply_29u
+# undef apply_30u
+# undef apply_31u
+# undef apply_32u
+# undef apply_33u
+# undef apply_34u
+# undef apply_35u
+# undef apply_36u
+# undef apply_37u
+# undef apply_38u
+# undef apply_39u
+# undef apply_40u
+# undef apply_41u
+# undef apply_42u
+# undef apply_43u
+# undef apply_44u
+# undef apply_45u
+# undef apply_46u
+# undef apply_47u
+# undef apply_48u
+# undef apply_49u
+# undef apply_50u
+# undef apply_51u
+# undef apply_52u
+# undef apply_53u
+# undef apply_54u
+# undef apply_55u
+# undef apply_56u
+# undef apply_57u
+# undef apply_58u
+# undef apply_59u
+# undef apply_60u
+# undef apply_61u
+# undef apply_62u
+# undef apply_63u
+# undef apply_64u
+# undef apply_65u
+# undef apply_66u
+# undef apply_67u
+# undef apply_68u
+# undef apply_69u
+# undef apply_70u
+# undef apply_71u
+# undef apply_72u
+# undef apply_73u
+# undef apply_74u
+# undef apply_75u
+# undef apply_76u
+# undef apply_77u
+# undef apply_78u
+# undef apply_79u
+# undef apply_80u
+# undef apply_81u
+# undef apply_82u
+# undef apply_83u
+# undef apply_84u
+# undef apply_85u
+# undef apply_86u
+# undef apply_87u
+# undef apply_88u
+# undef apply_89u
+# undef apply_90u
+# undef apply_91u
+# undef apply_92u
+# undef apply_93u
+# undef apply_94u
+# undef apply_95u
+# undef apply_96u
+# undef apply_97u
+# undef apply_98u
+# undef apply_99u
+# undef apply_100u
+# undef apply_101u
+# undef apply_102u
+# undef apply_103u
+# undef apply_104u
+# undef apply_105u
+# undef apply_106u
+# undef apply_107u
+# undef apply_108u
+# undef apply_109u
+# undef apply_110u
+# undef apply_111u
+# undef apply_112u
+# undef apply_113u
+# undef apply_114u
+# undef apply_115u
+# undef apply_116u
+# undef apply_117u
+# undef apply_118u
+# undef apply_119u
+# undef apply_120u
+# undef apply_121u
+# undef apply_122u
+# undef apply_123u
+# undef apply_124u
+# undef apply_125u
+# undef apply_126u
+# undef apply_127u
+# undef apply_128u
+# undef apply_129u
+# undef apply_130u
+# undef apply_131u
+# undef apply_132u
+# undef apply_133u
+# undef apply_134u
+# undef apply_135u
+# undef apply_136u
+# undef apply_137u
+# undef apply_138u
+# undef apply_139u
+# undef apply_140u
+# undef apply_141u
+# undef apply_142u
+# undef apply_143u
+# undef apply_144u
+# undef apply_145u
+# undef apply_146u
+# undef apply_147u
+# undef apply_148u
+# undef apply_149u
+# undef apply_150u
+# undef apply_151u
+# undef apply_152u
+# undef apply_153u
+# undef apply_154u
+# undef apply_155u
+# undef apply_156u
+# undef apply_157u
+# undef apply_158u
+# undef apply_159u
+# undef apply_160u
+# undef apply_161u
+# undef apply_162u
+# undef apply_163u
+# undef apply_164u
+# undef apply_165u
+# undef apply_166u
+# undef apply_167u
+# undef apply_168u
+# undef apply_169u
+# undef apply_170u
+# undef apply_171u
+# undef apply_172u
+# undef apply_173u
+# undef apply_174u
+# undef apply_175u
+# undef apply_176u
+# undef apply_177u
+# undef apply_178u
+# undef apply_179u
+# undef apply_180u
+# undef apply_181u
+# undef apply_182u
+# undef apply_183u
+# undef apply_184u
+# undef apply_185u
+# undef apply_186u
+# undef apply_187u
+# undef apply_188u
+# undef apply_189u
+# undef apply_190u
+# undef apply_191u
+# undef apply_192u
+# undef apply_193u
+# undef apply_194u
+# undef apply_195u
+# undef apply_196u
+# undef apply_197u
+# undef apply_198u
+# undef apply_199u
+# undef apply_200u
+# undef apply_201u
+# undef apply_202u
+# undef apply_203u
+# undef apply_204u
+# undef apply_205u
+# undef apply_206u
+# undef apply_207u
+# undef apply_208u
+# undef apply_209u
+# undef apply_210u
+# undef apply_211u
+# undef apply_212u
+# undef apply_213u
+# undef apply_214u
+# undef apply_215u
+# undef apply_216u
+# undef apply_217u
+# undef apply_218u
+# undef apply_219u
+# undef apply_220u
+# undef apply_221u
+# undef apply_222u
+# undef apply_223u
+# undef apply_224u
+# undef apply_225u
+# undef apply_226u
+# undef apply_227u
+# undef apply_228u
+# undef apply_229u
+# undef apply_230u
+# undef apply_231u
+# undef apply_232u
+# undef apply_233u
+# undef apply_234u
+# undef apply_235u
+# undef apply_236u
+# undef apply_237u
+# undef apply_238u
+# undef apply_239u
+# undef apply_240u
+# undef apply_241u
+# undef apply_242u
+# undef apply_243u
+# undef apply_244u
+# undef apply_245u
+# undef apply_246u
+# undef apply_247u
+# undef apply_248u
+# undef apply_249u
+# undef apply_250u
+# undef apply_251u
+# undef apply_252u
+# undef apply_253u
+# undef apply_254u
+# undef apply_255u
+#undef comma
+#undef concatenate
+#undef constenum
+#undef constfunc
+# undef constfunc_false
+# undef constfunc_true
+#undef constvar
+#undef discard
+#undef empty
+#undef exceptof
+#undef exceptspec
+# undef exceptspec_fail
+# undef exceptspec_pass
+#   undef exceptspec_check_true
+#undef final
+#undef init
+#undef lref
+#undef next
+# undef next_0u
+# undef next_1u
+# undef next_2u
+# undef next_3u
+# undef next_4u
+# undef next_5u
+# undef next_6u
+# undef next_7u
+# undef next_8u
+# undef next_9u
+# undef next_10u
+# undef next_11u
+# undef next_12u
+# undef next_13u
+# undef next_14u
+# undef next_15u
+# undef next_16u
+# undef next_17u
+# undef next_18u
+# undef next_19u
+# undef next_20u
+# undef next_21u
+# undef next_22u
+# undef next_23u
+# undef next_24u
+# undef next_25u
+# undef next_26u
+# undef next_27u
+# undef next_28u
+# undef next_29u
+# undef next_30u
+# undef next_31u
+# undef next_32u
+# undef next_33u
+# undef next_34u
+# undef next_35u
+# undef next_36u
+# undef next_37u
+# undef next_38u
+# undef next_39u
+# undef next_40u
+# undef next_41u
+# undef next_42u
+# undef next_43u
+# undef next_44u
+# undef next_45u
+# undef next_46u
+# undef next_47u
+# undef next_48u
+# undef next_49u
+# undef next_50u
+# undef next_51u
+# undef next_52u
+# undef next_53u
+# undef next_54u
+# undef next_55u
+# undef next_56u
+# undef next_57u
+# undef next_58u
+# undef next_59u
+# undef next_60u
+# undef next_61u
+# undef next_62u
+# undef next_63u
+# undef next_64u
+# undef next_65u
+# undef next_66u
+# undef next_67u
+# undef next_68u
+# undef next_69u
+# undef next_70u
+# undef next_71u
+# undef next_72u
+# undef next_73u
+# undef next_74u
+# undef next_75u
+# undef next_76u
+# undef next_77u
+# undef next_78u
+# undef next_79u
+# undef next_80u
+# undef next_81u
+# undef next_82u
+# undef next_83u
+# undef next_84u
+# undef next_85u
+# undef next_86u
+# undef next_87u
+# undef next_88u
+# undef next_89u
+# undef next_90u
+# undef next_91u
+# undef next_92u
+# undef next_93u
+# undef next_94u
+# undef next_95u
+# undef next_96u
+# undef next_97u
+# undef next_98u
+# undef next_99u
+# undef next_100u
+# undef next_101u
+# undef next_102u
+# undef next_103u
+# undef next_104u
+# undef next_105u
+# undef next_106u
+# undef next_107u
+# undef next_108u
+# undef next_109u
+# undef next_110u
+# undef next_111u
+# undef next_112u
+# undef next_113u
+# undef next_114u
+# undef next_115u
+# undef next_116u
+# undef next_117u
+# undef next_118u
+# undef next_119u
+# undef next_120u
+# undef next_121u
+# undef next_122u
+# undef next_123u
+# undef next_124u
+# undef next_125u
+# undef next_126u
+# undef next_127u
+# undef next_128u
+# undef next_129u
+# undef next_130u
+# undef next_131u
+# undef next_132u
+# undef next_133u
+# undef next_134u
+# undef next_135u
+# undef next_136u
+# undef next_137u
+# undef next_138u
+# undef next_139u
+# undef next_140u
+# undef next_141u
+# undef next_142u
+# undef next_143u
+# undef next_144u
+# undef next_145u
+# undef next_146u
+# undef next_147u
+# undef next_148u
+# undef next_149u
+# undef next_150u
+# undef next_151u
+# undef next_152u
+# undef next_153u
+# undef next_154u
+# undef next_155u
+# undef next_156u
+# undef next_157u
+# undef next_158u
+# undef next_159u
+# undef next_160u
+# undef next_161u
+# undef next_162u
+# undef next_163u
+# undef next_164u
+# undef next_165u
+# undef next_166u
+# undef next_167u
+# undef next_168u
+# undef next_169u
+# undef next_170u
+# undef next_171u
+# undef next_172u
+# undef next_173u
+# undef next_174u
+# undef next_175u
+# undef next_176u
+# undef next_177u
+# undef next_178u
+# undef next_179u
+# undef next_180u
+# undef next_181u
+# undef next_182u
+# undef next_183u
+# undef next_184u
+# undef next_185u
+# undef next_186u
+# undef next_187u
+# undef next_188u
+# undef next_189u
+# undef next_190u
+# undef next_191u
+# undef next_192u
+# undef next_193u
+# undef next_194u
+# undef next_195u
+# undef next_196u
+# undef next_197u
+# undef next_198u
+# undef next_199u
+# undef next_200u
+# undef next_201u
+# undef next_202u
+# undef next_203u
+# undef next_204u
+# undef next_205u
+# undef next_206u
+# undef next_207u
+# undef next_208u
+# undef next_209u
+# undef next_210u
+# undef next_211u
+# undef next_212u
+# undef next_213u
+# undef next_214u
+# undef next_215u
+# undef next_216u
+# undef next_217u
+# undef next_218u
+# undef next_219u
+# undef next_220u
+# undef next_221u
+# undef next_222u
+# undef next_223u
+# undef next_224u
+# undef next_225u
+# undef next_226u
+# undef next_227u
+# undef next_228u
+# undef next_229u
+# undef next_230u
+# undef next_231u
+# undef next_232u
+# undef next_233u
+# undef next_234u
+# undef next_235u
+# undef next_236u
+# undef next_237u
+# undef next_238u
+# undef next_239u
+# undef next_240u
+# undef next_241u
+# undef next_242u
+# undef next_243u
+# undef next_244u
+# undef next_245u
+# undef next_246u
+# undef next_247u
+# undef next_248u
+# undef next_249u
+# undef next_250u
+# undef next_251u
+# undef next_252u
+# undef next_253u
+# undef next_254u
+# undef next_255u
+#undef nodecay
+#undef nodecayparam
+#undef noexcept
+#undef noexit
+#undef noignore
+#undef noinline
+#undef nouniqueaddr
+#undef previous
+# undef previous_0u
+# undef previous_1u
+# undef previous_2u
+# undef previous_3u
+# undef previous_4u
+# undef previous_5u
+# undef previous_6u
+# undef previous_7u
+# undef previous_8u
+# undef previous_9u
+# undef previous_10u
+# undef previous_11u
+# undef previous_12u
+# undef previous_13u
+# undef previous_14u
+# undef previous_15u
+# undef previous_16u
+# undef previous_17u
+# undef previous_18u
+# undef previous_19u
+# undef previous_20u
+# undef previous_21u
+# undef previous_22u
+# undef previous_23u
+# undef previous_24u
+# undef previous_25u
+# undef previous_26u
+# undef previous_27u
+# undef previous_28u
+# undef previous_29u
+# undef previous_30u
+# undef previous_31u
+# undef previous_32u
+# undef previous_33u
+# undef previous_34u
+# undef previous_35u
+# undef previous_36u
+# undef previous_37u
+# undef previous_38u
+# undef previous_39u
+# undef previous_40u
+# undef previous_41u
+# undef previous_42u
+# undef previous_43u
+# undef previous_44u
+# undef previous_45u
+# undef previous_46u
+# undef previous_47u
+# undef previous_48u
+# undef previous_49u
+# undef previous_50u
+# undef previous_51u
+# undef previous_52u
+# undef previous_53u
+# undef previous_54u
+# undef previous_55u
+# undef previous_56u
+# undef previous_57u
+# undef previous_58u
+# undef previous_59u
+# undef previous_60u
+# undef previous_61u
+# undef previous_62u
+# undef previous_63u
+# undef previous_64u
+# undef previous_65u
+# undef previous_66u
+# undef previous_67u
+# undef previous_68u
+# undef previous_69u
+# undef previous_70u
+# undef previous_71u
+# undef previous_72u
+# undef previous_73u
+# undef previous_74u
+# undef previous_75u
+# undef previous_76u
+# undef previous_77u
+# undef previous_78u
+# undef previous_79u
+# undef previous_80u
+# undef previous_81u
+# undef previous_82u
+# undef previous_83u
+# undef previous_84u
+# undef previous_85u
+# undef previous_86u
+# undef previous_87u
+# undef previous_88u
+# undef previous_89u
+# undef previous_90u
+# undef previous_91u
+# undef previous_92u
+# undef previous_93u
+# undef previous_94u
+# undef previous_95u
+# undef previous_96u
+# undef previous_97u
+# undef previous_98u
+# undef previous_99u
+# undef previous_100u
+# undef previous_101u
+# undef previous_102u
+# undef previous_103u
+# undef previous_104u
+# undef previous_105u
+# undef previous_106u
+# undef previous_107u
+# undef previous_108u
+# undef previous_109u
+# undef previous_110u
+# undef previous_111u
+# undef previous_112u
+# undef previous_113u
+# undef previous_114u
+# undef previous_115u
+# undef previous_116u
+# undef previous_117u
+# undef previous_118u
+# undef previous_119u
+# undef previous_120u
+# undef previous_121u
+# undef previous_122u
+# undef previous_123u
+# undef previous_124u
+# undef previous_125u
+# undef previous_126u
+# undef previous_127u
+# undef previous_128u
+# undef previous_129u
+# undef previous_130u
+# undef previous_131u
+# undef previous_132u
+# undef previous_133u
+# undef previous_134u
+# undef previous_135u
+# undef previous_136u
+# undef previous_137u
+# undef previous_138u
+# undef previous_139u
+# undef previous_140u
+# undef previous_141u
+# undef previous_142u
+# undef previous_143u
+# undef previous_144u
+# undef previous_145u
+# undef previous_146u
+# undef previous_147u
+# undef previous_148u
+# undef previous_149u
+# undef previous_150u
+# undef previous_151u
+# undef previous_152u
+# undef previous_153u
+# undef previous_154u
+# undef previous_155u
+# undef previous_156u
+# undef previous_157u
+# undef previous_158u
+# undef previous_159u
+# undef previous_160u
+# undef previous_161u
+# undef previous_162u
+# undef previous_163u
+# undef previous_164u
+# undef previous_165u
+# undef previous_166u
+# undef previous_167u
+# undef previous_168u
+# undef previous_169u
+# undef previous_170u
+# undef previous_171u
+# undef previous_172u
+# undef previous_173u
+# undef previous_174u
+# undef previous_175u
+# undef previous_176u
+# undef previous_177u
+# undef previous_178u
+# undef previous_179u
+# undef previous_180u
+# undef previous_181u
+# undef previous_182u
+# undef previous_183u
+# undef previous_184u
+# undef previous_185u
+# undef previous_186u
+# undef previous_187u
+# undef previous_188u
+# undef previous_189u
+# undef previous_190u
+# undef previous_191u
+# undef previous_192u
+# undef previous_193u
+# undef previous_194u
+# undef previous_195u
+# undef previous_196u
+# undef previous_197u
+# undef previous_198u
+# undef previous_199u
+# undef previous_200u
+# undef previous_201u
+# undef previous_202u
+# undef previous_203u
+# undef previous_204u
+# undef previous_205u
+# undef previous_206u
+# undef previous_207u
+# undef previous_208u
+# undef previous_209u
+# undef previous_210u
+# undef previous_211u
+# undef previous_212u
+# undef previous_213u
+# undef previous_214u
+# undef previous_215u
+# undef previous_216u
+# undef previous_217u
+# undef previous_218u
+# undef previous_219u
+# undef previous_220u
+# undef previous_221u
+# undef previous_222u
+# undef previous_223u
+# undef previous_224u
+# undef previous_225u
+# undef previous_226u
+# undef previous_227u
+# undef previous_228u
+# undef previous_229u
+# undef previous_230u
+# undef previous_231u
+# undef previous_232u
+# undef previous_233u
+# undef previous_234u
+# undef previous_235u
+# undef previous_236u
+# undef previous_237u
+# undef previous_238u
+# undef previous_239u
+# undef previous_240u
+# undef previous_241u
+# undef previous_242u
+# undef previous_243u
+# undef previous_244u
+# undef previous_245u
+# undef previous_246u
+# undef previous_247u
+# undef previous_248u
+# undef previous_249u
+# undef previous_250u
+# undef previous_251u
+# undef previous_252u
+# undef previous_253u
+# undef previous_254u
+# undef previous_255u
+#undef reapply
+#undef rref
+#undef second
+#undef stall
+# undef stall_1u
+# undef stall_2u
+# undef stall_3u
+# undef stall_4u
+# undef stall_5u
+# undef stall_6u
+# undef stall_7u
+# undef stall_8u
+# undef stall_9u
+# undef stall_10u
+# undef stall_11u
+# undef stall_12u
+# undef stall_13u
+# undef stall_14u
+# undef stall_15u
+# undef stall_16u
+# undef stall_17u
+# undef stall_18u
+# undef stall_19u
+# undef stall_20u
+# undef stall_21u
+# undef stall_22u
+# undef stall_23u
+# undef stall_24u
+# undef stall_25u
+# undef stall_26u
+# undef stall_27u
+# undef stall_28u
+# undef stall_29u
+# undef stall_30u
+# undef stall_31u
+# undef stall_32u
+# undef stall_33u
+# undef stall_34u
+# undef stall_35u
+# undef stall_36u
+# undef stall_37u
+# undef stall_38u
+# undef stall_39u
+# undef stall_40u
+# undef stall_41u
+# undef stall_42u
+# undef stall_43u
+# undef stall_44u
+# undef stall_45u
+# undef stall_46u
+# undef stall_47u
+# undef stall_48u
+# undef stall_49u
+# undef stall_50u
+# undef stall_51u
+# undef stall_52u
+# undef stall_53u
+# undef stall_54u
+# undef stall_55u
+# undef stall_56u
+# undef stall_57u
+# undef stall_58u
+# undef stall_59u
+# undef stall_60u
+# undef stall_61u
+# undef stall_62u
+# undef stall_63u
+# undef stall_64u
+# undef stall_65u
+# undef stall_66u
+# undef stall_67u
+# undef stall_68u
+# undef stall_69u
+# undef stall_70u
+# undef stall_71u
+# undef stall_72u
+# undef stall_73u
+# undef stall_74u
+# undef stall_75u
+# undef stall_76u
+# undef stall_77u
+# undef stall_78u
+# undef stall_79u
+# undef stall_80u
+# undef stall_81u
+# undef stall_82u
+# undef stall_83u
+# undef stall_84u
+# undef stall_85u
+# undef stall_86u
+# undef stall_87u
+# undef stall_88u
+# undef stall_89u
+# undef stall_90u
+# undef stall_91u
+# undef stall_92u
+# undef stall_93u
+# undef stall_94u
+# undef stall_95u
+# undef stall_96u
+# undef stall_97u
+# undef stall_98u
+# undef stall_99u
+# undef stall_100u
+# undef stall_101u
+# undef stall_102u
+# undef stall_103u
+# undef stall_104u
+# undef stall_105u
+# undef stall_106u
+# undef stall_107u
+# undef stall_108u
+# undef stall_109u
+# undef stall_110u
+# undef stall_111u
+# undef stall_112u
+# undef stall_113u
+# undef stall_114u
+# undef stall_115u
+# undef stall_116u
+# undef stall_117u
+# undef stall_118u
+# undef stall_119u
+# undef stall_120u
+# undef stall_121u
+# undef stall_122u
+# undef stall_123u
+# undef stall_124u
+# undef stall_125u
+# undef stall_126u
+# undef stall_127u
+# undef stall_128u
+# undef stall_129u
+# undef stall_130u
+# undef stall_131u
+# undef stall_132u
+# undef stall_133u
+# undef stall_134u
+# undef stall_135u
+# undef stall_136u
+# undef stall_137u
+# undef stall_138u
+# undef stall_139u
+# undef stall_140u
+# undef stall_141u
+# undef stall_142u
+# undef stall_143u
+# undef stall_144u
+# undef stall_145u
+# undef stall_146u
+# undef stall_147u
+# undef stall_148u
+# undef stall_149u
+# undef stall_150u
+# undef stall_151u
+# undef stall_152u
+# undef stall_153u
+# undef stall_154u
+# undef stall_155u
+# undef stall_156u
+# undef stall_157u
+# undef stall_158u
+# undef stall_159u
+# undef stall_160u
+# undef stall_161u
+# undef stall_162u
+# undef stall_163u
+# undef stall_164u
+# undef stall_165u
+# undef stall_166u
+# undef stall_167u
+# undef stall_168u
+# undef stall_169u
+# undef stall_170u
+# undef stall_171u
+# undef stall_172u
+# undef stall_173u
+# undef stall_174u
+# undef stall_175u
+# undef stall_176u
+# undef stall_177u
+# undef stall_178u
+# undef stall_179u
+# undef stall_180u
+# undef stall_181u
+# undef stall_182u
+# undef stall_183u
+# undef stall_184u
+# undef stall_185u
+# undef stall_186u
+# undef stall_187u
+# undef stall_188u
+# undef stall_189u
+# undef stall_190u
+# undef stall_191u
+# undef stall_192u
+# undef stall_193u
+# undef stall_194u
+# undef stall_195u
+# undef stall_196u
+# undef stall_197u
+# undef stall_198u
+# undef stall_199u
+# undef stall_200u
+# undef stall_201u
+# undef stall_202u
+# undef stall_203u
+# undef stall_204u
+# undef stall_205u
+# undef stall_206u
+# undef stall_207u
+# undef stall_208u
+# undef stall_209u
+# undef stall_210u
+# undef stall_211u
+# undef stall_212u
+# undef stall_213u
+# undef stall_214u
+# undef stall_215u
+# undef stall_216u
+# undef stall_217u
+# undef stall_218u
+# undef stall_219u
+# undef stall_220u
+# undef stall_221u
+# undef stall_222u
+# undef stall_223u
+# undef stall_224u
+# undef stall_225u
+# undef stall_226u
+# undef stall_227u
+# undef stall_228u
+# undef stall_229u
+# undef stall_230u
+# undef stall_231u
+# undef stall_232u
+# undef stall_233u
+# undef stall_234u
+# undef stall_235u
+# undef stall_236u
+# undef stall_237u
+# undef stall_238u
+# undef stall_239u
+# undef stall_240u
+# undef stall_241u
+# undef stall_242u
+# undef stall_243u
+# undef stall_244u
+# undef stall_245u
+# undef stall_246u
+# undef stall_247u
+# undef stall_248u
+# undef stall_249u
+# undef stall_250u
+# undef stall_251u
+# undef stall_252u
+# undef stall_253u
+# undef stall_254u
+# undef stall_255u
+#undef typeof
+#undef varinit

@@ -15,33 +15,7 @@
 
   /* Namespace */
   namespace Lapys {
-    #if CPP_VERSION < 2017uL
-      union align(sizeof(unsigned char)) byte {
-        private:
-          unsigned char value;
-
-        public:
-          constfunc(true) inline byte() noexcept : value() {}
-          constfunc(true) inline byte(unsigned char const value) noexcept : value(value) {}
-
-          // ...
-          constfunc(false) operator unsigned char      &() noexcept       { return this -> value; }
-          constfunc(true)  operator unsigned char const&() const noexcept { return this -> value; }
-      };
-    #else
-      typedef std::byte byte;
-    #endif
-
-    /* ... */
-    template <typename type> constfunc(true) type&       forward(type&       object) noexcept { return object; }
-    template <typename type> constfunc(true) type const& forward(type const& object) noexcept { return object; }
-
-    #ifdef __cpp_rvalue_references
-      template <typename type>
-      constfunc(true) type&& forward(type&& object) noexcept { return static_cast<type&&>(object); }
-    #endif
-
-    // ...
+    /* Function > ... */
     template <typename type>
     constfunc(true) inline type instanceof() noexcept;
 
@@ -50,7 +24,7 @@
       using std::launder;
     #else
       template <typename type>
-      inline type* launder(type* pointer) noexcept {
+      noignore inline type* launder(type* pointer) noexcept {
         #if CPP_COMPILER == CPP__CLANG__COMPILER || (CPP_COMPILER == CPP__GCC__COMPILER && defined(__has_builtin))
         # if __has_builtin(__builtin_launder)
           return __builtin_launder(pointer);
@@ -71,18 +45,81 @@
       }
     #endif
 
+    /* Class > ... */
+    #if CPP_VERSION < 2011uL
+      union alignmentas(sizeof(unsigned char)) byte {
+        private:
+          unsigned char value;
+
+        public:
+          constfunc(true) inline byte() noexcept : value() {}
+          constfunc(true) inline byte(unsigned char const value) noexcept : value(value) {}
+
+          constfunc(true) operator unsigned char() const volatile noexcept { return this -> value; }
+      };
+    #elif CPP_VERSION < 2017uL
+      enum class byte : unsigned char {};
+    #else
+      typedef std::byte byte;
+    #endif
+
+    #if CPP_VERSION < 2017uL
+      constfunc(true) inline byte operator ~(byte const byte) noexcept { return Lapys::byte(~static_cast<unsigned char>(byte)); }
+
+      constfunc(true) inline byte operator &(byte const byteA, byte const byteB) noexcept { return Lapys::byte(static_cast<unsigned char>(byteA) & static_cast<unsigned char>(byteB)); }
+      template <typename type> constfunc(true) inline byte operator &(byte const byte, type const& object) noexcept { return Lapys::byte(static_cast<unsigned char>(byte) & static_cast<unsigned char>(object)); }
+      template <typename type> constfunc(true) inline byte operator &(type const& object, byte const byte) noexcept { return Lapys::byte(static_cast<unsigned char>(object) & static_cast<unsigned char>(byte)); }
+
+      constfunc(true) inline byte operator |(byte const byteA, byte const byteB) noexcept { return Lapys::byte(static_cast<unsigned char>(byteA) | static_cast<unsigned char>(byteB)); }
+      template <typename type> constfunc(true) inline byte operator |(byte const byte, type const& object) noexcept { return Lapys::byte(static_cast<unsigned char>(byte) | static_cast<unsigned char>(object)); }
+      template <typename type> constfunc(true) inline byte operator |(type const& object, byte const byte) noexcept { return Lapys::byte(static_cast<unsigned char>(object) | static_cast<unsigned char>(byte)); }
+
+      constfunc(true) inline byte operator ^(byte const byteA, byte const byteB) noexcept { return Lapys::byte(static_cast<unsigned char>(byteA) ^ static_cast<unsigned char>(byteB)); }
+      template <typename type> constfunc(true) inline byte operator ^(byte const byte, type const& object) noexcept { return Lapys::byte(static_cast<unsigned char>(byte) ^ static_cast<unsigned char>(object)); }
+      template <typename type> constfunc(true) inline byte operator ^(type const& object, byte const byte) noexcept { return Lapys::byte(static_cast<unsigned char>(object) ^ static_cast<unsigned char>(byte)); }
+
+      constfunc(true) inline byte operator <<(byte const byteA, byte const byteB) noexcept { return Lapys::byte(static_cast<unsigned char>(byteA) << static_cast<unsigned char>(byteB)); }
+      template <typename type> constfunc(true) inline byte operator <<(byte const byte, type const& object) noexcept { return Lapys::byte(static_cast<unsigned char>(byte) << static_cast<unsigned char>(object)); }
+      template <typename type> constfunc(true) inline byte operator <<(type const& object, byte const byte) noexcept { return Lapys::byte(static_cast<unsigned char>(object) << static_cast<unsigned char>(byte)); }
+
+      constfunc(true) inline byte operator >>(byte const byteA, byte const byteB) noexcept { return Lapys::byte(static_cast<unsigned char>(byteA) >> static_cast<unsigned char>(byteB)); }
+      template <typename type> constfunc(true) inline byte operator >>(byte const byte, type const& object) noexcept { return Lapys::byte(static_cast<unsigned char>(byte) >> static_cast<unsigned char>(object)); }
+      template <typename type> constfunc(true) inline byte operator >>(type const& object, byte const byte) noexcept { return Lapys::byte(static_cast<unsigned char>(object) >> static_cast<unsigned char>(byte)); }
+
+      template <typename type> constfunc(true) inline byte&          operator &=(byte&          byte, type const& object) noexcept { return (byte = static_cast<unsigned char>(byte) & object); }
+      template <typename type> constfunc(true) inline byte volatile& operator &=(byte volatile& byte, type const& object) noexcept { return (byte = static_cast<unsigned char>(byte) & object); }
+
+      template <typename type> constfunc(true) inline byte&          operator |=(byte&          byte, type const& object) noexcept { return (byte = static_cast<unsigned char>(byte) | object); }
+      template <typename type> constfunc(true) inline byte volatile& operator |=(byte volatile& byte, type const& object) noexcept { return (byte = static_cast<unsigned char>(byte) | object); }
+
+      template <typename type> constfunc(true) inline byte&          operator ^=(byte&          byte, type const& object) noexcept { return (byte = static_cast<unsigned char>(byte) ^ object); }
+      template <typename type> constfunc(true) inline byte volatile& operator ^=(byte volatile& byte, type const& object) noexcept { return (byte = static_cast<unsigned char>(byte) ^ object); }
+
+      template <typename type> constfunc(true) inline byte&          operator <<=(byte&          byte, type const& object) noexcept { return (byte = static_cast<unsigned char>(byte) << object); }
+      template <typename type> constfunc(true) inline byte volatile& operator <<=(byte volatile& byte, type const& object) noexcept { return (byte = static_cast<unsigned char>(byte) << object); }
+
+      template <typename type> constfunc(true) inline byte&          operator >>=(byte&          byte, type const& object) noexcept { return (byte = static_cast<unsigned char>(byte) >> object); }
+      template <typename type> constfunc(true) inline byte volatile& operator >>=(byte volatile& byte, type const& object) noexcept { return (byte = static_cast<unsigned char>(byte) >> object); }
+    #endif
+
     /* ... */
     namespace Traits {
-      // ... ->> For configurable generic data structures
-      enum control_template_parameter {
-        DYNAMIC  = 0u,
-        MAXIMUM  = static_cast<unsigned>(-1),
-        VIEWABLE = static_cast<unsigned>(-1)
+      // ... ->> For configurable function code paths or generic data structures
+      enum control_parameter {
+        DYNAMIC    = 0x0004u,
+        EXECUTABLE = 0x0008u,
+        HEAP       = 0x0002u,
+        MAXIMUM    = 0xF000u,
+        STACK      = 0x0001u, // ->> minimum
+        VIEWABLE   = 0x0010u,
+        ZERO       = 0x0000u  // --> 0
       };
+        constfunc(true) inline control_parameter operator &(control_parameter const controlParameterA, control_parameter const controlParameterB) noexcept { return static_cast<control_parameter>(static_cast<unsigned char>(controlParameterA) & static_cast<unsigned char>(controlParameterB)); }
+        constfunc(true) inline control_parameter operator |(control_parameter const controlParameterA, control_parameter const controlParameterB) noexcept { return static_cast<control_parameter>(static_cast<unsigned char>(controlParameterA) | static_cast<unsigned char>(controlParameterB)); }
 
       // ... ->> For convenient template specialization
-      enum dummy_template_parameter {
-        DUMMY
+      enum dummy_parameter {
+        DUMMY = 0xFFFFu
       };
 
       // ...
@@ -341,13 +378,13 @@
       template <std::size_t size>
       struct int_least_t final {
         private:
-          template <dummy_template_parameter, class, bool>
+          template <dummy_parameter, class, bool>
           struct valueof final {
             friend struct int_least_t<size>;
             private: typedef void type;
           };
 
-          template <dummy_template_parameter dummy, class int_trait_t>
+          template <dummy_parameter dummy, class int_trait_t>
           struct valueof<dummy, int_trait_t, false> final {
             friend struct int_least_t<size>;
             private: typedef typename conditional<size <= sizeof(typename int_trait_t::type), typename int_trait_t::type, typename valueof<dummy, int_next_t<typename int_trait_t::type>, int_next_t<typename int_trait_t::type>::end>::type>::type type;
@@ -361,13 +398,13 @@
       template <std::size_t width>
       struct int_least_width_t final {
         private:
-          template <dummy_template_parameter, class, bool>
+          template <dummy_parameter, class, bool>
           struct valueof {
             friend struct int_least_width_t<width>;
             private: typedef void type;
           };
 
-          template <dummy_template_parameter dummy, class int_trait_t>
+          template <dummy_parameter dummy, class int_trait_t>
           struct valueof<dummy, int_trait_t, false> final {
             friend struct int_least_width_t<width>;
             private: typedef typename conditional<width <= CHAR_BIT * sizeof(typename int_trait_t::type), typename int_trait_t::type, typename valueof<dummy, int_next_t<typename int_trait_t::type>, int_next_t<typename int_trait_t::type>::end>::type>::type type;
@@ -434,13 +471,13 @@
       template <std::size_t width>
       struct int_width_t final {
         private:
-          template <dummy_template_parameter, class, bool>
+          template <dummy_parameter, class, bool>
           struct valueof {
             friend struct int_width_t<width>;
             private: typedef void type;
           };
 
-          template <dummy_template_parameter dummy, class int_trait_t>
+          template <dummy_parameter dummy, class int_trait_t>
           struct valueof<dummy, int_trait_t, false> final {
             friend struct int_least_width_t<width>;
             private: typedef typename conditional<width == CHAR_BIT * sizeof(typename int_trait_t::type), typename int_trait_t::type, typename valueof<dummy, int_next_t<typename int_trait_t::type>, int_next_t<typename int_trait_t::type>::end>::type>::type type;
@@ -476,13 +513,13 @@
       template <std::size_t size>
       struct int_t final {
         private:
-          template <dummy_template_parameter, class, bool>
+          template <dummy_parameter, class, bool>
           struct valueof final {
             friend struct int_t<size>;
             private: typedef void type;
           };
 
-          template <dummy_template_parameter dummy, class int_trait_t>
+          template <dummy_parameter dummy, class int_trait_t>
           struct valueof<dummy, int_trait_t, false> final {
             friend struct int_t<size>;
             private: typedef typename conditional<size == sizeof(typename int_trait_t::type), typename int_trait_t::type, typename valueof<dummy, int_next_t<typename int_trait_t::type>, int_next_t<typename int_trait_t::type>::end>::type>::type type;
@@ -512,13 +549,13 @@
       template <std::size_t size>
       struct uint_least_t final {
         private:
-          template <dummy_template_parameter, class, bool>
+          template <dummy_parameter, class, bool>
           struct valueof final {
             friend struct uint_least_t<size>;
             private: typedef void type;
           };
 
-          template <dummy_template_parameter dummy, class uint_trait_t>
+          template <dummy_parameter dummy, class uint_trait_t>
           struct valueof<dummy, uint_trait_t, false> final {
             friend struct uint_least_t<size>;
             private: typedef typename conditional<size <= sizeof(typename uint_trait_t::type), typename uint_trait_t::type, typename valueof<dummy, uint_next_t<typename uint_trait_t::type>, uint_next_t<typename uint_trait_t::type>::end>::type>::type type;
@@ -532,13 +569,13 @@
       template <std::size_t width>
       struct uint_least_width_t final {
         private:
-          template <dummy_template_parameter, class, bool>
+          template <dummy_parameter, class, bool>
           struct valueof {
             friend struct uint_least_width_t<width>;
             private: typedef void type;
           };
 
-          template <dummy_template_parameter dummy, class uint_trait_t>
+          template <dummy_parameter dummy, class uint_trait_t>
           struct valueof<dummy, uint_trait_t, false> final {
             friend struct uint_least_width_t<width>;
             private: typedef typename conditional<width <= CHAR_BIT * sizeof(typename uint_trait_t::type), typename uint_trait_t::type, typename valueof<dummy, uint_next_t<typename uint_trait_t::type>, uint_next_t<typename uint_trait_t::type>::end>::type>::type type;
@@ -605,13 +642,13 @@
       template <std::size_t width>
       struct uint_width_t final {
         private:
-          template <dummy_template_parameter, class, bool>
+          template <dummy_parameter, class, bool>
           struct valueof {
             friend struct uint_width_t<width>;
             private: typedef void type;
           };
 
-          template <dummy_template_parameter dummy, class uint_trait_t>
+          template <dummy_parameter dummy, class uint_trait_t>
           struct valueof<dummy, uint_trait_t, false> final {
             friend struct uint_least_width_t<width>;
             private: typedef typename conditional<width == CHAR_BIT * sizeof(typename uint_trait_t::type), typename uint_trait_t::type, typename valueof<dummy, uint_next_t<typename uint_trait_t::type>, uint_next_t<typename uint_trait_t::type>::end>::type>::type type;
@@ -647,13 +684,13 @@
       template <std::size_t size>
       struct uint_t final {
         private:
-          template <dummy_template_parameter, class, bool>
+          template <dummy_parameter, class, bool>
           struct valueof final {
             friend struct uint_t<size>;
             private: typedef void type;
           };
 
-          template <dummy_template_parameter dummy, class uint_trait_t>
+          template <dummy_parameter dummy, class uint_trait_t>
           struct valueof<dummy, uint_trait_t, false> final {
             friend struct uint_t<size>;
             private: typedef typename conditional<size == sizeof(typename uint_trait_t::type), typename uint_trait_t::type, typename valueof<dummy, uint_next_t<typename uint_trait_t::type>, uint_next_t<typename uint_trait_t::type>::end>::type>::type type;
@@ -751,10 +788,10 @@
         template <typename base>
         struct nilof final {
           private:
-            template <dummy_template_parameter, bool>
+            template <dummy_parameter, bool>
             struct valueof;
 
-            template <dummy_template_parameter dummy>
+            template <dummy_parameter dummy>
             struct valueof<dummy, false> final {
               friend struct nilof<base>;
               private:
@@ -765,7 +802,7 @@
                 #endif
             };
 
-            template <dummy_template_parameter dummy>
+            template <dummy_parameter dummy>
             struct valueof<dummy, true> final {
               friend struct nilof<base>;
               private: constvar static base const value varinit(0);
@@ -792,13 +829,13 @@
         template <typename base, reapply(typename can_aggregate_initialize_template_argument, comma, count)>                                                                                             \
         struct can_initialize<aggregate_init, base, reapply(can_aggregate_initialize_template_argument, comma, count)> final {                                                                           \
           private:                                                                                                                                                                                       \
-            template <dummy_template_parameter, typename, reapply(typename can_aggregate_valueof_template_argument, comma, count), class = alias<null> >                                                 \
+            template <dummy_parameter, typename, reapply(typename can_aggregate_valueof_template_argument, comma, count), class = alias<null> >                                                 \
             struct valueof final {                                                                                                                                                                       \
               friend struct can_initialize;                                                                                                                                                              \
               private: static bool const value = false;                                                                                                                                                  \
             };                                                                                                                                                                                           \
                                                                                                                                                                                                          \
-            template <dummy_template_parameter dummy, typename subbase, reapply(typename can_aggregate_valueof_template_argument, comma, count)>                                                         \
+            template <dummy_parameter dummy, typename subbase, reapply(typename can_aggregate_valueof_template_argument, comma, count)>                                                         \
             struct valueof<dummy, subbase, reapply(can_aggregate_valueof_template_argument, comma, count), alias<typeof(null(subbase(reapply(can_aggregate_valueof_argument, comma, count))))> > final { \
               friend struct can_initialize;                                                                                                                                                              \
               private: static bool const value = true;                                                                                                                                                   \
@@ -825,13 +862,13 @@
       template <typename base>
       struct can_initialize<default_init, base> final {
         private:
-          template <dummy_template_parameter, typename, class = alias<null> >
+          template <dummy_parameter, typename, class = alias<null> >
           struct valueof final {
             friend struct can_initialize<default_init, base>;
             private: static bool const value = false;
           };
 
-          template <dummy_template_parameter dummy, typename subbase>
+          template <dummy_parameter dummy, typename subbase>
           struct valueof<dummy, subbase, alias<typeof(null(subbase()))> > final {
             friend struct can_initialize<default_init, base>;
             private: static bool const value = true;
@@ -863,13 +900,13 @@
       template <typename base, typename type>
       struct can_initialize<zero_init, base, type> final {
         private:
-          template <dummy_template_parameter, typename, class = alias<null> >
+          template <dummy_parameter, typename, class = alias<null> >
           struct valueof final {
             friend struct can_initialize<zero_init, base>;
             private: static bool const value = false;
           };
 
-          template <dummy_template_parameter dummy, class subbase>
+          template <dummy_parameter dummy, class subbase>
           struct valueof<dummy, subbase, alias<typeof(null(subbase(0)))> > final {
             friend struct can_initialize<zero_init, base>;
             private: static bool const value = true;
@@ -891,64 +928,64 @@
       #define can_operate_template_parameter(count) typename
 
       template <>
-      struct can_operate<Lapys::nop> final {
+      struct can_operate<Traits::nop> final {
         template <enum operation control, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)>
         friend struct can_operate;
 
         private:
-          template <dummy_template_parameter, enum operation control, apply(can_nop_valueof_template_parameter, comma, LAPYS_MAX_ARITY), class = alias<null> >
+          template <dummy_parameter, enum operation control, apply(can_nop_valueof_template_parameter, comma, LAPYS_MAX_ARITY), class = alias<null> >
           struct valueof final {
             template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate;
             private: static bool const value = false;
           };
 
-          template <dummy_template_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Lapys::add,                typeA, typeB, alias<typeof(null(  instanceof<typeA>()   + instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename type>                  struct valueof<dummy, Lapys::address,            type,         alias<typeof(null( &instanceof<type> ()                        ))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Lapys::assign,             typeA, typeB, alias<typeof(null(  instanceof<typeA>()   = instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Lapys::assign_add,         typeA, typeB, alias<typeof(null(  instanceof<typeA>()  += instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Lapys::assign_bitwise_and, typeA, typeB, alias<typeof(null(  instanceof<typeA>()  &= instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Lapys::assign_bitwise_or,  typeA, typeB, alias<typeof(null(  instanceof<typeA>()  |= instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Lapys::assign_bitwise_xor, typeA, typeB, alias<typeof(null(  instanceof<typeA>()  ^= instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Lapys::assign_divide,      typeA, typeB, alias<typeof(null(  instanceof<typeA>()  /= instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Lapys::assign_left_shift,  typeA, typeB, alias<typeof(null(  instanceof<typeA>() <<= instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Lapys::assign_modulo,      typeA, typeB, alias<typeof(null(  instanceof<typeA>()  %= instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Lapys::assign_multiply,    typeA, typeB, alias<typeof(null(  instanceof<typeA>()  *= instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Lapys::assign_right_shift, typeA, typeB, alias<typeof(null(  instanceof<typeA>() >>= instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Lapys::assign_subtract,    typeA, typeB, alias<typeof(null(  instanceof<typeA>()  -= instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Lapys::bitwise_and,        typeA, typeB, alias<typeof(null(  instanceof<typeA>()   & instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Lapys::bitwise_or,         typeA, typeB, alias<typeof(null(  instanceof<typeA>()   | instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Lapys::bitwise_xor,        typeA, typeB, alias<typeof(null(  instanceof<typeA>()   ^ instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Lapys::boolean_and,        typeA, typeB, alias<typeof(null(  instanceof<typeA>()  && instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Lapys::boolean_or,         typeA, typeB, alias<typeof(null(  instanceof<typeA>()  || instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename type>                  struct valueof<dummy, Lapys::call,               type,         alias<typeof(null(  instanceof<type> ()()                      ))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Lapys::cast,               typeA, typeB, alias<typeof(null(  static_cast<typeB>(instanceof<typeA>())    ))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Lapys::comma,              typeA, typeB, alias<typeof(null(  instanceof<typeA>()   , instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename type>                  struct valueof<dummy, Lapys::complement,         type,         alias<typeof(null( ~instanceof<type> ()                        ))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename type>                  struct valueof<dummy, Lapys::dereference,        type,         alias<typeof(null( *instanceof<type> ()                        ))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Lapys::divide,             typeA, typeB, alias<typeof(null(  instanceof<typeA>()   / instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Lapys::equals,             typeA, typeB, alias<typeof(null(  instanceof<typeA>()  == instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Lapys::equals_greater,     typeA, typeB, alias<typeof(null(  instanceof<typeA>()  >= instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Lapys::equals_lesser,      typeA, typeB, alias<typeof(null(  instanceof<typeA>()  <= instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Lapys::greater,            typeA, typeB, alias<typeof(null(  instanceof<typeA>()   > instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Lapys::left_shift,         typeA, typeB, alias<typeof(null(  instanceof<typeA>()  << instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Lapys::lesser,             typeA, typeB, alias<typeof(null(  instanceof<typeA>()   < instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename type>                  struct valueof<dummy, Lapys::minus,              type,         alias<typeof(null( -instanceof<type> ()                        ))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Lapys::modulo,             typeA, typeB, alias<typeof(null(  instanceof<typeA>()   % instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Lapys::multiply,           typeA, typeB, alias<typeof(null(  instanceof<typeA>()   * instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename type>                  struct valueof<dummy, Lapys::negate,             type,         alias<typeof(null( !instanceof<type> ()                        ))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename type>                  struct valueof<dummy, Lapys::post_decrement,     type,         alias<typeof(null(  instanceof<type> ()--                      ))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename type>                  struct valueof<dummy, Lapys::post_increment,     type,         alias<typeof(null(  instanceof<type> ()++                      ))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename type>                  struct valueof<dummy, Lapys::plus,               type,         alias<typeof(null( +instanceof<type> ()                        ))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename type>                  struct valueof<dummy, Lapys::pre_decrement,      type,         alias<typeof(null(--instanceof<type> ()                        ))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename type>                  struct valueof<dummy, Lapys::pre_increment,      type,         alias<typeof(null(++instanceof<type> ()                        ))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Lapys::right_shift,        typeA, typeB, alias<typeof(null(  instanceof<typeA>()  >> instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Lapys::subscript,          typeA, typeB, alias<typeof(null(  instanceof<typeA>()[instanceof<typeB>()]   ))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Lapys::subtract,           typeA, typeB, alias<typeof(null(  instanceof<typeA>()   - instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
-          template <dummy_template_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Lapys::unequals,           typeA, typeB, alias<typeof(null(  instanceof<typeA>()  != instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Traits::add,                typeA, typeB, alias<typeof(null(  instanceof<typeA>()   + instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename type>                  struct valueof<dummy, Traits::address,            type,         alias<typeof(null( &instanceof<type> ()                        ))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Traits::assign,             typeA, typeB, alias<typeof(null(  instanceof<typeA>()   = instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Traits::assign_add,         typeA, typeB, alias<typeof(null(  instanceof<typeA>()  += instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Traits::assign_bitwise_and, typeA, typeB, alias<typeof(null(  instanceof<typeA>()  &= instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Traits::assign_bitwise_or,  typeA, typeB, alias<typeof(null(  instanceof<typeA>()  |= instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Traits::assign_bitwise_xor, typeA, typeB, alias<typeof(null(  instanceof<typeA>()  ^= instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Traits::assign_divide,      typeA, typeB, alias<typeof(null(  instanceof<typeA>()  /= instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Traits::assign_left_shift,  typeA, typeB, alias<typeof(null(  instanceof<typeA>() <<= instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Traits::assign_modulo,      typeA, typeB, alias<typeof(null(  instanceof<typeA>()  %= instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Traits::assign_multiply,    typeA, typeB, alias<typeof(null(  instanceof<typeA>()  *= instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Traits::assign_right_shift, typeA, typeB, alias<typeof(null(  instanceof<typeA>() >>= instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Traits::assign_subtract,    typeA, typeB, alias<typeof(null(  instanceof<typeA>()  -= instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Traits::bitwise_and,        typeA, typeB, alias<typeof(null(  instanceof<typeA>()   & instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Traits::bitwise_or,         typeA, typeB, alias<typeof(null(  instanceof<typeA>()   | instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Traits::bitwise_xor,        typeA, typeB, alias<typeof(null(  instanceof<typeA>()   ^ instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Traits::boolean_and,        typeA, typeB, alias<typeof(null(  instanceof<typeA>()  && instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Traits::boolean_or,         typeA, typeB, alias<typeof(null(  instanceof<typeA>()  || instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename type>                  struct valueof<dummy, Traits::call,               type,         alias<typeof(null(  instanceof<type> ()()                      ))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Traits::cast,               typeA, typeB, alias<typeof(null(  static_cast<typeB>(instanceof<typeA>())    ))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Traits::comma,              typeA, typeB, alias<typeof(null(  instanceof<typeA>()   , instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename type>                  struct valueof<dummy, Traits::complement,         type,         alias<typeof(null( ~instanceof<type> ()                        ))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename type>                  struct valueof<dummy, Traits::dereference,        type,         alias<typeof(null( *instanceof<type> ()                        ))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Traits::divide,             typeA, typeB, alias<typeof(null(  instanceof<typeA>()   / instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Traits::equals,             typeA, typeB, alias<typeof(null(  instanceof<typeA>()  == instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Traits::equals_greater,     typeA, typeB, alias<typeof(null(  instanceof<typeA>()  >= instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Traits::equals_lesser,      typeA, typeB, alias<typeof(null(  instanceof<typeA>()  <= instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Traits::greater,            typeA, typeB, alias<typeof(null(  instanceof<typeA>()   > instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Traits::left_shift,         typeA, typeB, alias<typeof(null(  instanceof<typeA>()  << instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Traits::lesser,             typeA, typeB, alias<typeof(null(  instanceof<typeA>()   < instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename type>                  struct valueof<dummy, Traits::minus,              type,         alias<typeof(null( -instanceof<type> ()                        ))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Traits::modulo,             typeA, typeB, alias<typeof(null(  instanceof<typeA>()   % instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Traits::multiply,           typeA, typeB, alias<typeof(null(  instanceof<typeA>()   * instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename type>                  struct valueof<dummy, Traits::negate,             type,         alias<typeof(null( !instanceof<type> ()                        ))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename type>                  struct valueof<dummy, Traits::post_decrement,     type,         alias<typeof(null(  instanceof<type> ()--                      ))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename type>                  struct valueof<dummy, Traits::post_increment,     type,         alias<typeof(null(  instanceof<type> ()++                      ))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename type>                  struct valueof<dummy, Traits::plus,               type,         alias<typeof(null( +instanceof<type> ()                        ))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename type>                  struct valueof<dummy, Traits::pre_decrement,      type,         alias<typeof(null(--instanceof<type> ()                        ))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename type>                  struct valueof<dummy, Traits::pre_increment,      type,         alias<typeof(null(++instanceof<type> ()                        ))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Traits::right_shift,        typeA, typeB, alias<typeof(null(  instanceof<typeA>()  >> instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Traits::subscript,          typeA, typeB, alias<typeof(null(  instanceof<typeA>()[instanceof<typeB>()]   ))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Traits::subtract,           typeA, typeB, alias<typeof(null(  instanceof<typeA>()   - instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
+          template <dummy_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Traits::unequals,           typeA, typeB, alias<typeof(null(  instanceof<typeA>()  != instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
 
           #define can_call_valueof(count)                                                                                                                                                                         \
-            template <dummy_template_parameter dummy, typename type, reapply(typename can_call_valueof_template_argument, comma, count)>                                                                          \
-            struct valueof<dummy, Lapys::call, type, reapply(can_call_valueof_template_argument, comma, count), alias<typeof(null(instanceof<type>(reapply(can_call_valueof_argument, comma, count))))> > final { \
+            template <dummy_parameter dummy, typename type, reapply(typename can_call_valueof_template_argument, comma, count)>                                                                          \
+            struct valueof<dummy, Traits::call, type, reapply(can_call_valueof_template_argument, comma, count), alias<typeof(null(instanceof<type>(reapply(can_call_valueof_argument, comma, count))))> > final { \
               template <enum operation subcontrol, reapply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate;                                                                        \
               private: static bool const value = true;                                                                                                                                                            \
             };
@@ -962,8 +999,8 @@
           # undef can_call_valueof_template_argument
 
           #ifdef __cpp_impl_three_way_comparison
-            template <dummy_template_parameter dummy, typename typeA, typename typeB>
-            struct valueof<dummy, Lapys::compare, typeA, typeB, alias<typeof(null(instanceof<typeA>() <=> instanceof<typeB>()))> > final {
+            template <dummy_parameter dummy, typename typeA, typename typeB>
+            struct valueof<dummy, Traits::compare, typeA, typeB, alias<typeof(null(instanceof<typeA>() <=> instanceof<typeB>()))> > final {
               template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate;
               private: static bool const value = true;
             };
@@ -973,62 +1010,62 @@
           static bool const value = true;
       };
 
-      template <typename typeA, typename typeB> struct can_operate<Lapys::add,                typeA, typeB> final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::add,                typeA, typeB>::value; };
-      template <typename typeA>                 struct can_operate<Lapys::address,            typeA>        final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::address,            typeA>       ::value; };
-      template <typename typeA, typename typeB> struct can_operate<Lapys::assign,             typeA, typeB> final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::assign,             typeA, typeB>::value; };
-      template <typename typeA, typename typeB> struct can_operate<Lapys::assign_add,         typeA, typeB> final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::assign_add,         typeA, typeB>::value; };
-      template <typename typeA, typename typeB> struct can_operate<Lapys::assign_bitwise_and, typeA, typeB> final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::assign_bitwise_and, typeA, typeB>::value; };
-      template <typename typeA, typename typeB> struct can_operate<Lapys::assign_bitwise_or,  typeA, typeB> final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::assign_bitwise_or,  typeA, typeB>::value; };
-      template <typename typeA, typename typeB> struct can_operate<Lapys::assign_bitwise_xor, typeA, typeB> final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::assign_bitwise_xor, typeA, typeB>::value; };
-      template <typename typeA, typename typeB> struct can_operate<Lapys::assign_divide,      typeA, typeB> final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::assign_divide,      typeA, typeB>::value; };
-      template <typename typeA, typename typeB> struct can_operate<Lapys::assign_left_shift,  typeA, typeB> final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::assign_left_shift,  typeA, typeB>::value; };
-      template <typename typeA, typename typeB> struct can_operate<Lapys::assign_modulo,      typeA, typeB> final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::assign_modulo,      typeA, typeB>::value; };
-      template <typename typeA, typename typeB> struct can_operate<Lapys::assign_multiply,    typeA, typeB> final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::assign_multiply,    typeA, typeB>::value; };
-      template <typename typeA, typename typeB> struct can_operate<Lapys::assign_right_shift, typeA, typeB> final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::assign_right_shift, typeA, typeB>::value; };
-      template <typename typeA, typename typeB> struct can_operate<Lapys::assign_subtract,    typeA, typeB> final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::assign_subtract,    typeA, typeB>::value; };
-      template <typename typeA, typename typeB> struct can_operate<Lapys::bitwise_and,        typeA, typeB> final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::bitwise_and,        typeA, typeB>::value; };
-      template <typename typeA, typename typeB> struct can_operate<Lapys::bitwise_or,         typeA, typeB> final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::bitwise_or,         typeA, typeB>::value; };
-      template <typename typeA, typename typeB> struct can_operate<Lapys::bitwise_xor,        typeA, typeB> final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::bitwise_xor,        typeA, typeB>::value; };
-      template <typename typeA, typename typeB> struct can_operate<Lapys::boolean_and,        typeA, typeB> final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::boolean_and,        typeA, typeB>::value; };
-      template <typename typeA, typename typeB> struct can_operate<Lapys::boolean_or,         typeA, typeB> final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::boolean_or,         typeA, typeB>::value; };
-      template <typename typeA>                 struct can_operate<Lapys::call,               typeA>        final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::call,               typeA>       ::value; };
-      template <typename typeA, typename typeB> struct can_operate<Lapys::cast,               typeA, typeB> final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::cast,               typeA, typeB>::value; };
-      template <typename typeA, typename typeB> struct can_operate<Lapys::comma,              typeA, typeB> final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::comma,              typeA, typeB>::value; };
-      template <typename typeA>                 struct can_operate<Lapys::complement,         typeA>        final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::complement,         typeA>       ::value; };
-      template <typename typeA>                 struct can_operate<Lapys::dereference,        typeA>        final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::dereference,        typeA>       ::value; };
-      template <typename typeA, typename typeB> struct can_operate<Lapys::divide,             typeA, typeB> final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::divide,             typeA, typeB>::value; };
-      template <typename typeA, typename typeB> struct can_operate<Lapys::equals,             typeA, typeB> final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::equals,             typeA, typeB>::value; };
-      template <typename typeA, typename typeB> struct can_operate<Lapys::equals_greater,     typeA, typeB> final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::equals_greater,     typeA, typeB>::value; };
-      template <typename typeA, typename typeB> struct can_operate<Lapys::equals_lesser,      typeA, typeB> final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::equals_lesser,      typeA, typeB>::value; };
-      template <typename typeA, typename typeB> struct can_operate<Lapys::greater,            typeA, typeB> final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::greater,            typeA, typeB>::value; };
-      template <typename typeA, typename typeB> struct can_operate<Lapys::left_shift,         typeA, typeB> final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::left_shift,         typeA, typeB>::value; };
-      template <typename typeA, typename typeB> struct can_operate<Lapys::lesser,             typeA, typeB> final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::lesser,             typeA, typeB>::value; };
-      template <typename typeA>                 struct can_operate<Lapys::minus,              typeA>        final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::minus,              typeA>       ::value; };
-      template <typename typeA, typename typeB> struct can_operate<Lapys::modulo,             typeA, typeB> final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::modulo,             typeA, typeB>::value; };
-      template <typename typeA, typename typeB> struct can_operate<Lapys::multiply,           typeA, typeB> final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::multiply,           typeA, typeB>::value; };
-      template <typename typeA>                 struct can_operate<Lapys::negate,             typeA>        final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::negate,             typeA>       ::value; };
-      template <typename typeA>                 struct can_operate<Lapys::plus,               typeA>        final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::plus,               typeA>       ::value; };
-      template <typename typeA>                 struct can_operate<Lapys::post_decrement,     typeA>        final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::post_decrement,     typeA>       ::value; };
-      template <typename typeA>                 struct can_operate<Lapys::post_increment,     typeA>        final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::post_increment,     typeA>       ::value; };
-      template <typename typeA>                 struct can_operate<Lapys::pre_decrement,      typeA>        final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::pre_decrement,      typeA>       ::value; };
-      template <typename typeA>                 struct can_operate<Lapys::pre_increment,      typeA>        final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::pre_increment,      typeA>       ::value; };
-      template <typename typeA, typename typeB> struct can_operate<Lapys::right_shift,        typeA, typeB> final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::right_shift,        typeA, typeB>::value; };
-      template <typename typeA, typename typeB> struct can_operate<Lapys::subscript,          typeA, typeB> final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::subscript,          typeA, typeB>::value; };
-      template <typename typeA, typename typeB> struct can_operate<Lapys::subtract,           typeA, typeB> final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::subtract,           typeA, typeB>::value; };
-      template <typename typeA, typename typeB> struct can_operate<Lapys::unequals,           typeA, typeB> final { static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::unequals,           typeA, typeB>::value; };
+      template <typename typeA, typename typeB> struct can_operate<Traits::add,                typeA, typeB> final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::add,                typeA, typeB>::value; };
+      template <typename typeA>                 struct can_operate<Traits::address,            typeA>        final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::address,            typeA>       ::value; };
+      template <typename typeA, typename typeB> struct can_operate<Traits::assign,             typeA, typeB> final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::assign,             typeA, typeB>::value; };
+      template <typename typeA, typename typeB> struct can_operate<Traits::assign_add,         typeA, typeB> final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::assign_add,         typeA, typeB>::value; };
+      template <typename typeA, typename typeB> struct can_operate<Traits::assign_bitwise_and, typeA, typeB> final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::assign_bitwise_and, typeA, typeB>::value; };
+      template <typename typeA, typename typeB> struct can_operate<Traits::assign_bitwise_or,  typeA, typeB> final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::assign_bitwise_or,  typeA, typeB>::value; };
+      template <typename typeA, typename typeB> struct can_operate<Traits::assign_bitwise_xor, typeA, typeB> final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::assign_bitwise_xor, typeA, typeB>::value; };
+      template <typename typeA, typename typeB> struct can_operate<Traits::assign_divide,      typeA, typeB> final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::assign_divide,      typeA, typeB>::value; };
+      template <typename typeA, typename typeB> struct can_operate<Traits::assign_left_shift,  typeA, typeB> final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::assign_left_shift,  typeA, typeB>::value; };
+      template <typename typeA, typename typeB> struct can_operate<Traits::assign_modulo,      typeA, typeB> final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::assign_modulo,      typeA, typeB>::value; };
+      template <typename typeA, typename typeB> struct can_operate<Traits::assign_multiply,    typeA, typeB> final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::assign_multiply,    typeA, typeB>::value; };
+      template <typename typeA, typename typeB> struct can_operate<Traits::assign_right_shift, typeA, typeB> final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::assign_right_shift, typeA, typeB>::value; };
+      template <typename typeA, typename typeB> struct can_operate<Traits::assign_subtract,    typeA, typeB> final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::assign_subtract,    typeA, typeB>::value; };
+      template <typename typeA, typename typeB> struct can_operate<Traits::bitwise_and,        typeA, typeB> final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::bitwise_and,        typeA, typeB>::value; };
+      template <typename typeA, typename typeB> struct can_operate<Traits::bitwise_or,         typeA, typeB> final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::bitwise_or,         typeA, typeB>::value; };
+      template <typename typeA, typename typeB> struct can_operate<Traits::bitwise_xor,        typeA, typeB> final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::bitwise_xor,        typeA, typeB>::value; };
+      template <typename typeA, typename typeB> struct can_operate<Traits::boolean_and,        typeA, typeB> final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::boolean_and,        typeA, typeB>::value; };
+      template <typename typeA, typename typeB> struct can_operate<Traits::boolean_or,         typeA, typeB> final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::boolean_or,         typeA, typeB>::value; };
+      template <typename typeA>                 struct can_operate<Traits::call,               typeA>        final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::call,               typeA>       ::value; };
+      template <typename typeA, typename typeB> struct can_operate<Traits::cast,               typeA, typeB> final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::cast,               typeA, typeB>::value; };
+      template <typename typeA, typename typeB> struct can_operate<Traits::comma,              typeA, typeB> final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::comma,              typeA, typeB>::value; };
+      template <typename typeA>                 struct can_operate<Traits::complement,         typeA>        final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::complement,         typeA>       ::value; };
+      template <typename typeA>                 struct can_operate<Traits::dereference,        typeA>        final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::dereference,        typeA>       ::value; };
+      template <typename typeA, typename typeB> struct can_operate<Traits::divide,             typeA, typeB> final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::divide,             typeA, typeB>::value; };
+      template <typename typeA, typename typeB> struct can_operate<Traits::equals,             typeA, typeB> final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::equals,             typeA, typeB>::value; };
+      template <typename typeA, typename typeB> struct can_operate<Traits::equals_greater,     typeA, typeB> final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::equals_greater,     typeA, typeB>::value; };
+      template <typename typeA, typename typeB> struct can_operate<Traits::equals_lesser,      typeA, typeB> final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::equals_lesser,      typeA, typeB>::value; };
+      template <typename typeA, typename typeB> struct can_operate<Traits::greater,            typeA, typeB> final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::greater,            typeA, typeB>::value; };
+      template <typename typeA, typename typeB> struct can_operate<Traits::left_shift,         typeA, typeB> final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::left_shift,         typeA, typeB>::value; };
+      template <typename typeA, typename typeB> struct can_operate<Traits::lesser,             typeA, typeB> final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::lesser,             typeA, typeB>::value; };
+      template <typename typeA>                 struct can_operate<Traits::minus,              typeA>        final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::minus,              typeA>       ::value; };
+      template <typename typeA, typename typeB> struct can_operate<Traits::modulo,             typeA, typeB> final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::modulo,             typeA, typeB>::value; };
+      template <typename typeA, typename typeB> struct can_operate<Traits::multiply,           typeA, typeB> final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::multiply,           typeA, typeB>::value; };
+      template <typename typeA>                 struct can_operate<Traits::negate,             typeA>        final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::negate,             typeA>       ::value; };
+      template <typename typeA>                 struct can_operate<Traits::plus,               typeA>        final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::plus,               typeA>       ::value; };
+      template <typename typeA>                 struct can_operate<Traits::post_decrement,     typeA>        final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::post_decrement,     typeA>       ::value; };
+      template <typename typeA>                 struct can_operate<Traits::post_increment,     typeA>        final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::post_increment,     typeA>       ::value; };
+      template <typename typeA>                 struct can_operate<Traits::pre_decrement,      typeA>        final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::pre_decrement,      typeA>       ::value; };
+      template <typename typeA>                 struct can_operate<Traits::pre_increment,      typeA>        final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::pre_increment,      typeA>       ::value; };
+      template <typename typeA, typename typeB> struct can_operate<Traits::right_shift,        typeA, typeB> final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::right_shift,        typeA, typeB>::value; };
+      template <typename typeA, typename typeB> struct can_operate<Traits::subscript,          typeA, typeB> final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::subscript,          typeA, typeB>::value; };
+      template <typename typeA, typename typeB> struct can_operate<Traits::subtract,           typeA, typeB> final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::subtract,           typeA, typeB>::value; };
+      template <typename typeA, typename typeB> struct can_operate<Traits::unequals,           typeA, typeB> final { static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::unequals,           typeA, typeB>::value; };
 
       #define can_call(count)                                                                                                                                      \
         template <typename type, reapply(typename can_call_template_argument, comma, count)>                                                                       \
-        struct can_operate<Lapys::call, type, reapply(can_call_template_argument, comma, count)> final {                                                           \
-          static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::call, type, reapply(can_call_template_argument, comma, count)>::value; \
+        struct can_operate<Traits::call, type, reapply(can_call_template_argument, comma, count)> final {                                                           \
+          static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::call, type, reapply(can_call_template_argument, comma, count)>::value; \
         };
       apply(can_call, empty, previous(LAPYS_MAX_ARITY))
       #undef can_call
 
       #ifdef __cpp_impl_three_way_comparison
         template <typename typeA, typename typeB>
-        struct can_operate<Lapys::compare, typeA, typeB> final {
-          static bool const value = can_operate<Lapys::nop>::template valueof<DUMMY, Lapys::compare, typeA, typeB>::value;
+        struct can_operate<Traits::compare, typeA, typeB> final {
+          static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::compare, typeA, typeB>::value;
         };
       #endif
 
@@ -1037,7 +1074,7 @@
         template <enum operation control, typename base, base...>
         struct accumulate {};
           template <typename base, base... values>
-          struct maximum : public accumulate<Lapys::equals_greater, base, values...> {
+          struct maximum : public accumulate<Traits::equals_greater, base, values...> {
             private:
               template <base subvalue, base...>
               struct valueof final {
@@ -1057,7 +1094,7 @@
 
           // ...
           template <typename base, base... values>
-          struct minimum : public accumulate<Lapys::equals_lesser, base, values...> {
+          struct minimum : public accumulate<Traits::equals_lesser, base, values...> {
             private:
               template <base subvalue, base...>
               struct valueof final {
@@ -1077,7 +1114,7 @@
 
           // ...
           template <typename base, base... values>
-          struct total : public accumulate<Lapys::add, base, values...> {
+          struct total : public accumulate<Traits::add, base, values...> {
             private:
               template <base subvalue, base...>
               struct valueof final {
@@ -1185,7 +1222,7 @@
         template <enum operation control, typename base, apply(base template_parameter, comma, LAPYS_END_ARITY)>
         struct accumulate {};
           template <typename base, apply(base template_parameter, comma, LAPYS_END_ARITY)>
-          struct maximum : public accumulate<Lapys::equals_greater, base, apply(template_argument, comma, LAPYS_END_ARITY)> {
+          struct maximum : public accumulate<Traits::equals_greater, base, apply(template_argument, comma, LAPYS_END_ARITY)> {
             private:
               countof(maximum)
 
@@ -1208,7 +1245,7 @@
 
           // ...
           template <typename base, apply(base template_parameter, comma, LAPYS_END_ARITY)>
-          struct minimum : public accumulate<Lapys::equals_lesser, base, apply(template_argument, comma, LAPYS_END_ARITY)> {
+          struct minimum : public accumulate<Traits::equals_lesser, base, apply(template_argument, comma, LAPYS_END_ARITY)> {
             private:
               countof(minimum)
 
@@ -1231,7 +1268,7 @@
 
           // ...
           template <typename base, apply(base template_parameter, comma, LAPYS_END_ARITY)>
-          struct total : public accumulate<Lapys::add, base, apply(template_argument, comma, LAPYS_END_ARITY)> {
+          struct total : public accumulate<Traits::add, base, apply(template_argument, comma, LAPYS_END_ARITY)> {
             private:
               countof(total)
 
@@ -1869,87 +1906,33 @@
   }
 
   /* ... */
-  #ifdef __cpp_constexpr
-    constexpr static std::size_t
+  #if CPP_VERSION > 2011uL
+    constenum(static std::size_t, LAPYS_MAX_BUILTIN_ALIGNMENT, alignmentof(std::max_align_t));
   #else
-    enum {
-  #endif
-    LAPYS_MAX_BUILTIN_ALIGNMENT = (
-    # if CPP_VERSION > 2011uL
-      alignmentof(std::max_align_t)
-    # else
-      Lapys::maximum<std::size_t,
-        alignmentof(char),
-        alignmentof(double),
-        alignmentof(float),
-        alignmentof(int),
-        alignmentof(long),
+    constenum(static std::size_t, LAPYS_MAX_BUILTIN_ALIGNMENT, (
+      Lapys::Traits::maximum<std::size_t,
         alignmentof(long double),
-        alignmentof(short),
-        alignmentof(signed char),
-        alignmentof(unsigned char),
-        alignmentof(unsigned int),
-        alignmentof(unsigned long),
-        alignmentof(unsigned short),
+        alignmentof(uintmax_t),
         alignmentof(wchar_t),
-        #if CPP_VERSION >= 2011uL
-          alignmentof(char16_t),
-          alignmentof(char32_t),
-        #endif
-        #if CPP_VERSION >= 2011uL || defined(LLONG_MAX)
-          alignmentof(long long),
-        #endif
-        #if CPP_VERSION >= 2011uL || defined(ULLONG_MAX)
-          alignmentof(unsigned long long),
-        #endif
-        #if CPP_VERSION >= 2020uL
-          alignmentof(char8_t),
-        #endif
         alignmentof(Lapys::byte*),
         alignmentof(Lapys::byte (*)(...)),
-        alignmentof(Lapys::byte Lapys::null::*),
-        alignmentof(Lapys::byte (Lapys::null::*)(...))
+        alignmentof(Lapys::byte Lapys::Traits::null::*),
+        alignmentof(Lapys::byte (Lapys::Traits::null::*)(...))
       >::value
-    # endif
-    ),
+    ));
+  #endif
 
-    LAPYS_MAX_BUILTIN_SIZE = Lapys::maximum<std::size_t,
-      sizeof(char),
-      sizeof(double),
-      sizeof(float),
-      sizeof(int),
-      sizeof(long),
+  constenum(static std::size_t, LAPYS_MAX_BUILTIN_SIZE, (
+    Lapys::Traits::maximum<std::size_t,
       sizeof(long double),
-      sizeof(short),
-      sizeof(signed char),
-      sizeof(unsigned char),
-      sizeof(unsigned int),
-      sizeof(unsigned long),
-      sizeof(unsigned short),
+      sizeof(uintmax_t),
       sizeof(wchar_t),
-      #if CPP_VERSION >= 2011uL
-        sizeof(char16_t),
-        sizeof(char32_t),
-      #endif
-      #if CPP_VERSION >= 2011uL || defined(LLONG_MAX)
-        sizeof(long long),
-      #endif
-      #if CPP_VERSION >= 2011uL || defined(ULLONG_MAX)
-        sizeof(unsigned long long),
-      #endif
-      #if CPP_VERSION >= 2020uL
-        sizeof(char8_t),
-      #endif
       sizeof(Lapys::byte*),
       sizeof(Lapys::byte (*)(...)),
-      sizeof(Lapys::byte Lapys::null::*),
-      sizeof(Lapys::byte (Lapys::null::*)(...))
+      sizeof(Lapys::byte Lapys::Traits::null::*),
+      sizeof(Lapys::byte (Lapys::Traits::null::*)(...))
     >::value
-  #ifdef __cpp_constexpr
-    ;
-  #else
-    };
-  #endif
+  ));
 #if   CPP_COMPILER == CPP__CLANG__COMPILER
 # pragma clang diagnostic pop
 #elif CPP_COMPILER == CPP__GCC__COMPILER

@@ -128,7 +128,7 @@
 # define CPP__UNIX__VENDOR              0x10u
 
 #if defined(__APPLE__) && defined(__MACH__)
-# define CPP_VENDOR CPP__APPLE_MACINTOSH__VENDOR | CPP__UNIX__VENDOR
+# define CPP_VENDOR (CPP__APPLE_MACINTOSH__VENDOR | CPP__UNIX__VENDOR)
 #elif defined(__unix) || defined(__unix__)
 # define CPP_VENDOR CPP__UNIX__VENDOR
 #endif
@@ -160,6 +160,12 @@
 #endif
 
 // : [Constant Expression]
+#if CPP_VERSION < 2011uL
+# define constenum(type, name, value) enum { name = value }
+#else
+# define constenum(type, name, value) constexpr type name varinit(value)
+#endif
+
 #define constfunc(unrelaxed) constfunc_ ## unrelaxed
 #if CPP_VERSION < 2011uL
 # define constfunc_false
@@ -211,8 +217,10 @@
 // : [Forwarding Reference]
 #ifdef __cpp_rvalue_references
 # define nodecay &&
+# define nodecayparam(name) (&&name)
 #else
 # define nodecay const&
+# define nodecayparam(name) const (&name)
 #endif
 
 // : [Inheritance Specifier]
@@ -227,6 +235,31 @@
 #else
 # define init(arguments)    {arguments}
 # define varinit(arguments) {arguments}
+#endif
+
+// : [Return Specifier]
+#if CPP_VERSION < 2011uL
+# define noignore
+#else
+# define noignore [[nodiscard]]
+#endif
+
+#if CPP_VERSION < 2011uL
+# if CPP_COMPILER == CPP__CLANG__COMPILER
+#   if __has_attribute(noreturn)
+#     define noexit __attribute__((noreturn))
+#   else
+#     define noexit
+#   endif
+# elif CPP_COMPILER == CPP__GCC__COMPILER
+#     define noexit __attribute__((noreturn))
+# elif CPP_COMPILER == CPP__MSVC__COMPILER
+#     define noexit __declspec(noreturn)
+# else
+#     define noexit
+# endif
+#else
+# define noexit [[noreturn]]
 #endif
 
 // : [Inline Specifier]
@@ -244,23 +277,13 @@
 #   define noinline
 #endif
 
-// : [Return Specifier]
+// : [Reference Qualifier]
 #if CPP_VERSION < 2011uL
-# if CPP_COMPILER == CPP__CLANG__COMPILER
-#   if __has_attribute(noreturn)
-#     define noreturn __attribute__((noreturn))
-#   else
-#     define noreturn
-#   endif
-# elif CPP_COMPILER == CPP__GCC__COMPILER
-#     define noreturn __attribute__((noreturn))
-# elif CPP_COMPILER == CPP__MSVC__COMPILER
-#     define noreturn __declspec(noreturn)
-# else
-#     define noreturn
-# endif
+# define lref &
+# define rref
 #else
-# define noreturn [[noreturn]]
+# define lref &
+# define rref &&
 #endif
 
 // : [Type Alignment Specifier]
@@ -273,17 +296,17 @@
 #
 # ifdef __alignas_is_defined
 #  ifdef _Alignas
-#    define align(argument) _Alignas(argument)
+#    define alignmentas(argument) _Alignas(argument)
 #  else
-#    define align(argument) alignas(argument)
+#    define alignmentas(argument) alignas(argument)
 #  endif
 # else
 #   if CPP_COMPILER == CPP__GCC__COMPILER
-#     define align(argument) __attribute__((aligned(argument)))
+#     define alignmentas(argument) __attribute__((aligned(argument)))
 #   elif CPP_COMPILER == CPP__MSVC__COMPILER
-#     define align(argument) __declspec(align(argument))
+#     define alignmentas(argument) __declspec(align(argument))
 #   else
-#     define align(argument)
+#     define alignmentas(argument)
 #   endif
 # endif
 # ifdef __alignof_is_defined
@@ -302,7 +325,7 @@
 #   endif
 # endif
 #else
-# define align(argument)   alignas(argument)
+# define alignmentas(argument)   alignas(argument)
 # define alignmentof(type) alignof(type)
 #endif
 
