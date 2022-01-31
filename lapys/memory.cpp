@@ -18,65 +18,58 @@ namespace Lapys {
       return Memory::allocateHeap(control, size, Math::minimum(Math::bit_ceil(size), static_cast<std::size_t>(LAPYS_MAX_BUILTIN_ALIGNMENT)));
     }
 
-    allocated_t allocateHeap(control_parameter const control, std::size_t const size, std::size_t const alignment) noexcept {
+    allocated_t allocateHeap(control_parameter const control, std::size_t size, std::size_t const alignment) noexcept {
+      if (0u == size)
+      return static_cast<void*>(NULL);
+
+      // ...
       void *allocation = NULL;
+
+      size += sizeof(allocation_information);
 
       // ...
       #if CPP_VENDOR & CPP__MICROSOFT_WINDOWS__VENDOR
         if (control & Traits::EXECUTABLE) {
-          allocation = ::VirtualAllocEx(::GetCurrentProcess(), static_cast<LPVOID>(NULL), alignment + size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
-          if (NULL != allocation) return Memory::align(allocation, alignment, size);
-          // 1 + new (allocation) allocation_parameter(MICROSOFT_WINDOWS);
+          allocation = ::VirtualAllocEx(::GetCurrentProcess(), static_cast<LPVOID>(NULL), size + alignment, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+          if (NULL != allocation) return Memory::align(1 + new (allocation) allocation_information(Memory::MICROSOFT_WINDOWS__VIRTUAL, size + alignment), alignment, size, allocation);
         }
 
         else {
-          static HANDLE heap = NULL;
+          HANDLE const heap = Memory::getHeap();
 
           // ...
-          if (NULL == heap) heap = ::GetProcessHeap();
-          if (NULL == heap) heap = ::HeapCreate(0x0u, 0u, 0u);
-
           if (NULL != heap) allocation = ::HeapAlloc(heap, control & Traits::ZERO ? HEAP_ZERO_MEMORY : 0x0u, size + (alignment * (MEMORY_ALLOCATION_ALIGNMENT != alignment)));
-          if (NULL != allocation) return MEMORY_ALLOCATION_ALIGNMENT == alignment ? allocation : Memory::align(allocation, alignment, size);
+          if (NULL != allocation) return Memory::align(1 + new (allocation) allocation_information(Memory::MICROSOFT_WINDOWS__HEAP), alignment, size, allocation);
 
-          allocation = ::VirtualAllocEx(::GetCurrentProcess(), static_cast<LPVOID>(NULL), alignment + size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-          if (NULL != allocation) return Memory::align(allocation, alignment, size);
+          allocation = ::VirtualAllocEx(::GetCurrentProcess(), static_cast<LPVOID>(NULL), size + alignment, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+          if (NULL != allocation) return Memory::align(1 + new (allocation) allocation_information(Memory::MICROSOFT_WINDOWS__VIRTUAL, size + alignment), alignment, size, allocation);
         }
       #endif
 
       #if CPP_VENDOR & CPP__UNIX__VENDOR
-        if (control & Traits::EXECUTABLE) {
-          allocation = ::mmap(NULL, alignment + size, PROT_EXEC | PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0L);
-          if (NULL != allocation) return Memory::align(allocation, alignment, size);
-        }
-
-        else {
-          if (0u != alignment && 0u == (alignment & (alignment - 1u)) && 0u == alignment % size) allocation = ::aligned_alloc(alignment, size);
-          if (NULL != allocation) { if (control & Traits::ZERO) { ::explicit_bzero(allocation, size); } return allocation; }
-
-          allocation = ::mmap(NULL, alignment + size, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0L);
-          if (NULL != allocation) return Memory::align(allocation, alignment, size);
-        }
+        allocation = ::mmap(NULL, size, PROT_READ | PROT_WRITE | (control & Traits::EXECUTABLE ? PROT_EXEC : 0x0), MAP_ANONYMOUS | MAP_PRIVATE, -1, 0L);
+        if (NULL != allocation) return Memory::align(1 + new (allocation) allocation_information(Memory::UNIX, size), alignment, size + alignment, allocation);
       #endif
 
       if (control & Traits::EXECUTABLE)
-      return NULL;
-
-      #if CPP_VERSION >= 2017uL
-        allocation = ::operator new(size, static_cast<std::align_val_t>(alignment), std::nothrow);
-        if (nullptr != allocation) { if (control & Traits::ZERO) { std::fill(static_cast<byte*>(allocation), static_cast<byte*>(allocation) + size, static_cast<byte>(0x0)); } return allocation; }
-      #endif
+      return static_cast<void*>(NULL);
 
       if (control & Traits::ZERO) {
         allocation = std::calloc(size + (alignment * (LAPYS_MAX_BUILTIN_ALIGNMENT != alignment)), sizeof(byte));
-        if (NULL != allocation) return LAPYS_MAX_BUILTIN_ALIGNMENT == alignment ? allocation : Memory::align(allocation, alignment, size);
+        if (NULL != allocation) return Memory::align(1 + new (allocation) allocation_information(Memory::C_STANDARD), alignment, size, allocation);
       }
 
-      allocation = ::operator new(alignment + size, std::nothrow);
-      if (NULL != allocation) { if (control & Traits::ZERO) { std::fill(static_cast<byte*>(allocation), static_cast<byte*>(allocation) + size, static_cast<byte>(0x0)); } return Memory::align(allocation, alignment, size); }
-
       allocation = std::malloc(size + (alignment * (LAPYS_MAX_BUILTIN_ALIGNMENT != alignment)));
-      if (NULL != allocation) { if (control & Traits::ZERO) { std::memset(allocation, 0x0, size); } return LAPYS_MAX_BUILTIN_ALIGNMENT == alignment ? allocation : Memory::align(allocation, alignment, size); }
+      if (NULL != allocation) {
+        if (control & Traits::ZERO) std::memset(allocation, 0x0, size);
+        return Memory::align(1 + new (allocation) allocation_information(Memory::C_STANDARD), alignment, size, allocation);
+      }
+
+      allocation = ::operator new(size + alignment, std::nothrow); // --> % __STDCPP_DEFAULT_NEW_ALIGNMENT__
+      if (NULL != allocation) {
+        if (control & Traits::ZERO) std::fill(static_cast<byte*>(allocation), static_cast<byte*>(allocation) + size, static_cast<byte>(0x0));
+        return Memory::align(1 + new (allocation) allocation_information(Memory::CPP_STANDARD), alignment, size, allocation);
+      }
 
       // ...
       return allocation;

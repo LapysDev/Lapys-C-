@@ -106,6 +106,7 @@
     namespace Traits {
       // ... ->> For configurable function code paths or generic data structures
       enum control_parameter {
+        BUFFERED   = 0x0020u,
         DYNAMIC    = 0x0004u,
         EXECUTABLE = 0x0008u,
         HEAP       = 0x0002u,

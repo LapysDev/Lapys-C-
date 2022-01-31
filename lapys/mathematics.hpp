@@ -22,14 +22,14 @@ namespace Lapys {
     };
 
     // ...
-    template <typename type, typename operation>                       constfunc(true) inline type nodecay accumulate(type nodecay, typename remove_reference<type nodecay>::type[], std::size_t const, operation const) noexcept;
-    template <typename type, std::size_t capacity, typename operation> constfunc(true) inline type nodecay accumulate(type nodecayparam(emtpy())[capacity], operation const) noexcept;
-    template <typename type> constfunc(true) typename remove_reference<type>::type bit_ceil (type nodecay) noexcept;
-    template <typename type> constfunc(true) typename remove_reference<type>::type bit_floor(type nodecay) noexcept;
-    template <typename type, std::size_t capacity> constfunc(true) inline type nodecay maximum(type nodecayparam(emtpy())[capacity]) noexcept;
-    template <typename type>                       constfunc(true) inline type nodecay maximum(type nodecay, type nodecay) noexcept;
-    template <typename type, std::size_t capacity> constfunc(true) inline type nodecay minimum(type nodecayparam(emtpy())[capacity]) noexcept;
-    template <typename type>                       constfunc(true) inline type nodecay minimum(type nodecay, type nodecay) noexcept;
+    template <typename type, typename operation>                       noignore constfunc(true) inline type nodecay accumulate(type nodecay, typename remove_reference<type nodecay>::type[], std::size_t const, operation const) noexcept;
+    template <typename type, std::size_t capacity, typename operation> noignore constfunc(true) inline type nodecay accumulate(type nodecayparam(emtpy())[capacity], operation const) noexcept;
+    template <typename type> noignore constfunc(true) typename remove_reference<type>::type bit_ceil (type nodecay) noexcept;
+    template <typename type> noignore constfunc(true) typename remove_reference<type>::type bit_floor(type nodecay) noexcept;
+    template <typename type, std::size_t capacity> noignore constfunc(true) inline type nodecay maximum(type nodecayparam(emtpy())[capacity]) noexcept;
+    template <typename type>                       noignore constfunc(true) inline type nodecay maximum(type nodecay, type nodecay) noexcept;
+    template <typename type, std::size_t capacity> noignore constfunc(true) inline type nodecay minimum(type nodecayparam(emtpy())[capacity]) noexcept;
+    template <typename type>                       noignore constfunc(true) inline type nodecay minimum(type nodecay, type nodecay) noexcept;
   }
 }
 
