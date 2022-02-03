@@ -35,40 +35,65 @@ namespace Lapys {
     }
 
     // ...
-    // template <typename type>
-    // noignore allocated_t reallocateHeap(type* const address, std::size_t const size) noexcept {
-    //   if (NULL == address)
-    //   return Memory::allocateHeap(size, alignmentof(type));
+    template <typename type>
+    Allocation reallocateHeap(type* const address, std::size_t const resize) noexcept {
+      return Memory::reallocateHeap(Traits::ZERO, address, resize);
+    }
 
-    //   // ...
-    //   allocation_information const *const allocation = static_cast<allocation_information const*>(const_cast<void*>(static_cast<void const volatile*>(address))) - 1;
+    template <typename type>
+    Allocation reallocateHeap(control_parameter const control, type* const address, std::size_t resize) noexcept {
+      if (NULL == address) return Memory::allocateHeap(control, resize, alignmentof(typeof((instanceof<typename conditional<is_void<type>::value, byte, type>::type>()))));
+      Allocation const *const metadata = Allocation::inspectHeap(address);
 
-    //   switch (allocation -> getParameter()) {
-    //     case Memory::C_STANDARD: return std::realloc(allocation, size);
-    //     #if CPP_VENDOR & CPP__MICROSOFT_WINDOWS__VENDOR
-    //       case Memory::MICROSOFT_WINDOWS__HEAP: return ::HeapReAlloc(Memory::getHeap(), HEAP_ZERO_MEMORY, allocation, size);
-    //     #endif
-    //     default: {
-    //       type *const readdress = Memory::allocateHeap(size, alignmentof(type));
-    //       if (NULL == readdress) return static_cast<type*>(NULL);
+      if (NULL == metadata) return static_cast<void*>(NULL);
+      Allocation::kind const kind = metadata -> getKind();
+      void       *const allocation   = static_cast<byte*>(const_cast<void*>(static_cast<void const*>(metadata))) - (Allocation::KIND_INCOMPLETE_REFERENCE == kind ? metadata -> getOffset() : 0u);
+      std::size_t const offset       = static_cast<byte*>(const_cast<void*>(static_cast<void const volatile*>(address))) - static_cast<byte*>(allocation);
+      void             *reallocation = NULL;
+      std::size_t const size         = Allocation::KIND_INCOMPLETE_REFERENCE != kind ? metadata -> getSize() : 0u;
 
-    //       std::size_t previousSize = allocation -> getSize();
-    //       if (0u == previousSize) return Memory::releaseHeap(readdress), static_cast<type*>(NULL);
+      // ...
+      switch (kind) {
+        case Allocation::C_STANDARD:
+        case Allocation::UNIX__ALIGNED: {
+          if (false == (control & Traits::EXECUTABLE)) {
+            reallocation = std::realloc(allocation, offset + resize);
 
-    //       // ...
-    //       Memory::CPP_STANDARD == allocation -> getParameter()
-    //       ? std::uninitialized_copy(static_cast<byte*>(static_cast<void*>(address)), static_cast<byte*>(static_cast<void*>(address)) + Math::minimum(static_cast<std::size_t>(size), previousSize - sizeof(allocation_information)), static_cast<byte*>(static_cast<void*>(readdress)))
-    //       : std::memcpy(readdress, address, Math::minimum(static_cast<std::size_t>(size), previousSize - sizeof(allocation_information)));
+            if (NULL != reallocation && (control & Traits::ZERO) && resize > size)
+            std::memset(static_cast<typename byte::type*>(reallocation) + offset + size, 0x0, resize - size);
+          }
+        } break;
+        #if CPP_VENDOR & CPP__MICROSOFT_WINDOWS__VENDOR
+          case Allocation::MICROSOFT_WINDOWS__HEAP: {
+            if (false == (control & Traits::EXECUTABLE))
+            reallocation = ::HeapReAlloc(Memory::getHeap(), control & Traits::ZERO ? HEAP_ZERO_MEMORY : 0x0, allocation, offset + resize);
+          } break;
+        #endif
+        default: break;
+      }
 
-    //       if (false == Memory::releaseHeap(allocation))
-    //       return Memory::releaseHeap(readdress), static_cast<type*>(NULL);
+      if (NULL != reallocation)
+      return static_cast<byte*>(reallocation) + offset;
 
-    //       return readdress;
-    //     } break;
-    //   }
+      // ...
+      void             *const readdress  = Memory::allocateHeap(control, resize, alignmentof(typeof((instanceof<typename conditional<is_void<type>::value, byte, type>::type>()))));
+      Allocation const *const remetadata = Allocation::inspectHeap(reallocation);
 
-    //   return static_cast<type*>(NULL);
-    // }
+      if (NULL != readdress) {
+        #if LAPYS_DEBUG
+          if (NULL == remetadata) {
+            Memory::releaseHeap(readdress, resize);
+            return static_cast<void*>(NULL);
+          }
+        #endif
+
+        Allocation::CPP_STANDARD == remetadata -> getKind()
+        ? std::uninitialized_copy(static_cast<byte*>(const_cast<void*>(static_cast<void const volatile*>(address))), static_cast<byte*>(const_cast<void*>(static_cast<void const volatile*>(address))) + Math::minimum(resize, size), static_cast<byte*>(readdress))
+        : std::memcpy(readdress, const_cast<void*>(static_cast<void const volatile*>(address)), Math::minimum(resize, size));
+      }
+
+      return readdress;
+    }
 
     // ...
     template <typename type>
@@ -77,8 +102,8 @@ namespace Lapys {
       Allocation const *const metadata = Allocation::inspectHeap(address);
 
       if (NULL == metadata) return false; // WARN (Lapys) -> Leaked memory
-      Allocation::kind const kind       = metadata -> getKind();
-      void            *const allocation = static_cast<byte*>(const_cast<void*>(static_cast<void const*>(metadata))) - (Allocation::KIND_INCOMPLETE_REFERENCE == kind ? metadata -> getOffset() : 0u);
+      Allocation::kind const kind = metadata -> getKind();
+      void *const allocation = static_cast<byte*>(const_cast<void*>(static_cast<void const*>(metadata))) - (Allocation::KIND_INCOMPLETE_REFERENCE == kind ? metadata -> getOffset() : 0u);
 
       // ...
       switch (kind) {
@@ -89,7 +114,12 @@ namespace Lapys {
           case Allocation::MICROSOFT_WINDOWS__VIRTUAL: return FALSE != ::VirtualFreeEx(::GetCurrentProcess(), allocation, 0u, MEM_RELEASE);
         #endif
         #if CPP_VENDOR & CPP__UNIX__VENDOR
-          case Allocation::UNIX__MAPPED: std::size_t const size = Allocation::KIND_INCOMPLETE_REFERENCE != kind ? metadata -> getSize() : 0u; return 0u != size && 0 == ::munmap(allocation, size);
+          case Allocation::UNIX__MAPPED: {
+            std::size_t const offset = static_cast<byte*>(const_cast<void*>(static_cast<void const volatile*>(address))) - static_cast<byte*>(allocation);
+            std::size_t const size   = Allocation::KIND_INCOMPLETE_REFERENCE != kind ? metadata -> getSize() : 0u;
+
+            return 0u != size && 0 == ::munmap(allocation, offset + size);
+          } break;
         #endif
         default: return false;
       }
@@ -97,23 +127,23 @@ namespace Lapys {
       return false;
     }
 
-    template <typename type> // UPDATE (Lapys) -> `size` must match `Allocation::getSize()`
+    template <typename type>
     bool releaseHeap(type* const address, std::size_t size) noexcept {
       if (NULL == address || 0u == size) return Memory::releaseHeap(address);
       Allocation const *const metadata = Allocation::inspectHeap(address);
 
       if (NULL == metadata) return false; // WARN (Lapys) -> Leaked memory
-      Allocation::kind const kind       = metadata -> getKind();
-      void            *const allocation = static_cast<byte*>(const_cast<void*>(static_cast<void const*>(metadata))) - (Allocation::KIND_INCOMPLETE_REFERENCE == kind ? metadata -> getOffset() : 0u);
+      Allocation::kind const kind = metadata -> getKind();
+      void       *const allocation = static_cast<byte*>(const_cast<void*>(static_cast<void const*>(metadata))) - (Allocation::KIND_INCOMPLETE_REFERENCE == kind ? metadata -> getOffset() : 0u);
+      std::size_t const offset     = static_cast<byte*>(const_cast<void*>(static_cast<void const volatile*>(address))) - static_cast<byte*>(allocation);
 
       // ...
-      size += alignmentof(Allocation) + sizeof(Allocation);
       switch (kind) {
         #if CPP_VENDOR & CPP__MICROSOFT_WINDOWS__VENDOR
-          case Allocation::MICROSOFT_WINDOWS__VIRTUAL: return FALSE != ::VirtualFreeEx(::GetCurrentProcess(), allocation, size, MEM_DECOMMIT);
+          case Allocation::MICROSOFT_WINDOWS__VIRTUAL: return FALSE != ::VirtualFreeEx(::GetCurrentProcess(), allocation, offset + size, MEM_DECOMMIT);
         #endif
         #if CPP_VENDOR & CPP__UNIX__VENDOR
-          case Allocation::UNIX__MAPPED: return 0 == ::munmap(allocation, size);
+          case Allocation::UNIX__MAPPED: return 0 == ::munmap(allocation, offset + size);
         #endif
         default: return false;
       }

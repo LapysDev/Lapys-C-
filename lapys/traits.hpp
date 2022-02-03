@@ -52,6 +52,9 @@
           unsigned char value;
 
         public:
+          typedef unsigned char type;
+
+          // ...
           constfunc(true) inline byte() noexcept : value() {}
           constfunc(true) inline byte(unsigned char const value) noexcept : value(value) {}
 
@@ -106,13 +109,14 @@
     namespace Traits {
       // ... ->> For configurable function code paths or generic data structures
       enum control_parameter {
-        BUFFERED   = 0x0020u,
-        DYNAMIC    = 0x0004u,
-        EXECUTABLE = 0x0008u,
-        HEAP       = 0x0002u,
+        BUFFERED   = 0x0002u,
+        DYNAMIC    = 0x0000u,
+        EXECUTABLE = 0x0004u,
+        HEAP       = 0x0008u,
         MAXIMUM    = 0xF000u,
-        STACK      = 0x0001u, // ->> minimum
-        VIEWABLE   = 0x0010u,
+        STATIC     = 0x0010u,
+        STACK      = 0x0020u,
+        VIEWABLE   = 0x0040u,
         ZERO       = 0x0000u  // --> 0
       };
         constfunc(true) inline control_parameter operator &(control_parameter const controlParameterA, control_parameter const controlParameterB) noexcept { return static_cast<control_parameter>(static_cast<unsigned char>(controlParameterA) & static_cast<unsigned char>(controlParameterB)); }

@@ -29,18 +29,19 @@ namespace Lapys {
     #endif
 
     // ...
-    template <typename type> noignore Allocation reallocateHeap(type* const, std::size_t const) noexcept;
+    template <typename type> noignore inline Allocation reallocateHeap(type* const, std::size_t const) noexcept;
+    template <typename type> noignore Allocation reallocateHeap(control_parameter const, type* const, std::size_t const) noexcept;
 
     // ...
     template <typename type> bool releaseHeap(type* const) noexcept;
-    template <typename type> bool releaseHeap(type* const, std::size_t) noexcept;
+    template <typename type> bool releaseHeap(type* const, std::size_t const) noexcept;
 
     /* Class > ... */
     class Allocation final {
       friend Allocation allocateHeap(control_parameter const, std::size_t, std::size_t) noexcept;
-      template <typename type> friend Allocation reallocateHeap(type* const, std::size_t const) noexcept;
+      template <typename type> friend Allocation reallocateHeap(control_parameter const, type* const, std::size_t const) noexcept;
       template <typename type> friend bool releaseHeap(type* const) noexcept;
-      template <typename type> friend bool releaseHeap(type* const, std::size_t) noexcept;
+      template <typename type> friend bool releaseHeap(type* const, std::size_t const) noexcept;
 
       private:
         #if CPP_VERSION < 2011uL

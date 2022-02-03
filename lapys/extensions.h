@@ -278,12 +278,12 @@
 #endif
 
 // : [Reference Qualifier]
-#if CPP_VERSION < 2011uL
-# define lref &
-# define rref
-#else
+#ifdef __cpp_ref_qualifiers
 # define lref &
 # define rref &&
+#else
+# define lref
+# define rref
 #endif
 
 // : [Type Alignment Specifier]

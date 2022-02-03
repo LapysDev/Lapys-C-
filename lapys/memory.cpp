@@ -55,8 +55,10 @@ namespace Lapys {
 
         // ...
         #if CPP_VENDOR & CPP__UNIX__VENDOR
-          allocation = ::aligned_alloc(alignmentof(Allocation), size + (alignment * (alignmentof(Allocation) != alignment)));
-          if (NULL != allocation) { kind = Allocation::UNIX__ALIGNED; size += alignment * (alignmentof(Allocation) != alignment); if (control & Traits::ZERO) { std::memset(allocation, 0x0, size); } break; }
+          if (false == (control & Traits::EXECUTABLE)) {
+            allocation = ::aligned_alloc(alignmentof(Allocation), size + (alignment * (alignmentof(Allocation) != alignment)));
+            if (NULL != allocation) { kind = Allocation::UNIX__ALIGNED; size += alignment * (alignmentof(Allocation) != alignment); if (control & Traits::ZERO) { std::memset(allocation, 0x0, size); } break; }
+          }
 
           allocation = ::mmap(NULL, size + alignment, PROT_READ | PROT_WRITE | (control & Traits::EXECUTABLE ? PROT_EXEC : 0x0), MAP_ANONYMOUS | MAP_PRIVATE, -1, 0L);
           if (NULL != allocation) { kind = Allocation::UNIX__MAPPED; size += alignment; break; }
@@ -101,6 +103,7 @@ namespace Lapys {
       // ...
       void *const address = Memory::align(static_cast<byte*>(allocation) + sizeof(Allocation), alignment, size - sizeof(Allocation), allocation);
 
+      size -= static_cast<byte*>(address) - static_cast<byte*>(allocation);
       for (byte *information = static_cast<byte*>(address) - sizeof(Allocation); ; --information) {
         if (allocation == information) {
           new (allocation) Allocation(kind, size);
