@@ -32,7 +32,7 @@ namespace Lapys {
 
       // ...
       void *allocation = NULL;
-      Allocation::kind kind;
+      Allocation::kind kind = static_cast<Allocation::kind>(0x0u);
 
       do {
         #if CPP_VENDOR & CPP__MICROSOFT_WINDOWS__VENDOR
@@ -71,7 +71,7 @@ namespace Lapys {
         // ...
         #if CPP_VERSION >= 2017uL
           allocation = std::aligned_alloc(alignmentof(Allocation), size + (alignment * (alignmentof(Allocation) != alignment)));
-          if (NULL != allocation) { kind = Allocation::UNIX__ALIGNED; size += alignment * (alignmentof(Allocation) != alignment); if (control & Traits::ZERO) { std::memset(allocation, 0x0, size); } break; }
+          if (NULL != allocation) { kind = Allocation::C_STANDARD; size += alignment * (alignmentof(Allocation) != alignment); if (control & Traits::ZERO) { std::memset(allocation, 0x0, size); } break; }
         #endif
 
         if (control & Traits::ZERO) {
@@ -107,24 +107,22 @@ namespace Lapys {
       for (byte *information = static_cast<byte*>(address) - sizeof(Allocation); ; --information) {
         if (allocation == information) {
           new (allocation) Allocation(kind, size);
-          break;
+          return address;
         }
 
         if (0u == static_cast<std::size_t>(static_cast<byte*>(address) - information) % alignmentof(Allocation)) {
-          if (information < static_cast<byte*>(allocation) + sizeof(Allocation))
+          if (information < static_cast<byte*>(allocation) + sizeof(Allocation)) {
             new (information) Allocation(Allocation::KIND_INCOMPLETE_REFERENCE, information - static_cast<byte*>(allocation));
+          }
 
           else {
             new (allocation)  Allocation(kind, size);
             new (information) Allocation(Allocation::KIND_COMPLETE_REFERENCE, information - static_cast<byte*>(allocation));
           }
 
-          break;
+          return address;
         }
       }
-
-      // ...
-      return address;
     }
   }
 }

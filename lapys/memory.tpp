@@ -59,21 +59,23 @@ namespace Lapys {
           if (false == (control & Traits::EXECUTABLE)) {
             reallocation = std::realloc(allocation, offset + resize);
 
-            if (NULL != reallocation && (control & Traits::ZERO) && resize > size)
-            std::memset(static_cast<typename byte::type*>(reallocation) + offset + size, 0x0, resize - size);
+            if (NULL != reallocation) {
+              if ((control & Traits::ZERO) && resize > size) std::memset(static_cast<typename uint_byte_t::type*>(reallocation) + offset + size, 0x0, resize - size);
+              if ((control & Traits::NON_DYNAMIC) && reallocation != allocation) { std::free(reallocation); reallocation = NULL; }
+            }
           }
         } break;
         #if CPP_VENDOR & CPP__MICROSOFT_WINDOWS__VENDOR
           case Allocation::MICROSOFT_WINDOWS__HEAP: {
             if (false == (control & Traits::EXECUTABLE))
-            reallocation = ::HeapReAlloc(Memory::getHeap(), control & Traits::ZERO ? HEAP_ZERO_MEMORY : 0x0, allocation, offset + resize);
+            reallocation = ::HeapReAlloc(Memory::getHeap(), (control & Traits::NON_DYNAMIC ? HEAP_REALLOC_IN_PLACE_ONLY : 0x0) | (control & Traits::ZERO ? HEAP_ZERO_MEMORY : 0x0), allocation, offset + resize);
           } break;
         #endif
         default: break;
       }
 
-      if (NULL != reallocation)
-      return static_cast<byte*>(reallocation) + offset;
+      if (NULL != reallocation) return static_cast<byte*>(reallocation) + offset;
+      if (control & Traits::NON_DYNAMIC) return static_cast<void*>(NULL);
 
       // ...
       void             *const readdress  = Memory::allocateHeap(control, resize, alignmentof(typeof((instanceof<typename conditional<is_void<type>::value, byte, type>::type>()))));

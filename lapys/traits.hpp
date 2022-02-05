@@ -15,36 +15,6 @@
 
   /* Namespace */
   namespace Lapys {
-    /* Function > ... */
-    template <typename type>
-    constfunc(true) inline type instanceof() noexcept;
-
-    // ... --- CITE (Lapys) -> https://github.com/facebook/folly/blob/main/folly/lang/Launder.h
-    #if defined(__cpp_lib_launder) || (CPP_COMPILER == CPP__MSVC__COMPILER && defined(_HAS_LAUNDER)) || CPP_VERSION >= 2017uL
-      using std::launder;
-    #else
-      template <typename type>
-      noignore inline type* launder(type* pointer) noexcept {
-        #if CPP_COMPILER == CPP__CLANG__COMPILER || (CPP_COMPILER == CPP__GCC__COMPILER && defined(__has_builtin))
-        # if __has_builtin(__builtin_launder)
-          return __builtin_launder(pointer);
-        # else
-          return pointer;
-        # endif
-        #elif CPP_COMPILER == CPP__GCC__COMPILER
-          // ->> Force compiler to assume `pointer` was modified because it is used as an input & output.
-          __asm__("" : "+r"(pointer));
-          return pointer;
-        #elif CPP_COMPILER == CPP__MSVC__COMPILER && CPP_VENDOR == CPP__MICROSOFT_WINDOWS__VENDOR && defined(_ReadWriteBarrier)
-          // ->> Prevent memory access re-ordering (relies on MSVC not having optimizations for `const` data members)
-          _ReadWriteBarrier();
-          return pointer;
-        #else
-          return pointer;
-        #endif
-      }
-    #endif
-
     /* Class > ... */
     #if CPP_VERSION < 2011uL
       union alignmentas(sizeof(unsigned char)) byte {
@@ -67,6 +37,7 @@
     #endif
 
     #if CPP_VERSION < 2017uL
+      constfunc(true) inline unsigned char operator +(byte const byte) noexcept { return static_cast<unsigned char>(byte); }
       constfunc(true) inline byte operator ~(byte const byte) noexcept { return Lapys::byte(~static_cast<unsigned char>(byte)); }
 
       constfunc(true) inline byte operator &(byte const byteA, byte const byteB) noexcept { return Lapys::byte(static_cast<unsigned char>(byteA) & static_cast<unsigned char>(byteB)); }
@@ -105,26 +76,65 @@
       template <typename type> constfunc(true) inline byte volatile& operator >>=(byte volatile& byte, type const& object) noexcept { return (byte = static_cast<unsigned char>(byte) >> object); }
     #endif
 
+    /* Function > ... */
+    template <typename type>
+    constfunc(true) inline type instanceof() noexcept;
+
+    // ... --- CITE (Lapys) -> https://github.com/facebook/folly/blob/main/folly/lang/Launder.h
+    #if defined(__cpp_lib_launder) || (CPP_COMPILER == CPP__MSVC__COMPILER && defined(_HAS_LAUNDER)) || CPP_VERSION >= 2017uL
+      using std::launder;
+    #else
+      template <typename type>
+      noignore inline type* launder(type* pointer) noexcept {
+        #if CPP_COMPILER == CPP__CLANG__COMPILER || (CPP_COMPILER == CPP__GCC__COMPILER && defined(__has_builtin))
+        # if __has_builtin(__builtin_launder)
+          return __builtin_launder(pointer);
+        # else
+          return pointer;
+        # endif
+        #elif CPP_COMPILER == CPP__GCC__COMPILER
+          // ->> Force compiler to assume `pointer` was modified because it is used as an input & output.
+          __asm__("" : "+r"(pointer));
+          return pointer;
+        #elif CPP_COMPILER == CPP__MSVC__COMPILER && CPP_VENDOR == CPP__MICROSOFT_WINDOWS__VENDOR && defined(_ReadWriteBarrier)
+          // ->> Prevent memory access re-ordering (relies on MSVC not having optimizations for `const` data members)
+          _ReadWriteBarrier();
+          return pointer;
+        #else
+          return pointer;
+        #endif
+      }
+    #endif
+
     /* ... */
     namespace Traits {
       // ... ->> For configurable function code paths or generic data structures
       enum control_parameter {
-        BUFFERED   = 0x0002u,
-        DYNAMIC    = 0x0000u,
-        EXECUTABLE = 0x0004u,
-        HEAP       = 0x0008u,
-        MAXIMUM    = 0xF000u,
-        STATIC     = 0x0010u,
-        STACK      = 0x0020u,
-        VIEWABLE   = 0x0040u,
-        ZERO       = 0x0000u  // --> 0
+        BUFFERED    = 0x0001u,
+        DYNAMIC     = 0x0000u,
+        EXECUTABLE  = 0x0002u,
+        HEAP        = 0x0004u,
+        MAXIMUM     = 0xF000u,
+        NON_DYNAMIC = 0x0008u,
+        STACK       = 0x0010u,
+        VIEWABLE    = 0x0020u,
+        ZERO        = 0x0000u  // --> 0
       };
         constfunc(true) inline control_parameter operator &(control_parameter const controlParameterA, control_parameter const controlParameterB) noexcept { return static_cast<control_parameter>(static_cast<unsigned char>(controlParameterA) & static_cast<unsigned char>(controlParameterB)); }
         constfunc(true) inline control_parameter operator |(control_parameter const controlParameterA, control_parameter const controlParameterB) noexcept { return static_cast<control_parameter>(static_cast<unsigned char>(controlParameterA) | static_cast<unsigned char>(controlParameterB)); }
 
+      enum conversion {
+        addressable_cast = 0x1u,
+        bitwise_cast,
+        copy_cast,
+        direct_cast,
+        pointer_cast,
+        reinterpretable_cast
+      };
+
       // ... ->> For convenient template specialization
       enum dummy_parameter {
-        DUMMY = 0xFFFFu
+        DUMMY = 0x0000u
       };
 
       // ...
@@ -196,19 +206,22 @@
     }
 
     namespace Traits {
+      struct int_byte_t;
       struct int_maximum_t;
       struct int_minimum_t;
+      struct uint_byte_t;
       struct uint_maximum_t;
       struct uint_minimum_t;
 
       template <typename>                                                                                          struct alias;
       template <typename>                                                                                          struct assess_bound;
       template <typename>                                                                                          struct assess_const;
-      template <typename>                                                                                          struct assess_function;
+      template <typename>                                                                                          struct assess_functional;
       template <typename>                                                                                          struct assess_pointer;
       template <typename>                                                                                          struct assess_reference;
       template <typename>                                                                                          struct assess_volatile;
-      template <enum initialization control, typename, apply(typename = null apply_empty, comma, LAPYS_MAX_ARITY)> struct can_initialize;
+      template <enum initialization control, typename, apply(typename = null apply_empty, comma, LAPYS_MAX_ARITY)> struct can_construct;
+      template <typename>                                                                                          struct can_destruct;
       template <enum operation control, apply(typename = null apply_empty, comma, LAPYS_MAX_ARITY)>                struct can_operate;
       template <bool, typename = null, typename = null>                                                            struct conditional;
       template <typename base, base>                                                                               struct constant;
@@ -223,6 +236,7 @@
       template <std::size_t>                                                                                       struct int_width_t;
       template <typename>                                                                                          struct is_arithmetic;
       template <typename>                                                                                          struct is_bound;
+      template <typename>                                                                                          struct is_byte;
       template <typename>                                                                                          struct is_character;
       template <class>                                                                                             struct is_class;
       template <typename>                                                                                          struct is_const;
@@ -230,7 +244,7 @@
       template <class>                                                                                             struct is_empty;
       template <class>                                                                                             struct is_final;
       template <typename>                                                                                          struct is_floating_point;
-      template <typename>                                                                                          struct is_function;
+      template <typename>                                                                                          struct is_functional;
       template <typename>                                                                                          struct is_integral;
       template <typename>                                                                                          struct is_lvalue_reference;
       template <typename>                                                                                          struct is_noexcept;
@@ -377,6 +391,15 @@
           public:
             static bool const value = valueof<base, current, end, can_operate<equals_lesser, base, base>::value || false == (can_operate<equals, base, base>::value && can_operate<lesser, base, base>::value)>::value;
         };
+      };
+
+      // ...
+      struct int_byte_t final {
+        #if CPP_VERSION < 2017uL
+          typedef signed char type;
+        #else
+          typedef std::byte byte;
+        #endif
       };
 
       // ...
@@ -549,6 +572,15 @@
           template <> struct int_t<sizeof(signed long long)> final { typedef signed long long type; };
       # endif
       #endif
+
+      // ...
+      struct uint_byte_t final {
+        #if CPP_VERSION < 2017uL
+          typedef unsigned char type;
+        #else
+          typedef std::byte byte;
+        #endif
+      };
 
       // ...
       template <std::size_t size>
@@ -815,8 +847,8 @@
 
           public:
             constvar static base const value varinit((valueof<DUMMY, (
-              can_initialize<default_init, base>::value && false == can_initialize<zero_init, base>::value ? false :
-              can_initialize<zero_init, base>::value                                                       ? true  :
+              can_construct<default_init, base>::value && false == can_construct<zero_init, base>::value ? false :
+              can_construct<zero_init, base>::value                                                       ? true  :
               true
             )>::value));
         };
@@ -832,17 +864,17 @@
     namespace Traits {
       #define can_aggregate(count)                                                                                                                                                                       \
         template <typename base, reapply(typename can_aggregate_initialize_template_argument, comma, count)>                                                                                             \
-        struct can_initialize<aggregate_init, base, reapply(can_aggregate_initialize_template_argument, comma, count)> final {                                                                           \
+        struct can_construct<aggregate_init, base, reapply(can_aggregate_initialize_template_argument, comma, count)> final {                                                                            \
           private:                                                                                                                                                                                       \
-            template <dummy_parameter, typename, reapply(typename can_aggregate_valueof_template_argument, comma, count), class = alias<null> >                                                 \
+            template <dummy_parameter, typename, reapply(typename can_aggregate_valueof_template_argument, comma, count), class = alias<null> >                                                          \
             struct valueof final {                                                                                                                                                                       \
-              friend struct can_initialize;                                                                                                                                                              \
+              friend struct can_construct;                                                                                                                                                               \
               private: static bool const value = false;                                                                                                                                                  \
             };                                                                                                                                                                                           \
                                                                                                                                                                                                          \
-            template <dummy_parameter dummy, typename subbase, reapply(typename can_aggregate_valueof_template_argument, comma, count)>                                                         \
+            template <dummy_parameter dummy, typename subbase, reapply(typename can_aggregate_valueof_template_argument, comma, count)>                                                                  \
             struct valueof<dummy, subbase, reapply(can_aggregate_valueof_template_argument, comma, count), alias<typeof(null(subbase(reapply(can_aggregate_valueof_argument, comma, count))))> > final { \
-              friend struct can_initialize;                                                                                                                                                              \
+              friend struct can_construct;                                                                                                                                                               \
               private: static bool const value = true;                                                                                                                                                   \
             };                                                                                                                                                                                           \
                                                                                                                                                                                                          \
@@ -856,26 +888,26 @@
       apply(can_aggregate, empty, LAPYS_MAX_ARITY)
 
       template <typename base>
-      struct can_initialize<copy_init, base> final {
+      struct can_construct<copy_init, base> final {
         #ifdef __cpp_rvalue_references
-          static bool const value = can_initialize<aggregate_init, base, base>::value;
+          static bool const value = can_construct<aggregate_init, base, base>::value;
         #else
-          static bool const value = can_initialize<aggregate_init, base, base const&>::value;
+          static bool const value = can_construct<aggregate_init, base, base const&>::value;
         #endif
       };
 
       template <typename base>
-      struct can_initialize<default_init, base> final {
+      struct can_construct<default_init, base> final {
         private:
           template <dummy_parameter, typename, class = alias<null> >
           struct valueof final {
-            friend struct can_initialize<default_init, base>;
+            friend struct can_construct<default_init, base>;
             private: static bool const value = false;
           };
 
           template <dummy_parameter dummy, typename subbase>
           struct valueof<dummy, subbase, alias<typeof(null(subbase()))> > final {
-            friend struct can_initialize<default_init, base>;
+            friend struct can_construct<default_init, base>;
             private: static bool const value = true;
           };
 
@@ -884,36 +916,36 @@
       };
 
       template <typename base, typename type>
-      struct can_initialize<direct_init, base, type> final {
-        static bool const value = can_initialize<aggregate_init, base, type>::value;
+      struct can_construct<direct_init, base, type> final {
+        static bool const value = can_construct<aggregate_init, base, type>::value;
       };
 
       template <typename base>
-      struct can_initialize<move_init, base> final {
+      struct can_construct<move_init, base> final {
         #ifdef __cpp_rvalue_references
-          static bool const value = can_initialize<aggregate_init, base, base&&>::value;
+          static bool const value = can_construct<aggregate_init, base, base&&>::value;
         #else
-          static bool const value = can_initialize<aggregate_init, base, base>::value;
+          static bool const value = can_construct<aggregate_init, base, base>::value;
         #endif
       };
 
       template <typename base>
-      struct can_initialize<reference_init, base> final {
+      struct can_construct<reference_init, base> final {
         static bool const value = is_reference<base>::value;
       };
 
       template <typename base, typename type>
-      struct can_initialize<zero_init, base, type> final {
+      struct can_construct<zero_init, base, type> final {
         private:
           template <dummy_parameter, typename, class = alias<null> >
           struct valueof final {
-            friend struct can_initialize<zero_init, base>;
+            friend struct can_construct<zero_init, base>;
             private: static bool const value = false;
           };
 
           template <dummy_parameter dummy, class subbase>
           struct valueof<dummy, subbase, alias<typeof(null(subbase(0)))> > final {
-            friend struct can_initialize<zero_init, base>;
+            friend struct can_construct<zero_init, base>;
             private: static bool const value = true;
           };
 
@@ -925,6 +957,26 @@
       # undef can_aggregate_initialize_template_argument
       # undef can_aggregate_valueof_argument
       # undef can_aggregate_valueof_template_argument
+
+      // ...
+      template <typename base>
+      struct can_destruct final {
+        private:
+          template <dummy_parameter, typename, class = alias<null> >
+          struct valueof final {
+            friend struct can_destruct<base>;
+            private: static bool const value = false;
+          };
+
+          template <dummy_parameter dummy, typename subbase>
+          struct valueof<dummy, subbase, alias<typeof(null(instanceof<subbase>().~subbase()))> > final {
+            friend struct can_destruct<base>;
+            private: static bool const value = true;
+          };
+
+        public:
+          static bool const value = valueof<DUMMY, base>::value;
+      };
 
       // ...
       #define can_call_template_argument(count) type ## count
@@ -1146,7 +1198,7 @@
             struct index_collection : public integer_collection<std::size_t, indexes...> {};
 
         // ...
-        template <typename base, base start, base end, base step = conditional<is_scalar<base>::value || can_initialize<direct_init, base, unsigned>::value, defer<constructor<unsigned>::template apply<1u>::template call, base>, defer<constructor<>::template apply<>::template call, base> >::type::type::value, template <base, base, base> class sentinel = generator<base>::template sequence_sentinel>
+        template <typename base, base start, base end, base step = conditional<is_scalar<base>::value || can_construct<direct_init, base, unsigned>::value, defer<constructor<unsigned>::template apply<1u>::template call, base>, defer<constructor<>::template apply<>::template call, base> >::type::type::value, template <base, base, base> class sentinel = generator<base>::template sequence_sentinel>
         struct sequence {
           private:
             template <std::size_t, base, class>
@@ -1302,7 +1354,7 @@
             struct index_collection : public integer_collection<std::size_t, apply(template_argument, comma, LAPYS_END_ARITY)> {};
 
         // ...
-        template <typename base, base start, base end, base step = conditional<is_scalar<base>::value || can_initialize<direct_init, base, unsigned>::value, defer<constructor<unsigned>::template apply<1u>::template call, base>, defer<constructor<>::template apply<>::template call, base> >::type::type::value, template <base, base, base> class sentinel = generator<base>::template sequence_sentinel>
+        template <typename base, base start, base end, base step = conditional<is_scalar<base>::value || can_construct<direct_init, base, unsigned>::value, defer<constructor<unsigned>::template apply<1u>::template call, base>, defer<constructor<>::template apply<>::template call, base> >::type::type::value, template <base, base, base> class sentinel = generator<base>::template sequence_sentinel>
         struct sequence {
           private:
             template <std::size_t, base, class>
@@ -1428,7 +1480,7 @@
 
       // ...
       template <typename type>
-      struct assess_function final {
+      struct assess_functional final {
         typedef type base;
 
         static std::size_t const arity        = 0u;
@@ -1442,75 +1494,87 @@
       };
 
       #if CPP_VERSION < 2011uL
-        #define assess_function(count)                                                                                                                                                                                                                                                                                                                                                                                                                         \
-          template <typename type, reapply(typename assess_function_template_parameter, comma, count)>               struct assess_function<type (reapply(assess_function_template_parameter, comma, count))>                                final { typedef type base; static std::size_t const arity = count; static bool const constness = false, except = true, lvalue = false, member = false, rvalue = false, variadic = false, volatileness = false; }; \
-          template <typename type, reapply(typename assess_function_template_parameter, comma, count)>               struct assess_function<type (reapply(assess_function_template_parameter, comma, count), ...)>                           final { typedef type base; static std::size_t const arity = count; static bool const constness = false, except = true, lvalue = false, member = false, rvalue = false, variadic = true,  volatileness = false; }; \
-          template <typename type, reapply(typename assess_function_template_parameter, comma, count)>               struct assess_function<type (*)(reapply(assess_function_template_parameter, comma, count))>                             final { typedef type base; static std::size_t const arity = count; static bool const constness = false, except = true, lvalue = false, member = false, rvalue = false, variadic = false, volatileness = false; }; \
-          template <typename type, reapply(typename assess_function_template_parameter, comma, count)>               struct assess_function<type (*)(reapply(assess_function_template_parameter, comma, count), ...)>                        final { typedef type base; static std::size_t const arity = count; static bool const constness = false, except = true, lvalue = false, member = false, rvalue = false, variadic = true,  volatileness = false; }; \
-          template <typename type, class object, reapply(typename assess_function_template_parameter, comma, count)> struct assess_function<type (object::*)(reapply(assess_function_template_parameter, comma, count))>                     final { typedef type base; static std::size_t const arity = count; static bool const constness = false, except = true, lvalue = true,  member = true,  rvalue = false, variadic = false, volatileness = false; }; \
-          template <typename type, class object, reapply(typename assess_function_template_parameter, comma, count)> struct assess_function<type (object::*)(reapply(assess_function_template_parameter, comma, count)) const>               final { typedef type base; static std::size_t const arity = count; static bool const constness = true,  except = true, lvalue = true,  member = true,  rvalue = false, variadic = false, volatileness = false; }; \
-          template <typename type, class object, reapply(typename assess_function_template_parameter, comma, count)> struct assess_function<type (object::*)(reapply(assess_function_template_parameter, comma, count)) volatile>            final { typedef type base; static std::size_t const arity = count; static bool const constness = false, except = true, lvalue = true,  member = true,  rvalue = false, variadic = false, volatileness = true;  }; \
-          template <typename type, class object, reapply(typename assess_function_template_parameter, comma, count)> struct assess_function<type (object::*)(reapply(assess_function_template_parameter, comma, count)) const volatile>      final { typedef type base; static std::size_t const arity = count; static bool const constness = true,  except = true, lvalue = true,  member = true,  rvalue = false, variadic = false, volatileness = true;  }; \
-          template <typename type, class object, reapply(typename assess_function_template_parameter, comma, count)> struct assess_function<type (object::*)(reapply(assess_function_template_parameter, comma, count), ...)>                final { typedef type base; static std::size_t const arity = count; static bool const constness = false, except = true, lvalue = true,  member = true,  rvalue = false, variadic = true,  volatileness = false; }; \
-          template <typename type, class object, reapply(typename assess_function_template_parameter, comma, count)> struct assess_function<type (object::*)(reapply(assess_function_template_parameter, comma, count), ...) const>          final { typedef type base; static std::size_t const arity = count; static bool const constness = true,  except = true, lvalue = true,  member = true,  rvalue = false, variadic = true,  volatileness = false; }; \
-          template <typename type, class object, reapply(typename assess_function_template_parameter, comma, count)> struct assess_function<type (object::*)(reapply(assess_function_template_parameter, comma, count), ...) volatile>       final { typedef type base; static std::size_t const arity = count; static bool const constness = false, except = true, lvalue = true,  member = true,  rvalue = false, variadic = true,  volatileness = true;  }; \
-          template <typename type, class object, reapply(typename assess_function_template_parameter, comma, count)> struct assess_function<type (object::*)(reapply(assess_function_template_parameter, comma, count), ...) const volatile> final { typedef type base; static std::size_t const arity = count; static bool const constness = true,  except = true, lvalue = true,  member = true,  rvalue = false, variadic = true,  volatileness = true;  };
+        #define assess_functional(count)                                                                                                                                                                                                                                                                                                                                                                                                                         \
+          template <typename type, reapply(typename assess_function_template_parameter, comma, count)>               struct assess_functional<type (reapply(assess_function_template_parameter, comma, count))>                                final { typedef type base; static std::size_t const arity = count; static bool const constness = false, except = true, lvalue = false, member = false, rvalue = false, variadic = false, volatileness = false; }; \
+          template <typename type, reapply(typename assess_function_template_parameter, comma, count)>               struct assess_functional<type (reapply(assess_function_template_parameter, comma, count), ...)>                           final { typedef type base; static std::size_t const arity = count; static bool const constness = false, except = true, lvalue = false, member = false, rvalue = false, variadic = true,  volatileness = false; }; \
+          template <typename type, reapply(typename assess_function_template_parameter, comma, count)>               struct assess_functional<type (*)(reapply(assess_function_template_parameter, comma, count))>                             final { typedef type base; static std::size_t const arity = count; static bool const constness = false, except = true, lvalue = false, member = false, rvalue = false, variadic = false, volatileness = false; }; \
+          template <typename type, reapply(typename assess_function_template_parameter, comma, count)>               struct assess_functional<type (*)(reapply(assess_function_template_parameter, comma, count), ...)>                        final { typedef type base; static std::size_t const arity = count; static bool const constness = false, except = true, lvalue = false, member = false, rvalue = false, variadic = true,  volatileness = false; }; \
+          template <typename type, reapply(typename assess_function_template_parameter, comma, count)>               struct assess_functional<type (&)(reapply(assess_function_template_parameter, comma, count))>                             final { typedef type base; static std::size_t const arity = count; static bool const constness = false, except = true, lvalue = false, member = false, rvalue = false, variadic = false, volatileness = false; }; \
+          template <typename type, reapply(typename assess_function_template_parameter, comma, count)>               struct assess_functional<type (&)(reapply(assess_function_template_parameter, comma, count), ...)>                        final { typedef type base; static std::size_t const arity = count; static bool const constness = false, except = true, lvalue = false, member = false, rvalue = false, variadic = true,  volatileness = false; }; \
+          template <typename type, class object, reapply(typename assess_function_template_parameter, comma, count)> struct assess_functional<type (object::*)(reapply(assess_function_template_parameter, comma, count))>                     final { typedef type base; static std::size_t const arity = count; static bool const constness = false, except = true, lvalue = true,  member = true,  rvalue = false, variadic = false, volatileness = false; }; \
+          template <typename type, class object, reapply(typename assess_function_template_parameter, comma, count)> struct assess_functional<type (object::*)(reapply(assess_function_template_parameter, comma, count)) const>               final { typedef type base; static std::size_t const arity = count; static bool const constness = true,  except = true, lvalue = true,  member = true,  rvalue = false, variadic = false, volatileness = false; }; \
+          template <typename type, class object, reapply(typename assess_function_template_parameter, comma, count)> struct assess_functional<type (object::*)(reapply(assess_function_template_parameter, comma, count)) volatile>            final { typedef type base; static std::size_t const arity = count; static bool const constness = false, except = true, lvalue = true,  member = true,  rvalue = false, variadic = false, volatileness = true;  }; \
+          template <typename type, class object, reapply(typename assess_function_template_parameter, comma, count)> struct assess_functional<type (object::*)(reapply(assess_function_template_parameter, comma, count)) const volatile>      final { typedef type base; static std::size_t const arity = count; static bool const constness = true,  except = true, lvalue = true,  member = true,  rvalue = false, variadic = false, volatileness = true;  }; \
+          template <typename type, class object, reapply(typename assess_function_template_parameter, comma, count)> struct assess_functional<type (object::*)(reapply(assess_function_template_parameter, comma, count), ...)>                final { typedef type base; static std::size_t const arity = count; static bool const constness = false, except = true, lvalue = true,  member = true,  rvalue = false, variadic = true,  volatileness = false; }; \
+          template <typename type, class object, reapply(typename assess_function_template_parameter, comma, count)> struct assess_functional<type (object::*)(reapply(assess_function_template_parameter, comma, count), ...) const>          final { typedef type base; static std::size_t const arity = count; static bool const constness = true,  except = true, lvalue = true,  member = true,  rvalue = false, variadic = true,  volatileness = false; }; \
+          template <typename type, class object, reapply(typename assess_function_template_parameter, comma, count)> struct assess_functional<type (object::*)(reapply(assess_function_template_parameter, comma, count), ...) volatile>       final { typedef type base; static std::size_t const arity = count; static bool const constness = false, except = true, lvalue = true,  member = true,  rvalue = false, variadic = true,  volatileness = true;  }; \
+          template <typename type, class object, reapply(typename assess_function_template_parameter, comma, count)> struct assess_functional<type (object::*)(reapply(assess_function_template_parameter, comma, count), ...) const volatile> final { typedef type base; static std::size_t const arity = count; static bool const constness = true,  except = true, lvalue = true,  member = true,  rvalue = false, variadic = true,  volatileness = true;  };
         # define assess_function_template_parameter(count) type ## count
 
-        template <typename type>               struct assess_function<type ()>                              final { typedef type base; static std::size_t const arity = 0u; static bool const constness = false, except = true, lvalue = false, member = false, rvalue = false, variadic = false, volatileness = false; };
-        template <typename type>               struct assess_function<type (...)>                           final { typedef type base; static std::size_t const arity = 0u; static bool const constness = false, except = true, lvalue = false, member = false, rvalue = false, variadic = true,  volatileness = false; };
-        template <typename type>               struct assess_function<type (*)()>                           final { typedef type base; static std::size_t const arity = 0u; static bool const constness = false, except = true, lvalue = false, member = false, rvalue = false, variadic = false, volatileness = false; };
-        template <typename type>               struct assess_function<type (*)(...)>                        final { typedef type base; static std::size_t const arity = 0u; static bool const constness = false, except = true, lvalue = false, member = false, rvalue = false, variadic = true,  volatileness = false; };
-        template <typename type, class object> struct assess_function<type (object::*)()>                   final { typedef type base; static std::size_t const arity = 0u; static bool const constness = false, except = true, lvalue = true,  member = true,  rvalue = false, variadic = false, volatileness = false; };
-        template <typename type, class object> struct assess_function<type (object::*)() const>             final { typedef type base; static std::size_t const arity = 0u; static bool const constness = true,  except = true, lvalue = true,  member = true,  rvalue = false, variadic = false, volatileness = false; };
-        template <typename type, class object> struct assess_function<type (object::*)() volatile>          final { typedef type base; static std::size_t const arity = 0u; static bool const constness = false, except = true, lvalue = true,  member = true,  rvalue = false, variadic = false, volatileness = true;  };
-        template <typename type, class object> struct assess_function<type (object::*)() const volatile>    final { typedef type base; static std::size_t const arity = 0u; static bool const constness = true,  except = true, lvalue = true,  member = true,  rvalue = false, variadic = false, volatileness = true;  };
-        template <typename type, class object> struct assess_function<type (object::*)(...)>                final { typedef type base; static std::size_t const arity = 0u; static bool const constness = false, except = true, lvalue = true,  member = true,  rvalue = false, variadic = true,  volatileness = false; };
-        template <typename type, class object> struct assess_function<type (object::*)(...) const>          final { typedef type base; static std::size_t const arity = 0u; static bool const constness = true,  except = true, lvalue = true,  member = true,  rvalue = false, variadic = true,  volatileness = false; };
-        template <typename type, class object> struct assess_function<type (object::*)(...) volatile>       final { typedef type base; static std::size_t const arity = 0u; static bool const constness = false, except = true, lvalue = true,  member = true,  rvalue = false, variadic = true,  volatileness = true;  };
-        template <typename type, class object> struct assess_function<type (object::*)(...) const volatile> final { typedef type base; static std::size_t const arity = 0u; static bool const constness = true,  except = true, lvalue = true,  member = true,  rvalue = false, variadic = true,  volatileness = true;  };
-        apply(assess_function, empty, LAPYS_MAX_ARITY)
+        template <typename type>               struct assess_functional<type ()>                              final { typedef type base; static std::size_t const arity = 0u; static bool const constness = false, except = true, lvalue = false, member = false, rvalue = false, variadic = false, volatileness = false; };
+        template <typename type>               struct assess_functional<type (...)>                           final { typedef type base; static std::size_t const arity = 0u; static bool const constness = false, except = true, lvalue = false, member = false, rvalue = false, variadic = true,  volatileness = false; };
+        template <typename type>               struct assess_functional<type (*)()>                           final { typedef type base; static std::size_t const arity = 0u; static bool const constness = false, except = true, lvalue = false, member = false, rvalue = false, variadic = false, volatileness = false; };
+        template <typename type>               struct assess_functional<type (*)(...)>                        final { typedef type base; static std::size_t const arity = 0u; static bool const constness = false, except = true, lvalue = false, member = false, rvalue = false, variadic = true,  volatileness = false; };
+        template <typename type>               struct assess_functional<type (&)()>                           final { typedef type base; static std::size_t const arity = 0u; static bool const constness = false, except = true, lvalue = false, member = false, rvalue = false, variadic = false, volatileness = false; };
+        template <typename type>               struct assess_functional<type (&)(...)>                        final { typedef type base; static std::size_t const arity = 0u; static bool const constness = false, except = true, lvalue = false, member = false, rvalue = false, variadic = true,  volatileness = false; };
+        template <typename type, class object> struct assess_functional<type (object::*)()>                   final { typedef type base; static std::size_t const arity = 0u; static bool const constness = false, except = true, lvalue = true,  member = true,  rvalue = false, variadic = false, volatileness = false; };
+        template <typename type, class object> struct assess_functional<type (object::*)() const>             final { typedef type base; static std::size_t const arity = 0u; static bool const constness = true,  except = true, lvalue = true,  member = true,  rvalue = false, variadic = false, volatileness = false; };
+        template <typename type, class object> struct assess_functional<type (object::*)() volatile>          final { typedef type base; static std::size_t const arity = 0u; static bool const constness = false, except = true, lvalue = true,  member = true,  rvalue = false, variadic = false, volatileness = true;  };
+        template <typename type, class object> struct assess_functional<type (object::*)() const volatile>    final { typedef type base; static std::size_t const arity = 0u; static bool const constness = true,  except = true, lvalue = true,  member = true,  rvalue = false, variadic = false, volatileness = true;  };
+        template <typename type, class object> struct assess_functional<type (object::*)(...)>                final { typedef type base; static std::size_t const arity = 0u; static bool const constness = false, except = true, lvalue = true,  member = true,  rvalue = false, variadic = true,  volatileness = false; };
+        template <typename type, class object> struct assess_functional<type (object::*)(...) const>          final { typedef type base; static std::size_t const arity = 0u; static bool const constness = true,  except = true, lvalue = true,  member = true,  rvalue = false, variadic = true,  volatileness = false; };
+        template <typename type, class object> struct assess_functional<type (object::*)(...) volatile>       final { typedef type base; static std::size_t const arity = 0u; static bool const constness = false, except = true, lvalue = true,  member = true,  rvalue = false, variadic = true,  volatileness = true;  };
+        template <typename type, class object> struct assess_functional<type (object::*)(...) const volatile> final { typedef type base; static std::size_t const arity = 0u; static bool const constness = true,  except = true, lvalue = true,  member = true,  rvalue = false, variadic = true,  volatileness = true;  };
+        apply(assess_functional, empty, LAPYS_MAX_ARITY)
 
-        #undef assess_function
+        #undef assess_functional
         # undef assess_function_template_parameter
       #else
-        template <typename type, typename... types> struct assess_function<type (types...)>                       final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = true, lvalue = false, member = false, rvalue = false, variadic = false, volatileness = false; };
-        template <typename type, typename... types> struct assess_function<type (types...) &>                     final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = true, lvalue = true,  member = true,  rvalue = false, variadic = false, volatileness = false; };
-        template <typename type, typename... types> struct assess_function<type (types...) &&>                    final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = true, lvalue = false, member = true,  rvalue = true,  variadic = false, volatileness = false; };
-        template <typename type, typename... types> struct assess_function<type (types...) const&>                final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = true,  except = true, lvalue = true,  member = true,  rvalue = false, variadic = false, volatileness = false; };
-        template <typename type, typename... types> struct assess_function<type (types...) const&&>               final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = true,  except = true, lvalue = false, member = true,  rvalue = true,  variadic = false, volatileness = false; };
-        template <typename type, typename... types> struct assess_function<type (types...) const volatile&>       final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = true,  except = true, lvalue = true,  member = true,  rvalue = false, variadic = false, volatileness = true;  };
-        template <typename type, typename... types> struct assess_function<type (types...) const volatile&&>      final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = true,  except = true, lvalue = false, member = true,  rvalue = true,  variadic = false, volatileness = true;  };
-        template <typename type, typename... types> struct assess_function<type (types...) volatile&>             final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = true, lvalue = true,  member = true,  rvalue = false, variadic = false, volatileness = false; };
-        template <typename type, typename... types> struct assess_function<type (types...) volatile&&>            final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = true, lvalue = false, member = true,  rvalue = true,  variadic = false, volatileness = false; };
-        template <typename type, typename... types> struct assess_function<type (types..., ...)>                  final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = true, lvalue = false, member = false, rvalue = false, variadic = true,  volatileness = false; };
-        template <typename type, typename... types> struct assess_function<type (types..., ...) &>                final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = true, lvalue = true,  member = true,  rvalue = false, variadic = true,  volatileness = false; };
-        template <typename type, typename... types> struct assess_function<type (types..., ...) &&>               final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = true, lvalue = false, member = true,  rvalue = true,  variadic = true,  volatileness = false; };
-        template <typename type, typename... types> struct assess_function<type (types..., ...) const&>           final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = true,  except = true, lvalue = true,  member = true,  rvalue = false, variadic = true,  volatileness = false; };
-        template <typename type, typename... types> struct assess_function<type (types..., ...) const&&>          final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = true,  except = true, lvalue = false, member = true,  rvalue = true,  variadic = true,  volatileness = false; };
-        template <typename type, typename... types> struct assess_function<type (types..., ...) const volatile&>  final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = true,  except = true, lvalue = true,  member = true,  rvalue = false, variadic = true,  volatileness = true;  };
-        template <typename type, typename... types> struct assess_function<type (types..., ...) const volatile&&> final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = true,  except = true, lvalue = false, member = true,  rvalue = true,  variadic = true,  volatileness = true;  };
-        template <typename type, typename... types> struct assess_function<type (types..., ...) volatile&>        final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = true, lvalue = true,  member = true,  rvalue = false, variadic = true,  volatileness = false; };
-        template <typename type, typename... types> struct assess_function<type (types..., ...) volatile&&>       final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = true, lvalue = false, member = true,  rvalue = true,  variadic = true,  volatileness = false; };
+        template <typename type, typename... types> struct assess_functional<type (types...)>                       final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = true, lvalue = false, member = false, rvalue = false, variadic = false, volatileness = false; };
+        template <typename type, typename... types> struct assess_functional<type (types...) &>                     final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = true, lvalue = true,  member = true,  rvalue = false, variadic = false, volatileness = false; };
+        template <typename type, typename... types> struct assess_functional<type (types...) &&>                    final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = true, lvalue = false, member = true,  rvalue = true,  variadic = false, volatileness = false; };
+        template <typename type, typename... types> struct assess_functional<type (types...) const&>                final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = true,  except = true, lvalue = true,  member = true,  rvalue = false, variadic = false, volatileness = false; };
+        template <typename type, typename... types> struct assess_functional<type (types...) const&&>               final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = true,  except = true, lvalue = false, member = true,  rvalue = true,  variadic = false, volatileness = false; };
+        template <typename type, typename... types> struct assess_functional<type (types...) const volatile&>       final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = true,  except = true, lvalue = true,  member = true,  rvalue = false, variadic = false, volatileness = true;  };
+        template <typename type, typename... types> struct assess_functional<type (types...) const volatile&&>      final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = true,  except = true, lvalue = false, member = true,  rvalue = true,  variadic = false, volatileness = true;  };
+        template <typename type, typename... types> struct assess_functional<type (types...) volatile&>             final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = true, lvalue = true,  member = true,  rvalue = false, variadic = false, volatileness = false; };
+        template <typename type, typename... types> struct assess_functional<type (types...) volatile&&>            final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = true, lvalue = false, member = true,  rvalue = true,  variadic = false, volatileness = false; };
+        template <typename type, typename... types> struct assess_functional<type (*)(types...)>                    final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = true, lvalue = false, member = false, rvalue = false, variadic = false, volatileness = false; };
+        template <typename type, typename... types> struct assess_functional<type (&)(types...)>                    final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = true, lvalue = false, member = false, rvalue = false, variadic = false, volatileness = false; };
+        template <typename type, typename... types> struct assess_functional<type (types..., ...)>                  final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = true, lvalue = false, member = false, rvalue = false, variadic = true,  volatileness = false; };
+        template <typename type, typename... types> struct assess_functional<type (types..., ...) &>                final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = true, lvalue = true,  member = true,  rvalue = false, variadic = true,  volatileness = false; };
+        template <typename type, typename... types> struct assess_functional<type (types..., ...) &&>               final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = true, lvalue = false, member = true,  rvalue = true,  variadic = true,  volatileness = false; };
+        template <typename type, typename... types> struct assess_functional<type (types..., ...) const&>           final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = true,  except = true, lvalue = true,  member = true,  rvalue = false, variadic = true,  volatileness = false; };
+        template <typename type, typename... types> struct assess_functional<type (types..., ...) const&&>          final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = true,  except = true, lvalue = false, member = true,  rvalue = true,  variadic = true,  volatileness = false; };
+        template <typename type, typename... types> struct assess_functional<type (types..., ...) const volatile&>  final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = true,  except = true, lvalue = true,  member = true,  rvalue = false, variadic = true,  volatileness = true;  };
+        template <typename type, typename... types> struct assess_functional<type (types..., ...) const volatile&&> final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = true,  except = true, lvalue = false, member = true,  rvalue = true,  variadic = true,  volatileness = true;  };
+        template <typename type, typename... types> struct assess_functional<type (types..., ...) volatile&>        final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = true, lvalue = true,  member = true,  rvalue = false, variadic = true,  volatileness = false; };
+        template <typename type, typename... types> struct assess_functional<type (types..., ...) volatile&&>       final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = true, lvalue = false, member = true,  rvalue = true,  variadic = true,  volatileness = false; };
+        template <typename type, typename... types> struct assess_functional<type (*)(types..., ...)>               final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = true, lvalue = false, member = false, rvalue = false, variadic = true,  volatileness = false; };
+        template <typename type, typename... types> struct assess_functional<type (&)(types..., ...)>               final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = true, lvalue = false, member = false, rvalue = false, variadic = true,  volatileness = false; };
         #if CPP_VERSION >= 2017uL
-          template <typename type, typename... types> struct assess_function<type (types...) noexcept>                       final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = false, lvalue = false, member = false, rvalue = false, variadic = false, volatileness = false; };
-          template <typename type, typename... types> struct assess_function<type (types...) & noexcept>                     final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = false, lvalue = true,  member = true,  rvalue = false, variadic = false, volatileness = false; };
-          template <typename type, typename... types> struct assess_function<type (types...) && noexcept>                    final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = false, lvalue = false, member = true,  rvalue = true,  variadic = false, volatileness = false; };
-          template <typename type, typename... types> struct assess_function<type (types...) const& noexcept>                final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = true,  except = false, lvalue = true,  member = true,  rvalue = false, variadic = false, volatileness = false; };
-          template <typename type, typename... types> struct assess_function<type (types...) const&& noexcept>               final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = true,  except = false, lvalue = false, member = true,  rvalue = true,  variadic = false, volatileness = false; };
-          template <typename type, typename... types> struct assess_function<type (types...) const volatile& noexcept>       final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = true,  except = false, lvalue = true,  member = true,  rvalue = false, variadic = false, volatileness = true;  };
-          template <typename type, typename... types> struct assess_function<type (types...) const volatile&& noexcept>      final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = true,  except = false, lvalue = false, member = true,  rvalue = true,  variadic = false, volatileness = true;  };
-          template <typename type, typename... types> struct assess_function<type (types...) volatile& noexcept>             final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = false, lvalue = true,  member = true,  rvalue = false, variadic = false, volatileness = false; };
-          template <typename type, typename... types> struct assess_function<type (types...) volatile&& noexcept>            final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = false, lvalue = false, member = true,  rvalue = true,  variadic = false, volatileness = false; };
-          template <typename type, typename... types> struct assess_function<type (types..., ...) noexcept>                  final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = false, lvalue = false, member = false, rvalue = false, variadic = true,  volatileness = false; };
-          template <typename type, typename... types> struct assess_function<type (types..., ...) & noexcept>                final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = false, lvalue = true,  member = true,  rvalue = false, variadic = true,  volatileness = false; };
-          template <typename type, typename... types> struct assess_function<type (types..., ...) && noexcept>               final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = false, lvalue = false, member = true,  rvalue = true,  variadic = true,  volatileness = false; };
-          template <typename type, typename... types> struct assess_function<type (types..., ...) const& noexcept>           final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = true,  except = false, lvalue = true,  member = true,  rvalue = false, variadic = true,  volatileness = false; };
-          template <typename type, typename... types> struct assess_function<type (types..., ...) const&& noexcept>          final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = true,  except = false, lvalue = false, member = true,  rvalue = true,  variadic = true,  volatileness = false; };
-          template <typename type, typename... types> struct assess_function<type (types..., ...) const volatile& noexcept>  final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = true,  except = false, lvalue = true,  member = true,  rvalue = false, variadic = true,  volatileness = true;  };
-          template <typename type, typename... types> struct assess_function<type (types..., ...) const volatile&& noexcept> final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = true,  except = false, lvalue = false, member = true,  rvalue = true,  variadic = true,  volatileness = true;  };
-          template <typename type, typename... types> struct assess_function<type (types..., ...) volatile& noexcept>        final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = false, lvalue = true,  member = true,  rvalue = false, variadic = true,  volatileness = false; };
-          template <typename type, typename... types> struct assess_function<type (types..., ...) volatile&& noexcept>       final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = false, lvalue = false, member = true,  rvalue = true,  variadic = true,  volatileness = false; };
+          template <typename type, typename... types> struct assess_functional<type (types...) noexcept>                       final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = false, lvalue = false, member = false, rvalue = false, variadic = false, volatileness = false; };
+          template <typename type, typename... types> struct assess_functional<type (types...) & noexcept>                     final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = false, lvalue = true,  member = true,  rvalue = false, variadic = false, volatileness = false; };
+          template <typename type, typename... types> struct assess_functional<type (types...) && noexcept>                    final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = false, lvalue = false, member = true,  rvalue = true,  variadic = false, volatileness = false; };
+          template <typename type, typename... types> struct assess_functional<type (types...) const& noexcept>                final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = true,  except = false, lvalue = true,  member = true,  rvalue = false, variadic = false, volatileness = false; };
+          template <typename type, typename... types> struct assess_functional<type (types...) const&& noexcept>               final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = true,  except = false, lvalue = false, member = true,  rvalue = true,  variadic = false, volatileness = false; };
+          template <typename type, typename... types> struct assess_functional<type (types...) const volatile& noexcept>       final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = true,  except = false, lvalue = true,  member = true,  rvalue = false, variadic = false, volatileness = true;  };
+          template <typename type, typename... types> struct assess_functional<type (types...) const volatile&& noexcept>      final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = true,  except = false, lvalue = false, member = true,  rvalue = true,  variadic = false, volatileness = true;  };
+          template <typename type, typename... types> struct assess_functional<type (types...) volatile& noexcept>             final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = false, lvalue = true,  member = true,  rvalue = false, variadic = false, volatileness = false; };
+          template <typename type, typename... types> struct assess_functional<type (types...) volatile&& noexcept>            final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = false, lvalue = false, member = true,  rvalue = true,  variadic = false, volatileness = false; };
+          template <typename type, typename... types> struct assess_functional<type (*)(types...) noexcept>                    final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = false, lvalue = false, member = false, rvalue = false, variadic = false, volatileness = false; };
+          template <typename type, typename... types> struct assess_functional<type (&)(types...) noexcept>                    final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = false, lvalue = false, member = false, rvalue = false, variadic = false, volatileness = false; };
+          template <typename type, typename... types> struct assess_functional<type (types..., ...) noexcept>                  final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = false, lvalue = false, member = false, rvalue = false, variadic = true,  volatileness = false; };
+          template <typename type, typename... types> struct assess_functional<type (types..., ...) & noexcept>                final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = false, lvalue = true,  member = true,  rvalue = false, variadic = true,  volatileness = false; };
+          template <typename type, typename... types> struct assess_functional<type (types..., ...) && noexcept>               final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = false, lvalue = false, member = true,  rvalue = true,  variadic = true,  volatileness = false; };
+          template <typename type, typename... types> struct assess_functional<type (types..., ...) const& noexcept>           final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = true,  except = false, lvalue = true,  member = true,  rvalue = false, variadic = true,  volatileness = false; };
+          template <typename type, typename... types> struct assess_functional<type (types..., ...) const&& noexcept>          final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = true,  except = false, lvalue = false, member = true,  rvalue = true,  variadic = true,  volatileness = false; };
+          template <typename type, typename... types> struct assess_functional<type (types..., ...) const volatile& noexcept>  final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = true,  except = false, lvalue = true,  member = true,  rvalue = false, variadic = true,  volatileness = true;  };
+          template <typename type, typename... types> struct assess_functional<type (types..., ...) const volatile&& noexcept> final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = true,  except = false, lvalue = false, member = true,  rvalue = true,  variadic = true,  volatileness = true;  };
+          template <typename type, typename... types> struct assess_functional<type (types..., ...) volatile& noexcept>        final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = false, lvalue = true,  member = true,  rvalue = false, variadic = true,  volatileness = false; };
+          template <typename type, typename... types> struct assess_functional<type (types..., ...) volatile&& noexcept>       final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = false, lvalue = false, member = true,  rvalue = true,  variadic = true,  volatileness = false; };
+          template <typename type, typename... types> struct assess_functional<type (*)(types..., ...) noexcept>               final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = false, lvalue = false, member = false, rvalue = false, variadic = true,  volatileness = false; };
+          template <typename type, typename... types> struct assess_functional<type (&)(types..., ...) noexcept>               final { typedef type base; static std::size_t const arity = sizeof...(types); static bool const constness = false, except = false, lvalue = false, member = false, rvalue = false, variadic = true,  volatileness = false; };
         #endif
       #endif
 
@@ -1546,6 +1610,16 @@
       template <typename base>
       struct is_bound final {
         static bool const value = false == is_same<base, typename assess_bound<base>::base>::value;
+      };
+
+      // ...
+      template <typename base>
+      struct is_byte final {
+        static bool const value = (
+          is_same<byte,          typename remove_qualifiers<base>::type>::value ||
+          is_same<char,          typename remove_qualifiers<base>::type>::value ||
+          is_same<unsigned char, typename remove_qualifiers<base>::type>::value
+        );
       };
 
       // ...
@@ -1675,8 +1749,8 @@
 
       // ...
       template <typename base>
-      struct is_function final {
-        static bool const value = false == is_same<base, typename assess_function<base>::base>::value;
+      struct is_functional final {
+        static bool const value = false == is_same<base, typename assess_functional<base>::base>::value;
       };
 
       // ...
@@ -1710,7 +1784,7 @@
       // ...
       template <typename base>
       struct is_noexcept final {
-        static bool const value = false == assess_function<base>::except;
+        static bool const value = false == assess_functional<base>::except;
       };
 
       // ...
@@ -1756,6 +1830,7 @@
           struct valueof<type, false> final {
             friend struct is_scalar<base>;
             private: static bool const value = (
+              is_byte          <type>::value ||
               is_character     <type>::value ||
               is_enum          <type>::value ||
               is_floating_point<type>::value ||
@@ -1805,7 +1880,7 @@
           static bool const value = false == (
             is_arithmetic<base>::value ||
             is_bound     <base>::value ||
-            is_function  <base>::value ||
+            is_functional<base>::value ||
             is_pointer   <base>::value ||
             is_reference <base>::value
           ) && sizeof(byte[true + 1u]) == sizeof(disambiguate(*static_cast<base*>(NULL)));
@@ -1908,6 +1983,204 @@
         template <> struct unsign<signed long long> final { typedef unsigned long long type; };
       #endif
     }
+
+    /* Function > ... */
+    template <typename type>
+    constfunc(true) typename conditional<false == is_scalar<type>::value, typename remove_reference<type nodecay>::type*>::type addressof(type nodecay object) noexcept {
+      return static_cast<typename remove_reference<type nodecay>::type*>(static_cast<void*>(&const_cast<typename uint_byte_t::type&>(reinterpret_cast<typename uint_byte_t::type const volatile&>(static_cast<type const&>(object)))));
+    }
+
+    template <typename type>
+    constfunc(true) typename conditional<false != is_scalar<type>::value, typename remove_reference<type nodecay>::type*>::type addressof(type nodecay object) noexcept {
+      return const_cast<typename remove_reference<type nodecay>::type*>(&static_cast<type const&>(object));
+    }
+
+    // ...
+    #ifdef __cpp_rvalue_references
+      #define bit_cast_friend()                                                                                                  \
+        template <typename subbase, typename subtype> friend constfunc(true) subbase bit_cast(subtype&)                noexcept; \
+        template <typename subbase, typename subtype> friend constfunc(true) subbase bit_cast(subtype const&)          noexcept; \
+        template <typename subbase, typename subtype> friend constfunc(true) subbase bit_cast(subtype const volatile&) noexcept; \
+        template <typename subbase, typename subtype> friend constfunc(true) subbase bit_cast(subtype volatile&)       noexcept; \
+        template <typename subbase, typename subtype> friend constfunc(true) subbase bit_cast(subtype&&)               noexcept;
+    #else
+      #define bit_cast_friend()                                                                                                  \
+        template <typename subbase, typename subtype> friend constfunc(true) subbase bit_cast(subtype&)                noexcept; \
+        template <typename subbase, typename subtype> friend constfunc(true) subbase bit_cast(subtype const&)          noexcept; \
+        template <typename subbase, typename subtype> friend constfunc(true) subbase bit_cast(subtype const volatile&) noexcept; \
+        template <typename subbase, typename subtype> friend constfunc(true) subbase bit_cast(subtype volatile&)       noexcept;
+    #endif
+
+    template <typename base, typename type> constfunc(true) base bit_cast(type&)                noexcept;
+    template <typename base, typename type> constfunc(true) base bit_cast(type const&)          noexcept;
+    template <typename base, typename type> constfunc(true) base bit_cast(type const volatile&) noexcept;
+    template <typename base, typename type> constfunc(true) base bit_cast(type volatile&)       noexcept;
+    #ifdef __cpp_rvalue_references
+      template <typename base, typename type> constfunc(true) base bit_cast(type&&) noexcept;
+    #endif
+
+    template <typename base, typename type, enum Traits::conversion = (
+      (is_pointer<typename remove_reference<type>::type>::value && false == is_pointer<base>::value && is_scalar<base>::value) ||
+      (is_pointer<base>::value && false == is_pointer<typename remove_reference<type>::type>::value && is_scalar<typename remove_reference<type>::type>::value)
+      ? addressable_cast :
+
+      is_reference<base>::value ||
+      (is_scalar<base>::value && is_functional<typename remove_reference<type>::type>::value && is_pointer<typename remove_reference<type>::type>::value) ||
+      ((is_functional<base>::value && is_pointer<base>::value) && false == (is_functional<typename remove_reference<type>::type>::value && is_pointer<typename remove_reference<type>::type>::value))
+      ? bitwise_cast :
+
+      is_scalar<base>::value && is_scalar<typename remove_reference<type>::type>::value
+      ? copy_cast :
+
+      (false == (is_scalar<base>::value || (is_functional<base>::value && is_pointer<base>::value)) && is_scalar<typename remove_reference<type>::type>::value) ||
+      (false == (is_functional<base>::value && is_pointer<base>::value) && false == (is_scalar<typename remove_reference<type>::type>::value || (is_functional<typename remove_reference<type>::type>::value && is_pointer<typename remove_reference<type>::type>::value)))
+      ? direct_cast :
+
+      is_pointer<base>::value && is_pointer<typename remove_reference<type>::type>::value
+      ? pointer_cast :
+
+      (is_functional<base>::value && is_pointer<base>::value) && (is_functional<typename remove_reference<type>::type>::value && is_pointer<typename remove_reference<type>::type>::value)
+      ? reinterpretable_cast :
+
+      static_cast<conversion>(0x0u)
+    )> struct bit_cast_t final {
+      bit_cast_friend()
+      private:
+        static constfunc(true) base value(type&                object) noexcept { return (base) object; }
+        static constfunc(true) base value(type const&          object) noexcept { return (base) object; }
+        static constfunc(true) base value(type const volatile& object) noexcept { return (base) object; }
+        static constfunc(true) base value(type volatile&       object) noexcept { return (base) object; }
+        #ifdef __cpp_rvalue_references
+          static constfunc(true) base value(type&& object) noexcept { return (base) object; }
+        #endif
+    };
+
+    template <typename base, typename type>
+    struct bit_cast_t<base, type, addressable_cast> final {
+      bit_cast_friend()
+      private:
+        enum { from_addressable, to_addressable };
+
+        template <dummy_parameter, typename, int>
+        struct valueof;
+
+        template <dummy_parameter dummy, typename subtype>
+        struct valueof<dummy, subtype, from_addressable> final {
+          friend struct bit_cast_t<base, type, addressable_cast>;
+          private: constfunc(true) inline static base value(subtype const object) noexcept { return static_cast<base>(reinterpret_cast<uintptr_t>(object)); }
+        };
+
+        template <dummy_parameter dummy, typename subtype>
+        struct valueof<dummy, subtype, to_addressable> final {
+          friend struct bit_cast_t<base, type, addressable_cast>;
+          private: constfunc(true) inline static base value(subtype const object) noexcept { return reinterpret_cast<base>(static_cast<uintptr_t>(object)); }
+        };
+
+        // ...
+        inline static constfunc(true) base value(type const object) noexcept {
+          return valueof<DUMMY, typename remove_reference<type>::type, is_pointer<base>::value ? to_addressable : from_addressable>::value(object);
+        }
+    };
+
+    template <typename base, typename type>
+    struct bit_cast_t<base, type, bitwise_cast> final {
+      bit_cast_friend()
+      private:
+        // memcpy(...)
+    };
+
+    template <typename base, typename type>
+    struct bit_cast_t<base, type, copy_cast> final {
+      bit_cast_friend()
+      private:
+        // [=]
+    };
+
+    template <typename base, typename type>
+    struct bit_cast_t<base, type, direct_cast> final {
+      bit_cast_friend()
+      private:
+        // can_construct<direct_init, T, ...> ? static_cast<T>(...) : memcpy(...)
+    };
+
+    template <typename base, typename type>
+    struct bit_cast_t<base, type, pointer_cast> final {
+      bit_cast_friend()
+      private:
+        // is_void<T> ? static_cast<void*>(...) : is_byte<T> && is_byte<U> ? const_cast<T*>(...) : static_cast<T*>(const_cast<void*>(static_cast<void const volatile*>(...)))
+    };
+
+    template <typename base, typename type>
+    struct bit_cast_t<base, type, reinterpretable_cast> final {
+      bit_cast_friend()
+      private:
+        // reinterpret_cast<T>(...)
+    };
+
+    template <typename base, typename type> constfunc(true) base bit_cast(type&                object) noexcept { return bit_cast_t<base, type&>               ::value(static_cast<type&>               (object)); }
+    template <typename base, typename type> constfunc(true) base bit_cast(type const&          object) noexcept { return bit_cast_t<base, type const&>         ::value(static_cast<type const&>         (object)); }
+    template <typename base, typename type> constfunc(true) base bit_cast(type const volatile& object) noexcept { return bit_cast_t<base, type const volatile&>::value(static_cast<type const volatile&>(object)); }
+    template <typename base, typename type> constfunc(true) base bit_cast(type volatile&       object) noexcept { return bit_cast_t<base, type volatile&>      ::value(static_cast<type volatile&>      (object)); }
+    #ifdef __cpp_rvalue_references
+      template <typename base, typename type> constfunc(true) base bit_cast(type&& object) noexcept { return bit_cast_t<base, type&&>::value(static_cast<type&&>(object)); }
+    #endif
+
+    #undef bit_cast_friend
+
+    // FUNCTION POINTER <type>
+    //   FUNCTION POINTER reinterpret_cast<T>(...)
+    //   OBJECT           can_construct<direct_init, T, ...> ? static_cast<T>(...) : memcpy(...)
+    //   POINTER          memcpy(...)
+    //   SCALAR           memcpy(...)
+    // OBJECT           <type>
+    //   FUNCTION POINTER memcpy(...)
+    //   OBJECT           can_construct<direct_init, T, ...> ? static_cast<T>(...) : memcpy(...)
+    //   POINTER          can_construct<direct_init, T, ...> ? static_cast<T>(...) : memcpy(...)
+    //   SCALAR           can_construct<direct_init, T, ...> ? static_cast<T>(...) : memcpy(...)
+    // POINTER          <type>
+    //   FUNCTION POINTER memcpy(...)
+    //   OBJECT           can_construct<direct_init> ? static_cast<T>(...) : memcpy(...)
+    //   POINTER          is_void<T> ? static_cast<void*>(...) : is_byte<T> && is_byte<U> ? const_cast<T*>(...) : static_cast<T*>(const_cast<void*>(static_cast<void const volatile*>(...)))
+    //   SCALAR           uintptr_t
+    // SCALAR           <type>
+    //   FUNCTION POINTER memcpy(...)
+    //   OBJECT           can_construct<direct_init, T, ...> ? static_cast<T>(...) : memcpy(...)
+    //   POINTER          uintptr_t
+    //   SCALAR           [=]
+
+    // ...
+    #if defined(__cpp_rvalue_references) && CPP_COMPILER != CPP__ICC__COMPILER
+      template <typename type>
+      constfunc(true) byte (&&bytesof(type const& object, byte (&&bytes)[sizeof(type)] = {}) noexcept)[sizeof(type)];
+        // bytes;
+        // static_cast<byte*>(static_cast<void*>(static_cast<void const volatile*>(addressof(object))))
+        // static_cast<byte*>(static_cast<void*>(static_cast<void const volatile*>(addressof(object)))) + sizeof(type)
+    #else
+      template <std::size_t size>
+      struct bytesof_t final {
+        template <typename type>
+        friend constfunc(true) byte const (&bytesof() noexcept)[sizeof(type)];
+
+        private:
+          typedef byte const (&bytes_t)[size];
+
+          byte value[size];
+          constfunc(true) operator bytes_t() const noexcept { return this -> value; }
+      };
+
+      template <typename type>
+      constfunc(true) byte const (&bytesof(type const& object) noexcept)[sizeof(type)];
+        // typedef byte const (&bytes_t)[sizeof(type)];
+        // return bytesof_t<sizeof(type)>().operator bytes_t();
+    #endif
+
+    // template <typename type>
+    // constexpr std::byte (&&bytesof(type const& object, std::byte (&&bytes)[sizeof(type)] = {}) noexcept)[sizeof(type)] {
+    //   std::byte const *const objectBytes = static_cast<std::byte*>(const_cast<void*>(static_cast<void const volatile*>(std::addressof(object))));
+
+    //   std::uninitialized_copy(objectBytes, objectBytes + sizeof(type), bytes);
+    //   return static_cast<std::byte (&&)[sizeof(type)]>(bytes);
+    // }
   }
 
   /* ... */

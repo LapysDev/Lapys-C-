@@ -27,9 +27,9 @@ namespace Lapys {
     template <typename type> noignore constfunc(true) typename remove_reference<type>::type bit_ceil (type nodecay) noexcept;
     template <typename type> noignore constfunc(true) typename remove_reference<type>::type bit_floor(type nodecay) noexcept;
     template <typename type, std::size_t capacity> noignore constfunc(true) inline type nodecay maximum(type nodecayparam(emtpy())[capacity]) noexcept;
-    template <typename type>                       noignore constfunc(true) inline type nodecay maximum(type nodecay, type nodecay) noexcept;
+    template <typename typeA, typename typeB>      noignore constfunc(true) inline typeof(instanceof<typeB nodecay>() > instanceof<typeA nodecay>() ? instanceof<typeB nodecay>() : instanceof<typeA nodecay>()) maximum(typeA nodecay, typeA nodecay) noexcept;
     template <typename type, std::size_t capacity> noignore constfunc(true) inline type nodecay minimum(type nodecayparam(emtpy())[capacity]) noexcept;
-    template <typename type>                       noignore constfunc(true) inline type nodecay minimum(type nodecay, type nodecay) noexcept;
+    template <typename typeA, typename typeB>      noignore constfunc(true) inline std::size_t minimum(typeA nodecay, typeB nodecay) noexcept;
   }
 }
 

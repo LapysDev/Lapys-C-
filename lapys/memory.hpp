@@ -50,14 +50,14 @@ namespace Lapys {
           static enum kind : typename uint_minimum_t::type
         #endif
         {
-          C_STANDARD = 0x2u,
+          C_STANDARD = 0x3u,
           CPP_STANDARD,
           MICROSOFT_WINDOWS__HEAP,
           MICROSOFT_WINDOWS__VIRTUAL,
           UNIX__ALIGNED,
           UNIX__MAPPED
-        } const KIND_COMPLETE_REFERENCE = static_cast<Allocation::kind>(0x0u), KIND_INCOMPLETE_REFERENCE = static_cast<Allocation::kind>(0x1u);
-        static typename uint_minimum_t::type const KIND_WIDTH = 3u;
+        } const KIND_COMPLETE_REFERENCE = static_cast<Allocation::kind>(0x1u), KIND_INCOMPLETE_REFERENCE = static_cast<Allocation::kind>(0x2u);
+        static typename uint_minimum_t::type const KIND_WIDTH = 4u;
 
         union value {
           friend class Allocation;
@@ -70,7 +70,7 @@ namespace Lapys {
             constfunc(true) inline value(void const volatile* const address) noexcept : address init(const_cast<void*>(address)) {}
 
             constfunc(true) inline value(std::size_t const offset) noexcept : metadata init(offset << Allocation::KIND_WIDTH) {}
-            constfunc(true) inline value(Allocation::kind const kind, std::size_t const size) noexcept : metadata init((static_cast<std::size_t>(kind) & Allocation::KIND_WIDTH) | (0u != size && size == ((size << Allocation::KIND_WIDTH) >> Allocation::KIND_WIDTH) ? size << Allocation::KIND_WIDTH : 0u)) {}
+            constfunc(true) inline value(Allocation::kind const kind, std::size_t const size) noexcept : metadata init((static_cast<std::size_t>(kind) & ~(~0u << Allocation::KIND_WIDTH)) | (0u != size && size == ((size << Allocation::KIND_WIDTH) >> Allocation::KIND_WIDTH) ? size << Allocation::KIND_WIDTH : 0u)) {}
         } const value;
 
         // ...
@@ -79,7 +79,7 @@ namespace Lapys {
         constfunc(true) inline Allocation(Allocation::kind const kind, std::size_t const size = 0u) noexcept : value(kind, size) {}
 
         // ...
-        noignore constfunc(true) inline Allocation::kind getKind  () const lref noexcept { return static_cast<Allocation::kind>(this -> value.metadata & Allocation::KIND_WIDTH); }
+        noignore constfunc(true) inline Allocation::kind getKind  () const lref noexcept { return static_cast<Allocation::kind>(this -> value.metadata & ~(~0u << Allocation::KIND_WIDTH)); }
         noignore constfunc(true) inline std::size_t      getOffset() const lref noexcept { return this -> value.metadata >> Allocation::KIND_WIDTH; }
         noignore constfunc(true) inline std::size_t      getSize  () const lref noexcept { return this -> value.metadata >> Allocation::KIND_WIDTH; }
 

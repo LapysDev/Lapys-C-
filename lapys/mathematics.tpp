@@ -34,9 +34,9 @@ namespace Lapys {
     }
 
     // ...
-    template <typename type>
-    constfunc(true) type nodecay maximum(type nodecay numberA, type nodecay numberB) noexcept {
-      return static_cast<type nodecay>(numberB > numberA ? numberB : numberA);
+    template <typename typeA, typename typeB>
+    constfunc(true) typeof((instanceof<typeB nodecay>() > instanceof<typeA nodecay>() ? instanceof<typeB nodecay>() : instanceof<typeA nodecay>())) maximum(typeA nodecay numberA, typeB nodecay numberB) noexcept {
+      return static_cast<typeof(instanceof<typeB nodecay>() > instanceof<typeA nodecay>() ? instanceof<typeB nodecay>() : instanceof<typeA nodecay>())>(numberB > numberA ? numberB : numberA);
     }
 
     template <typename type, std::size_t capacity>
@@ -45,9 +45,9 @@ namespace Lapys {
     }
 
     // ...
-    template <typename type>
-    constfunc(true) type nodecay minimum(type nodecay numberA, type nodecay numberB) noexcept {
-      return static_cast<type nodecay>(numberB < numberA ? numberB : numberA);
+    template <typename typeA, typename typeB>
+    constfunc(true) std::size_t minimum(typeA nodecay numberA, typeB nodecay numberB) noexcept {
+      return static_cast<typeof(instanceof<typeB nodecay>() < instanceof<typeA nodecay>() ? instanceof<typeB nodecay>() : instanceof<typeA nodecay>())>(numberB < numberA ? numberB : numberA);
     }
 
     template <typename type, std::size_t capacity>
