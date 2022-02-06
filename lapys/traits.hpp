@@ -2061,6 +2061,21 @@
       }
     #endif
 
+    template <typename typeA, typename typeB, std::size_t capacity>
+    constfunc(true) inline int copy(typeA (&destination)[capacity], typeB* const source) noexcept {
+      return bit_copy(destination, source, capacity * sizeof(typeA));
+    }
+
+    template <typename typeA, typename typeB, std::size_t capacity>
+    constfunc(true) inline int copy(typeA* const destination, typeB (&source)[capacity]) noexcept {
+      return bit_copy(destination, source, capacity * sizeof(typeB));
+    }
+
+    template <typename typeA, typename typeB, std::size_t capacityA, std::size_t capacityB>
+    constfunc(true) inline int copy(typeA (&destination)[capacityA], typeB (&source)[capacityB]) noexcept {
+      return bit_copy(destination, source, (capacityA * sizeof(typeA)) < (capacityB * sizeof(typeB)) ? capacityA * sizeof(typeA) : (capacityB * sizeof(typeB)));
+    }
+
     // ...
     #ifdef __cpp_rvalue_references
       #define bit_cast_friend()                                                                                                  \
@@ -2270,20 +2285,19 @@
     #else
       template <std::size_t size>
       struct bytesof_t final {
-        template <typename type>
-        friend constfunc(true) byte const (&bytesof() noexcept)[sizeof(type)];
-
+        template <typename type> friend constfunc(true) byte const (&bytesof(type const&, bytesof_t<sizeof(type)>) noexcept)[sizeof(type)];
         private:
-          typedef byte const (&bytes_t)[size];
+          typedef byte const (&type)[size];
 
           byte value[size];
-          constfunc(true) operator bytes_t() const noexcept { return this -> value; }
+          constfunc(true) inline operator type() const noexcept { return this -> value; }
       };
 
       template <typename type>
-      constfunc(true) byte const (&bytesof(type const& object) noexcept)[sizeof(type)];
-        // typedef byte const (&bytes_t)[sizeof(type)];
-        // return bytesof_t<sizeof(type)>().operator bytes_t();
+      constfunc(true) byte const (&bytesof(type const& object, bytesof_t<sizeof(type)> bytes = bytesof_t<sizeof(type)>()) noexcept)[sizeof(type)] {
+        typedef byte const (&subtype)[sizeof(type)];
+        return bit_copy(bytes.value, addressof(object), sizeof(type)), bytes.operator subtype();
+      }
     #endif
 
     // template <typename type>
