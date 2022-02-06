@@ -7,10 +7,8 @@ using namespace Lapys;
 
 /* Main */
 int main() {
-  std::printf("[integer -> pointer]: %p" "\r\n", bit_cast<void*>(69u));
-  std::printf("[pointer -> integer]: %u" "\r\n", bit_cast<unsigned>(69 + static_cast<Lapys::byte*>(NULL)));
-  // struct program { static void stop(int const) { std::puts("\r\n" "segfaulted..."); std::exit(EXIT_SUCCESS); } };
-  // std::signal(SIGSEGV, &program::stop);
+  struct program { static void stop(int const) { std::puts("\r\n" "segfaulted..."); std::exit(EXIT_SUCCESS); } };
+  std::signal(SIGSEGV, &program::stop);
 
   // // ...
   // unsigned count;

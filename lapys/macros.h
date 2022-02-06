@@ -11,7 +11,7 @@
   #undef previous_
 
   /* ... ->> Allow user `#define`s */
-  #define LAPYS_END_ARITY 24u
+  #define LAPYS_END_ARITY 12u
 
   #ifndef LAPYS_MAX_ARITY
   # define LAPYS_MAX_ARITY 8u // --> x > 2 && x < LAPYS_END_ARITY
