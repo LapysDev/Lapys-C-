@@ -10,7 +10,7 @@
   #undef next_
   #undef previous_
 
-  /* ... ->> Allow user `#define`s */
+  /* ... */
   #define LAPYS_END_ARITY 12u
 
   #ifndef LAPYS_MAX_ARITY

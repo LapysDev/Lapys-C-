@@ -1041,20 +1041,20 @@
           template <dummy_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Traits::subtract,           typeA, typeB, alias<typeof(null(  instanceof<typeA>()   - instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
           template <dummy_parameter dummy, typename typeA, typename typeB> struct valueof<dummy, Traits::unequals,           typeA, typeB, alias<typeof(null(  instanceof<typeA>()  != instanceof<typeB>()))> > final { template <enum operation subcontrol, apply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate; private: static bool const value = true; };
 
-          #define can_call_valueof(count)                                                                                                                                                                          \
-            template <dummy_parameter dummy, typename type, reapply(typename can_call_valueof_template_argument, comma, count)>                                                                                    \
-            struct valueof<dummy, Traits::call, type, reapply(can_call_valueof_template_argument, comma, count), alias<typeof(null(instanceof<type>(reapply(can_call_valueof_argument, comma, count))))> > final { \
+          #define can_call_builtin(count)                                                                                                                                                                          \
+            template <dummy_parameter dummy, typename type, reapply(typename can_call_builtin_template_argument, comma, count)>                                                                                    \
+            struct valueof<dummy, Traits::call, type, reapply(can_call_builtin_template_argument, comma, count), alias<typeof(null(instanceof<type>(reapply(can_call_builtin_argument, comma, count))))> > final { \
               template <enum operation subcontrol, reapply(can_nop_template_parameter, comma, LAPYS_MAX_ARITY)> friend struct can_operate;                                                                         \
               private: static bool const value = true;                                                                                                                                                             \
             };
-          # define can_call_valueof_argument(count)          instanceof<type ## count>()
-          # define can_call_valueof_template_argument(count) type ## count
+          # define can_call_builtin_argument(count)          instanceof<type ## count>()
+          # define can_call_builtin_template_argument(count) type ## count
 
-          apply(can_call_valueof, empty, previous(LAPYS_MAX_ARITY))
+          apply(can_call_builtin, empty, previous(LAPYS_MAX_ARITY))
 
-          #undef can_call_valueof
-          # undef can_call_valueof_argument
-          # undef can_call_valueof_template_argument
+          #undef can_call_builtin
+          # undef can_call_builtin_argument
+          # undef can_call_builtin_template_argument
 
           #ifdef __cpp_impl_three_way_comparison
             template <dummy_parameter dummy, typename typeA, typename typeB>
@@ -1126,6 +1126,11 @@
           static bool const value = can_operate<Traits::nop>::template valueof<DUMMY, Traits::compare, typeA, typeB>::value;
         };
       #endif
+
+      #undef can_call_template_argument
+      #undef can_nop_template_parameter
+      # undef can_nop_valueof_template_parameter
+      #undef can_operate_template_parameter
 
       // ... ->> accumulate, collection, index_collection, index_sequence, integer_collection, integer_sequence, maximum, minimum, sequence, total
       #ifdef __cpp_variadic_templates
@@ -2010,15 +2015,51 @@
     }
 
     /* Function > ... */
-    template <typename type>
-    constfunc(true) inline typename conditional<false == is_scalar<type>::value, typename remove_reference<type nodecay>::type*>::type addressof(type nodecay object) noexcept {
-      return static_cast<typename remove_reference<type nodecay>::type*>(static_cast<void*>(&const_cast<typename uint_byte_t::type&>(reinterpret_cast<typename uint_byte_t::type const volatile&>(static_cast<type const&>(object)))));
-    }
+    #ifdef __cpp_lib_addressof_constexpr
+      template <typename type>
+      constfunc(true) inline typename remove_reference<type nodecay>::type* addressof(type nodecay object) noexcept {
+        return const_cast<typename remove_reference<type nodecay>::type*>(std::addressof(static_cast<type const&>(object)));
+      }
+    #else
+      template <typename type>
+      constfunc(true) inline typename conditional<false == is_scalar<type>::value, typename remove_reference<type nodecay>::type*>::type addressof(type nodecay object) noexcept {
+        return static_cast<typename remove_reference<type nodecay>::type*>(static_cast<void*>(&const_cast<typename uint_byte_t::type&>(reinterpret_cast<typename uint_byte_t::type const volatile&>(static_cast<type const&>(object)))));
+      }
 
-    template <typename type>
-    constfunc(true) inline typename conditional<false != is_scalar<type>::value, typename remove_reference<type nodecay>::type*>::type addressof(type nodecay object) noexcept {
-      return const_cast<typename remove_reference<type nodecay>::type*>(&static_cast<type const&>(object));
-    }
+      template <typename type>
+      constfunc(true) inline typename conditional<false != is_scalar<type>::value, typename remove_reference<type nodecay>::type*>::type addressof(type nodecay object) noexcept {
+        return const_cast<typename remove_reference<type nodecay>::type*>(&static_cast<type const&>(object));
+      }
+    #endif
+
+    // ...
+    #ifdef __cpp_constexpr
+      #if CPP_VERSION < 2014uL
+        template <typename typeA, typename typeB>
+        constexpr inline typename conditional<false != (is_byte<typename remove_pointer<typeA>::type>::value && is_byte<typename remove_pointer<typeB>::type>::value), int>::type bit_copy(typeA* const destination, typeB* const source, std::size_t const size) noexcept {
+          return 0u != size ? (*destination = *source), bit_copy(destination + 1, source + 1, size - 1u) : 0x0;
+        }
+      #else
+        template <typename typeA, typename typeB>
+        constexpr inline typename conditional<false != (is_byte<typename remove_pointer<typeA>::type>::value && is_byte<typename remove_pointer<typeB>::type>::value), int>::type bit_copy(typeA* destination, typeB* source, std::size_t size) noexcept {
+          for ((destination += size), (source += size); size--; )
+          *--destination = *--source;
+
+          return 0x0;
+        }
+      #endif
+
+      template <typename typeA, typename typeB>
+      constexpr inline typename conditional<false == (is_byte<typename remove_pointer<typeA>::type>::value && is_byte<typename remove_pointer<typeB>::type>::value), int>::type bit_copy(typeA* const destination, typeB* const source, std::size_t size) noexcept {
+        return bit_copy(static_cast<byte*>(const_cast<void*>(static_cast<void const volatile*>(destination))), static_cast<byte const*>(const_cast<void const*>(static_cast<void const volatile*>(source))), size);
+      }
+    #else
+      template <typename typeA, typename typeB>
+      inline int bit_copy(typeA* const destination, typeB* const source, std::size_t const size) noexcept {
+        std::memcpy(const_cast<void*>(static_cast<void const volatile*>(destination)), const_cast<void*>(static_cast<void const volatile*>(source)), size);
+        return 0x0;
+      }
+    #endif
 
     // ...
     #ifdef __cpp_rvalue_references
@@ -2120,17 +2161,12 @@
           private: byte value[sizeof(type)];
         };
 
-        template <std::size_t length>
-        constfunc(false) inline static void* valueof(byte buffer[], byte const object[]) noexcept {
-          return (length ? valueof<length ? length - 1u : 0u>(buffer + 1, object + 1) : NULL), (*buffer = *object), buffer;
-        }
-
         // ...
         constfunc(true) inline static base value(type object, buffer_t buffer = buffer_t()) noexcept {
           return *static_cast<typename remove_reference<base>::type*>(
-            is_reference<base>::value
-            ? const_cast<void*>(static_cast<void const volatile*>(addressof(static_cast<type>(object))))
-            : valueof<sizeof(type)>(buffer.value, static_cast<byte*>(const_cast<void*>(static_cast<void const volatile*>(addressof(static_cast<type>(object))))))
+            false == is_reference<base>::value
+            ? bit_copy(buffer.value, addressof(static_cast<type>(object)), sizeof(type)), buffer.value
+            : const_cast<void*>(static_cast<void const volatile*>(addressof(static_cast<type>(object))))
           );
         }
     };
@@ -2228,10 +2264,9 @@
     // ...
     #if defined(__cpp_rvalue_references) && CPP_COMPILER != CPP__ICC__COMPILER
       template <typename type>
-      constfunc(true) byte (&&bytesof(type const& object, byte (&&bytes)[sizeof(type)] = {}) noexcept)[sizeof(type)];
-        // bytes;
-        // bit_cast<byte*>(addressof(object))
-        // bit_cast<byte*>(addressof(object)) + sizeof(type)
+      constfunc(true) byte const (&&bytesof(type const& object, byte (&&bytes)[sizeof(type)] = {}) noexcept)[sizeof(type)] {
+        return bit_copy(bytes, addressof(object), sizeof(type)), static_cast<byte const (&&)[sizeof(type)]>(bytes);
+      }
     #else
       template <std::size_t size>
       struct bytesof_t final {
