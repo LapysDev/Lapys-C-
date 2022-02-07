@@ -111,17 +111,19 @@
       // ... ->> For configurable function code paths or generic data structures
       enum control_parameter {
         BUFFERED    = 0x0001u,
-        DYNAMIC     = 0x0000u,
-        EXECUTABLE  = 0x0002u,
-        HEAP        = 0x0004u,
+        CLEARED     = 0x0002u,
+        EXECUTABLE  = 0x0004u,
         MAXIMUM     = 0xF000u,
         NON_DYNAMIC = 0x0008u,
         STACK       = 0x0010u,
         VIEWABLE    = 0x0020u,
-        ZERO        = 0x0000u  // --> 0
+
+        DYNAMIC     = 0x0000u,
+        HEAP        = 0x0000u,
+        ZERO        = 0x0000u
       };
-        constfunc(true) inline control_parameter operator &(control_parameter const controlParameterA, control_parameter const controlParameterB) noexcept { return static_cast<control_parameter>(static_cast<unsigned char>(controlParameterA) & static_cast<unsigned char>(controlParameterB)); }
-        constfunc(true) inline control_parameter operator |(control_parameter const controlParameterA, control_parameter const controlParameterB) noexcept { return static_cast<control_parameter>(static_cast<unsigned char>(controlParameterA) | static_cast<unsigned char>(controlParameterB)); }
+        constfunc(true) inline control_parameter operator &(control_parameter const controlParameterA, control_parameter const controlParameterB) noexcept { return static_cast<control_parameter>(static_cast<unsigned>(controlParameterA) & static_cast<unsigned>(controlParameterB)); }
+        constfunc(true) inline control_parameter operator |(control_parameter const controlParameterA, control_parameter const controlParameterB) noexcept { return static_cast<control_parameter>(static_cast<unsigned>(controlParameterA) | static_cast<unsigned>(controlParameterB)); }
 
       enum conversion {
         addressable_cast = 0x1u,
@@ -2277,6 +2279,12 @@
     #undef bit_cast_friend
 
     // ...
+    template <typename type>
+    constfunc(true) inline int bit_zero(type* const pointer, std::size_t const size) noexcept {
+      return 0u != size ? *bit_cast<byte*>(pointer) = 0x0u, bit_copy(bit_cast<byte*>(pointer) + 1, size - 1u) : 0;
+    }
+
+    // ...
     #if defined(__cpp_rvalue_references) && CPP_COMPILER != CPP__ICC__COMPILER
       template <typename type>
       constfunc(true) byte const (&&bytesof(type const& object, byte (&&bytes)[sizeof(type)] = {}) noexcept)[sizeof(type)] {
@@ -2299,14 +2307,6 @@
         return bit_copy(bytes.value, addressof(object), sizeof(type)), bytes.operator subtype();
       }
     #endif
-
-    // template <typename type>
-    // constexpr std::byte (&&bytesof(type const& object, std::byte (&&bytes)[sizeof(type)] = {}) noexcept)[sizeof(type)] {
-    //   std::byte const *const objectBytes = static_cast<std::byte*>(const_cast<void*>(static_cast<void const volatile*>(std::addressof(object))));
-
-    //   std::uninitialized_copy(objectBytes, objectBytes + sizeof(type), bytes);
-    //   return static_cast<std::byte (&&)[sizeof(type)]>(bytes);
-    // }
   }
 
   /* ... */

@@ -37,7 +37,7 @@ namespace Lapys {
     // ...
     template <typename type>
     Allocation reallocateHeap(type* const address, std::size_t const resize) noexcept {
-      return Memory::reallocateHeap(Traits::ZERO, address, resize);
+      return Memory::reallocateHeap(Traits::CLEARED, address, resize);
     }
 
     template <typename type>
@@ -60,7 +60,7 @@ namespace Lapys {
             reallocation = std::realloc(allocation, offset + resize);
 
             if (NULL != reallocation) {
-              if ((control & Traits::ZERO) && resize > size) std::memset(static_cast<typename uint_byte_t::type*>(reallocation) + offset + size, 0x0, resize - size);
+              if ((control & Traits::CLEARED) && resize > size) std::memset(static_cast<typename uint_byte_t::type*>(reallocation) + offset + size, 0x0, resize - size);
               if ((control & Traits::NON_DYNAMIC) && reallocation != allocation) { std::free(reallocation); reallocation = NULL; }
             }
           }
@@ -68,7 +68,7 @@ namespace Lapys {
         #if CPP_VENDOR & CPP__MICROSOFT_WINDOWS__VENDOR
           case Allocation::MICROSOFT_WINDOWS__HEAP: {
             if (false == (control & Traits::EXECUTABLE))
-            reallocation = ::HeapReAlloc(Memory::getHeap(), (control & Traits::NON_DYNAMIC ? HEAP_REALLOC_IN_PLACE_ONLY : 0x0) | (control & Traits::ZERO ? HEAP_ZERO_MEMORY : 0x0), allocation, offset + resize);
+            reallocation = ::HeapReAlloc(Memory::getHeap(), (control & Traits::NON_DYNAMIC ? HEAP_REALLOC_IN_PLACE_ONLY : 0x0) | (control & Traits::CLEARED ? HEAP_ZERO_MEMORY : 0x0), allocation, offset + resize);
           } break;
         #endif
         default: break;
@@ -79,7 +79,7 @@ namespace Lapys {
 
       // ...
       void             *const readdress  = Memory::allocateHeap(control, resize, alignmentof(typeof((instanceof<typename conditional<is_void<type>::value, byte, type>::type>()))));
-      Allocation const *const remetadata = Allocation::inspectHeap(reallocation);
+      Allocation const *const remetadata = Allocation::inspectHeap(readdress);
 
       if (NULL != readdress) {
         #if LAPYS_DEBUG
@@ -90,8 +90,8 @@ namespace Lapys {
         #endif
 
         Allocation::CPP_STANDARD == remetadata -> getKind()
-        ? std::uninitialized_copy(static_cast<byte*>(const_cast<void*>(static_cast<void const volatile*>(address))), static_cast<byte*>(const_cast<void*>(static_cast<void const volatile*>(address))) + Math::minimum(resize, size), static_cast<byte*>(readdress))
-        : std::memcpy(readdress, const_cast<void*>(static_cast<void const volatile*>(address)), Math::minimum(resize, size));
+        ? std::uninitialized_copy(bit_cast<byte*>(address), bit_cast<byte*>(address) + Math::minimum(resize, size), static_cast<byte*>(readdress))
+        : std::memcpy(readdress, bit_cast<void*>(address), Math::minimum(resize, size));
       }
 
       return readdress;
