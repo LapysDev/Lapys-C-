@@ -53,6 +53,8 @@ namespace Lapys {
 
     /* Class > ... */
     class Allocation final {
+      template <typename, std::size_t> class Allocator;
+
       friend Allocation allocateHeap(control_parameter const, std::size_t, std::size_t) noexcept;
       template <typename type> friend Allocation reallocateHeap(control_parameter const, type* const, std::size_t const) noexcept;
       template <typename type> friend bool releaseHeap(type* const) noexcept;
@@ -82,16 +84,15 @@ namespace Lapys {
             typename uint_least_t<(sizeof(kind) > sizeof(std::size_t) ? (sizeof(kind) > sizeof(typename uint_maximum_t::type) ? sizeof(kind) : sizeof(typename uint_maximum_t::type)) : sizeof(std::size_t))>::type const metadata;
 
             // ...
+            constfunc(true) inline value(std::size_t const size) noexcept : metadata init(size << Allocation::KIND_WIDTH) {}
             constfunc(true) inline value(void* const address) noexcept : address init(address) {}
-
-            constfunc(true) inline value(std::size_t const offset) noexcept : metadata init(offset << Allocation::KIND_WIDTH) {}
-            constfunc(true) inline value(Allocation::kind const kind, std::size_t const size) noexcept : metadata init((static_cast<std::size_t>(kind) & ~(~0u << Allocation::KIND_WIDTH)) | (0u != size && size == ((size << Allocation::KIND_WIDTH) >> Allocation::KIND_WIDTH) ? size << Allocation::KIND_WIDTH : 0u)) {}
+            constfunc(true) inline value(Allocation::kind const kind, std::size_t const size) noexcept : metadata init((size << Allocation::KIND_WIDTH) | (static_cast<std::size_t>(kind) & ~(~0u << Allocation::KIND_WIDTH))) {}
         } const value;
 
         // ...
-        constfunc(true) inline Allocation(std::size_t const offset) noexcept : value init(offset) {}
-        template <typename type> constfunc(true) inline Allocation(type* const pointer) noexcept : value init(bit_cast<void*>(pointer)) {}
-        constfunc(true) inline Allocation(Allocation::kind const kind, std::size_t const size = 0u) noexcept : value(kind, size) {}
+        constfunc(true) inline Allocation(std::size_t const size) noexcept : value init(size) {}                 // ->> For tracking monotonic `Allocator`s
+        template <typename type> constfunc(true) inline Allocation(type* const pointer) noexcept : value init(bit_cast<void*>(pointer)) {} // ->> For converting between pointer types
+        constfunc(true) inline Allocation(Allocation::kind const kind, std::size_t const size = 0u) noexcept : value(kind, size) {}        // ->> For tracking heap allocation
 
         // ...
         noignore constfunc(true) inline Allocation::kind getKind  () const lref noexcept { return static_cast<Allocation::kind>(this -> value.metadata & ~(~0u << Allocation::KIND_WIDTH)); }
@@ -99,7 +100,10 @@ namespace Lapys {
         noignore constfunc(true) inline std::size_t      getSize  () const lref noexcept { return this -> value.metadata >> Allocation::KIND_WIDTH; }
 
         template <typename type>
-        noignore inline static Allocation const* inspectHeap(type* const address) noexcept {
+        noignore constfunc(true) inline static std::size_t inspect(type* const) noexcept;
+
+        template <typename type>
+        noignore constfunc(true) inline static Allocation const* inspectHeap(type* const address) noexcept {
           for (byte *information = bit_cast<byte*>(address) - sizeof(Allocation); ; --information)
           if (0u == static_cast<std::size_t>(bit_cast<byte*>(address) - information) % alignmentof(Allocation)) {
             Allocation const *const metadata = launder(bit_cast<Allocation const*>(information));
@@ -107,6 +111,10 @@ namespace Lapys {
           }
 
           return NULL;
+        }
+
+        noignore constfunc(true) inline static std::size_t inspectSize(std::size_t const size) noexcept {
+          return size * (size <= (SIZE_MAX >> Allocation::KIND_WIDTH));
         }
 
       public:
@@ -119,11 +127,110 @@ namespace Lapys {
     // ...
     template <>
     class Allocator<null, 0u> final {
+      private:
+        template <class allocator>
+        struct can_allocate final {
+          private:
+            template <dummy_parameter, class = alias<null> >
+            struct valueof final {
+              friend struct can_allocate<allocator>;
+              private: static bool const value = false;
+            };
+
+            template <dummy_parameter dummy>
+            struct valueof<dummy, alias<typeof(null(allocator::allocate(instanceof<std::size_t>())))> > final {
+              friend struct can_allocate<allocator>;
+              private: static bool const value = true;
+            };
+
+          public:
+            static bool const value = valueof<DUMMY>::value;
+        };
+
+        // ...
+        template <class allocator, typename type>
+        struct can_deallocate final {
+          private:
+            template <dummy_parameter, class = alias<null> >
+            struct valueof final {
+              friend struct can_deallocate<allocator, type>;
+              private: static bool const value = false;
+            };
+
+            template <dummy_parameter dummy>
+            struct valueof<dummy, alias<typeof(null(allocator::deallocate(instanceof<type*>(), instanceof<std::size_t>())))> > final {
+              friend struct can_deallocate<allocator, type>;
+              private: static bool const value = true;
+            };
+
+          public:
+            static bool const value = valueof<DUMMY>::value;
+        };
+
+        // ...
+        template <class allocator, typename type>
+        struct can_reallocate final {
+          private:
+            template <dummy_parameter, class = alias<null> >
+            struct valueof final {
+              friend struct can_reallocate<allocator, type>;
+              private: static bool const value = false;
+            };
+
+            template <dummy_parameter dummy>
+            struct valueof<dummy, alias<typeof(null(allocator::reallocate(instanceof<type*>(), instanceof<std::size_t>())))> > final {
+              friend struct can_reallocate<allocator, type>;
+              private: static bool const value = true;
+            };
+
+          public:
+            static bool const value = valueof<DUMMY>::value;
+        };
+
+        // ...
+        template <class, typename, bool sized>
+        struct can_release;
+
+        template <class allocator, typename type>
+        struct can_release<allocator, type, false> final {
+          private:
+            template <dummy_parameter, class = alias<null> >
+            struct valueof final {
+              friend struct can_release<allocator, type, false>;
+              private: static bool const value = false;
+            };
+
+            template <dummy_parameter dummy>
+            struct valueof<dummy, alias<typeof(null(allocator::release(instanceof<type*>())))> > final {
+              friend struct can_release<allocator, type, false>;
+              private: static bool const value = true;
+            };
+
+          public:
+            static bool const value = valueof<DUMMY>::value;
+        };
+
+        template <class allocator, typename type>
+        struct can_release<allocator, type, true> final {
+          private:
+            template <dummy_parameter, class = alias<null> >
+            struct valueof final {
+              friend struct can_release<allocator, type, true>;
+              private: static bool const value = false;
+            };
+
+            template <dummy_parameter dummy>
+            struct valueof<dummy, alias<typeof(null(allocator::release(instanceof<type*>(), instanceof<std::size_t>())))> > final {
+              friend struct can_release<allocator, type, true>;
+              private: static bool const value = true;
+            };
+
+          public:
+            static bool const value = valueof<DUMMY>::value;
+        };
+
       public:
-        template <class allocator> struct can_allocate;
-        template <class allocator> struct can_deallocate;
-        template <class allocator> struct can_reallocate;
-        template <class allocator, bool> struct can_release;
+        constfunc(true) inline Allocator() noexcept discard;
 
         // ...
         template <class allocator> constfunc(true) inline typename conditional<false == is_allocator<allocator>::value && can_allocate<allocator>::value && false == is_pointer<typeof(allocator::allocate(instanceof<std::size_t>()))>::value, void*>::type allocate(std::size_t const size) const volatile noexcept { return const_cast<void*>(static_cast<void const volatile*>(allocator::allocate(static_cast<std::size_t>(size)))); }
@@ -132,33 +239,50 @@ namespace Lapys {
         template <class allocator> constfunc(true) inline typename conditional<false == is_allocator<allocator>::value, typeof(Allocator<null>::allocate<allocator>(instanceof<std::size_t>()))>::type allocate(control_parameter const, std::size_t const size) const volatile noexcept { return Allocator<null>::allocate<allocator>(size); }
         template <class allocator> constfunc(true) inline typename conditional<false != is_allocator<allocator>::value, typename assess_allocator<allocator>::base*>::type allocate(control_parameter const control, std::size_t const size) const volatile noexcept { return allocator::allocate(control, size); }
 
-        template <class allocator, typename type> constfunc(true) inline typename conditional<false == is_allocator<allocator>::value && can_reallocate<allocator>::value && false == is_pointer<typeof(allocator::reallocate(instanceof<type*>(), instanceof<std::size_t>()))>::value, type*>::type reallocate(type* const address, std::size_t const resize) const volatile noexcept { return static_cast<void>(allocator::reallocate(static_cast<type*>(address), static_cast<std::size_t>(resize))), address; }
-        template <class allocator, typename type> constfunc(true) inline typename conditional<false == is_allocator<allocator>::value && can_reallocate<allocator>::value && false != is_pointer<typeof(allocator::reallocate(instanceof<type*>(), instanceof<std::size_t>()))>::value, typeof(allocator::reallocate(instanceof<type*>(), instanceof<std::size_t>()))>::type reallocate(type* const address, std::size_t const resize) const volatile noexcept { return allocator::reallocate(static_cast<type*>(address), static_cast<std::size_t>(resize)); }
+        template <class allocator, typename type> constfunc(true) inline typename conditional<false == is_allocator<allocator>::value && can_reallocate<allocator, type>::value && false == is_pointer<typeof(allocator::reallocate(instanceof<type*>(), instanceof<std::size_t>()))>::value, type*>::type reallocate(type* const address, std::size_t const resize) const volatile noexcept { return static_cast<void>(allocator::reallocate(static_cast<type*>(address), static_cast<std::size_t>(resize))), address; }
+        template <class allocator, typename type> constfunc(true) inline typename conditional<false == is_allocator<allocator>::value && can_reallocate<allocator, type>::value && false != is_pointer<typeof(allocator::reallocate(instanceof<type*>(), instanceof<std::size_t>()))>::value, typeof(allocator::reallocate(instanceof<type*>(), instanceof<std::size_t>()))>::type reallocate(type* const address, std::size_t const resize) const volatile noexcept { return allocator::reallocate(static_cast<type*>(address), static_cast<std::size_t>(resize)); }
         template <class allocator, typename type> constfunc(true) inline typename conditional<false != is_allocator<allocator>::value, typename assess_allocator<allocator>::base*>::type allocate(type* const address, std::size_t const resize) const volatile noexcept { return allocator::reallocate(address, resize); }
         template <class allocator, typename type> constfunc(true) inline typename conditional<false == is_allocator<allocator>::value, typeof(Allocator<null>::reallocate<allocator>(instanceof<type*>(), instanceof<std::size_t>()))>::type allocate(control_parameter const, type* const address, std::size_t const resize) const volatile noexcept { return Allocator<null>::reallocate<allocator>(address, resize); }
         template <class allocator, typename type> constfunc(true) inline typename conditional<false != is_allocator<allocator>::value, typename assess_allocator<allocator>::base*>::type allocate(control_parameter const control, type* const address, std::size_t const resize) const volatile noexcept { return allocator::reallocate(control, address, resize); }
 
-        template <class allocator, typename type> constfunc(true) inline typename conditional<false == is_allocator<allocator>::value && can_release<allocator, false>::value && false == is_void<typeof(allocator::release(instanceof<type*>()))>::value, bool>::type release(type* const address) const volatile noexcept { return static_cast<bool>(allocator::release(static_cast<type*>(address))); }
-        template <class allocator, typename type> constfunc(true) inline typename conditional<false == is_allocator<allocator>::value && can_release<allocator, false>::value && false != is_void<typeof(allocator::release(instanceof<type*>()))>::value, bool>::type release(type* const address) const volatile noexcept { return static_cast<void>(allocator::release(static_cast<type*>(address))), true; }
+        template <class allocator, typename type> constfunc(true) inline typename conditional<false == is_allocator<allocator>::value && can_release<allocator, type, false>::value && false == is_void<typeof(allocator::release(instanceof<type*>()))>::value, bool>::type release(type* const address) const volatile noexcept { return static_cast<bool>(allocator::release(static_cast<type*>(address))); }
+        template <class allocator, typename type> constfunc(true) inline typename conditional<false == is_allocator<allocator>::value && can_release<allocator, type, false>::value && false != is_void<typeof(allocator::release(instanceof<type*>()))>::value, bool>::type release(type* const address) const volatile noexcept { return static_cast<void>(allocator::release(static_cast<type*>(address))), true; }
         template <class allocator, typename type> constfunc(true) inline typename conditional<false != is_allocator<allocator>::value, bool>::type release(type* const address) const volatile noexcept { return allocator::release(address); }
-        template <class allocator, typename type> constfunc(true) inline typename conditional<false == is_allocator<allocator>::value && can_release<allocator, true>::value && false == is_void<typeof(allocator::release(instanceof<type*>()))>::value, bool>::type release(type* const address, std::size_t const size) const volatile noexcept { return static_cast<bool>(allocator::release(static_cast<type*>(address)), static_cast<std::size_t>(size)); }
-        template <class allocator, typename type> constfunc(true) inline typename conditional<false == is_allocator<allocator>::value && can_release<allocator, true>::value && false != is_void<typeof(allocator::release(instanceof<type*>()))>::value, bool>::type release(type* const address, std::size_t const size) const volatile noexcept { return static_cast<void>(allocator::release(static_cast<type*>(address)), static_cast<std::size_t>(size)), true; }
+        template <class allocator, typename type> constfunc(true) inline typename conditional<false == is_allocator<allocator>::value && can_release<allocator, type, true>::value && false == is_void<typeof(allocator::release(instanceof<type*>()))>::value, bool>::type release(type* const address, std::size_t const size) const volatile noexcept { return static_cast<bool>(allocator::release(static_cast<type*>(address)), static_cast<std::size_t>(size)); }
+        template <class allocator, typename type> constfunc(true) inline typename conditional<false == is_allocator<allocator>::value && can_release<allocator, type, true>::value && false != is_void<typeof(allocator::release(instanceof<type*>()))>::value, bool>::type release(type* const address, std::size_t const size) const volatile noexcept { return static_cast<void>(allocator::release(static_cast<type*>(address)), static_cast<std::size_t>(size)), true; }
         template <class allocator, typename type> constfunc(true) inline typename conditional<false != is_allocator<allocator>::value, bool>::type release(type* const address, std::size_t const size) const volatile noexcept { return allocator::release(address, size); }
     };
 
     template <std::size_t capacity>
     class Allocator<null, capacity> final {
       public:
+        constfunc(true) inline Allocator() noexcept discard;
+
+        // ...
+        template <class allocator> constfunc(true) inline typeof((Allocator<null, 0u>::allocate<allocator>(instanceof<std::size_t>()))) allocate(std::size_t const size) noexcept { return Allocator<null, 0u>::allocate<allocator>(size); }
+        template <class allocator> constfunc(true) inline typeof((Allocator<null, 0u>::allocate<allocator>(instanceof<control_parameter>(), instanceof<std::size_t>()))) allocate(control_parameter const control, std::size_t const size) noexcept { return Allocator<null, 0u>::allocate<allocator>(control, size); }
+
+        template <class allocator, typename type> constfunc(true) inline typeof((Allocator<null, 0u>::reallocate<allocator>(instanceof<type*>(), instanceof<std::size_t>()))) reallocate(type* const address, std::size_t const resize) noexcept { return Allocator<null, 0u>::reallocate<allocator>(address, resize); }
+        template <class allocator, typename type> constfunc(true) inline typeof((Allocator<null, 0u>::reallocate<allocator>(instanceof<control_parameter>(), instanceof<type*>(), instanceof<std::size_t>()))) reallocate(control_parameter const control, type* const address, std::size_t const resize) noexcept { return Allocator<null, 0u>::reallocate<allocator>(control, address, resize); }
+
+        template <class allocator, typename type> constfunc(true) inline bool release(type* const address) noexcept { return Allocator<null, 0u>::release<allocator>(address); }
+        template <class allocator, typename type> constfunc(true) inline bool release(type* const address, std::size_t const size) noexcept { return Allocator<null, 0u>::release<allocator>(address, size); }
     };
 
     template <typename base, std::size_t capacity>
     class Allocator final {
+      private:
+        base *heap;
+        alignmentas(sizeof(typename uint_least_t<(sizeof(Allocation) < sizeof(typename uint_maximum_t::type) ? sizeof(Allocation) : sizeof(typename uint_maximum_t::type))>::type)) byte stack[capacity * sizeof(typename conditional<is_void<base>::value, byte, base>::type)];
+
       public:
-        // alignmentof(typeof((instanceof<typename conditional<is_void<base>::value, byte, base>::type>())))
-        constfunc(true) inline typename conditional<is_void<base>::value, Allocation, base*>::type allocate(std::size_t const size) const volatile noexcept { return Allocator::allocate(static_cast<control_parameter>(static_cast<unsigned>(Traits::DUMMY)), size); }
+        constfunc(true) inline Allocator() noexcept : heap init(NULL) {}
+
+        // ...
+        constfunc(true) inline typename conditional<is_void<base>::value, Allocation, base*>::type allocate(std::size_t const count) const volatile noexcept { return Allocator::allocate(static_cast<control_parameter>(static_cast<unsigned>(Traits::DUMMY)), count); }
         constfunc(true) typename conditional<is_void<base>::value, Allocation, base*>::type allocate(control_parameter const, std::size_t const) const volatile noexcept;
 
-        constfunc(true) inline typename conditional<is_void<base>::value, Allocation, base*>::type reallocate(base* const address, std::size_t const resize) const volatile noexcept { return Allocator::allocate(static_cast<control_parameter>(static_cast<unsigned>(Traits::DUMMY)), address, resize); }
+        constfunc(true) inline typename conditional<is_void<base>::value, Allocation, base*>::type reallocate(base* const address, std::size_t const recount) const volatile noexcept { return Allocator::reallocate(static_cast<control_parameter>(static_cast<unsigned>(Traits::DUMMY)), address, recount); }
         constfunc(true) typename conditional<is_void<base>::value, Allocation, base*>::type reallocate(control_parameter const, base* const, std::size_t const) const volatile noexcept;
 
         constfunc(true) bool release(base* const) const volatile noexcept;
@@ -168,14 +292,14 @@ namespace Lapys {
     template <typename base>
     class Allocator<base, Traits::HEAP> final {
       public:
-        noignore inline typename conditional<is_void<base>::value, Allocation, base*>::type allocate(std::size_t const size) const volatile noexcept { return Memory::allocateHeap(size, alignmentof(typeof((instanceof<typename conditional<is_void<base>::value, byte, base>::type>())))); }
-        noignore typename conditional<is_void<base>::value, Allocation, base*>::type allocate(control_parameter const control, std::size_t const size) const volatile noexcept { return Memory::allocateHeap(control, size, alignmentof(typeof((instanceof<typename conditional<is_void<base>::value, byte, base>::type>())))); }
+        noignore inline typename conditional<is_void<base>::value, Allocation, base*>::type allocate(std::size_t const count) const volatile noexcept { return Allocator::allocate(static_cast<control_parameter>(static_cast<unsigned>(Traits::DUMMY)), count); }
+        noignore typename conditional<is_void<base>::value, Allocation, base*>::type allocate(control_parameter const control, std::size_t const count) const volatile noexcept { return Memory::allocateHeap(control, count * sizeof(typename conditional<is_void<base>::value, byte, base>::type), alignmentof(typeof((instanceof<typename conditional<is_void<base>::value, byte, base>::type>())))); }
 
-        noignore inline typename conditional<is_void<base>::value, Allocation, base*>::type reallocate(base* const address, std::size_t const resize) const volatile noexcept { return Memory::reallocateHeap(address, resize); }
-        noignore typename conditional<is_void<base>::value, Allocation, base*>::type reallocate(control_parameter const control, base* const address, std::size_t const resize) const volatile noexcept { return Memory::reallocateHeap(control, address, resize); }
+        noignore inline typename conditional<is_void<base>::value, Allocation, base*>::type reallocate(base* const address, std::size_t const recount) const volatile noexcept { return Allocator::reallocate(static_cast<control_parameter>(static_cast<unsigned>(Traits::DUMMY)), address, recount); }
+        noignore typename conditional<is_void<base>::value, Allocation, base*>::type reallocate(control_parameter const control, base* const address, std::size_t const recount) const volatile noexcept { return Memory::reallocateHeap(control, address, recount * sizeof(typename conditional<is_void<base>::value, byte, base>::type)); }
 
         inline bool release(base* const address) const volatile noexcept { return Memory::releaseHeap(address); }
-        bool release(base* const address, std::size_t const size) const volatile noexcept { return Memory::releaseHeap(address, size); }
+        bool release(base* const address, std::size_t const count) const volatile noexcept { return Memory::releaseHeap(address, count * sizeof(typename conditional<is_void<base>::value, byte, base>::type)); }
     };
   }
 }

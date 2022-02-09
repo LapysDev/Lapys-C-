@@ -3,6 +3,47 @@ namespace Lapys {
   /* Namespace */
   namespace Memory {
     /* Function > ... */
+    // Heap + stack combo (realloc in place only) for capacity-based allocator
+
+    template <typename base, std::size_t capacity>
+    constfunc(true) typename conditional<is_void<base>::value, Allocation, base*>::type Allocator<base, capacity>::allocate(control_parameter const control, std::size_t const count) const volatile noexcept {
+      // std::size_t const size = count * sizeof(typename conditional<is_void<base>::value, byte, base>::type);
+
+
+      // if (0u == Allocation::canAllocate(size))
+      // return static_cast<base*>(NULL);
+
+      // // ...
+      // if (control & Traits::EXECUTABLE) {
+      //   if (NULL == this -> heap) {
+      //     this -> heap = Memory::allocateHeap(size);
+      //     // Allocation::inspect();
+      //   }
+
+      //   else {}
+      // }
+
+    static_cast<void>(control);
+    static_cast<void>(count);
+
+      // this -> heap
+      // this -> stack
+
+      //  capacity * sizeof(typename conditional<is_void<base>::value, byte, base>::type)
+    }
+
+    // ...
+    // template <typename base, std::size_t capacity>
+    // constfunc(true) typename conditional<is_void<base>::value, Allocation, base*>::type Allocator<base, capacity>::reallocate(control_parameter const, base* const, std::size_t const) const volatile noexcept;
+
+    // ...
+    // template <typename base, std::size_t capacity>
+    // constfunc(true) bool Allocator<base, capacity>::release(base* const) const volatile noexcept;
+
+    // template <typename base, std::size_t capacity>
+    // constfunc(true) inline bool Allocator<base, capacity>::release(base* const, std::size_t const) const volatile noexcept;
+
+    // ...
     template <typename type>
     type* align(type* const address, std::size_t const alignment, std::size_t const size) noexcept {
       return Memory::align(address, alignment, size, address);
@@ -56,7 +97,7 @@ namespace Lapys {
       switch (kind) {
         case Allocation::C_STANDARD:
         case Allocation::UNIX__ALIGNED: {
-          if (false == (control & Traits::EXECUTABLE)) {
+          if (false == (control & Traits::EXECUTABLE) && false == (control & Traits::NON_DYNAMIC)) {
             reallocation = std::realloc(allocation, offset + resize);
 
             if (NULL != reallocation) {

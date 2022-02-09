@@ -1,4 +1,4 @@
-/* ... */
+/* Namespace */
 namespace Lapys {
   /* Namespace */
   namespace Math {

@@ -3,7 +3,7 @@
 # define LAPYS_DEBUG true
 #endif
 
-/* Import > ... */
+/* Import */
 #include "lapys/includes.hpp"
 
 /* ... */

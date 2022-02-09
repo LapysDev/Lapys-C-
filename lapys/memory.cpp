@@ -22,13 +22,8 @@ namespace Lapys {
       if (0u == size) return static_cast<void*>(NULL);
       else size += alignmentof(Allocation) + sizeof(Allocation);
 
-      while (0u != alignment % alignmentof(Allocation))
-      ++alignment;
-
-      for (std::size_t width = 0u; alignment >> width; ++width) {
-        if (width > (CHAR_BIT * sizeof(std::size_t)) - Allocation::KIND_WIDTH)
-        return static_cast<void*>(NULL);
-      }
+      while (0u != alignment % alignmentof(Allocation)) ++alignment;
+      if (0u == Allocation::inspectSize(alignment + size)) return static_cast<void*>(NULL);
 
       // ...
       void *allocation = NULL;
@@ -111,9 +106,8 @@ namespace Lapys {
         }
 
         if (0u == static_cast<std::size_t>(static_cast<byte*>(address) - information) % alignmentof(Allocation)) {
-          if (information < static_cast<byte*>(allocation) + sizeof(Allocation)) {
+          if (information < static_cast<byte*>(allocation) + sizeof(Allocation))
             new (information) Allocation(Allocation::KIND_INCOMPLETE_REFERENCE, information - static_cast<byte*>(allocation));
-          }
 
           else {
             new (allocation)  Allocation(kind, size);
