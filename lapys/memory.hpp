@@ -102,8 +102,8 @@ namespace Lapys {
         template <typename type>
         noignore constfunc(true) inline static std::size_t inspect(type* const) noexcept;
 
-        template <typename type>
-        noignore constfunc(true) inline static Allocation const* inspectHeap(type* const address) noexcept {
+        template <typename type> // ->> make it `constexpr`
+        noignore constfunc(false) inline static Allocation const* inspectHeap(type* const address) noexcept {
           for (byte *information = bit_cast<byte*>(address) - sizeof(Allocation); ; --information)
           if (0u == static_cast<std::size_t>(bit_cast<byte*>(address) - information) % alignmentof(Allocation)) {
             Allocation const *const metadata = launder(bit_cast<Allocation const*>(information));
