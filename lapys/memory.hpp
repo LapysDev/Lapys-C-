@@ -99,23 +99,17 @@ namespace Lapys {
         noignore constfunc(true) inline std::size_t      getOffset() const lref noexcept { return this -> value.metadata >> Allocation::KIND_WIDTH; }
         noignore constfunc(true) inline std::size_t      getSize  () const lref noexcept { return this -> value.metadata >> Allocation::KIND_WIDTH; }
 
-        template <typename type>
-        noignore constfunc(true) inline static std::size_t inspect(type* const) noexcept;
+        // ...
+        // template <typename type>
+        // noignore constfunc(false) inline static Allocation const* inspect(type* const address) noexcept {
+        //   for (byte *)
+        // }
 
-        template <typename type> // ->> make it `constexpr`
-        noignore constfunc(false) inline static Allocation const* inspectHeap(type* const address) noexcept {
-          for (byte *information = bit_cast<byte*>(address) - sizeof(Allocation); ; --information)
-          if (0u == static_cast<std::size_t>(bit_cast<byte*>(address) - information) % alignmentof(Allocation)) {
-            Allocation const *const metadata = launder(bit_cast<Allocation const*>(information));
-            return Allocation::KIND_COMPLETE_REFERENCE == metadata -> getKind() ? launder(bit_cast<Allocation const*>(information - (metadata -> getOffset()))) : metadata;
-          }
+        noignore constfunc(true) inline static Allocation const* inspectHeap(Allocation const* const metadata, byte const* const information) noexcept { return Allocation::KIND_COMPLETE_REFERENCE == metadata -> getKind() ? launder(bit_cast<Allocation const*>(information - (metadata -> getOffset()))) : metadata; }
+        noignore constfunc(true) inline static Allocation const* inspectHeap(byte const* const address, byte const* const information) noexcept { return 0u == static_cast<std::size_t>(address - information) % alignmentof(Allocation) ? Allocation::inspectHeap(launder(bit_cast<Allocation const*>(information)), information) : Allocation::inspectHeap(address, information - 1); }
+        template <typename type> noignore constfunc(true) inline static Allocation const* inspectHeap(type* const address) noexcept { return Allocation::inspectHeap(bit_cast<byte const*>(address), bit_cast<byte const*>(address) - sizeof(Allocation)); }
 
-          return NULL;
-        }
-
-        noignore constfunc(true) inline static std::size_t inspectSize(std::size_t const size) noexcept {
-          return size * (size <= (SIZE_MAX >> Allocation::KIND_WIDTH));
-        }
+        noignore constfunc(true) inline static std::size_t inspectSize(std::size_t const size) noexcept { return size * (size <= (SIZE_MAX >> Allocation::KIND_WIDTH)); }
 
       public:
         template <typename type>
