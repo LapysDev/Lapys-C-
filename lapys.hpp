@@ -28,7 +28,6 @@
 #undef CPP_VERSION
 #
 #undef LAPYS_DEBUG
-#undef LAPYS_END_ARITY
 #undef LAPYS_MAX_TEMPLATE_INSTANTIATION
 #
 #undef alignmentas
