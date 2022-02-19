@@ -1,8 +1,3 @@
-/* Definitions */
-#ifndef LAPYS_DEBUG
-# define LAPYS_DEBUG true
-#endif
-
 /* Import */
 #include "lapys/includes.hpp"
 
@@ -27,7 +22,6 @@
 # undef CPP__UNIX__VENDOR
 #undef CPP_VERSION
 #
-#undef LAPYS_DEBUG
 #undef LAPYS_MAX_TEMPLATE_INSTANTIATION
 #
 #undef alignmentas

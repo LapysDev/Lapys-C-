@@ -134,7 +134,7 @@
 #endif
 #
 #if defined(__gnu_linux__) || defined(linux) || defined(__linux) || defined(__linux__)
-# define CPP_VENDOR CPP__LINUX__VENDOR
+# define CPP_VENDOR (CPP__LINUX__VENDOR | CPP__UNIX__VENDOR)
 #endif
 #
 #if defined(ARM9) || defined(_3DS) || defined(__SWITCH__)

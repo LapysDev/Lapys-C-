@@ -6,24 +6,27 @@ namespace Lapys {
   /* Namespace */
   namespace Memory {
     /* Function > ... */
-    Allocation allocateHeap(std::size_t const size) noexcept {
-      return Memory::allocateHeap(size, Math::minimum(Math::bit_ceil(size), static_cast<std::size_t>(LAPYS_MAX_BUILTIN_ALIGNMENT)));
+    Allocation allocate(std::size_t const size) noexcept {
+      return Memory::allocate(size, Math::minimum(Math::bit_ceil(size), static_cast<std::size_t>(LAPYS_MAX_BUILTIN_ALIGNMENT)));
     }
 
-    Allocation allocateHeap(std::size_t const size, std::size_t const alignment) noexcept {
-      return Memory::allocateHeap(static_cast<control_parameter>(static_cast<unsigned>(Traits::DUMMY)), size, alignment);
+    Allocation allocate(std::size_t const size, std::size_t const alignment) noexcept {
+      return Memory::allocate(static_cast<control_parameter>(static_cast<unsigned>(Traits::DUMMY)), size, alignment);
     }
 
-    Allocation allocateHeap(control_parameter const control, std::size_t const size) noexcept {
-      return Memory::allocateHeap(control, size, Math::minimum(Math::bit_ceil(size), static_cast<std::size_t>(LAPYS_MAX_BUILTIN_ALIGNMENT)));
+    Allocation allocate(control_parameter const control, std::size_t const size) noexcept {
+      return Memory::allocate(control, size, Math::minimum(Math::bit_ceil(size), static_cast<std::size_t>(LAPYS_MAX_BUILTIN_ALIGNMENT)));
     }
 
-    Allocation allocateHeap(control_parameter const control, std::size_t size, std::size_t alignment) noexcept {
-      if (0u == size) return static_cast<void*>(NULL);
-      else size += alignmentof(Allocation) + sizeof(Allocation);
+    Allocation allocate(control_parameter const control, std::size_t size, std::size_t alignment) noexcept {
+      if (0u == size)
+      return static_cast<void*>(NULL);
 
       while (0u != alignment % alignmentof(Allocation)) ++alignment;
-      if (0u == Allocation::inspectSize(alignment + size)) return static_cast<void*>(NULL);
+      size += alignmentof(Allocation) + sizeof(Allocation);
+
+      if (false == Allocation::assertSize(size + alignment))
+      return static_cast<void*>(NULL);
 
       // ...
       void *allocation = NULL;
@@ -37,7 +40,7 @@ namespace Lapys {
           }
 
           else {
-            HANDLE const heap = Memory::getHeap();
+            HANDLE const heap = Memory::getProcessHeap();
 
             // ...
             if (NULL != heap) allocation = ::HeapAlloc(heap, control & Traits::CLEARED ? HEAP_ZERO_MEMORY : 0x0u, size + (alignment * (MEMORY_ALLOCATION_ALIGNMENT != alignment)));
@@ -52,7 +55,7 @@ namespace Lapys {
         #if CPP_VENDOR & CPP__UNIX__VENDOR
           if (false == (control & Traits::EXECUTABLE)) {
             allocation = ::aligned_alloc(alignmentof(Allocation), size + (alignment * (alignmentof(Allocation) != alignment)));
-            if (NULL != allocation) { kind = Allocation::UNIX__ALIGNED; size += alignment * (alignmentof(Allocation) != alignment); if (control & Traits::CLEARED) { std::memset(allocation, 0x0, size); } break; }
+            if (NULL != allocation) { kind = Allocation::C_STANDARD; size += alignment * (alignmentof(Allocation) != alignment); if (control & Traits::CLEARED) { std::memset(allocation, 0x0, size); } break; }
           }
 
           allocation = ::mmap(NULL, size + alignment, PROT_READ | PROT_WRITE | (control & Traits::EXECUTABLE ? PROT_EXEC : 0x0), MAP_ANONYMOUS | MAP_PRIVATE, -1, 0L);
