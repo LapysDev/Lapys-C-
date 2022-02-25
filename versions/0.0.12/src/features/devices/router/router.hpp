@@ -1,2 +1,0 @@
-/* Class > Router */
-class Router;

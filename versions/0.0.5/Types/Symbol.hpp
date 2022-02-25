@@ -1,2 +1,0 @@
-/* Class > Symbol */
-class Symbol {};

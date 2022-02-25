@@ -1,2 +1,0 @@
-/* Class > Screen */
-class Screen;

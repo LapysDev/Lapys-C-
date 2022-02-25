@@ -1,2 +1,0 @@
-/* Class > Number */
-struct number {};

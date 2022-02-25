@@ -1,2 +1,0 @@
-/* Class > Device */
-class Device;
