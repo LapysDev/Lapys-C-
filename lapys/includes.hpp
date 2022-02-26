@@ -4,6 +4,19 @@
   /* Namespace */
   namespace Lapys {}
 
+  /* Definition > ... */
+  #ifndef __STDC_CONSTANT_MACROS
+  # define __STDC_CONSTANT_MACROS
+  #endif
+
+  #ifndef __STDC_FORMAT_MACROS
+  # define __STDC_FORMAT_MACROS
+  #endif
+
+  #ifndef __STDC_LIMIT_MACROS
+  # define __STDC_LIMIT_MACROS
+  #endif
+
   /* Import > ... */
   // : [C++ Standard Library]
   #include <algorithm> // Algorithm
@@ -17,14 +30,14 @@
   #include <new>       // New
 
   // : [C Standard Library]
-  #include <errno.h>   // Error No.
-  #include <stdbool.h> // Standard Booleans
-  #include <stdint.h>  // Standard Integers
-  #include <wchar.h>   // Wide Characters
+  #include <errno.h>    // Error No.
+  #include <inttypes.h> // Integer Types
+  #include <stdbool.h>  // Standard Booleans
+  #include <stdint.h>   // Standard Integers
+  #include <wchar.h>    // Wide Characters
 
   // : [...]
   #include "extensions.h" // Extensions
-  #include "macros.h"     // Macros
   #include "traits.hpp"   // Traits
 
   // : [UNIX]
@@ -40,7 +53,7 @@
   #   include <memoryapi.h>
   #endif
 
-  // : [...]
+  /* Import > ... */
   #include "mathematics.hpp" // Mathematics
   #include "memory.hpp"      // Memory
 #endif

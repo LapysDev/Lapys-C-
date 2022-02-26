@@ -1,3 +1,8 @@
+/* Pragma */
+#if CPP_COMPILER == CPP__GCC__COMPILER
+# pragma GCC system_header
+#endif
+
 /* ... */
 #undef CPP_
 #undef CPP_ENDIAN
@@ -237,6 +242,25 @@
 # define varinit(arguments) {arguments}
 #endif
 
+// : [Integer Types]
+#if CPP_COMPILER == CPP__CLANG__COMPILER
+# define int128_t  __int128_t
+# define uint128_t __uint128_t
+#elif CPP_COMPILER == CPP__GCC__COMPILER
+# ifdef __SIZEOF_INT128__
+#   pragma GCC diagnostic push
+#   pragma GCC diagnostic ignored "-Wpedantic"
+#   define int128_t  __int128
+#   define uint128_t unsigned __int128
+#   pragma GCC diagnostic pop
+# endif
+#elif CPP_COMPILER == CPP__ICC__COMPILER
+# ifdef __SSE2__
+# define int128_t  __i128
+# define uint128_t __u128
+# endif
+#endif
+
 // : [Return Specifier]
 #if CPP_VERSION < 2011uL
 # define noignore
@@ -330,16 +354,19 @@
 #endif
 
 // : [Type Inspection Specifier]
-#if CPP_COMPILER == CPP__CLANG__COMPILER
-# if defined(__typeof__)
+#if CPP_VERSION < 2011uL
+# if CPP_COMPILER == CPP__CLANG__COMPILER
 #   define typeof(expression) __typeof__(expression)
-# elif defined(__typeof)
-#   define typeof(expression) __typeof(expression)
+# elif CPP_COMPILER == CPP__GCC__COMPILER
+#   define typeof(expression) __decltype(expression)
+# elif CPP_COMPILER == CPP__ICC__COMPILER
+#   define typeof(expression) typeof(expression)
+# elif CPP_COMPILER == CPP__MSVC__COMPILER
+#   define typeof(expression) decltype(expression)
 # endif
-#elif CPP_COMPILER == CPP__GCC__COMPILER
-# define typeof(expression) __decltype(expression)
-#elif CPP_COMPILER == CPP__ICC__COMPILER
-# define typeof(expression) typeof(expression)
-#elif CPP_COMPILER == CPP__MSVC__COMPILER
+#else
 # define typeof(expression) decltype(expression)
 #endif
+
+// : [...]
+#define empty()
