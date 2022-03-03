@@ -165,28 +165,30 @@
 #endif
 
 // : [Constant Expression]
-#if CPP_VERSION < 2011uL
-# define constenum(type, name, value) enum { name = value }
-#else
+#ifdef __cpp_constexpr
 # define constenum(type, name, value) constexpr type name varinit(value)
+#else
+# define constenum(type, name, value) enum { name = value }
 #endif
 
 #define constfunc(unrelaxed) constfunc_ ## unrelaxed
-#if CPP_VERSION < 2011uL
+#ifdef __cpp_constexpr
+# if CPP_VERSION < 2014uL
+#   define constfunc_false
+#   define constfunc_true constexpr
+# else
+#   define constfunc_false constexpr
+#   define constfunc_true  constexpr
+# endif
+#else
 # define constfunc_false
 # define constfunc_true
-#elif CPP_VERSION < 2014uL
-# define constfunc_false
-# define constfunc_true constexpr
-#else
-# define constfunc_false constexpr
-# define constfunc_true  constexpr
 #endif
 
-#if CPP_VERSION < 2011uL
-# define constvar
-#else
+#ifdef __cpp_constexpr
 # define constvar constexpr
+#else
+# define constvar
 #endif
 
 // : [Deleted Function Specifier]
@@ -234,12 +236,12 @@
 #endif
 
 // : [Initialization]
-#if CPP_VERSION < 2011uL
-# define init(arguments)   (arguments)
-# define varinit(arguments) = arguments
-#else
+#ifdef __cpp_aggregate_paren_init
 # define init(arguments)    {arguments}
 # define varinit(arguments) {arguments}
+#else
+# define init(arguments)   (arguments)
+# define varinit(arguments) = arguments
 #endif
 
 // : [Integer Types]
