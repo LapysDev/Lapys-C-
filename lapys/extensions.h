@@ -351,23 +351,27 @@
 #   endif
 # endif
 #else
-# define alignmentas(argument)   alignas(argument)
-# define alignmentof(type) alignof(type)
+# define alignmentas(argument) alignas(argument)
+# define alignmentof(type)     alignof(type)
 #endif
 
 // : [Type Inspection Specifier]
-#if CPP_VERSION < 2011uL
-# if CPP_COMPILER == CPP__CLANG__COMPILER
-#   define typeof(expression) __typeof__(expression)
-# elif CPP_COMPILER == CPP__GCC__COMPILER
-#   define typeof(expression) __decltype(expression)
-# elif CPP_COMPILER == CPP__ICC__COMPILER
-#   define typeof(expression) typeof(expression)
-# elif CPP_COMPILER == CPP__MSVC__COMPILER
+#ifndef typeof
+# if CPP_VERSION < 2011uL
+#   if CPP_COMPILER == CPP__CLANG__COMPILER
+#     define typeof(expression) __typeof__(expression)
+#   elif CPP_COMPILER == CPP__GCC__COMPILER
+#     define typeof(expression) __decltype(expression)
+#   elif CPP_COMPILER == CPP__ICC__COMPILER
+#     define typeof(expression) typeof(expression)
+#   elif CPP_COMPILER == CPP__MSVC__COMPILER
+#     define typeof(expression) decltype(expression)
+#   else
+#     error Static type inspection feature `typeof(...)` required
+#   endif
+# else
 #   define typeof(expression) decltype(expression)
 # endif
-#else
-# define typeof(expression) decltype(expression)
 #endif
 
 // : [...]
