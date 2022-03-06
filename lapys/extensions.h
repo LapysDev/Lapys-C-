@@ -240,7 +240,7 @@
 # define init(arguments)    {arguments}
 # define varinit(arguments) {arguments}
 #else
-# define init(arguments)   (arguments)
+# define init(arguments) (arguments)
 # define varinit(arguments) = arguments
 #endif
 
