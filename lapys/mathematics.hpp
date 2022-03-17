@@ -69,7 +69,6 @@ namespace Lapys {
     constfunc(true) inline void ipow(...) noexcept;
     constfunc(true) inline void iroot(...) noexcept;
     constfunc(true) inline void isqrt(...) noexcept;
-    constfunc(true) inline void itrunc(...) noexcept;
     constfunc(true) inline void jsf(...) noexcept;
     constfunc(true) inline void knuth_b(...) noexcept;
     constfunc(true) inline void laguerre(...) noexcept;
@@ -86,6 +85,7 @@ namespace Lapys {
     constfunc(true) inline void mulberry32(...) noexcept;
     constfunc(true) inline void perc(...) noexcept;
     constfunc(true) inline void pow(...) noexcept;
+    constfunc(true) inline void randint(...) noexcept;
     constfunc(true) inline void random(...) noexcept;
     constfunc(true) inline void riemann_zeta(...) noexcept;
     constfunc(true) inline void root(...) noexcept;
