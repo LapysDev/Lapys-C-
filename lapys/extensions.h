@@ -164,6 +164,13 @@
 # define nouniqueaddr [[no_unique_address]]
 #endif
 
+// : [Class Enumeration]
+#if CPP_VERSION < 2011uL
+# define classenum(type, name) enum name
+#else
+# define classenum(type, name) enum name : type
+#endif
+
 // : [Constant Expression]
 #ifdef __cpp_constexpr
 # define constenum(type, name, value) constexpr type name varinit(value)

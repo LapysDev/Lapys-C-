@@ -35,7 +35,7 @@
 #
 #undef alignmentas
 #undef alignmentof
-#undef concatenate
+#undef classenum
 #undef constenum
 #undef constfunc
 # undef constfunc_false
