@@ -52,6 +52,7 @@
 #undef init
 #undef int128_t
 #undef lref
+#undef nilinit
 #undef nodecay
 #undef nodecayparam
 #undef noexcept

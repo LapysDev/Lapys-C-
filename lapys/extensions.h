@@ -245,9 +245,11 @@
 // : [Initialization]
 #ifdef __cpp_aggregate_paren_init
 # define init(arguments)    {arguments}
+# define nilinit(type)      {}
 # define varinit(arguments) {arguments}
 #else
-# define init(arguments) (arguments)
+# define init(arguments)    (arguments)
+# define nilinit(type)      = type()
 # define varinit(arguments) = arguments
 #endif
 
