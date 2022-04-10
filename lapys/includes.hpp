@@ -37,8 +37,8 @@
   #include <wchar.h>    // Wide Characters
 
   // : [...]
-  #include "extensions.h" // Extensions
-  #include "traits.hpp"   // Traits
+  #include "extensions.hpp" // Extensions
+  #include "traits.hpp"     // Traits
 
   // : [UNIX]
   #if CPP_VENDOR & CPP__UNIX__VENDOR

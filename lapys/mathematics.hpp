@@ -7,7 +7,7 @@ namespace Lapys {
     constvar long double const LN10 = 2.3025850929940460L;
     constvar long double const PI   = 3.1415926535897930L;
     constenum(unsigned, ONE , 1u);
-    constenum(unsigned, ZERO, 0u);
+    constenum(unsigned, ZERO, 0u); // UPDATE (Lapys) -> Constant math expressions `operate<add, Math::E, fraction<2, 5>::value, decimal<5, 4>::value>`
 
     // ...
     template <typename base>

@@ -1,8 +1,3 @@
-/* Pragma */
-#if CPP_COMPILER == CPP__GCC__COMPILER
-# pragma GCC system_header
-#endif
-
 /* ... */
 #undef CPP_
 #undef CPP_ENDIAN
@@ -148,6 +143,11 @@
 #
 #if defined(__NT__) || defined(__TOS_WIN__) || defined(_WIN16) || defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(_WIN32_WCE) || defined(_WIN64) || defined(__WINDOWS__)
 # define CPP_VENDOR CPP__MICROSOFT_WINDOWS__VENDOR
+#endif
+
+/* Pragma */
+#if CPP_COMPILER == CPP__GCC__COMPILER
+# pragma GCC system_header
 #endif
 
 /* Definition > ... */
