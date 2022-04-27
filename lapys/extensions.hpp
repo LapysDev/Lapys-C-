@@ -108,18 +108,6 @@
 # endif
 #endif
 
-// : [C++ Pre-processor]
-#define CPP_STANDARD_PREPROCESSOR 0x1u
-#define CPP__MSVC__PREPROCESSOR   0x2u
-
-#if CPP_VERSION < 2011uL
-# define CPP_PREPROCESSOR CPP_STANDARD_PREPROCESSOR
-#else
-# define CPP_PREPROCESSOR CPP_PREPROCESSOR_CHECK(~, _MSVC_)
-#   define CPP_PREPROCESSOR_CHECK(...) CPP_PREPROCESSOR_SELECT(__VA_ARGS__)
-#   define CPP_PREPROCESSOR_SELECT(arguments, ...) defer(concatenate, defer(concatenate, CPP_, second(arguments, STANDARD, ~)), _PREPROCESSOR)
-#endif
-
 // : [C++ Vendor]
 # define CPP__APPLE_MACINTOSH__VENDOR   0x01u
 # define CPP__LINUX__VENDOR             0x02u

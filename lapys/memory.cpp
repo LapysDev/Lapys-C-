@@ -51,8 +51,7 @@
 //             allocation = ::aligned_alloc(alignmentof(Allocation), size);
 //             if (NULL != allocation) { kind = Allocation::C_STANDARD; if (control & Traits::CLEARED) { std::memset(allocation, 0x0, size); } break; }
 //           }
-
-//           allocation = ::mmap(NULL, size, PROT_READ | PROT_WRITE | (control & Traits::EXECUTABLE ? PROT_EXEC : 0x0), MAP_ANONYMOUS | MAP_PRIVATE, -1, 0L);
+//           allocation = ::mmap(NULL, size, PROT_READ | PROT_WRITE | (control & Traits::EXECUTABLE ? PROT_EXEC : 0x0), MAP_ANONYMOUS | MAP_PRIVATE, -1, 0L)
 //           if (NULL != allocation) { kind = Allocation::UNIX__MAPPED; break; }
 //         #endif
 
