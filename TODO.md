@@ -1,6 +1,7 @@
-<!-- Array API -->
-<h1 style=text-transform:none> Arrays </h1>
-General-purpose arrays supporting an initial fixed-size memory buffer
+<!-- Arrays -->
+<h1 style=text-transform:none> <a href=#arrays target=_self> Arrays </a> </h1>
+General-purpose arrays supporting an initial fixed-size memory buffer <br/>
+with compile-time support
 
 ```cpp
 // Always dynamically allocated
@@ -20,7 +21,7 @@ Array<int, 3zu, Allocator<HEAP> >;
 ```
 
 <!-- Compile-time Operations -->
-<h1 style=text-transform:none> Compile-time operations <small> <em> (with <code>template</code>s) </em> </small> </h1>
+<h1 style=text-transform:none> <a href=#constops target=_self> Compile-time operations <small> <em> (with <code>template</code>s) </em> </small> </a> </h1>
 Traits that allow for compile-time arithmetic operations (intended for floating-point numbers)
 
 ```cpp
@@ -33,7 +34,7 @@ operate::add<
 ```
 
 <!-- Function API -->
-<h1 style=text-transform:none> Function API </h1>
+<h1 style=text-transform:none> <a href=#functions target=_self> Function API </a> </h1>
 Runtime interpreter which generates platform-specific machine code
 
 ```cpp
@@ -47,12 +48,12 @@ Function::addInstruction(function, …);
 ```
 
 <!-- Mathematics API -->
-<h1 style=text-transform:none> Mathematics API </h1>
+<h1 style=text-transform:none> <a href=#mathematics target=_self> Mathematics API </a> </h1>
 General-purpose mathematics library with common numeric constants & utility functions that work with generic types
 
 <!-- Memory API -->
-<h1 style=text-transform:none> Memory API </h1>
-General-purpose memory allocator which supports special-purpose allocation strategies
+<h1 style=text-transform:none> <a href=#memory target=_self> Memory API </a> </h1>
+General-purpose memory allocator which supports special-purpose allocation strategies with compile-time support for block-based allocations
 
 * Allocator for platform-specific executable memory
 * Defaults dynamic memory management on the program heap
@@ -74,8 +75,27 @@ Memory::allocateStatic(…);
 Memory::allocateStack(…);
 ```
 
+<!-- Properties -->
+<h1 style=text-transform:none> <a href=#properties target=_self> Properties </a> </h1>
+Accessor/ mutator objects that allow for more expressive behavior when modified/ referenced <br/>
+with compile-time support. <br/> <br/>
+Akin to how constructors/ destructors allow for more expressive resource management with object lifetimes
+
+```cpp
+class Array {
+  public:
+  property<unsigned, get, set> length;
+};
+```
+```cpp
+Array array = {};
+
+array.length;       // get(unsigned&, …)
+array.length = 42u; // set(unsigned&, …, 42u)
+```
+
 <!-- Shorthand Lambdas -->
-<h1 style=text-transform:none> Shorthand lambdas <small> <em> — even shorter function shorthands </em> </small> </h1>
+<h1 style=text-transform:none> <a href=#lambdas target=_self> Shorthand lambdas <small> <em> — even shorter function shorthands </em> </small> </a> </h1>
 
 ```cpp
 $0;      // function(a) { return a }
@@ -84,8 +104,9 @@ $0 + …; // function(a, …) { return a + … }
 ```
 
 <!-- String API -->
-<h1 style=text-transform:none> Strings </h1>
-General-purpose strings supporting ASCII and Unicode-aware text (for cyrillic, CJK, and emoji support)
+<h1 style=text-transform:none> <a href=#strings target=_self> Strings </a> </h1>
+General-purpose strings supporting ASCII and Unicode-aware text (for cyrillic, CJK, and emoji support) <br/>
+with compile-time support
 
 — see [CopperSpice strings](https://github.com/copperspice/cs_string)
 
