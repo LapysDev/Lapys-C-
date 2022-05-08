@@ -82,9 +82,8 @@
 #undef discard
 #undef exceptspec
 # if CPP_VERSION < 2011uL
-#   undef exceptspec__check__true
-#   undef exceptspec__fail
-#   undef exceptspec__pass
+#   undef exceptspec__false
+#   undef exceptspec__true
 #   undef noexcept
 # endif
 #if CPP_VERSION < 2011uL
@@ -106,6 +105,9 @@
 
 #if LAPYS_PREPROCESSOR
 #else
+# undef choose
+#   undef choose__false
+#   undef choose__true
 # undef empty
 #endif
 
