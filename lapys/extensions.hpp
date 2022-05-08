@@ -10,7 +10,6 @@
 #undef STANDARD
 #
 #undef constfunc__
-#undef exceptspec__
 
 /* Definition > ... */
 // : [C++ Compiler]
@@ -419,70 +418,55 @@
 # elif CPP_COMPILER == CPP__GCC__COMPILER
 #   pragma GCC system_header
 # endif
+  // #define arity(count) ...
   #define combine(argument1, argument2) argument1 ## argument2
 
   #define defer(function, ...) defer_parse(function, (__VA_ARGS__))
   # define defer_parse(function, call) function call
 
-  #define exact(argument) argument
-
   #define first(argument1, ...) argument1
   #define second(argument1, argument2, ...) argument2
 
   #undef apply // UPDATE (Lapys) -> Allow for nested `apply(...)`s within `apply(...)`s
-  # define apply__begin(function, separator, condition, currentArgument, nextArgument, ...) /* ->> Body of the `apply(...)` loop */                                                                      \
-    defer(combine, apply__check__, condition(currentArgument, nextArgument, __VA_ARGS__))(apply__continue, apply__end)( /* --> condition(currentArgument, ...) ? apply__continue : apply__end */         \
-      function,                                                                                                                                                                                          \
-      defer(combine, apply__check__, condition(nextArgument, __VA_ARGS__))(separator, apply__terminator), /* --> condition(nextArgument, ...) ? separator : apply__terminator ->> proper delimitation */ \
-      stall(reapply)()(function, separator, condition, nextArgument, __VA_ARGS__, break),                 /* --> apply(function, separator, condition, ..., {break}) ->> the next iteration */           \
-      currentArgument, nextArgument, __VA_ARGS__                                                                                                                                                         \
-    )
-  # undef  apply__condition
+  # define apply__begin(function, separator, condition, currentArgument, nextArgument, ...) choose(condition(currentArgument, nextArgument, __VA_ARGS__), apply__continue, apply__end)( /* ->> Body of the `apply(...)` loop */ \
+    function,                                                                                                                                                                                                                   \
+    choose(condition(nextArgument, __VA_ARGS__), separator, apply__terminator),                                                                                                                                                 \
+    stall(reapply)()(function, separator, condition, nextArgument, __VA_ARGS__, break),                                                                                                                                         \
+    currentArgument, nextArgument, __VA_ARGS__                                                                                                                                                                                  \
+  )
+  # undef  apply__condition                   // ->> asserts to `false` or `true` by default
+  # define apply__function(argument) argument // ->> evaluates to `argument` by default
+  # define apply__separator(argument, ...)    // ->> does not separate by default
+  #   define apply__condition__default ~, false
+  #   define apply__function__default  ~, false
+  #   define apply__separator__default ~, false
   #   define apply__condition__false() false
   #   define apply__condition__true()  true
-  #   define apply__check__false(apply__continue, apply__end) apply__end      // ->> evaluated from `apply__condition__false()` or the specified `condition` macro
-  #   define apply__check__true(apply__continue, apply__end)  apply__continue // ->> evaluated from `apply__condition_true()`   or the specified `condition` macro
-  #     define apply__condition__found__break      ~, false     // --> apply(function, separator, condition, {break}) ->> the last iteration
-  #     define apply__condition_selection__default ~, false
   # define apply__continue(function, separator, applyer, argument, ...) function(argument) separator(argument, __VA_ARGS__) applyer
   # define apply__end(function, separator, applyer, argument, ...)
-  # define apply__function(argument) argument
-  #     define apply__function_selection__default ~, false
-  # define apply__separator(argument, ...)
-  #     define apply__separator_selection__default ~, false
   # undef  apply__setup
-  # define apply__terminator(...)
-  # if CPP_PREPROCESSOR_FORMAT == CPP_PREPROCESSOR_STANDARD_FORMAT
-  #   define apply(...) parse(apply__setup(__VA_ARGS__, break, break, break))
-  #     define apply__condition(argument, ...) choose(defer(second, apply__condition__found__ ## argument, true, ~), apply__condition__true, apply__condition__false)()
-  #     define apply__setup(function, condition, separator, ...) apply__begin(                                              \
-          choose(defer(second, apply__function_selection__  ## function , true, ~), function,  apply__function), \
-          choose(defer(second, apply__separator_selection__ ## separator, true, ~), separator, apply__separator), \
-          choose(defer(second, apply__condition_selection__ ## condition, true, ~), condition, apply__condition), \
-          __VA_ARGS__                                                                                                       \
+  # define apply__terminator(argument, ...)
+  # if CPP_PREPROCESSOR_FORMAT == CPP_PREPROCESSOR_STANDARD_FORMAT || (CPP_COMPILER == CPP__ICC__COMPILER /* ->> No full support planned (ICC is likely *still bugged) */)
+  #   define apply(...) parse(apply__setup(__VA_ARGS__))
+  #     define apply__condition(argument, ...) choose(defer(second, reapply__ ## argument, true, ~), apply__condition__true, apply__condition__false)()
+  #     define apply__setup(function, condition, separator, ...) apply__begin(                          \
+          choose(defer(second, apply__function__  ## function , true, ~), function,  apply__function),  \
+          choose(defer(second, apply__separator__ ## separator, true, ~), separator, apply__separator), \
+          choose(defer(second, apply__condition__ ## condition, true, ~), condition, apply__condition), \
+          __VA_ARGS__, break, break                                                                     \
         )
   # elif CPP_PREPROCESSOR_FORMAT == CPP_PREPROCESSOR__MSVC__FORMAT
-  #   if CPP_COMPILER == CPP__ICC__COMPILER // ->> No full support planned (ICC is likely *still bugged)
-  #     define apply(...) parse(apply__setup(__VA_ARGS__))
-  #       define apply__condition(argument, ...) choose(defer(second, apply__condition__found__ ## argument, true, ~), apply__condition__true, apply__condition__false)()
-  #       define apply__setup(function, condition, separator, ...) apply__begin(                                              \
-            choose(defer(second, apply__function_selection__  ## function , true, ~), function,  apply__function), \
-            choose(defer(second, apply__separator_selection__ ## separator, true, ~), separator, apply__separator), \
-            choose(defer(second, apply__condition_selection__ ## condition, true, ~), condition, apply__condition), \
-            __VA_ARGS__, break, break                                                                                         \
-          )
-  #   else
-  #     define apply(...) parse(defer(apply__setup, __VA_ARGS__))
-  #       define apply__condition(argument, ...) choose(stall(defer(second, first(apply__condition__found__ ## argument, ~), true)), apply__condition__true, apply__condition__false)()
-  #       define apply__setup(function, condition, separator, ...) defer(apply__begin,                                                         \
-            stall(choose(defer(second, first(apply__function_selection__  ## function , ~), true, ~), function,  apply__function)), \
-            stall(choose(defer(second, first(apply__separator_selection__ ## separator, ~), true, ~), separator, apply__separator)), \
-            stall(choose(defer(second, first(apply__condition_selection__ ## condition, ~), true, ~), condition, apply__condition)), \
-            __VA_ARGS__, break, break                                                                                                          \
-          )
-  #   endif
+  #   define apply(...) parse(defer(apply__setup, __VA_ARGS__))
+  #     define apply__condition(argument, ...) choose(stall(defer(second, first(reapply__ ## argument, ~), true)), apply__condition__true, apply__condition__false)()
+  #     define apply__setup(function, condition, separator, ...) defer(apply__begin,                                     \
+          stall(choose(defer(second, first(apply__function__  ## function , ~), true, ~), function,  apply__function)),  \
+          stall(choose(defer(second, first(apply__separator__ ## separator, ~), true, ~), separator, apply__separator)), \
+          stall(choose(defer(second, first(apply__condition__ ## condition, ~), true, ~), condition, apply__condition)), \
+          __VA_ARGS__, break, break                                                                                      \
+        )
   # endif
   # define reapply() apply__begin // ->> Update of the `apply(...)` loop
+  #   define reapply__break ~, false // ->> End of the `apply(...)` loop
 
   #define parse(...) parse__12(__VA_ARGS__)
   # define parse__1(...)  __VA_ARGS__
