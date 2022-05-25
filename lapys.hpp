@@ -13,14 +13,15 @@
   --- NOTE ---
   #Lapys: Defines additional macros and prevents some from being cleaned
     Additional macros:
-    - apply(...)
-    - concatenate(...)
-    - defer(...)
-    - first(...)
-    - parse(...)
-    - refer(...)
-    - second(...)
-    - stall(...)
+    - apply  (...)
+    - combine(...)
+    - defer  (...)
+    - first  (...)
+    - join   (...)
+    - parse  (...)
+    - refer  (...)
+    - second (...)
+    - stall  (...)
 
     Uncleaned macros:
     - CPP_COMPILER (including CPP_*_COMPILER)
@@ -54,6 +55,9 @@
 
   /* Import > ... */
   // : [C++ Standard Library]
+  #include <cstddef> // C Standard Definitions
+  #include <version> // Version
+
   // : [C Standard Library]
 
   // : [...]
@@ -68,6 +72,12 @@
   #endif
 
   /* Import > ... */
+  #if CPP_COMPILER == CPP__GCC__COMPILER
+  # pragma GCC diagnostic push
+  # pragma GCC diagnostic ignored "-Wattributes"
+  # include "lapys/traits.hpp"
+  # pragma GCC diagnostic pop
+  #endif
 #endif
 
 /* Deletion > ... */
@@ -92,6 +102,7 @@
 #undef init
 #undef int128_t
 #undef intenum
+#undef mustinline
 #undef nilinit
 #undef nodecay
 #undef nodecayparam

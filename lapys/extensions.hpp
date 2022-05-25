@@ -303,6 +303,14 @@
 #endif
 
 // : [Return Specifier] --- NOTE (Lapys) -> Attempts to modify certain attributes of specified functions
+#if CPP_COMPILER == CPP__CLANG__COMPILER || CPP_COMPILER == CPP__GCC__COMPILER
+# define mustinline __attribute__((always_inline))
+#elif CPP_COMPILER == CPP__ICC__COMPILER || CPP_COMPILER == CPP__MSVC__COMPILER
+# define mustinline __forceinline
+#else
+# define mustinline inline
+#endif
+
 #if CPP_VERSION < 2011uL
 # if CPP_COMPILER == CPP__CLANG__COMPILER
 #   if __has_attribute(noreturn)

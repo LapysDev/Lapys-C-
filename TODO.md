@@ -3,22 +3,50 @@
 General-purpose arrays supporting an initial fixed-size memory buffer <br/>
 with compile-time support
 
-```cpp
-// Always dynamically allocated
-Array<int>;
-Array<int, 0zu>;
-Array<int, HEAP>;
-```
-```cpp
-// Fixed-size buffer of `sizeof(…) == 3zu * sizeof int`
-//   the default `Allocator …` used does not allow
-//   for further allocation once the buffer is at capacity
-Array<int, 3zu, …>;
+<table>
+<tbody>
+<tr>
+  <th> Explanation </th>
+  <th> Examples </th>
+</tr>
+<tr style=vertical-align:top>
+  <td>
 
-// — but `Allocator<HEAP>` and any non-default `Allocator`
-//   may ignore said behavior
-Array<int, 3zu, Allocator<HEAP> >;
-```
+  ```cpp
+  // Always dynamically allocated
+  Array<int>
+  Array<int, 0zu>
+  Array<int, HEAP>
+  ```
+  ```cpp
+  // Fixed-size buffer of `sizeof(…) == 3zu * sizeof int`
+  //   the default `Allocator …` does not allow
+  //   for further allocation once the buffer is at capacity
+  Array<int, 3zu, …>
+
+  // — but `Allocator<HEAP>` and any non-default `Allocator`
+  //   may ignore said behavior
+  Array<int, 3zu, Allocator<HEAP> >
+  ```
+  </td>
+  <td>
+
+  ```cpp
+  Array<int, 3zu> fixed {1, 2}; // int[3] {1, 2, 0}
+  Array<int>      dynamic;      // int*
+
+  fixed.add(…);        // ❌ can’t add to a fixed-sized array
+  dynamic.add(1, 2, 3); // ✅ int (*)[3] {1, 2, 3}
+  ```
+  ```cpp
+  Array<int, 3zu, Allocator<HEAP> > heaped;  // int (*)[3] {0, 0, 0}
+
+  heaped.add(1, 2, 3); // ✅ int (*)[6] {0, 0, 0, 1, 2, 3}
+  ```
+  </td>
+</tr>
+</tbody>
+</table>
 
 <!-- Compile-time Operations -->
 <h1 style=text-transform:none> <a href=#constops target=_self> Compile-time operations <small> <em> (with <code>template</code>s) </em> </small> </a> </h1>
