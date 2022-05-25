@@ -1,8 +1,7 @@
 <!-- Arrays -->
 <h1 style=text-transform:none> <a href=#arrays target=_self> Arrays </a> </h1>
 General-purpose arrays supporting an initial fixed-size memory buffer <br/>
-with compile-time support
-
+with compile-time support <br/> <br/>
 <table>
 <tbody>
 <tr>
