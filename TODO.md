@@ -34,7 +34,7 @@ with compile-time support <br/> <br/>
   Array<int, 3zu> fixed {1, 2}; // int[3] {1, 2, 0}
   Array<int>      dynamic;      // int*
 
-  fixed.add(…);        // ❌ can’t add to a fixed-sized array
+  fixed.add(…);         // ❌ can’t add to a fixed-sized array
   dynamic.add(1, 2, 3); // ✅ int (*)[3] {1, 2, 3}
   ```
   ```cpp
