@@ -999,6 +999,39 @@
     #   define apply_condition_default ~, false
     #   define apply_function_default  ~, false
     #   define apply_separator_default ~, false
+    #
+    #   define apply_access(argument, ...) .
+    #   define apply_access_pointer(argument, ...) .*
+    #   define apply_assign(argument, ...) =
+    #   define apply_bitwise_and(argument, ...) &
+    #   define apply_bitwise_or(argument, ...) |
+    #   define apply_bitwise_xor(argument, ...) ^
+    #   define apply_boolean_and(argument, ...) &&
+    #   define apply_boolean_or(argument, ...) ||
+    #   define apply_comma(argument, ...) ,
+    #   define apply_compare(argument, ...) <=>
+    #   define apply_divide(argument, ...) /
+    #   define apply_equals(argument, ...) ==
+    #   define apply_group_begin(argument, ...) (
+    #   define apply_group_end(argument, ...) )
+    #   define apply_greater(argument, ...) >
+    #   define apply_greater_equals(argument, ...) >=
+    #   define apply_initializer_begin(argument, ...) {
+    #   define apply_initializer_end(argument, ...) }
+    #   define apply_lesser(argument, ...) <
+    #   define apply_lesser_equals(argument, ...) <=
+    #   define apply_pointer_access(argument, ...) ->
+    #   define apply_pointer_access_pointer(argument, ...) ->*
+    #   define apply_modulo(argument, ...) %
+    #   define apply_multiply(argument, ...) *
+    #   define apply_plus(argument, ...) +
+    #   define apply_scope(argument, ...) ::
+    #   define apply_subscript_begin(argument, ...) [
+    #   define apply_subscript_end(argument, ...) ]
+    #   define apply_subtract(argument, ...) -
+    #   define apply_ternary_falsy(argument, ...) :
+    #   define apply_ternary_truthy(argument, ...) ?
+    #   define apply_unequals(argument, ...) !=
     # define apply_continue(function, separator, applyer, argument, ...) function(argument)separator(argument, __VA_ARGS__) applyer
     # define apply_end(function, separator, applyer, argument, ...) // ->> Stop expanding
     # undef  apply_setup
@@ -1024,8 +1057,6 @@
     # endif
     # define reapply() apply_begin // ->> Update of the `apply(...)` loop
     #   define reapply_break ~, false // ->> End of the `apply(...)` loop
-
-    #define operate_comma(argument, ...) ,
 
     #define parse(...) parse_3u(__VA_ARGS__) // --> parse_12u(__VA_ARGS__)
     # define parse_1u(...)  __VA_ARGS__

@@ -13,9 +13,9 @@ int main(int, char*[]) /* noexcept */ {
   // choose(false, A, B);
   // choose(3u, A, B, C, D);
   std::puts(apply(default, default, default, A));
-  std::puts(apply(default, default, operate_comma, A));
+  std::puts(apply(default, default, apply_comma, A));
   std::puts(apply(default, default, default, A, B));
-  std::puts(apply(default, default, operate_comma, A, B));
+  std::puts(apply(default, default, apply_group_begin, A, B));
   std::printf("%1.13s", "Hello, World!");
   // #define subapply(function, condition, separator, ...) apply__begin empty()(function, condition, separator, __VA_ARGS__)
   // #define function(count) [subapply(stringify, default, default, arity(count))]
