@@ -1,8 +1,7 @@
 <!-- Arrays -->
 <h1 style=text-transform:none> <a href=#arrays target=_self> Arrays </a> </h1>
-General-purpose arrays supporting an initial fixed-size memory buffer <br/>
-with compile-time support
-
+General-purpose COW arrays supporting an initial fixed-size memory buffer <br/>
+with compile-time support <br/> <br/>
 <table>
 <tbody>
 <tr>
@@ -14,19 +13,19 @@ with compile-time support
 
   ```cpp
   // Always dynamically allocated
-  Array<int>
-  Array<int, 0zu>
-  Array<int, HEAP>
+  Array<int>;
+  Array<int, 0zu>;
+  Array<int, HEAP>;
   ```
   ```cpp
   // Fixed-size buffer of `sizeof(…) == 3zu * sizeof int`
   //   the default `Allocator …` does not allow
   //   for further allocation once the buffer is at capacity
-  Array<int, 3zu, …>
+  Array<int, 3zu, …>;
 
   // — but `Allocator<HEAP>` and any non-default `Allocator`
   //   may ignore said behavior
-  Array<int, 3zu, Allocator<HEAP> >
+  Array<int, 3zu, Allocator<HEAP> >;
   ```
   </td>
   <td>
@@ -35,7 +34,7 @@ with compile-time support
   Array<int, 3zu> fixed {1, 2}; // int[3] {1, 2, 0}
   Array<int>      dynamic;      // int*
 
-  fixed.add(…);        // ❌ can’t add to a fixed-sized array
+  fixed.add(…);         // ❌ can’t add to a fixed-sized array
   dynamic.add(1, 2, 3); // ✅ int (*)[3] {1, 2, 3}
   ```
   ```cpp
@@ -54,7 +53,7 @@ Traits that allow for compile-time arithmetic operations (intended for floating-
 
 ```cpp
 // Needs better design
-// --> floating_point<true, 1zu, 0u>
+// → floating_point<true, 1zu, 0u>
 operate::add<
   floating_point<false, 1zu, 0zu>,
   floating_point<true,  2zu, 0zu>
@@ -66,7 +65,7 @@ operate::add<
 Runtime interpreter which generates platform-specific machine code
 
 ```cpp
-Function function = {}; // --> Function{ARM_64}
+Function function = {}; // → Function{ARM_64}
 
 // Needs better design
 function.addInstruction(…);
@@ -85,10 +84,11 @@ General-purpose memory allocator which supports special-purpose allocation strat
 
 * Allocator for platform-specific executable memory
 * Defaults dynamic memory management on the program heap
+* Pre-processed to contain `__FILE__` and `__LINE__` diagnostics
 * Provides the allocator interface for pre-reserved memory
 
 ```cpp
-Allocator<> allocator = {}; // --> Allocator<byte, HEAP>
+Allocator<> allocator = {}; // → Allocator<byte, HEAP>
 allocator.allocate(…);
 ```
 ```cpp
@@ -134,14 +134,15 @@ $0 + …; // function(a, …) { return a + … }
 <!-- String API -->
 <h1 style=text-transform:none> <a href=#strings target=_self> Strings </a> </h1>
 General-purpose strings supporting ASCII and Unicode-aware text (for cyrillic, CJK, and emoji support) <br/>
-with compile-time support
+with compile-time support <br/>
+Strings may be hashed as unsigned integers for quicker comparison
 
 — see [CopperSpice strings](https://github.com/copperspice/cs_string)
 
 ```cpp
-// Inherits from `Array` since both can be SSO optimized
-// ->> quantifies by code units, not by character type
-// --> String<…, UNICODE>
+// Inherits from `Array` since both can be SOO optimized
+// — quantifies by code units, not by character type
+// → String<…, UNICODE>
 String<char16_t>; // Standard 16-bit codepoint string
 String<char32_t>; // Standard 32-bit codepoint string
 String<char8_t>;  // Standard 8-bit codepoint string
