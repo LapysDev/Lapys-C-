@@ -460,6 +460,8 @@
   #   pragma clang diagnostic push
   #   pragma clang diagnostic ignored "-Wvariadic-macros"
   # elif CPP_COMPILER == CPP_GCC_COMPILER
+  #   pragma GCC diagnostic push
+  #   pragma GCC diagnostic ignored "-Wvariadic-macros"
   #   pragma GCC system_header
   # endif
     #if LAPYS_MAX_ARITY >= 1u
@@ -1091,6 +1093,8 @@
     #define stringify(argument) #argument
   # if CPP_COMPILER == CPP_CLANG_COMPILER
   #   pragma clang diagnostic pop
+  # elif CPP_COMPILER == CPP_GCC_COMPILER
+  #   pragma GCC diagnostic pop
   # endif
   #endif
 #endif
