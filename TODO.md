@@ -1,6 +1,10 @@
 <!-- Arrays -->
 <h1 style=text-transform:none> <a href=#arrays target=_self> Arrays </a> </h1>
+<<<<<<< HEAD
 General-purpose COW arrays supporting an initial fixed-size memory buffer <br/>
+=======
+General-purpose arrays supporting an initial fixed-size memory buffer <br/>
+>>>>>>> c5009c57b1e910deb40d69f7750ada007c54f0e2
 with compile-time support <br/> <br/>
 <table>
 <tbody>
