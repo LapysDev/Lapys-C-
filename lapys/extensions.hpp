@@ -1020,43 +1020,45 @@
     #   define apply_function_default  ~, false
     #   define apply_separator_default ~, false
     #
-    #   define apply_access(argument, ...) .
-    #   define apply_access_pointer(argument, ...) .*
-    #   define apply_add(argument, ...) +
-    #   define apply_assign(argument, ...) =
-    #   define apply_bitwise_and(argument, ...) &
-    #   define apply_bitwise_or(argument, ...) |
-    #   define apply_bitwise_xor(argument, ...) ^
-    #   define apply_boolean_and(argument, ...) &&
-    #   define apply_boolean_or(argument, ...) ||
-    #   define apply_comma(argument, ...) ,
-    #   define apply_compare(argument, ...) <=>
-    #   define apply_deferred_access(argument, ...) ->
+    #   define apply_access(argument, ...)                  .
+    #   define apply_access_pointer(argument, ...)          .*
+    #   define apply_add(argument, ...)                     +
+    #   define apply_assign(argument, ...)                  =
+    #   define apply_bitwise_and(argument, ...)             &
+    #   define apply_bitwise_or(argument, ...)              |
+    #   define apply_bitwise_shift_left(argument, ...)      <<
+    #   define apply_bitwise_shift_right(argument, ...)     >>
+    #   define apply_bitwise_xor(argument, ...)             ^
+    #   define apply_boolean_and(argument, ...)             &&
+    #   define apply_boolean_or(argument, ...)              ||
+    #   define apply_comma(argument, ...)                   ,
+    #   define apply_compare(argument, ...)                 <=>
+    #   define apply_deferred_access(argument, ...)         ->
     #   define apply_deferred_access_pointer(argument, ...) ->*
-    #   define apply_divide(argument, ...) /
-    #   define apply_equals(argument, ...) ==
-    #   define apply_group_begin(argument, ...) (
-    #   define apply_group_end(argument, ...) )
-    #   define apply_greater(argument, ...) >
-    #   define apply_greater_equals(argument, ...) >=
-    #   define apply_initializer_begin(argument, ...) {
-    #   define apply_initializer_end(argument, ...) }
-    #   define apply_lesser(argument, ...) <
-    #   define apply_lesser_equals(argument, ...) <=
-    #   define apply_modulo(argument, ...) %
-    #   define apply_multiply(argument, ...) *
-    #   define apply_scope(argument, ...) ::
-    #   define apply_subscript_begin(argument, ...) [
-    #   define apply_subscript_end(argument, ...) ]
-    #   define apply_subtract(argument, ...) -
-    #   define apply_ternary_falsy(argument, ...) :
-    #   define apply_ternary_truthy(argument, ...) ?
-    #   define apply_unequals(argument, ...) !=
+    #   define apply_divide(argument, ...)                  /
+    #   define apply_equals(argument, ...)                  ==
+    #   define apply_group_begin(argument, ...)             (
+    #   define apply_group_end(argument, ...)               )
+    #   define apply_greater(argument, ...)                 >
+    #   define apply_greater_equals(argument, ...)          >=
+    #   define apply_initializer_begin(argument, ...)       {
+    #   define apply_initializer_end(argument, ...)         }
+    #   define apply_lesser(argument, ...)                  <
+    #   define apply_lesser_equals(argument, ...)           <=
+    #   define apply_modulo(argument, ...)                  %
+    #   define apply_multiply(argument, ...)                *
+    #   define apply_scope(argument, ...)                   ::
+    #   define apply_subscript_begin(argument, ...)         [
+    #   define apply_subscript_end(argument, ...)           ]
+    #   define apply_subtract(argument, ...)                -
+    #   define apply_ternary_falsy(argument, ...)           :
+    #   define apply_ternary_truthy(argument, ...)          ?
+    #   define apply_unequals(argument, ...)                !=
     # define apply_continue(function, separator, applyer, argument, ...) function(argument)separator(argument, __VA_ARGS__) applyer
     # define apply_end(function, separator, applyer, argument, ...) // ->> Stop expanding
     # undef  apply_setup
     # define apply_terminator(argument, ...)
-    # if CPP_PREPROCESSOR_FORMAT == CPP_PREPROCESSOR_STANDARD_FORMAT
+    # if CPP_PREPROCESSOR_FORMAT == CPP_PREPROCESSOR_STANDARD_FORMAT || CPP_COMPILER == CPP_ICC_COMPILER
     #   define apply(...) parse(apply_setup(__VA_ARGS__))
     #     define apply_condition(argument, ...) defer(choose_2u, reapply_ ## argument, true, ~)
     #     define apply_setup(function, condition, separator, ...) apply_begin(                            \
@@ -1065,35 +1067,19 @@
             choose(defer(choose_2u, apply_separator_ ## separator, true, ~), separator, apply_separator), \
             __VA_ARGS__, break, break                                                                     \
           )
-    # elif CPP_PREPROCESSOR_FORMAT == CPP_PREPROCESSOR_MSVC_FORMAT
-    #   if CPP_COMPILER == CPP_ICC_COMPILER
-    #     define apply(...) parse(apply_setup(__VA_ARGS__))
-    #       undef  apply_begin
-    #       define apply_begin(function, condition, separator, currentArgument, nextArgument, ...) choose(condition(currentArgument, nextArgument, __VA_ARGS__), apply_continue, apply_end) ( \
-              function, \
-              choose(condition(nextArgument, __VA_ARGS__), separator, apply_terminator), \
-              stall(reapply)()(function, separator, condition, nextArgument, __VA_ARGS__, break), \
-              currentArgument, nextArgument, __VA_ARGS__ \
-            )
-    #       define apply_condition(argument, ...) defer(choose_2u, reapply_ ## argument, true, ~)
-    #       undef  apply_continue
+    #     if CPP_COMPILER == CPP_ICC_COMPILER
+    #       undef  apply_continue // ->> unknown why the `applyer` function needs to become redundant
     #       define apply_continue(function, separator, applyer, argument, ...) function(argument)separator(argument, __VA_ARGS__)
-    #       define apply_setup(function, condition, separator, ...) apply_begin(                                                                     \
-              defer_1u(combine, (choose_, defer_1u(choose_2u, (choose_1u(apply_function_  ## function,  ~), true, ~))))(function,  apply_function),  \
-              defer_1u(combine, (choose_, defer_1u(choose_2u, (choose_1u(apply_condition_ ## condition, ~), true, ~))))(condition, apply_condition), \
-              defer_1u(combine, (choose_, defer_1u(choose_2u, (choose_1u(apply_separator_ ## separator, ~), true, ~))))(separator, apply_separator), \
-              __VA_ARGS__, break, break                                                                                                              \
-            )
-    #   else
-    #     define apply(...) parse(defer(apply_setup, __VA_ARGS__))
-    #       define apply_condition(argument, ...) stall(defer(choose_2u, choose_1u(reapply_ ## argument, ~), true))
-    #       define apply_setup(function, condition, separator, ...) defer(apply_begin,                                           \
-              stall(choose(defer(choose_2u, choose_1u(apply_function_  ## function , ~), true, ~), function,  apply_function)),  \
-              stall(choose(defer(choose_2u, choose_1u(apply_condition_ ## condition, ~), true, ~), condition, apply_condition)), \
-              stall(choose(defer(choose_2u, choose_1u(apply_separator_ ## separator, ~), true, ~), separator, apply_separator)), \
-              __VA_ARGS__, break, break                                                                                          \
-            )
-    #   endif
+    #     endif
+    # elif CPP_PREPROCESSOR_FORMAT == CPP_PREPROCESSOR_MSVC_FORMAT
+    #   define apply(...) parse(defer(apply_setup, __VA_ARGS__))
+    #     define apply_condition(argument, ...) stall(defer(choose_2u, choose_1u(reapply_ ## argument, ~), true))
+    #     define apply_setup(function, condition, separator, ...) defer(apply_begin,                                           \
+            stall(choose(defer(choose_2u, choose_1u(apply_function_  ## function , ~), true, ~), function,  apply_function)),  \
+            stall(choose(defer(choose_2u, choose_1u(apply_condition_ ## condition, ~), true, ~), condition, apply_condition)), \
+            stall(choose(defer(choose_2u, choose_1u(apply_separator_ ## separator, ~), true, ~), separator, apply_separator)), \
+            __VA_ARGS__, break, break                                                                                          \
+          )
     # endif
     # define reapply() apply_begin // ->> Update of the `apply(...)` loop
     #   define reapply_break ~, false // ->> End of the `apply(...)` loop
