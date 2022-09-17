@@ -1,5 +1,5 @@
 /* Constant */
-// : [Maximum Arity] --- NOTE (Lapys) -> Maximum number of supported function/ template arguments in variadics
+// : [Maximum Arity] --- NOTE (Lapys) -> Maximum number of supported function/ template arguments in variadics (always lesser than `127u`)
 #ifndef LAPYS_MAX_ARITY
 # define LAPYS_MAX_ARITY 8u
 #endif
