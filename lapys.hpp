@@ -57,7 +57,6 @@
   /* Import */
   // : [C++ Standard Library]
   #include <cstddef> // C Standard Definitions
-  #include <version> // Version
 
   // : [C Standard Library]
 
@@ -71,16 +70,51 @@
 
   // : [Windows]
   #if CPP_VENDOR & CPP__MICROSOFT_WINDOWS__VENDOR
+  # define NOATOM
+  # define NOCLIPBOARD
+  # define NOCOLOR
+  # define NOCOMM
+  # define NOCTLMGR
+  # define NODEFERWINDOWPOS
+  # define NODRAWTEXT
+  # define NOGDI
+  # define NOGDICAPMASKS
+  # define NOHELP
+  # define NOICONS
+  # define NOKANJI
+  # define NOKERNEL
+  # define NOKEYSTATES
+  # define NOMB
+  # define NOMCX
+  # define NOMEMMGR
+  # define NOMENUS
+  # define NOMETAFILE
+  # define NOMINMAX
+  # define NOMSG
+  # define NONLS
+  # define NOOPENFILE
+  # define NOPROFILER
+  # define NORASTEROPS
+  # define NOSCROLL
+  # define NOSERVICE
+  # define NOSHOWWINDOW
+  # define NOSOUND
+  # define NOSYSCOMMANDS
+  # define NOSYSMETRICS
+  # define NOTEXTMETRIC
+  # define NOUSER
+  # define NOVIRTUALKEYCODES
+  # define NOWH
+  # define NOWINMESSAGES
+  # define NOWINOFFSETS
+  # define NOWINSTYLES
+  # define OEMRESOURCE
+  # define WIN32_LEAN_AND_MEAN
   # include <windows.h>
   #endif
 
-  /* Import */
-  // #if CPP_COMPILER == CPP__GCC__COMPILER
-  // # pragma GCC diagnostic push
-  // # pragma GCC diagnostic ignored "-Wattributes"
+  // : [...]
   #include "lapys/traits.hpp"
-  // # pragma GCC diagnostic pop
-  // #endif
 #endif
 
 /* Deletion */
@@ -139,24 +173,27 @@
 #   undef CPP__MSVC__COMPILER
 # undef CPP_ENDIAN
 # undef CPP_ENDIAN_RUNTIME
-#   undef CPP_BIG_ENDIAN
-#   undef CPP_LITTLE_ENDIAN
+#   undef CPP_BYTE_BIG_ENDIAN
+#   undef CPP_BYTE_LITTLE_ENDIAN
 #   undef CPP_MIXED_ENDIAN
-#   undef CPP_WORDS_LITTLE_ENDIAN
+#   undef CPP_WORD_BIG_ENDIAN
+#   undef CPP_WORD_LITTLE_ENDIAN
 # undef CPP_PREPROCESSOR_FORMAT
 #   undef CPP_PREPROCESSOR_FORMAT_CHECK
 #   undef CPP_PREPROCESSOR_FORMAT_SELECT
 #   undef CPP_PREPROCESSOR_MSVC_FORMAT
 #   undef CPP_PREPROCESSOR_STANDARD_FORMAT
 # undef CPP_VENDOR
-#   undef CPP__APPLE_MACINTOSH__VENDOR
-#   undef CPP__LINUX__VENDOR
-#   undef CPP__MICROSOFT_WINDOWS__VENDOR
-#   undef CPP__NINTENDO__VENDOR
-#   undef CPP__UNIX__VENDOR
+#   undef CPP_APPLE_MACINTOSH_VENDOR
+#   undef CPP_CYGWIN_VENDOR
+#   undef CPP_HAIKU_VENDOR
+#   undef CPP_LINUX_VENDOR
+#   undef CPP_MICROSOFT_WINDOWS_VENDOR
+#   undef CPP_NINTENDO_VENDOR
+#   undef CPP_UNIX_VENDOR
 # undef CPP_VERSION
 # undef LAPYS_MAX_ARITY
 # undef LAPYS_MAX_TEMPLATE_INSTANTIATION_DEPTH
-# undef LAPYS_MODULE_EXTENSIONS
+// # undef LAPYS_MODULE_EXTENSIONS
 # undef LAPYS_MODULE_TRAITS
 #endif

@@ -1,11 +1,18 @@
+object = object.method();
+object.=method();
+
+if value == A || value == B || value == C
+if value ||== {A, B, C}
+
+if (valueA == A || valueA == B || valueA == C) && (valueB == A || valueB == B || valueB == C)
+if [&&]{valueA, valueB} == [||]{A, B, C}
+
 <!-- Arrays -->
 <h1 style=text-transform:none> <a href=#arrays target=_self> Arrays </a> </h1>
-<<<<<<< HEAD
 General-purpose COW arrays supporting an initial fixed-size memory buffer <br/>
 =======
 General-purpose arrays supporting an initial fixed-size memory buffer <br/>
->>>>>>> c5009c57b1e910deb40d69f7750ada007c54f0e2
-with compile-time support <br/> <br/>
+with compile-time support and optimized access (<i>eg</i>: bit-shifts instead of re-interpreting) <br/> <br/>
 <table>
 <tbody>
 <tr>

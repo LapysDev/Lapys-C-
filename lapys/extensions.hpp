@@ -26,36 +26,16 @@
   # define CPP_COMPILER CPP_CIRCLE_COMPILER
   #elif defined(__clang__)
   # define CPP_COMPILER CPP_CLANG_COMPILER
-  #elif defined(__GNUC__)
-  # define CPP_COMPILER CPP_GCC_COMPILER
   #elif defined(__ICC) || defined(__INTEL_COMPILER) || defined(__INTEL_LLVM_COMPILER)
   # define CPP_COMPILER CPP_ICC_COMPILER
+  #elif defined(__GNUC__)
+  # define CPP_COMPILER CPP_GCC_COMPILER
   #elif defined(_MSC_VER)
   # define CPP_COMPILER CPP_MSVC_COMPILER
   #elif defined(__EDG__)
   # define CPP_COMPILER CPP_EDG_COMPILER
   #else
   # define CPP_COMPILER 0x00u
-  #endif
-
-  // : [C++ Preprocessor]
-  #if LAPYS_PREPROCESSOR
-  # if CPP_COMPILER == CPP_CLANG_COMPILER
-  #   pragma clang diagnostic push
-  #   pragma clang diagnostic ignored "-Wvariadic-macros"
-  # elif CPP_COMPILER == CPP_GCC_COMPILER
-  #   pragma GCC system_header
-  # endif
-
-  # define CPP_PREPROCESSOR_FORMAT CPP_PREPROCESSOR_FORMAT_CHECK(~, MSVC)
-  #   define CPP_PREPROCESSOR_STANDARD_FORMAT 0x0u
-  #     define CPP_PREPROCESSOR_MSVC_FORMAT 0x1u
-  #   define CPP_PREPROCESSOR_FORMAT_CHECK(...) CPP_PREPROCESSOR_FORMAT_SELECT(__VA_ARGS__)
-  #   define CPP_PREPROCESSOR_FORMAT_SELECT(arguments, ...) defer(combine, defer(combine, CPP_PREPROCESSOR_, choose(2u, arguments, STANDARD, ~)), _FORMAT)
-
-  # if CPP_COMPILER == CPP_CLANG_COMPILER
-  #    pragma clang diagnostic pop
-  # endif
   #endif
 
   // : [C++ Version]
@@ -93,61 +73,159 @@
   # endif
   #endif
 
+  /* ... */
+  #if CPP_VERSION >= 2020uL || (CPP_COMPILER == CPP__CLANG__COMPILER || CPP_COMPILER == CPP__GCC__COMPILER || CPP_COMPILER == CPP__ICC__COMPILER || CPP_COMPILER == CPP__MSVC__COMPILER)
+  # include <version>
+  #endif
+
+  /* Definition */
+  // : [C++ Preprocessor]
+  #if LAPYS_PREPROCESSOR
+  # if CPP_COMPILER == CPP_CLANG_COMPILER
+  #   pragma clang diagnostic push
+  #   pragma clang diagnostic ignored "-Wvariadic-macros"
+  # elif CPP_COMPILER == CPP_GCC_COMPILER
+  #   pragma GCC system_header
+  # endif
+
+  # define CPP_PREPROCESSOR_FORMAT CPP_PREPROCESSOR_FORMAT_CHECK(~, MSVC)
+  #   define CPP_PREPROCESSOR_STANDARD_FORMAT 0x0u
+  #     define CPP_PREPROCESSOR_MSVC_FORMAT 0x1u
+  #   define CPP_PREPROCESSOR_FORMAT_CHECK(...) CPP_PREPROCESSOR_FORMAT_SELECT(__VA_ARGS__)
+  #   define CPP_PREPROCESSOR_FORMAT_SELECT(arguments, ...) defer(combine, defer(combine, CPP_PREPROCESSOR_, choose(2u, arguments, STANDARD, ~)), _FORMAT)
+
+  # if CPP_COMPILER == CPP_CLANG_COMPILER
+  #    pragma clang diagnostic pop
+  # endif
+  #endif
+
+  // : [C++ Vendor] ->> Cross-platform awareness
+  # define CPP_APPLE_MACINTOSH_VENDOR   0x01u
+  # define CPP_CYGWIN_VENDOR            0x02u
+  # define CPP_HAIKU_VENDOR             0x04u
+  # define CPP_LINUX_VENDOR             0x08u
+  # define CPP_MICROSOFT_WINDOWS_VENDOR 0x10u
+  # define CPP_NINTENDO_VENDOR          0x20u
+  # define CPP_UNIX_VENDOR              0x40u
+
+  #if defined(__APPLE__) || defined(__ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__) || defined(__MACH__)
+  # define CPP_VENDOR (CPP_APPLE_MACINTOSH_VENDOR | CPP_UNIX_VENDOR)
+  #elif defined(__CYGWIN__)
+  # define CPP_VENDOR (CPP_CYGWIN_VENDOR | CPP_UNIX_VENDOR)
+  #elif defined(__gnu_linux__) || defined(linux) || defined(__linux) || defined(__linux__)
+  # define CPP_VENDOR (CPP_LINUX_VENDOR | CPP_UNIX_VENDOR)
+  #elif defined(__HAIKU__)
+  # define CPP_VENDOR CPP_HAIKU_VENDOR
+  #elif defined(_3DS) || defined(__SWITCH__)
+  # define CPP_VENDOR CPP_NINTENDO_VENDOR
+  #elif defined(__NT__) || defined(__TOS_WIN__) || defined(__WIN32__) || defined(__WINDOWS__) || defined(_WIN16) || defined(_WIN32) || defined(_WIN32_WCE) || defined(_WIN64)
+  # define CPP_VENDOR CPP_MICROSOFT_WINDOWS_VENDOR
+  #elif defined(__bsdi__) || defined(__DragonFly__) || defined(__FreeBSD__) || defined(__FreeBSD_version) || defined(__NETBSD__) || defined(__NETBSD_version) || defined(NetBSD0_8) || defined(NetBSD0_9) || defined(NetBSD1_0) || defined(__OpenBSD__) || defined(OpenBSD2_0) || defined(OpenBSD2_1) || defined(OpenBSD2_2) || defined(OpenBSD2_3) || defined(OpenBSD2_4) || defined(OpenBSD2_5) || defined(OpenBSD2_6) || defined(OpenBSD2_7) || defined(OpenBSD2_8) || defined(OpenBSD2_9) || defined(OpenBSD3_0) || defined(OpenBSD3_1) || defined(OpenBSD3_2) || defined(OpenBSD3_3) || defined(OpenBSD3_4) || defined(OpenBSD3_5) || defined(OpenBSD3_6) || defined(OpenBSD3_7) || defined(OpenBSD3_8) || defined(OpenBSD3_9) || defined(OpenBSD4_0) || defined(OpenBSD4_1) || defined(OpenBSD4_2) || defined(OpenBSD4_3) || defined(OpenBSD4_4) || defined(OpenBSD4_5) || defined(OpenBSD4_6) || defined(OpenBSD4_7) || defined(OpenBSD4_8) || defined(OpenBSD4_9) || defined(__OS400__) || defined(__unix) || defined(__unix__) || defined(_POSIX_SOURCE) || defined(_XOPEN_SOURCE) || defined(__QNX__) || defined(__QNXNTO__) || defined(_NTO_VERSION) || defined(sun) || defined(__sun) || defined(__sysv__) || defined(__SVR4) || defined(__svr4__) || defined(_SYSTYPE_SVR4) || defined(VMS) || defined(__VMS) || defined(__VMS_VER) || defined(unix)
+  # define CPP_VENDOR CPP_UNIX_VENDOR
+  #elif defined(WIN32)
+  # define CPP_VENDOR CPP_MICROSOFT_WINDOWS_VENDOR
+  #else
+  # define CPP_VENDOR 0x00u
+  #endif
+
   // : [C++ Endianness] ->> Possibly runtime value determining environment endianness
   #define CPP_ENDIAN_RUNTIME false
-  # define CPP_BIG_ENDIAN          0x1u
-  # define CPP_LITTLE_ENDIAN       0x2u
-  # define CPP_MIXED_ENDIAN        0x4u
-  # define CPP_WORDS_LITTLE_ENDIAN 0x8u
+  # define CPP_BYTE_BIG_ENDIAN    0x01u
+  # define CPP_BYTE_LITTLE_ENDIAN 0x02u
+  # define CPP_MIXED_ENDIAN       0x04u
+  # define CPP_WORD_BIG_ENDIAN    0x08u
+  # define CPP_WORD_LITTLE_ENDIAN 0x10u
+
+  #if defined(__APPLE__) || defined(__ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__) || defined(__MACH__) || defined(__OpenBSD__) || defined(OpenBSD2_0) || defined(OpenBSD2_1) || defined(OpenBSD2_2) || defined(OpenBSD2_3) || defined(OpenBSD2_4) || defined(OpenBSD2_5) || defined(OpenBSD2_6) || defined(OpenBSD2_7) || defined(OpenBSD2_8) || defined(OpenBSD2_9) || defined(OpenBSD3_0) || defined(OpenBSD3_1) || defined(OpenBSD3_2) || defined(OpenBSD3_3) || defined(OpenBSD3_4) || defined(OpenBSD3_5) || defined(OpenBSD3_6) || defined(OpenBSD3_7) || defined(OpenBSD3_8) || defined(OpenBSD3_9) || defined(OpenBSD4_0) || defined(OpenBSD4_1) || defined(OpenBSD4_2) || defined(OpenBSD4_3) || defined(OpenBSD4_4) || defined(OpenBSD4_5) || defined(OpenBSD4_6) || defined(OpenBSD4_7) || defined(OpenBSD4_8) || defined(OpenBSD4_9)
+  # include <machine/endian.h>
+  #elif defined(__bsdi__) || defined(__DragonFly__) || defined(__FreeBSD__) || defined(__FreeBSD_version) || defined(__NETBSD__) || defined(__NETBSD_version) || defined(NetBSD0_8) || defined(NetBSD0_9) || defined(NetBSD1_0) || defined(__OpenBSD__) || defined(OpenBSD2_0) || defined(OpenBSD2_1) || defined(OpenBSD2_2) || defined(OpenBSD2_3) || defined(OpenBSD2_4) || defined(OpenBSD2_5) || defined(OpenBSD2_6) || defined(OpenBSD2_7) || defined(OpenBSD2_8) || defined(OpenBSD2_9) || defined(OpenBSD3_0) || defined(OpenBSD3_1) || defined(OpenBSD3_2) || defined(OpenBSD3_3) || defined(OpenBSD3_4) || defined(OpenBSD3_5) || defined(OpenBSD3_6) || defined(OpenBSD3_7) || defined(OpenBSD3_8) || defined(OpenBSD3_9) || defined(OpenBSD4_0) || defined(OpenBSD4_1) || defined(OpenBSD4_2) || defined(OpenBSD4_3) || defined(OpenBSD4_4) || defined(OpenBSD4_5) || defined(OpenBSD4_6) || defined(OpenBSD4_7) || defined(OpenBSD4_8) || defined(OpenBSD4_9)
+  # include <sys/endian.h>
+  #endif
 
   #ifdef __cpp_lib_endian
   # include <bit>
-  # define CPP_ENDIAN (std::endian::native == std::endian::little ? CPP_LITTLE_ENDIAN : CPP_BIG_ENDIAN)
+  # define CPP_ENDIAN (std::endian::native == std::endian::little ? CPP_BYTE_LITTLE_ENDIAN : CPP_BYTE_BIG_ENDIAN)
   #else
-  # if false == defined(CPP_ENDIAN) && defined(__GLIBC__)
+  # if CPP_VENDOR & CPP_APPLE_MACINTOSH_VENDOR
+  #   include <machine/endian.h>
+  # elif defined(__CYGWIN__) || defined(__GLIBC__) || defined(__gnu_linux__) || defined(__linux) || defined(__linux__) || defined(__QNX__) || defined(__QNXNTO__) || defined(__sun) || defined(__SVR4) || defined(__svr4__) || defined(__sysv__) || defined(__unix) || defined(__unix__) || defined(__VMS) || defined(__VMS_VER) || defined(_NTO_VERSION) || defined(_POSIX_SOURCE) || defined(_SYSTYPE_SVR4) || defined(_XOPEN_SOURCE) || defined(linux) || defined(sun) || defined(unix) || defined(VMS)
   #   include <endian.h>
-  #   if defined(__BYTE_ORDER) && defined(__LITTLE_ENDIAN)
-  #     if __BYTE_ORDER == __LITTLE_ENDIAN
-  #       define CPP_ENDIAN CPP_LITTLE_ENDIAN
+  # elif defined(__bsdi__) || defined(__DragonFly__) || defined(__FreeBSD__) || defined(__FreeBSD_version) || defined(__NETBSD__) || defined(__NETBSD_version) || defined(NetBSD0_8) || defined(NetBSD0_9) || defined(NetBSD1_0) || defined(__OpenBSD__) || defined(OpenBSD2_0) || defined(OpenBSD2_1) || defined(OpenBSD2_2) || defined(OpenBSD2_3) || defined(OpenBSD2_4) || defined(OpenBSD2_5) || defined(OpenBSD2_6) || defined(OpenBSD2_7) || defined(OpenBSD2_8) || defined(OpenBSD2_9) || defined(OpenBSD3_0) || defined(OpenBSD3_1) || defined(OpenBSD3_2) || defined(OpenBSD3_3) || defined(OpenBSD3_4) || defined(OpenBSD3_5) || defined(OpenBSD3_6) || defined(OpenBSD3_7) || defined(OpenBSD3_8) || defined(OpenBSD3_9) || defined(OpenBSD4_0) || defined(OpenBSD4_1) || defined(OpenBSD4_2) || defined(OpenBSD4_3) || defined(OpenBSD4_4) || defined(OpenBSD4_5) || defined(OpenBSD4_6) || defined(OpenBSD4_7) || defined(OpenBSD4_8) || defined(OpenBSD4_9) || defined(__OS400__) || defined(__unix)
+  #   include <sys/endian.h>
+  # endif
+  #
+  #
+  # if false == defined(CPP_ENDIAN) && defined(__GLIBC__)
+  #   if defined(_BYTE_ORDER)
+  #     if defined(_LITTLE_ENDIAN)
+  #       if _BYTE_ORDER == _LITTLE_ENDIAN
+  #         define CPP_ENDIAN CPP_BYTE_LITTLE_ENDIAN
+  #       endif
+  #     elif defined(_BIG_ENDIAN)
+  #       if _BYTE_ORDER == _BIG_ENDIAN
+  #         define CPP_ENDIAN CPP_BYTE_BIG_ENDIAN
+  #       endif
+  #     elif defined(_PDP_ENDIAN)
+  #       if _BYTE_ORDER == _PDP_ENDIAN
+  #         define CPP_ENDIAN CPP_WORD_LITTLE_ENDIAN
+  #       endif
   #     endif
-  #   elif defined(__BYTE_ORDER) && defined(__BIG_ENDIAN)
-  #     if __BYTE_ORDER == __BIG_ENDIAN
-  #       define CPP_ENDIAN CPP_BIG_ENDIAN
+  #   elif defined(__BYTE_ORDER)
+  #     if defined(__LITTLE_ENDIAN)
+  #       if __BYTE_ORDER == __LITTLE_ENDIAN
+  #         define CPP_ENDIAN CPP_BYTE_LITTLE_ENDIAN
+  #       endif
+  #     elif defined(__BIG_ENDIAN)
+  #       if __BYTE_ORDER == __BIG_ENDIAN
+  #         define CPP_ENDIAN CPP_BYTE_BIG_ENDIAN
+  #       endif
+  #     elif defined(__PDP_ENDIAN)
+  #       if __BYTE_ORDER == __PDP_ENDIAN
+  #         define CPP_ENDIAN CPP_WORD_LITTLE_ENDIAN
+  #       endif
   #     endif
   #   endif
   # endif
   #
   # if false == defined(CPP_ENDIAN) && defined(__GNUC__)
-  #   if defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__)
-  #     if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-  #       define CPP_ENDIAN CPP_LITTLE_ENDIAN
-  #     endif
-  #   elif defined(__BYTE_ORDER__) && defined(__ORDER_BIG_ENDIAN__)
-  #     if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-  #       define CPP_ENDIAN CPP_BIG_ENDIAN
-  #     endif
-  #   elif defined(__BYTE_ORDER__) && defined(__ORDER_PDP_ENDIAN__)
-  #     if __BYTE_ORDER__ == __ORDER_PDP_ENDIAN__
-  #       define CPP_ENDIAN CPP_MIXED_ENDIAN
-  #     endif
-  #   endif
-  # endif
-  #
-  # if false == defined(CPP_ENDIAN)
   #   ifdef __BYTE_ORDER__
-  #     if defined(_LITTLE_ENDIAN) && false == defined(_BIG_ENDIAN)
-  #       define CPP_ENDIAN CPP_LITTLE_ENDIAN
-  #     elif defined(_BIG_ENDIAN) && false == defined(_LITTLE_ENDIAN)
-  #       define CPP_ENDIAN CPP_BIG_ENDIAN
+  #     if defined(__ORDER_LITTLE_ENDIAN__)
+  #       if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+  #         define CPP_ENDIAN CPP_BYTE_LITTLE_ENDIAN
+  #       endif
+  #     elif defined(__ORDER_BIG_ENDIAN__)
+  #       if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+  #         define CPP_ENDIAN CPP_BYTE_BIG_ENDIAN
+  #       endif
+  #     elif defined(__ORDER_PDP_ENDIAN__)
+  #       if __BYTE_ORDER__ == __ORDER_PDP_ENDIAN__
+  #         define CPP_ENDIAN CPP_WORD_LITTLE_ENDIAN
+  #       endif
   #     endif
   #   endif
   # endif
   #
   # if false == defined(CPP_ENDIAN)
-  #   if (defined(_MSC_VER) && (defined(_M_ARM) || defined(_M_ARM64))) || (defined(__amd64) || defined(__amd64__) || defined(__bfin__) || defined(__i386__) || defined(__alpha__) || defined(__ia64) || defined(__ia64__) || defined(_M_ALPHA) || defined(_M_AMD64) || defined(_M_IA64) || defined(_M_IX86) || defined(_M_X64) || defined(__x86_64) || defined(__x86_64__))
-  #     define CPP_ENDIAN CPP_LITTLE_ENDIAN
-  #   elif defined(__hppa) || defined(__hpux) || defined(_MIPSEB) || defined(_POWER) || defined(__powerpc__) || defined(__ppc__) || defined(_POWER) || defined(__s390__) || defined(__sparc) || defined(__sparc__)
-  #     define CPP_ENDIAN CPP_BIG_ENDIAN
+  #   if (defined(__LITTLE_ENDIAN__) && false == defined(__BIG_ENDIAN__)) || (defined(_LITTLE_ENDIAN) && false == defined(_BIG_ENDIAN))
+  #     define CPP_ENDIAN CPP_BYTE_LITTLE_ENDIAN
+  #   elif (defined(__BIG_ENDIAN__) && false == defined(__LITTLE_ENDIAN__)) || (defined(_BIG_ENDIAN) && false == defined(_LITTLE_ENDIAN))
+  #     define CPP_ENDIAN CPP_BYTE_BIG_ENDIAN
+  #   endif
+  # endif
+  #
+  # if false == defined(CPP_ENDIAN)
+  #   if defined(__AARCH64EL__) || defined(__ARMEL__) || defined(__MIPSEL) || defined(__MIPSEL__) || defined(__THUMBEL__) || defined(_MIPSEL)
+  #     define CPP_ENDIAN CPP_BYTE_LITTLE_ENDIAN
+  #   elif defined(__AARCH64EB__) || defined(__ARMEB__) || defined(__MIPSEB) || defined(__MIPSEB__) || defined(__THUMBEB__) || defined(_MIPSEB)
+  #     define CPP_ENDIAN CPP_BYTE_BIG_ENDIAN
+  #   endif
+  # endif
+  #
+  # if false == defined(CPP_ENDIAN)
+  #   if defined(__alpha__) || defined(__amd64) || defined(__amd64) || defined(__amd64__) || defined(__amd64__) || defined(__bfin__) || defined(__BFIN__) || defined(__i386) || defined(__i386__) || defined(__i486__) || defined(__i486__) || defined(__i586__) || defined(__i586__) || defined(__i686__) || defined(__I86__) || defined(__ia64) || defined(__ia64__) || defined(__IA64__) || defined(__INTEL__) || defined(__itanium__) || defined(__THW_INTEL__) || defined(__x86_64) || defined(__x86_64__) || defined(_IA64) || defined(_M_ALPHA) || defined(_M_AMD64) || defined(_M_IA64) || defined(_M_IX86) || defined(_M_X64) || defined(_X86_) || defined(bfin) || defined(BFIN) || defined(i386) || ((CPP_VENDOR & CPP_MICROSOFT_WINDOWS_VENDOR) && (defined(__arm64) || defined(__arm__) || defined(__TARGET_ARCH_ARM) || defined(__TARGET_ARCH_THUMB) || defined(__thumb__) || defined(_M_ARM)))
+  #     define CPP_ENDIAN CPP_BYTE_LITTLE_ENDIAN
+  #   elif defined(__370__) || defined(__hppa) || defined(__hpux) || defined(__m68k__) || defined(__mc68000) || defined(__mc68000__) || defined(__mc68010) || defined(__mc68010__) || defined(__mc68020) || defined(__mc68020__) || defined(__mc68030) || defined(__mc68030__) || defined(__mc68040) || defined(__mc68040__) || defined(__mc68060) || defined(__mc68060__) || defined(__powerpc__) || defined(__ppc__) || defined(__s390__) || defined(__s390__) || defined(__s390x__) || defined(__sparc) || defined(__sparc__) || defined(__sparcv8) || defined(__sparcv9) || defined(__SYSC_ZARCH__) || defined(__THW_370__) || defined(_POWER) || defined(M68000) || defined(mc68000) || defined(mc68010) || defined(mc68020) || defined(mc68030) || defined(mc68040) || defined(mc68060)
+  #     define CPP_ENDIAN CPP_BYTE_BIG_ENDIAN
   #   endif
   # endif
   #
@@ -155,32 +233,11 @@
   #   undef  CPP_ENDIAN_RUNTIME
   #   define CPP_ENDIAN_RUNTIME true
   #   if CPP_VERSION < 2011uL
-  #     define CPP_ENDIAN (1u == reinterpret_cast<unsigned char const&>(static_cast<unsigned long const&>(1u))      ? CPP_LITTLE_ENDIAN : CPP_BIG_ENDIAN)
+  #     define CPP_ENDIAN sizeof(unsigned char) == sizeof(unsigned long)      || (1u == reinterpret_cast<unsigned char const&>(static_cast<unsigned long const&>(1u))      ? CPP_BYTE_LITTLE_ENDIAN : CPP_BYTE_BIG_ENDIAN)
   #   else
-  #     define CPP_ENDIAN (1u == reinterpret_cast<unsigned char const&>(static_cast<unsigned long long const&>(1u)) ? CPP_LITTLE_ENDIAN : CPP_BIG_ENDIAN)
+  #     define CPP_ENDIAN sizeof(unsigned char) == sizeof(unsigned long long) || (1u == reinterpret_cast<unsigned char const&>(static_cast<unsigned long long const&>(1u)) ? CPP_BYTE_LITTLE_ENDIAN : CPP_BYTE_BIG_ENDIAN)
   #   endif
   # endif
-  #endif
-
-  // : [C++ Vendor] ->> Cross-platform awareness
-  # define CPP_APPLE_MACINTOSH_VENDOR   0x01u
-  # define CPP_LINUX_VENDOR             0x02u
-  # define CPP_MICROSOFT_WINDOWS_VENDOR 0x04u
-  # define CPP_NINTENDO_VENDOR          0x08u
-  # define CPP_UNIX_VENDOR              0x10u
-
-  #if defined(__APPLE__) && defined(__MACH__)
-  # define CPP_VENDOR (CPP_APPLE_MACINTOSH_VENDOR | CPP_UNIX_VENDOR)
-  #elif defined(__unix) || defined(__unix__)
-  # define CPP_VENDOR CPP_UNIX_VENDOR
-  #elif defined(__gnu_linux__) || defined(linux) || defined(__linux) || defined(__linux__)
-  # define CPP_VENDOR (CPP_LINUX_VENDOR | CPP_UNIX_VENDOR)
-  #elif defined(ARM9) || defined(_3DS) || defined(__SWITCH__)
-  # define CPP_VENDOR CPP_NINTENDO_VENDOR
-  #elif defined(__NT__) || defined(__TOS_WIN__) || defined(_WIN16) || defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(_WIN32_WCE) || defined(_WIN64) || defined(__WINDOWS__)
-  # define CPP_VENDOR CPP_MICROSOFT_WINDOWS_VENDOR
-  #else
-  # define CPP_VENDOR 0x00u
   #endif
 
   /* Definition */
@@ -449,7 +506,6 @@
 
   /* Definition */
   #define choose(argument, truthy, falsy) defer(combine, choose_, argument)(truthy, falsy)
-  # define choose_2u(argument1, argument2, ...) argument2
   # define choose_false(truthy, falsy) falsy
   # define choose_true(truthy, falsy)  truthy
 
@@ -988,6 +1044,7 @@
     #define choose(argument, ...) defer(combine, choose_, argument)(__VA_ARGS__)
     # define choose_0u(...)
     # define choose_1u(argument1, ...) argument1
+    # define choose_2u(argument1, argument2, ...) argument2
 
     #define combine(argument1, argument2) argument1 ## argument2
 
@@ -1037,8 +1094,8 @@
     #   define apply_deferred_access_pointer(argument, ...) ->*
     #   define apply_divide(argument, ...)                  /
     #   define apply_equals(argument, ...)                  ==
-    #   define apply_group_begin(argument, ...)             (
-    #   define apply_group_end(argument, ...)               )
+    #   define apply_expression_begin(argument, ...)        (
+    #   define apply_expression_end(argument, ...)          )
     #   define apply_greater(argument, ...)                 >
     #   define apply_greater_equals(argument, ...)          >=
     #   define apply_initializer_begin(argument, ...)       {
