@@ -56,7 +56,8 @@
 
   /* Import */
   // : [C++ Standard Library]
-  #include <cstddef> // C Standard Definitions
+  #include <cstddef>    // C Standard Definitions
+  #include <stdbool.h> // Standard Boolean
 
   // : [C Standard Library]
 
@@ -150,6 +151,7 @@
 #undef noinline
 #undef nouniqueaddr
 #undef nullptr
+#undef restricted
 #undef rref
 #undef typeof
 #undef uint128_t
@@ -165,12 +167,61 @@
 
 #if LAPYS_PREPROCESSOR
 #else
+# undef CPP_ARCHITECTURE
+#   undef CPP_ALPHA_ARCHITECTURE
+#   undef CPP_ARM_ARCHITECTURE
+#   undef CPP_BLACKFIN_ARCHITECTURE
+#   undef CPP_CONVEX_ARCHITECTURE
+#   undef CPP_E2K_ARCHITECTURE
+#   undef CPP_HP_PA_RISC_ARCHITECTURE
+#   undef CPP_INTEL_ITANIUM_ARCHITECTURE
+#   undef CPP_INTEL_X86_64_ARCHITECTURE
+#   undef CPP_INTEL_X86_ARCHITECTURE
+#   undef CPP_MIPS_ARCHITECTURE
+#   undef CPP_MOTOROLA_68K_ARCHITECTURE
+#   undef CPP_POWER_PC_64_ARCHITECTURE
+#   undef CPP_POWER_PC_ARCHITECTURE
+#   undef CPP_PTX_ARCHITECTURE
+#   undef CPP_PYRAMID_9810_ARCHITECTURE
+#   undef CPP_RISC_V_ARCHITECTURE
+#   undef CPP_RS_6000_ARCHITECTURE
+#   undef CPP_SPARC_ARCHITECTURE
+#   undef CPP_SUPER_H_ARCHITECTURE
+#   undef CPP_SYSTEM_370_ARCHITECTURE
+#   undef CPP_SYSTEM_390_ARCHITECTURE
+#   undef CPP_Z_ARCHITECTURE
 # undef CPP_COMPILER
-#   undef CPP__CLANG__COMPILER
-#   undef CPP__EDG__COMPILER
-#   undef CPP__GCC__COMPILER
-#   undef CPP__ICC__COMPILER
-#   undef CPP__MSVC__COMPILER
+#   undef CPP_BORLAND_COMPILER
+#   undef CPP_CIRCLE_COMPILER
+#   undef CPP_CLANG_COMPILER
+#   undef CPP_COMEAU_COMPILER
+#   undef CPP_DEC_COMPILER
+#   undef CPP_DIAB_COMPILER
+#   undef CPP_DMC_COMPILER
+#   undef CPP_EDG_COMPILER
+#   undef CPP_GCCXML_COMPILER
+#   undef CPP_GHS_COMPILER
+#   undef CPP_GNUC_COMPILER
+#   undef CPP_HIGHC_COMPILER
+#   undef CPP_HPACC_COMPILER
+#   undef CPP_IAR_COMPILER
+#   undef CPP_IBM_COMPILER
+#   undef CPP_INTEL_COMPILER
+#   undef CPP_KCC_COMPILER
+#   undef CPP_LLVM_COMPILER
+#   undef CPP_MPW_COMPILER
+#   undef CPP_MRI_COMPILER
+#   undef CPP_MSVC_COMPILER
+#   undef CPP_MWERKS_COMPILER
+#   undef CPP_NVCC_COMPILER
+#   undef CPP_PALM_COMPILER
+#   undef CPP_PATH_COMPILER
+#   undef CPP_PGI_COMPILER
+#   undef CPP_SGI_COMPILER
+#   undef CPP_SUNPRO_COMPILER
+#   undef CPP_SYSC_COMPILER
+#   undef CPP_TENDRA_COMPILER
+#   undef CPP_WATCOM_COMPILER
 # undef CPP_ENDIAN
 # undef CPP_ENDIAN_RUNTIME
 #   undef CPP_BYTE_BIG_ENDIAN
@@ -194,6 +245,6 @@
 # undef CPP_VERSION
 # undef LAPYS_MAX_ARITY
 # undef LAPYS_MAX_TEMPLATE_INSTANTIATION_DEPTH
-// # undef LAPYS_MODULE_EXTENSIONS
+# undef LAPYS_MODULE_EXTENSIONS
 # undef LAPYS_MODULE_TRAITS
 #endif

@@ -18,14 +18,14 @@
     template <typename type> // ->> No reference-qualifications, just plain type deduction
     constfunc(true) type instanceof() noexcept;
 
-    #ifdef __cpp_rvalue_references // ->> Preserve object type when forwarding from wrapper functions
-      template <typename type> constfunc(true) mustinline type&& pass(type&  object) noexcept { return static_cast<type&&>(object); }
-      template <typename type> constfunc(true) mustinline type&& pass(type&& object) noexcept { return static_cast<type&&>(object); }
+    #ifdef __cpp_rvalue_references // ->> Prevent redundant copying when forwarding from wrapper functions
+      template <typename type> constfunc(true) mustinline type&& (pass)(type&  object) noexcept { return static_cast<type&&>(object); }
+      template <typename type> constfunc(true) mustinline type&& (pass)(type&& object) noexcept { return static_cast<type&&>(object); }
     #else
-      template <typename type> constfunc(true) mustinline type&                pass(type&                object) noexcept { return object; }
-      template <typename type> constfunc(true) mustinline type const&          pass(type const&          object) noexcept { return object; }
-      template <typename type> constfunc(true) mustinline type const volatile& pass(type const volatile& object) noexcept { return object; }
-      template <typename type> constfunc(true) mustinline type volatile&       pass(type volatile&       object) noexcept { return object; }
+      template <typename type> constfunc(true) mustinline type&                (pass)(type&                object) noexcept { return object; }
+      template <typename type> constfunc(true) mustinline type const&          (pass)(type const&          object) noexcept { return object; }
+      template <typename type> constfunc(true) mustinline type const volatile& (pass)(type const volatile& object) noexcept { return object; }
+      template <typename type> constfunc(true) mustinline type volatile&       (pass)(type volatile&       object) noexcept { return object; }
     #endif
 
     /* ALias > ... */
@@ -130,26 +130,6 @@
         template <bool, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true> struct boolean_and;
         template <bool, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true> struct boolean_or;
       #endif
-
-      struct overloaded; // ->> Callable construct for explicit function overloading
-    }
-  }
-
-  namespace Lapys {
-    namespace Traits {
-      #ifdef __cpp_variadic_templates
-        template <typename... types>
-        overloaded overload(types nodecay... functions) noexcept;
-      #else
-        template <typename type1>                                                                                                                 overloaded overload(type1 nodecay function1)                                                                                                                                                                                noexcept;
-        template <typename type1, typename type2>                                                                                                 overloaded overload(type1 nodecay function1, type2 nodecay function2)                                                                                                                                                       noexcept;
-        template <typename type1, typename type2, typename type3>                                                                                 overloaded overload(type1 nodecay function1, type2 nodecay function2, type3 nodecay function3)                                                                                                                              noexcept;
-        template <typename type1, typename type2, typename type3, typename type4>                                                                 overloaded overload(type1 nodecay function1, type2 nodecay function2, type3 nodecay function3, type4 nodecay function4)                                                                                                     noexcept;
-        template <typename type1, typename type2, typename type3, typename type4, typename type5>                                                 overloaded overload(type1 nodecay function1, type2 nodecay function2, type3 nodecay function3, type4 nodecay function4, type5 nodecay function5)                                                                            noexcept;
-        template <typename type1, typename type2, typename type3, typename type4, typename type5, typename type6>                                 overloaded overload(type1 nodecay function1, type2 nodecay function2, type3 nodecay function3, type4 nodecay function4, type5 nodecay function5, type6 nodecay function6)                                                   noexcept;
-        template <typename type1, typename type2, typename type3, typename type4, typename type5, typename type6, typename type7>                 overloaded overload(type1 nodecay function1, type2 nodecay function2, type3 nodecay function3, type4 nodecay function4, type5 nodecay function5, type6 nodecay function6, type7 nodecay function7)                          noexcept;
-        template <typename type1, typename type2, typename type3, typename type4, typename type5, typename type6, typename type7, typename type8> overloaded overload(type1 nodecay function1, type2 nodecay function2, type3 nodecay function3, type4 nodecay function4, type5 nodecay function5, type6 nodecay function6, type7 nodecay function7, type8 nodecay function8) noexcept;
-      #endif
     }
   }
 
@@ -160,6 +140,7 @@
   // #else
   // # include <stdint.h>
 
+  //   double_t, float_t
   //   __SIZE_TYPE__
   //   __PTRDIFF_TYPE__
   //   __WCHAR_TYPE__
