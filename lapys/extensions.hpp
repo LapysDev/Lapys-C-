@@ -155,6 +155,13 @@
   #endif
 
   /* Definition */
+  // : [Source File Inclusion] --- NOTE (Lapys) -> Conditionally preferable error diagnostics when `#include`ing other source files
+  #if CPP_VERSION < 2011uL
+  # define included(file) true
+  #else
+  # define included(file) __has_include(file)
+  #endif
+
   // : [C++ Architecture] --- CITE (Lapys)
   # define CPP_ALPHA_ARCHITECTURE         0x01u // -> https://en.wikipedia.org/wiki/DEC_Alpha
   # define CPP_ARM_ARCHITECTURE           0x02u // -> https://en.wikipedia.org/wiki/ARM_architecture
@@ -247,7 +254,7 @@
   # endif
   #endif
 
-  // : [C++ Vendor] ->> Cross-platform awareness
+  // : [C++ Vendor] --- NOTE (Lapys) -> Cross-platform awareness
   # define CPP_APPLE_MACINTOSH_VENDOR   0x01u
   # define CPP_CYGWIN_VENDOR            0x02u
   # define CPP_HAIKU_VENDOR             0x04u
@@ -276,7 +283,7 @@
   # define CPP_VENDOR 0x00u
   #endif
 
-  // : [C++ Endianness] ->> Possibly runtime value determining environment endianness
+  // : [C++ Endianness] --- NOTE (Lapys) -> Possibly runtime value determining environment endianness
   #define CPP_ENDIAN_RUNTIME false
   # define CPP_BYTE_BIG_ENDIAN    0x01u
   # define CPP_BYTE_LITTLE_ENDIAN 0x02u
@@ -284,9 +291,9 @@
   # define CPP_WORD_BIG_ENDIAN    0x08u
   # define CPP_WORD_LITTLE_ENDIAN 0x10u
 
-  #if defined(__APPLE__) || defined(__ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__) || defined(__MACH__) || defined(__OpenBSD__) || defined(OpenBSD2_0) || defined(OpenBSD2_1) || defined(OpenBSD2_2) || defined(OpenBSD2_3) || defined(OpenBSD2_4) || defined(OpenBSD2_5) || defined(OpenBSD2_6) || defined(OpenBSD2_7) || defined(OpenBSD2_8) || defined(OpenBSD2_9) || defined(OpenBSD3_0) || defined(OpenBSD3_1) || defined(OpenBSD3_2) || defined(OpenBSD3_3) || defined(OpenBSD3_4) || defined(OpenBSD3_5) || defined(OpenBSD3_6) || defined(OpenBSD3_7) || defined(OpenBSD3_8) || defined(OpenBSD3_9) || defined(OpenBSD4_0) || defined(OpenBSD4_1) || defined(OpenBSD4_2) || defined(OpenBSD4_3) || defined(OpenBSD4_4) || defined(OpenBSD4_5) || defined(OpenBSD4_6) || defined(OpenBSD4_7) || defined(OpenBSD4_8) || defined(OpenBSD4_9)
+  #if included(<machine/endian.h>) && (defined(__APPLE__) || defined(__ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__) || defined(__MACH__) || defined(__OpenBSD__) || defined(OpenBSD2_0) || defined(OpenBSD2_1) || defined(OpenBSD2_2) || defined(OpenBSD2_3) || defined(OpenBSD2_4) || defined(OpenBSD2_5) || defined(OpenBSD2_6) || defined(OpenBSD2_7) || defined(OpenBSD2_8) || defined(OpenBSD2_9) || defined(OpenBSD3_0) || defined(OpenBSD3_1) || defined(OpenBSD3_2) || defined(OpenBSD3_3) || defined(OpenBSD3_4) || defined(OpenBSD3_5) || defined(OpenBSD3_6) || defined(OpenBSD3_7) || defined(OpenBSD3_8) || defined(OpenBSD3_9) || defined(OpenBSD4_0) || defined(OpenBSD4_1) || defined(OpenBSD4_2) || defined(OpenBSD4_3) || defined(OpenBSD4_4) || defined(OpenBSD4_5) || defined(OpenBSD4_6) || defined(OpenBSD4_7) || defined(OpenBSD4_8) || defined(OpenBSD4_9))
   # include <machine/endian.h>
-  #elif defined(__bsdi__) || defined(__DragonFly__) || defined(__FreeBSD__) || defined(__FreeBSD_version) || defined(__NETBSD__) || defined(__NETBSD_version) || defined(NetBSD0_8) || defined(NetBSD0_9) || defined(NetBSD1_0) || defined(__OpenBSD__) || defined(OpenBSD2_0) || defined(OpenBSD2_1) || defined(OpenBSD2_2) || defined(OpenBSD2_3) || defined(OpenBSD2_4) || defined(OpenBSD2_5) || defined(OpenBSD2_6) || defined(OpenBSD2_7) || defined(OpenBSD2_8) || defined(OpenBSD2_9) || defined(OpenBSD3_0) || defined(OpenBSD3_1) || defined(OpenBSD3_2) || defined(OpenBSD3_3) || defined(OpenBSD3_4) || defined(OpenBSD3_5) || defined(OpenBSD3_6) || defined(OpenBSD3_7) || defined(OpenBSD3_8) || defined(OpenBSD3_9) || defined(OpenBSD4_0) || defined(OpenBSD4_1) || defined(OpenBSD4_2) || defined(OpenBSD4_3) || defined(OpenBSD4_4) || defined(OpenBSD4_5) || defined(OpenBSD4_6) || defined(OpenBSD4_7) || defined(OpenBSD4_8) || defined(OpenBSD4_9)
+  #elif included(<sys/endian.h>) && (defined(__bsdi__) || defined(__DragonFly__) || defined(__FreeBSD__) || defined(__FreeBSD_version) || defined(__NETBSD__) || defined(__NETBSD_version) || defined(NetBSD0_8) || defined(NetBSD0_9) || defined(NetBSD1_0) || defined(__OpenBSD__) || defined(OpenBSD2_0) || defined(OpenBSD2_1) || defined(OpenBSD2_2) || defined(OpenBSD2_3) || defined(OpenBSD2_4) || defined(OpenBSD2_5) || defined(OpenBSD2_6) || defined(OpenBSD2_7) || defined(OpenBSD2_8) || defined(OpenBSD2_9) || defined(OpenBSD3_0) || defined(OpenBSD3_1) || defined(OpenBSD3_2) || defined(OpenBSD3_3) || defined(OpenBSD3_4) || defined(OpenBSD3_5) || defined(OpenBSD3_6) || defined(OpenBSD3_7) || defined(OpenBSD3_8) || defined(OpenBSD3_9) || defined(OpenBSD4_0) || defined(OpenBSD4_1) || defined(OpenBSD4_2) || defined(OpenBSD4_3) || defined(OpenBSD4_4) || defined(OpenBSD4_5) || defined(OpenBSD4_6) || defined(OpenBSD4_7) || defined(OpenBSD4_8) || defined(OpenBSD4_9))
   # include <sys/endian.h>
   #endif
 
@@ -294,11 +301,11 @@
   # include <bit>
   # define CPP_ENDIAN (std::endian::native == std::endian::little ? CPP_BYTE_LITTLE_ENDIAN : CPP_BYTE_BIG_ENDIAN)
   #else
-  # if CPP_VENDOR & CPP_APPLE_MACINTOSH_VENDOR
+  # if included(<machine/endian.h>) && (CPP_VENDOR & CPP_APPLE_MACINTOSH_VENDOR)
   #   include <machine/endian.h>
-  # elif defined(__CYGWIN__) || defined(__GLIBC__) || defined(__gnu_linux__) || defined(__linux) || defined(__linux__) || defined(__QNX__) || defined(__QNXNTO__) || defined(__sun) || defined(__SVR4) || defined(__svr4__) || defined(__sysv__) || defined(__unix) || defined(__unix__) || defined(__VMS) || defined(__VMS_VER) || defined(_NTO_VERSION) || defined(_POSIX_SOURCE) || defined(_SYSTYPE_SVR4) || defined(_XOPEN_SOURCE) || defined(linux) || defined(sun) || defined(unix) || defined(VMS)
+  # elif included(<endian.h>) && (defined(__CYGWIN__) || defined(__GLIBC__) || defined(__gnu_linux__) || defined(__linux) || defined(__linux__) || defined(__QNX__) || defined(__QNXNTO__) || defined(__sun) || defined(__SVR4) || defined(__svr4__) || defined(__sysv__) || defined(__unix) || defined(__unix__) || defined(__VMS) || defined(__VMS_VER) || defined(_NTO_VERSION) || defined(_POSIX_SOURCE) || defined(_SYSTYPE_SVR4) || defined(_XOPEN_SOURCE) || defined(linux) || defined(sun) || defined(unix) || defined(VMS))
   #   include <endian.h>
-  # elif defined(__bsdi__) || defined(__DragonFly__) || defined(__FreeBSD__) || defined(__FreeBSD_version) || defined(__NETBSD__) || defined(__NETBSD_version) || defined(NetBSD0_8) || defined(NetBSD0_9) || defined(NetBSD1_0) || defined(__OpenBSD__) || defined(OpenBSD2_0) || defined(OpenBSD2_1) || defined(OpenBSD2_2) || defined(OpenBSD2_3) || defined(OpenBSD2_4) || defined(OpenBSD2_5) || defined(OpenBSD2_6) || defined(OpenBSD2_7) || defined(OpenBSD2_8) || defined(OpenBSD2_9) || defined(OpenBSD3_0) || defined(OpenBSD3_1) || defined(OpenBSD3_2) || defined(OpenBSD3_3) || defined(OpenBSD3_4) || defined(OpenBSD3_5) || defined(OpenBSD3_6) || defined(OpenBSD3_7) || defined(OpenBSD3_8) || defined(OpenBSD3_9) || defined(OpenBSD4_0) || defined(OpenBSD4_1) || defined(OpenBSD4_2) || defined(OpenBSD4_3) || defined(OpenBSD4_4) || defined(OpenBSD4_5) || defined(OpenBSD4_6) || defined(OpenBSD4_7) || defined(OpenBSD4_8) || defined(OpenBSD4_9) || defined(__OS400__) || defined(__unix)
+  # elif included(<sys/endian.h>) && (defined(__bsdi__) || defined(__DragonFly__) || defined(__FreeBSD__) || defined(__FreeBSD_version) || defined(__NETBSD__) || defined(__NETBSD_version) || defined(NetBSD0_8) || defined(NetBSD0_9) || defined(NetBSD1_0) || defined(__OpenBSD__) || defined(OpenBSD2_0) || defined(OpenBSD2_1) || defined(OpenBSD2_2) || defined(OpenBSD2_3) || defined(OpenBSD2_4) || defined(OpenBSD2_5) || defined(OpenBSD2_6) || defined(OpenBSD2_7) || defined(OpenBSD2_8) || defined(OpenBSD2_9) || defined(OpenBSD3_0) || defined(OpenBSD3_1) || defined(OpenBSD3_2) || defined(OpenBSD3_3) || defined(OpenBSD3_4) || defined(OpenBSD3_5) || defined(OpenBSD3_6) || defined(OpenBSD3_7) || defined(OpenBSD3_8) || defined(OpenBSD3_9) || defined(OpenBSD4_0) || defined(OpenBSD4_1) || defined(OpenBSD4_2) || defined(OpenBSD4_3) || defined(OpenBSD4_4) || defined(OpenBSD4_5) || defined(OpenBSD4_6) || defined(OpenBSD4_7) || defined(OpenBSD4_8) || defined(OpenBSD4_9) || defined(__OS400__) || defined(__unix))
   #   include <sys/endian.h>
   # endif
   #
@@ -482,13 +489,13 @@
 
   // : [Initialization] --- NOTE (Lapys) -> Common initialization syntax
   #ifdef __cpp_aggregate_paren_init
-  # define init(arguments)    {arguments}
-  # define nilinit(type)      {}
-  # define varinit(arguments) {arguments}
+  # define init(arguments)   {arguments}
+  # define nilinit(type)     {}
+  # define varinit(argument) {argument}
   #else
-  # define init(arguments)    (arguments)
-  # define nilinit(type)      = type()
-  # define varinit(arguments) = arguments
+  # define init(arguments)   (arguments)
+  # define nilinit(type)     = type()
+  # define varinit(argument) = argument
   #endif
 
   // : [Integer Types] --- NOTE (Lapys) -> Acknowledges extended integer types --- WARN (Lapys) -> Not intended to be type definitions
@@ -563,6 +570,16 @@
   #endif
 
   #if CPP_VERSION < 2011uL
+  # if CPP_COMPILER == CPP_CLANG_COMPILER || CPP_COMPILER == CPP_GNUC_COMPILER
+  #   define mustreturn __attribute__((warn_unused_result))
+  # else
+  #   define mustreturn
+  # endif
+  #else
+  # define mustreturn [[nodiscard]]
+  #endif
+
+  #if CPP_VERSION < 2011uL
   # if CPP_COMPILER == CPP_CLANG_COMPILER
   #   define noexit _Noreturn
   # elif CPP_COMPILER == CPP_GNUC_COMPILER
@@ -574,16 +591,6 @@
   # endif
   #else
   # define noexit [[noreturn]]
-  #endif
-
-  #if CPP_VERSION < 2011uL
-  # if CPP_COMPILER == CPP_CLANG_COMPILER || CPP_COMPILER == CPP_GNUC_COMPILER
-  #   define noignore __attribute__((warn_unused_result))
-  # else
-  #   define noignore
-  # endif
-  #else
-  # define noignore [[nodiscard]]
   #endif
 
   #if CPP_COMPILER == CPP_CLANG_COMPILER
@@ -604,7 +611,7 @@
 
   // : [Type Alignment Specifier] --- NOTE (Lapys) -> Attempt to align members or variables on a specified boundary, or evaluate an acceptable alignment width of a specified type
   #if CPP_VERSION < 2011uL
-  # if CPP_COMPILER == CPP_GNUC_COMPILER
+  # if CPP_COMPILER == CPP_GNUC_COMPILER && included(<stdalign.h>)
   #  include <stdalign.h> // ->> since C++11
   # elif CPP_COMPILER == CPP_MSVC_COMPILER
   #  define __alignof_is_defined true
@@ -667,7 +674,7 @@
   #   elif CPP_COMPILER == CPP_MSVC_COMPILER
   #     define typeof(expression) decltype(expression)
   #   else // TODO (Lapys) -> Limited `typeof(...)` functionality is doable
-  #     error Static type inspection feature `typeof(...)` required
+  #     error Lapys C++: Static type inspection feature `typeof(...)` required
   #   endif
   # endif
   #endif
@@ -1287,13 +1294,13 @@
     #   define apply(...) parse(apply_setup(__VA_ARGS__))
     #     define apply_condition(argument, ...) defer(choose_2u, reapply_ ## argument, true, ~)
     #     define apply_setup(function, condition, separator, ...) apply_begin(                            \
-            choose(defer(choose_2u, apply_function_  ## function , true, ~), function,  apply_function),  \
+            choose(defer(choose_2u, apply_function_  ## function,  true, ~), function,  apply_function),  \
             choose(defer(choose_2u, apply_condition_ ## condition, true, ~), condition, apply_condition), \
             choose(defer(choose_2u, apply_separator_ ## separator, true, ~), separator, apply_separator), \
             __VA_ARGS__, break, break                                                                     \
           )
     #     if CPP_COMPILER == CPP_INTEL_COMPILER
-    #       undef  apply_continue // ->> unknown why the `applyer` function needs to become redundant
+    #       undef  apply_continue // ->> Unknown why the `applyer` function needs to become redundant
     #       define apply_continue(function, separator, applyer, argument, ...) function(argument)separator(argument, __VA_ARGS__)
     #     endif
     # elif CPP_PREPROCESSOR_FORMAT == CPP_PREPROCESSOR_MSVC_FORMAT
@@ -1322,7 +1329,7 @@
     #   endif
     #     define apply_condition(argument, ...) stall(defer(choose_2u, choose_1u(reapply_ ## argument, ~), true))
     #     define apply_setup(function, condition, separator, ...) defer(apply_begin,                                           \
-            stall(choose(defer(choose_2u, choose_1u(apply_function_  ## function , ~), true, ~), function,  apply_function)),  \
+            stall(choose(defer(choose_2u, choose_1u(apply_function_  ## function,  ~), true, ~), function,  apply_function)),  \
             stall(choose(defer(choose_2u, choose_1u(apply_condition_ ## condition, ~), true, ~), condition, apply_condition)), \
             stall(choose(defer(choose_2u, choose_1u(apply_separator_ ## separator, ~), true, ~), separator, apply_separator)), \
             __VA_ARGS__, break, break                                                                                          \

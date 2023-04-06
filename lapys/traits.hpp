@@ -1,16 +1,19 @@
 #ifndef LAPYS_MODULE_TRAITS
 # define LAPYS_MODULE_TRAITS
   /* Import */
+  // : [...]
+  #include "extensions.hpp"
+
   // : [C++ Standard Library]
   #if CPP_VERSION >= 2011uL
   # include <type_traits> // Type Traits
   #endif
-  #if CPP_VERSION >= 2020uL
-  # include <compare> // Compare
-  #endif
 
-  // : [...]
-  #include "extensions.hpp"
+  #if defined(__cpp_impl_three_way_comparison) && defined(__cpp_lib_three_way_comparison)
+  # if __cpp_impl_three_way_comparison >= 201907L && __cpp_lib_three_way_comparison >= 201907L
+  #   include <compare> // Compare
+  # endif
+  #endif
 
   /* Namespace ->> All traits should be `struct final`, everything else a `union` */
   namespace Lapys {
@@ -133,67 +136,48 @@
     }
   }
 
-  // #if CPP_COMPILER != CPP_GCC_COMPILER
-  //   __COUNTER__
-  //   function([]() {}) always generates a new template instantiate
-  //   template <auto = []{}> for C++20 and beyond
-  // #else
-  // # include <stdint.h>
-
-  //   double_t, float_t
-  //   __SIZE_TYPE__
-  //   __PTRDIFF_TYPE__
-  //   __WCHAR_TYPE__
-  //   __WINT_TYPE__
-  //   __INTMAX_TYPE__
-  //   __UINTMAX_TYPE__
-  //   __SIG_ATOMIC_TYPE__
-  //   __INT8_TYPE__
-  //   __INT16_TYPE__
-  //   __INT32_TYPE__
-  //   __INT64_TYPE__
-  //   __UINT8_TYPE__
-  //   __UINT16_TYPE__
-  //   __UINT32_TYPE__
-  //   __UINT64_TYPE__
-  //   __INT_LEAST8_TYPE__
-  //   __INT_LEAST16_TYPE__
-  //   __INT_LEAST32_TYPE__
-  //   __INT_LEAST64_TYPE__
-  //   __UINT_LEAST8_TYPE__
-  //   __UINT_LEAST16_TYPE__
-  //   __UINT_LEAST32_TYPE__
-  //   __UINT_LEAST64_TYPE__
-  //   __INT_FAST8_TYPE__
-  //   __INT_FAST16_TYPE__
-  //   __INT_FAST32_TYPE__
-  //   __INT_FAST64_TYPE__
-  //   __UINT_FAST8_TYPE__
-  //   __UINT_FAST16_TYPE__
-  //   __UINT_FAST32_TYPE__
-  //   __UINT_FAST64_TYPE__
-  //   __INTPTR_TYPE__
-  //   __UINTPTR_TYPE__
-
-  //   __SCHAR_WIDTH__
-  //   __SHRT_WIDTH__
-  //   __INT_WIDTH__
-  //   __LONG_WIDTH__
-  //   __LONG_LONG_WIDTH__
-  //   __PTRDIFF_WIDTH__
-  //   __SIG_ATOMIC_WIDTH__
-  //   __SIZE_WIDTH__
-  //   __WCHAR_WIDTH__
-  //   __WINT_WIDTH__
-  //   __INT_LEAST8_WIDTH__
-  //   __INT_LEAST16_WIDTH__
-  //   __INT_LEAST32_WIDTH__
-  //   __INT_LEAST64_WIDTH__
-  //   __INT_FAST8_WIDTH__
-  //   __INT_FAST16_WIDTH__
-  //   __INT_FAST32_WIDTH__
-  //   __INT_FAST64_WIDTH__
-  //   __INTPTR_WIDTH__
-  //   __INTMAX_WIDTH__
-  // #endif
+  // Current Goals
+  // • Assert design of Extensions module (`extensions.h`)
+  // • Ensure `apply(…)` macro works as intended
+  //
+  // Design Goals
+  // • Auto-diagnose memory allocations with `__FILE__` and `__LINE__` (and optionally `__COUNTER__`) via macros
+  // • Beware of `SIZE_MAX` (or such) for bounded ranges, such as the ones for memory allocators
+  // • Consider GCC `<stdint.h>` macros `__INT_FAST16_WIDTH__`, `__INT_FAST32_WIDTH__`, `__INT_FAST64_WIDTH__`, `__INT_FAST8_WIDTH__`, `__INT_LEAST16_WIDTH__`, `__INT_LEAST32_WIDTH__`, `__INT_LEAST64_WIDTH__`, `__INT_LEAST8_WIDTH__`, `__INT_WIDTH__`, `__INTMAX_WIDTH__`, `__INTPTR_WIDTH__`, `__LONG_LONG_WIDTH__`, `__LONG_WIDTH__`, `__PTRDIFF_WIDTH__`, `__SCHAR_WIDTH__`, `__SHRT_WIDTH__`, `__SIG_ATOMIC_WIDTH__`, `__SIZE_WIDTH__`, `__WCHAR_WIDTH__`, and `__WINT_WIDTH__`
+  // • GCC defines the `<stdint.h>` macros `__INT16_TYPE__`, `__INT32_TYPE__`, `__INT64_TYPE__`, `__INT8_TYPE__`, `__INTPTR_TYPE__`, `__UINT16_TYPE__`, `__UINT32_TYPE__`, `__UINT64_TYPE__`, `__UINT8_TYPE__`, and `__UINTPTR_TYPE__` for optional standard type aliases
+  // • Overload literal operators (since C++11) for string methods (`"…"indexOf(…)`, `L"…"hash`, …) and custom string types (`"…"s`, …)
+  // • Overload literal operators for unit measurements (`0cm`, `0px`, …)
+  // • Prefer `__STDCPP_BFLOAT16_T__`, `__STDCPP_FLOAT16_T__`, `__STDCPP_FLOAT32_T__`, `__STDCPP_FLOAT64_T__`, and `__STDCPP_FLOAT128_T__` (since C++23 from `<stdfloat>`) for fixed-size floating-point arithmetic
+  // • Prefer `double_t` and `float_t` (since C++11 from `<cmath>`) for floating-point arithmetic
+  // • Prefer `UI::createWindow().append(UI::createButton(), UI::createText())` over `Window{}.append(Button{}, Text{})`
+  // • Prefer factory functions & methods over stateful constructors & member functions eg: `System::createFile(…)` evaluates to `class File*` or `NULL`
+  // • Standard
+  //   ⚬ arbitrary-precision,
+  //   ⚬ array,
+  //   ⚬ audio,
+  //   ⚬ data structure, (linked list, map, set, …)
+  //   ⚬ geolocation,
+  //   ⚬ 2D/ 3D graphics rendering, (software rendering MUST be guaranteed to be available)
+  //   ⚬ events, (keyboard, pointer, touch, vibration, …)
+  //   ⚬ font parsing,
+  //   ⚬ hardware diagnostics, (battery, gamepad, graphics card, keyboard, stylus, USB, …)
+  //   ⚬ HTML parsing,
+  //   ⚬ image parsing,
+  //   ⚬ internationalization/ locale,
+  //   ⚬ math.,
+  //   ⚬ memory management, (fixed-size allocations are sorted in buckets, not generalized; `Memory::allocate(…)` evaluates to `class MemoryBuffer` which decays to a pointer — there´s also `Memory::instantiate<>(…)`)
+  //   ⚬ multi-threading, (background workers and spawning threads)
+  //   ⚬ networking, (TCP/IP, UDP, …)
+  //   ⚬ parallelization, (OpenMP or SIMD support?)
+  //   ⚬ program-specific features,
+  //   ⚬ QR,
+  //   ⚬ string, (codepoints, SSO, ropes, UTF-8 default, …)
+  //   ⚬ system diagnostics/ query, (clipboard, filesystem, screen, …)
+  //   ⚬ tuple,
+  //   ⚬ URL/ path,
+  //   ⚬ user-interface,
+  //   ⚬ variant, and
+  //   ⚬ video
+  //   APIs
+  // • Use `template <auto = []{}>` (since C++20 or `function([]{})` since C++11) for stateful template metaprogramming otherwise use `__COUNTER__` aliased via macros
 #endif

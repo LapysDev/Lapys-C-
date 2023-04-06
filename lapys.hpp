@@ -55,8 +55,8 @@
   #endif
 
   /* Import */
-  // : [C++ Standard Library]
-  #include <cstddef>    // C Standard Definitions
+  // : [C/ C++ Standard Library]
+  #include <cstddef>   // C Standard Definitions
   #include <stdbool.h> // Standard Boolean
 
   // : [C Standard Library]
@@ -64,12 +64,7 @@
   // : [...]
   #include "lapys/extensions.hpp"
 
-  // : [UNIX]
-  #if CPP_VENDOR & CPP__UNIX__VENDOR
-  # include <sys/mman.h>
-  #endif
-
-  // : [Windows]
+  // : [Microsoft Windows]
   #if CPP_VENDOR & CPP__MICROSOFT_WINDOWS__VENDOR
   # define NOATOM
   # define NOCLIPBOARD
@@ -111,7 +106,21 @@
   # define NOWINSTYLES
   # define OEMRESOURCE
   # define WIN32_LEAN_AND_MEAN
-  # include <windows.h>
+  #
+  # if included(<windows.h>)
+  #   include <windows.h>
+  # else
+  #   error Lapys C++: Microsoft Windows-specific header `<windows.h>` required
+  # endif
+  #endif
+
+  // : [UNIX]
+  #if CPP_VENDOR & CPP__UNIX__VENDOR
+  # if included(<sys/mman.h>)
+  #   include <sys/mman.h>
+  # else
+  #   error Lapys C++: Unix-specific POSIX header `<sys/mman.h>` required
+  # endif
   #endif
 
   // : [...]
@@ -138,16 +147,17 @@
 #if CPP_VERSION < 2011uL
 # undef final
 #endif
+#undef included
 #undef init
 #undef int128_t
 #undef intenum
 #undef lref
 #undef mustinline
+#undef mustreturn
 #undef nilinit
 #undef nodecay
 #undef nodecayparam
 #undef noexit
-#undef noignore
 #undef noinline
 #undef nouniqueaddr
 #undef nullptr
