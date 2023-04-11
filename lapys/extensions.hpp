@@ -10,64 +10,71 @@
   #undef choose_
   #undef constfunc_
   #undef CPP_PREPROCESSOR_
+  #undef ISO
   #undef MSVC
-  #undef STANDARD
 
   /* Definition */
-  // : [C++ Compiler] --- CITE (Lapys)
-  # define CPP_BORLAND_COMPILER 0x00u // -> https://en.wikipedia.org/wiki/C_plus_plus_builder
+  // : [C++ Compiler] ->> `CPP_COMPILER` attempts to avoid backends to otherwise strictly identify the main vendor --- CITE (Lapys)
   # define CPP_CIRCLE_COMPILER  0x01u // -> https://www.circle-lang.org/
   # define CPP_CLANG_COMPILER   0x02u // -> https://en.wikipedia.org/wiki/Clang
-  # define CPP_COMEAU_COMPILER  0x03u // -> https://en.wikipedia.org/wiki/Comeau_C/C++
-  # define CPP_DEC_COMPILER     0x04u // -> https://www.openvms.compaq.com/openvms/brochures/deccplus/
-  # define CPP_DIAB_COMPILER    0x05u // -> https://www.windriver.com/products/development_suite/wind_river_compiler/
-  # define CPP_DMC_COMPILER     0x06u // -> https://en.wikipedia.org/wiki/Digital_Mars
-  # define CPP_EDG_COMPILER     0x07u // -> https://en.wikipedia.org/wiki/Edison_Design_Group
-  # define CPP_GCCXML_COMPILER  0x08u // -> https://en.wikipedia.org/wiki/GNU_Compiler_Collection
-  # define CPP_GHS_COMPILER     0x09u // -> https://en.wikipedia.org/wiki/Green_Hills_Software
-  # define CPP_GNUC_COMPILER    0x0Au // -> https://en.wikipedia.org/wiki/GNU_Compiler_Collection
-  # define CPP_HIGHC_COMPILER   0x0Bu // ->
-  # define CPP_HPACC_COMPILER   0x0Cu // ->
-  # define CPP_IAR_COMPILER     0x0Du // ->
-  # define CPP_IBM_COMPILER     0x0Eu // -> https://en.wikipedia.org/wiki/VisualAge
-  # define CPP_INTEL_COMPILER   0x0Fu // -> https://en.wikipedia.org/wiki/Intel_C++
-  # define CPP_KCC_COMPILER     0x10u // ->
-  # define CPP_LLVM_COMPILER    0x11u // -> https://en.wikipedia.org/wiki/LLVM
-  # define CPP_MPW_COMPILER     0x12u // -> https://en.wikipedia.org/wiki/Macintosh_Programmer's_Workshop
-  # define CPP_MRI_COMPILER     0x13u // -> https://www.mentor.com/microtec/
-  # define CPP_MSVC_COMPILER    0x14u // -> https://en.wikipedia.org/wiki/Visual_studio
-  # define CPP_MWERKS_COMPILER  0x15u // -> https://en.wikipedia.org/wiki/CodeWarrior
-  # define CPP_NVCC_COMPILER    0x16u // -> https://docs.nvidia.com/hpc-sdk/compilers/hpc-compilers-ref-guide/
-  # define CPP_PALM_COMPILER    0x17u // ->
-  # define CPP_PATH_COMPILER    0x18u // -> https://en.wikipedia.org/wiki/PathScale
-  # define CPP_PGI_COMPILER     0x19u // -> https://en.wikipedia.org/wiki/The_Portland_Group
-  # define CPP_SGI_COMPILER     0x1Au // -> https://en.wikipedia.org/wiki/MIPSpro
-  # define CPP_SUNPRO_COMPILER  0x1Bu // -> https://en.wikipedia.org/wiki/Oracle_Solaris_Studio
-  # define CPP_SYSC_COMPILER    0x1Cu // -> https://www.dignus.com/dcxx/
-  # define CPP_TENDRA_COMPILER  0x1Du // -> https://en.wikipedia.org/wiki/TenDRA_Compiler
-  # define CPP_WATCOM_COMPILER  0x1Eu // -> https://en.wikipedia.org/wiki/Watcom
+  # define CPP_GNUC_COMPILER    0x03u // -> https://en.wikipedia.org/wiki/GNU_Compiler_Collection
+  # define CPP_INTEL_COMPILER   0x04u // -> https://en.wikipedia.org/wiki/Intel_C++
+  # define CPP_LLVM_COMPILER    0x05u // -> https://en.wikipedia.org/wiki/LLVM
+  # define CPP_MSVC_COMPILER    0x06u // -> https://en.wikipedia.org/wiki/Visual_studio
+  #                                   // ->> Unsupported compilers
+  # define CPP_BORLAND_COMPILER 0x07u // -> https://en.wikipedia.org/wiki/C_plus_plus_builder
+  # define CPP_COMEAU_COMPILER  0x08u // -> https://en.wikipedia.org/wiki/Comeau_C/C++
+  # define CPP_DEC_COMPILER     0x09u // -> https://www.openvms.compaq.com/openvms/brochures/deccplus/
+  # define CPP_DIAB_COMPILER    0x0Au // -> https://www.windriver.com/products/development_suite/wind_river_compiler/
+  # define CPP_DMC_COMPILER     0x0Bu // -> https://en.wikipedia.org/wiki/Digital_Mars
+  # define CPP_EDG_COMPILER     0x0Cu // -> https://en.wikipedia.org/wiki/Edison_Design_Group
+  # define CPP_GCCXML_COMPILER  0x0Du // -> https://en.wikipedia.org/wiki/GNU_Compiler_Collection
+  # define CPP_GHS_COMPILER     0x0Eu // -> https://en.wikipedia.org/wiki/Green_Hills_Software
+  # define CPP_HIGHC_COMPILER   0x0Fu // ->
+  # define CPP_HPACC_COMPILER   0x10u // ->
+  # define CPP_IAR_COMPILER     0x11u // ->
+  # define CPP_IBM_COMPILER     0x12u // -> https://en.wikipedia.org/wiki/VisualAge
+  # define CPP_KCC_COMPILER     0x13u // ->
+  # define CPP_MPW_COMPILER     0x14u // -> https://en.wikipedia.org/wiki/Macintosh_Programmer's_Workshop
+  # define CPP_MRI_COMPILER     0x15u // -> https://www.mentor.com/microtec/
+  # define CPP_MWERKS_COMPILER  0x16u // -> https://en.wikipedia.org/wiki/CodeWarrior
+  # define CPP_NVCC_COMPILER    0x17u // -> https://docs.nvidia.com/hpc-sdk/compilers/hpc-compilers-ref-guide/
+  # define CPP_PALM_COMPILER    0x18u // ->
+  # define CPP_PATH_COMPILER    0x19u // -> https://en.wikipedia.org/wiki/PathScale
+  # define CPP_PGI_COMPILER     0x1Au // -> https://en.wikipedia.org/wiki/The_Portland_Group
+  # define CPP_SGI_COMPILER     0x1Bu // -> https://en.wikipedia.org/wiki/MIPSpro
+  # define CPP_SUNPRO_COMPILER  0x1Cu // -> https://en.wikipedia.org/wiki/Oracle_Solaris_Studio
+  # define CPP_SYSC_COMPILER    0x1Du // -> https://www.dignus.com/dcxx/
+  # define CPP_TENDRA_COMPILER  0x1Eu // -> https://en.wikipedia.org/wiki/TenDRA_Compiler
+  # define CPP_WATCOM_COMPILER  0x1Fu // -> https://en.wikipedia.org/wiki/Watcom
 
   #if defined(__circle_lang__)
   # define CPP_COMPILER CPP_CIRCLE_COMPILER
-  #elif defined(__clang__)
-  # define CPP_COMPILER CPP_CLANG_COMPILER
   #elif defined(__ICC) || defined(__INTEL_COMPILER) || defined(__INTEL_LLVM_COMPILER)
   # define CPP_COMPILER CPP_INTEL_COMPILER
+  #elif defined(__clang__)
+  # define CPP_COMPILER CPP_CLANG_COMPILER
   #elif defined(__GNUC__)
   # define CPP_COMPILER CPP_GNUC_COMPILER
   #elif defined(_MSC_VER)
   # define CPP_COMPILER CPP_MSVC_COMPILER
   #elif defined(__llvm__)
   # define CPP_COMPILER CPP_LLVM_COMPILER
-  #
+  # // ->> Unsupported compilers
   #elif defined(__BORLANDC__) || defined(__CODEGEARC__)
   # define CPP_COMPILER CPP_BORLAND_COMPILER
   #elif defined(__COMO__) || defined(__COMO_VERSION__)
   # define CPP_COMPILER CPP_COMEAU_COMPILER
-  #elif defined(__DECC) || defined(__DECC_VER) || defined(__DECCXX) || defined(__DECCXX_VER)
-  # define CPP_COMPILER CPP_DEC_COMPILER
+  #elif defined(__COMPILER_VER__) || defined(__IBMCPP__) || defined(__xlC__) || defined(__xlc__)
+  # define CPP_COMPILER CPP_IBM_COMPILER
+  #elif defined(__CUDACC_VER_BUILD__) || defined(__CUDACC_VER_MAJOR__) || defined(__CUDACC_VER_MINOR__) || defined(__NVCC__) || defined(__NVCOMPILER)
+  # define CPP_COMPILER CPP_NVCC_COMPILER
+  #elif defined(__CWCC__) || defined(__MWERKS__)
+  # define CPP_COMPILER CPP_MWERKS_COMPILER
   #elif defined(__DCC__) || defined(__VERSION_NUMBER__)
   # define CPP_COMPILER CPP_DIAB_COMPILER
+  #elif defined(__DECC) || defined(__DECC_VER) || defined(__DECCXX) || defined(__DECCXX_VER)
+  # define CPP_COMPILER CPP_DEC_COMPILER
   #elif defined(__DMC__)
   # define CPP_COMPILER CPP_DMC_COMPILER
   #elif defined(__EDG__)
@@ -82,26 +89,14 @@
   # define CPP_COMPILER CPP_HPACC_COMPILER
   #elif defined(__IAR_SYSTEMS_ICC__) || defined(__VER__)
   # define CPP_COMPILER CPP_IAR_COMPILER
-  #elif defined(__COMPILER_VER__) || defined(__IBMCPP__) || defined(__xlC__) || defined(__xlc__)
-  # define CPP_COMPILER CPP_IBM_COMPILER
   #elif defined(__KCC) || defined(__KCC_VERSION)
   # define CPP_COMPILER CPP_KCC_COMPILER
   #elif defined(__MRC__) || defined(MPW_C) || defined(MPW_CPLUS)
   # define CPP_COMPILER CPP_MPW_COMPILER
-  #elif defined(_MRI)
-  # define CPP_COMPILER CPP_MRI_COMPILER
-  #elif defined(__CWCC__) || defined(__MWERKS__)
-  # define CPP_COMPILER CPP_MWERKS_COMPILER
-  #elif defined(__CUDACC_VER_BUILD__) || defined(__CUDACC_VER_MAJOR__) || defined(__CUDACC_VER_MINOR__) || defined(__NVCC__) || defined(__NVCOMPILER)
-  # define CPP_COMPILER CPP_NVCC_COMPILER
-  #elif defined(_PACC_VER)
-  # define CPP_COMPILER CPP_PALM_COMPILER
   #elif defined(__PATHCC__) || defined(__PATHCC_MINOR__) || defined(__PATHCC_PATCHLEVEL__)
   # define CPP_COMPILER CPP_PATH_COMPILER
   #elif defined(__PGI) || defined(__PGIC__) || defined(__PGIC_MINOR__) || defined(__PGIC_PATCHLEVEL__)
   # define CPP_COMPILER CPP_PGI_COMPILER
-  #elif defined(_COMPILER_VERSION) || defined(__sgi) || defined(_SGI_COMPILER_VERSION) || defined(sgi)
-  # define CPP_COMPILER CPP_SGI_COMPILER
   #elif defined(__SUNPRO_C) || defined(__SUNPRO_CC)
   # define CPP_COMPILER CPP_SUNPRO_COMPILER
   #elif defined(__SYSC_ZARCH__)
@@ -110,47 +105,322 @@
   # define CPP_COMPILER CPP_TENDRA_COMPILER
   #elif defined(__WATCOMC__)
   # define CPP_COMPILER CPP_WATCOM_COMPILER
+  #elif defined(_COMPILER_VERSION) || defined(__sgi) || defined(_SGI_COMPILER_VERSION) || defined(sgi)
+  # define CPP_COMPILER CPP_SGI_COMPILER
+  #elif defined(_MRI)
+  # define CPP_COMPILER CPP_MRI_COMPILER
+  #elif defined(_PACC_VER)
+  # define CPP_COMPILER CPP_PALM_COMPILER
   #else
   # define CPP_COMPILER 0x00u
   #endif
 
-  // : [C++ Version]
+  // : [C++ Version] ->> Assume most universal version, otherwise
   #if CPP_COMPILER == CPP_MSVC_COMPILER
-  # ifndef _MSVC_LANG // ->> Assume most universal version
+  # ifndef _MSVC_LANG
   #   define CPP_VERSION 2014uL
-  # else
-  #   if   _MSVC_LANG == 201402L
-  #     define CPP_VERSION 2014uL
-  #   elif _MSVC_LANG <= 201703L
-  #     define CPP_VERSION 2017uL
-  #   elif _MSVC_LANG <= 202002L
-  #     define CPP_VERSION 2020uL
-  #   endif
+  # elif _MSVC_LANG == 201402L
+  #   define CPP_VERSION 2014uL
+  # elif _MSVC_LANG <= 201703L
+  #   define CPP_VERSION 2017uL
+  # elif _MSVC_LANG <= 202002L
+  #   define CPP_VERSION 2020uL
   # endif
   #endif
 
   #ifndef CPP_VERSION
-  # ifndef __cplusplus // ->> Assume most universal version
+  # ifndef __cplusplus
   #   define CPP_VERSION 1997uL
+  # elif __cplusplus <= 199711L
+  #   define CPP_VERSION 1997uL
+  # elif __cplusplus <= 201103L
+  #   define CPP_VERSION 2011uL
+  # elif __cplusplus <= 201402L
+  #   define CPP_VERSION 2014uL
+  # elif __cplusplus <= 201703L
+  #   define CPP_VERSION 2017uL
+  # elif __cplusplus <= 202002L
+  #   define CPP_VERSION 2020uL
   # else
-  #   if   __cplusplus <= 199711L
-  #     define CPP_VERSION 1997uL
-  #   elif __cplusplus <= 201103L
-  #     define CPP_VERSION 2011uL
-  #   elif __cplusplus <= 201402L
-  #     define CPP_VERSION 2014uL
-  #   elif __cplusplus <= 201703L
-  #     define CPP_VERSION 2017uL
-  #   elif __cplusplus <= 202002L
-  #     define CPP_VERSION 2020uL
-  #   else
-  #     define CPP_VERSION 2023uL
-  #   endif
+  #   define CPP_VERSION 2023uL
   # endif
   #endif
 
-  /* ... */
-  #if CPP_VERSION >= 2020uL || (CPP_COMPILER == CPP__MSVC__COMPILER ? /* MSVC (Wine) does not include `<version>` before C++20 */ true : (CPP_COMPILER == CPP__CLANG__COMPILER || CPP_COMPILER == CPP_GNUC_COMPILER || CPP_COMPILER == CPP__ICC__COMPILER || CPP_COMPILER == CPP_NVCC_COMPILER))
+  /* Guard > ... */
+  #ifdef bool
+  # error Lapys C++: Unexpected `bool` macro definition
+  #endif
+
+  #ifdef break
+  # error Lapys C++: Unexpected `break` macro definition
+  #endif
+
+  #ifdef case
+  # error Lapys C++: Unexpected `case` macro definition
+  #endif
+
+  #ifdef catch
+  # error Lapys C++: Unexpected `catch` macro definition
+  #endif
+
+  #ifdef char
+  # error Lapys C++: Unexpected `char` macro definition
+  #endif
+
+  #ifdef char8_t
+  # error Lapys C++: Unexpected `char8_t` macro definition
+  #endif
+
+  #ifdef char16_t
+  # error Lapys C++: Unexpected `char16_t` macro definition
+  #endif
+
+  #ifdef char32_t
+  # error Lapys C++: Unexpected `char32_t` macro definition
+  #endif
+
+  #ifdef class
+  # error Lapys C++: Unexpected `class` macro definition
+  #endif
+
+  #ifdef concept
+  # error Lapys C++: Unexpected `concept` macro definition
+  #endif
+
+  #ifdef const
+  # error Lapys C++: Unexpected `const` macro definition
+  #endif
+
+  #ifdef const_cast
+  # error Lapys C++: Unexpected `const_cast` macro definition
+  #endif
+
+  #ifdef consteval
+  # error Lapys C++: Unexpected `consteval` macro definition
+  #endif
+
+  #ifdef constexpr
+  # error Lapys C++: Unexpected `constexpr` macro definition
+  #endif
+
+  #ifdef constinit
+  # error Lapys C++: Unexpected `constinit` macro definition
+  #endif
+
+  #ifdef continue
+  # error Lapys C++: Unexpected `continue` macro definition
+  #endif
+
+  #ifdef default
+  # error Lapys C++: Unexpected `default` macro definition
+  #endif
+
+  #ifdef delete
+  # error Lapys C++: Unexpected `delete` macro definition
+  #endif
+
+  #ifdef do
+  # error Lapys C++: Unexpected `do` macro definition
+  #endif
+
+  #ifdef double
+  # error Lapys C++: Unexpected `double` macro definition
+  #endif
+
+  #ifdef dynamic_cast
+  # error Lapys C++: Unexpected `dynamic_cast` macro definition
+  #endif
+
+  #ifdef else
+  # error Lapys C++: Unexpected `else` macro definition
+  #endif
+
+  #ifdef enum
+  # error Lapys C++: Unexpected `enum` macro definition
+  #endif
+
+  #ifdef explicit
+  # error Lapys C++: Unexpected `explicit` macro definition
+  #endif
+
+  #ifdef extern
+  # error Lapys C++: Unexpected `extern` macro definition
+  #endif
+
+  #ifdef false
+  # error Lapys C++: Unexpected `false` macro definition
+  #endif
+
+  #ifdef float
+  # error Lapys C++: Unexpected `float` macro definition
+  #endif
+
+  #ifdef for
+  # error Lapys C++: Unexpected `for` macro definition
+  #endif
+
+  #ifdef friend
+  # error Lapys C++: Unexpected `friend` macro definition
+  #endif
+
+  #ifdef goto
+  # error Lapys C++: Unexpected `goto` macro definition
+  #endif
+
+  #ifdef if
+  # error Lapys C++: Unexpected `if` macro definition
+  #endif
+
+  #ifdef inline
+  # error Lapys C++: Unexpected `inline` macro definition
+  #endif
+
+  #ifdef int
+  # error Lapys C++: Unexpected `int` macro definition
+  #endif
+
+  #ifdef long
+  # error Lapys C++: Unexpected `long` macro definition
+  #endif
+
+  #ifdef mutable
+  # error Lapys C++: Unexpected `mutable` macro definition
+  #endif
+
+  #ifdef namespace
+  # error Lapys C++: Unexpected `namespace` macro definition
+  #endif
+
+  #ifdef new
+  # error Lapys C++: Unexpected `new` macro definition
+  #endif
+
+  #ifdef operator
+  # error Lapys C++: Unexpected `operator` macro definition
+  #endif
+
+  #ifdef private
+  # error Lapys C++: Unexpected `private` macro definition
+  #endif
+
+  #ifdef protected
+  # error Lapys C++: Unexpected `protected` macro definition
+  #endif
+
+  #ifdef public
+  # error Lapys C++: Unexpected `public` macro definition
+  #endif
+
+  #ifdef reflexpr
+  # error Lapys C++: Unexpected `reflexpr` macro definition
+  #endif
+
+  #ifdef register
+  # error Lapys C++: Unexpected `register` macro definition
+  #endif
+
+  #ifdef reinterpret_cast
+  # error Lapys C++: Unexpected `reinterpret_cast` macro definition
+  #endif
+
+  #ifdef return
+  # error Lapys C++: Unexpected `return` macro definition
+  #endif
+
+  #ifdef short
+  # error Lapys C++: Unexpected `short` macro definition
+  #endif
+
+  #ifdef signed
+  # error Lapys C++: Unexpected `signed` macro definition
+  #endif
+
+  #ifdef static
+  # error Lapys C++: Unexpected `static` macro definition
+  #endif
+
+  #ifdef static_cast
+  # error Lapys C++: Unexpected `static_cast` macro definition
+  #endif
+
+  #ifdef struct
+  # error Lapys C++: Unexpected `struct` macro definition
+  #endif
+
+  #ifdef switch
+  # error Lapys C++: Unexpected `switch` macro definition
+  #endif
+
+  #ifdef template
+  # error Lapys C++: Unexpected `template` macro definition
+  #endif
+
+  #ifdef this
+  # error Lapys C++: Unexpected `this` macro definition
+  #endif
+
+  #ifdef thread_local
+  # error Lapys C++: Unexpected `thread_local` macro definition
+  #endif
+
+  #ifdef throw
+  # error Lapys C++: Unexpected `throw` macro definition
+  #endif
+
+  #ifdef true
+  # error Lapys C++: Unexpected `true` macro definition
+  #endif
+
+  #ifdef try
+  # error Lapys C++: Unexpected `try` macro definition
+  #endif
+
+  #ifdef typedef
+  # error Lapys C++: Unexpected `typedef` macro definition
+  #endif
+
+  #ifdef typeid
+  # error Lapys C++: Unexpected `typeid` macro definition
+  #endif
+
+  #ifdef typename
+  # error Lapys C++: Unexpected `typename` macro definition
+  #endif
+
+  #ifdef union
+  # error Lapys C++: Unexpected `union` macro definition
+  #endif
+
+  #ifdef unsigned
+  # error Lapys C++: Unexpected `unsigned` macro definition
+  #endif
+
+  #ifdef using
+  # error Lapys C++: Unexpected `using` macro definition
+  #endif
+
+  #ifdef virtual
+  # error Lapys C++: Unexpected `virtual` macro definition
+  #endif
+
+  #ifdef void
+  # error Lapys C++: Unexpected `void` macro definition
+  #endif
+
+  #ifdef volatile
+  # error Lapys C++: Unexpected `volatile` macro definition
+  #endif
+
+  #ifdef wchar_t
+  # error Lapys C++: Unexpected `wchar_t` macro definition
+  #endif
+
+  #ifdef while
+  # error Lapys C++: Unexpected `while` macro definition
+  #endif
+
+  /* Import > C++ Standard Library > Language Support */
+  #if CPP_VERSION >= 2020uL || (CPP_COMPILER == CPP_CLANG_COMPILER || CPP_COMPILER == CPP_GNUC_COMPILER || CPP_COMPILER == CPP_INTEL_COMPILER || CPP_COMPILER == CPP_MSVC_COMPILER || CPP_COMPILER == CPP_NVCC_COMPILER)
   # include <version>
   #endif
 
@@ -186,50 +456,50 @@
   # define CPP_SYSTEM_390_ARCHITECTURE    0x15u // -> https://en.wikipedia.org/wiki/System/390
   # define CPP_Z_ARCHITECTURE             0x16u // -> https://en.wikipedia.org/wiki/Z/Architecture
 
-  #if defined(__alpha) || defined(__alpha__) || defined(__alpha_ev4__) || defined(__alpha_ev5__) || defined(__alpha_ev6__) || defined(_M_ALPHA)
-  # define CPP_ARCHITECTURE CPP_ALPHA_ARCHITECTURE
+  #if defined(__370__) || defined(__THW_370__)
+  # define CPP_ARCHITECTURE CPP_SYSTEM_370_ARCHITECTURE
   #elif defined(__aarch64__) || defined(__aarch64__) || defined(__AARCH64EL__) || defined(__AARCH64EL__) || defined(__arm64) || defined(__arm64) || defined(__arm__) || defined(__ARM_ARCH) || defined(__ARM_ARCH) || defined(__ARM_ARCH_4__) || defined(__ARM_ARCH_4__) || defined(__ARM_ARCH_4T__) || defined(__ARM_ARCH_4T__) || defined(__ARM_ARCH_5TE__) || defined(__ARM_ARCH_5TE__) || defined(__ARM_ARCH_5TEJ__) || defined(__ARM_ARCH_5TEJ__) || defined(__ARM_ARCH_6K__) || defined(__ARM_ARCH_6K__) || defined(__ARM_ARCH_6KZ__) || defined(__ARM_ARCH_6KZ__) || defined(__ARM_ARCH_6T2__) || defined(__ARM_ARCH_6T2__) || defined(__ARM_ARCH_6Z__) || defined(__ARM_ARCH_6Z__) || defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7R__) || defined(__ARM_ARCH_7R__) || defined(__TARGET_ARCH_ARM) || defined(__TARGET_ARCH_ARM) || defined(__TARGET_ARCH_THUMB) || defined(__TARGET_ARCH_THUMB) || defined(__thumb__) || defined(_M_ARM) || defined(_M_ARM) || defined(_M_ARM64) || defined(_M_ARM64)
   # define CPP_ARCHITECTURE CPP_ARM_ARCHITECTURE
+  #elif defined(__alpha) || defined(__alpha__) || defined(__alpha_ev4__) || defined(__alpha_ev5__) || defined(__alpha_ev6__) || defined(_M_ALPHA)
+  # define CPP_ARCHITECTURE CPP_ALPHA_ARCHITECTURE
+  #elif defined(__amd64) || defined(__amd64__) || defined(__x86_64) || defined(__x86_64__) || defined(_M_X64)
+  # define CPP_ARCHITECTURE CPP_INTEL_X86_64_ARCHITECTURE
   #elif defined(__bfin__) || defined(__BFIN__) || defined(bfin) || defined(BFIN)
   # define CPP_ARCHITECTURE CPP_BLACKFIN_ARCHITECTURE
   #elif defined(__convex__) || defined(__convex_c1__) || defined(__convex_c2__) || defined(__convex_c32__) || defined(__convex_c34__) || defined(__convex_c38__)
   # define CPP_ARCHITECTURE CPP_CONVEX_ARCHITECTURE
+  #elif defined(__CUDA_ARCH__)
+  # define CPP_ARCHITECTURE CPP_PTX_ARCHITECTURE
   #elif defined(__e2k__)
   # define CPP_ARCHITECTURE CPP_E2K_ARCHITECTURE
   #elif defined(__hppa) || defined(__HPPA11__) || defined(__HPPA20__) || defined(__hppa__) || defined(__HPPA__) || defined(__PA7100__) || defined(__PA8000__) || defined(__RISC2_0__) || defined(_PA_RISC1_0) || defined(_PA_RISC1_1) || defined(_PA_RISC2_0)
   # define CPP_ARCHITECTURE CPP_HP_PA_RISC_ARCHITECTURE
-  #elif defined(__ia64) || defined(__ia64__) || defined(__IA64__) || defined(__itanium__) || defined(_IA64) || defined(_M_IA64)
-  # define CPP_ARCHITECTURE CPP_INTEL_ITANIUM_ARCHITECTURE
-  #elif defined(__amd64) || defined(__amd64__) || defined(__x86_64) || defined(__x86_64__) || defined(_M_X64)
-  # define CPP_ARCHITECTURE CPP_INTEL_X86_64_ARCHITECTURE
   #elif defined(__i386) || defined(__i386__) || defined(__i386__) || defined(__i486__) || defined(__i486__) || defined(__i586__) || defined(__i586__) || defined(__i686__) || defined(__i686__) || defined(__I86__) || defined(__I86__) || defined(__INTEL__) || defined(__THW_INTEL__) || defined(_M_IX86) || defined(_M_IX86) || defined(_X86_) || defined(i386)
   # define CPP_ARCHITECTURE CPP_INTEL_X86_ARCHITECTURE
-  #elif defined(__mips) || defined(__MIPS__) || defined(__MIPS_ISA2__) || defined(__MIPS_ISA3__) || defined(__MIPS_ISA4__) || defined(_MIPS_ISA_MIPS1) || defined(_MIPS_ISA_MIPS2) || defined(_MIPS_ISA_MIPS3) || defined(_MIPS_ISA_MIPS4) || defined(_R3000) || defined(_R4000)
-  # define CPP_ARCHITECTURE CPP_MIPS_ARCHITECTURE
+  #elif defined(__ia64) || defined(__ia64__) || defined(__IA64__) || defined(__itanium__) || defined(_IA64) || defined(_M_IA64)
+  # define CPP_ARCHITECTURE CPP_INTEL_ITANIUM_ARCHITECTURE
   #elif defined(__m68k__) || defined(__mc68000) || defined(__mc68000__) || defined(__mc68010) || defined(__mc68010__) || defined(__mc68020) || defined(__mc68020__) || defined(__mc68030) || defined(__mc68030__) || defined(__mc68040) || defined(__mc68040__) || defined(__mc68060) || defined(__mc68060__) || defined(M68000) || defined(mc68000) || defined(mc68010) || defined(mc68020) || defined(mc68030) || defined(mc68040) || defined(mc68060)
   # define CPP_ARCHITECTURE CPP_MOTOROLA_68K_ARCHITECTURE
-  #elif defined(__powerpc64__) || defined(__ppc64__) || defined(__PPC64__) || defined(_ARCH_PPC64)
-  # define CPP_ARCHITECTURE CPP_POWER_PC_64_ARCHITECTURE
+  #elif defined(__mips) || defined(__MIPS__) || defined(__MIPS_ISA2__) || defined(__MIPS_ISA3__) || defined(__MIPS_ISA4__) || defined(_MIPS_ISA_MIPS1) || defined(_MIPS_ISA_MIPS2) || defined(_MIPS_ISA_MIPS3) || defined(_MIPS_ISA_MIPS4) || defined(_R3000) || defined(_R4000)
+  # define CPP_ARCHITECTURE CPP_MIPS_ARCHITECTURE
   #elif defined(__powerpc) || defined(__powerpc64__) || defined(__powerpc__) || defined(__POWERPC__) || defined(__ppc) || defined(__ppc601__) || defined(__ppc603__) || defined(__ppc604__) || defined(__ppc604__) || defined(__ppc64__) || defined(__PPC64__) || defined(__ppc__) || defined(__PPC__) || defined(__PPCBROADWAY__) || defined(__PPCGECKO__) || defined(_ARCH_601) || defined(_ARCH_603) || defined(_ARCH_PPC) || defined(_ARCH_PPC64) || defined(_M_PPC) || defined(_XENON)
   # define CPP_ARCHITECTURE CPP_POWER_PC_ARCHITECTURE
-  #elif defined(__CUDA_ARCH__)
-  # define CPP_ARCHITECTURE CPP_PTX_ARCHITECTURE
-  #elif defined(pyr)
-  # define CPP_ARCHITECTURE CPP_PYRAMID_9810_ARCHITECTURE
+  #elif defined(__powerpc64__) || defined(__ppc64__) || defined(__PPC64__) || defined(_ARCH_PPC64)
+  # define CPP_ARCHITECTURE CPP_POWER_PC_64_ARCHITECTURE
   #elif defined(__riscv)
   # define CPP_ARCHITECTURE CPP_RISC_V_ARCHITECTURE
-  #elif defined(__THW_RS6000) || defined(_ARCH_PWR) || defined(_ARCH_PWR2) || defined(_IBMR2) || defined(_POWER)
-  # define CPP_ARCHITECTURE CPP_RS_6000_ARCHITECTURE
-  #elif defined(__sparc) || defined(__sparc__) || defined(__sparc_v8__) || defined(__sparc_v9__) || defined(__sparcv8) || defined(__sparcv9)
-  # define CPP_ARCHITECTURE CPP_SPARC_ARCHITECTURE
-  #elif defined(__sh__) || defined(__SH5__) || defined(__SH4__) || defined(__sh3__) || defined(__SH3__) || defined(__sh2__) || defined(__sh1__)
-  # define CPP_ARCHITECTURE CPP_SUPER_H_ARCHITECTURE
-  #elif defined(__370__) || defined(__THW_370__)
-  # define CPP_ARCHITECTURE CPP_SYSTEM_370_ARCHITECTURE
   #elif defined(__s390__) || defined(__s390x__)
   # define CPP_ARCHITECTURE CPP_SYSTEM_390_ARCHITECTURE
+  #elif defined(__sh__) || defined(__SH5__) || defined(__SH4__) || defined(__sh3__) || defined(__SH3__) || defined(__sh2__) || defined(__sh1__)
+  # define CPP_ARCHITECTURE CPP_SUPER_H_ARCHITECTURE
+  #elif defined(__sparc) || defined(__sparc__) || defined(__sparc_v8__) || defined(__sparc_v9__) || defined(__sparcv8) || defined(__sparcv9)
+  # define CPP_ARCHITECTURE CPP_SPARC_ARCHITECTURE
   #elif defined(__SYSC_ZARCH__)
   # define CPP_ARCHITECTURE CPP_Z_ARCHITECTURE
+  #elif defined(__THW_RS6000) || defined(_ARCH_PWR) || defined(_ARCH_PWR2) || defined(_IBMR2) || defined(_POWER)
+  # define CPP_ARCHITECTURE CPP_RS_6000_ARCHITECTURE
+  #elif defined(pyr)
+  # define CPP_ARCHITECTURE CPP_PYRAMID_9810_ARCHITECTURE
   #else
   # define CPP_ARCHITECTURE 0x00u
   #endif
@@ -240,21 +510,22 @@
   #   pragma clang diagnostic push
   #   pragma clang diagnostic ignored "-Wvariadic-macros"
   # elif CPP_COMPILER == CPP_GNUC_COMPILER
-  #   pragma GCC system_header
+  #   pragma GCC system_header // ->> `-Wno-variadic-macros` doesn't work
   # endif
 
   # define CPP_PREPROCESSOR_FORMAT CPP_PREPROCESSOR_FORMAT_CHECK(~, MSVC)
-  #   define CPP_PREPROCESSOR_STANDARD_FORMAT 0x0u
-  #     define CPP_PREPROCESSOR_MSVC_FORMAT 0x1u
+  #   define CPP_PREPROCESSOR_ISO_FORMAT  0x0u
+  #   define CPP_PREPROCESSOR_MSVC_FORMAT 0x1u
+  #
   #   define CPP_PREPROCESSOR_FORMAT_CHECK(...) CPP_PREPROCESSOR_FORMAT_SELECT(__VA_ARGS__)
-  #   define CPP_PREPROCESSOR_FORMAT_SELECT(arguments, ...) defer(combine, defer(combine, CPP_PREPROCESSOR_, choose(2u, arguments, STANDARD, ~)), _FORMAT)
+  #   define CPP_PREPROCESSOR_FORMAT_SELECT(arguments, ...) defer(combine, defer(combine, CPP_PREPROCESSOR_, choose(2u, arguments, ISO, ~)), _FORMAT)
 
   # if CPP_COMPILER == CPP_CLANG_COMPILER
   #    pragma clang diagnostic pop
   # endif
   #endif
 
-  // : [C++ Vendor] --- NOTE (Lapys) -> Cross-platform awareness
+  // : [C++ Vendor] --- NOTE (Lapys) -> Cross-platform (partial) awareness
   # define CPP_APPLE_MACINTOSH_VENDOR   0x01u
   # define CPP_CYGWIN_VENDOR            0x02u
   # define CPP_HAIKU_VENDOR             0x04u
@@ -263,20 +534,20 @@
   # define CPP_NINTENDO_VENDOR          0x20u
   # define CPP_UNIX_VENDOR              0x40u
 
-  #if defined(__APPLE__) || defined(__ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__) || defined(__MACH__)
+  #if defined(_3DS) || defined(__SWITCH__)
+  # define CPP_VENDOR CPP_NINTENDO_VENDOR
+  #elif defined(__APPLE__) || defined(__ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__) || defined(__MACH__)
   # define CPP_VENDOR (CPP_APPLE_MACINTOSH_VENDOR | CPP_UNIX_VENDOR)
+  #elif defined(__bsdi__) || defined(__DragonFly__) || defined(__FreeBSD__) || defined(__FreeBSD_version) || defined(__NETBSD__) || defined(__NETBSD_version) || defined(NetBSD0_8) || defined(NetBSD0_9) || defined(NetBSD1_0) || defined(__OpenBSD__) || defined(OpenBSD2_0) || defined(OpenBSD2_1) || defined(OpenBSD2_2) || defined(OpenBSD2_3) || defined(OpenBSD2_4) || defined(OpenBSD2_5) || defined(OpenBSD2_6) || defined(OpenBSD2_7) || defined(OpenBSD2_8) || defined(OpenBSD2_9) || defined(OpenBSD3_0) || defined(OpenBSD3_1) || defined(OpenBSD3_2) || defined(OpenBSD3_3) || defined(OpenBSD3_4) || defined(OpenBSD3_5) || defined(OpenBSD3_6) || defined(OpenBSD3_7) || defined(OpenBSD3_8) || defined(OpenBSD3_9) || defined(OpenBSD4_0) || defined(OpenBSD4_1) || defined(OpenBSD4_2) || defined(OpenBSD4_3) || defined(OpenBSD4_4) || defined(OpenBSD4_5) || defined(OpenBSD4_6) || defined(OpenBSD4_7) || defined(OpenBSD4_8) || defined(OpenBSD4_9) || defined(__OS400__) || defined(__unix) || defined(__unix__) || defined(_POSIX_SOURCE) || defined(_XOPEN_SOURCE) || defined(__QNX__) || defined(__QNXNTO__) || defined(_NTO_VERSION) || defined(sun) || defined(__sun) || defined(__sysv__) || defined(__SVR4) || defined(__svr4__) || defined(_SYSTYPE_SVR4) || defined(VMS) || defined(__VMS) || defined(__VMS_VER) || defined(unix)
+  # define CPP_VENDOR CPP_UNIX_VENDOR
   #elif defined(__CYGWIN__)
   # define CPP_VENDOR (CPP_CYGWIN_VENDOR | CPP_UNIX_VENDOR)
   #elif defined(__gnu_linux__) || defined(linux) || defined(__linux) || defined(__linux__)
   # define CPP_VENDOR (CPP_LINUX_VENDOR | CPP_UNIX_VENDOR)
   #elif defined(__HAIKU__)
   # define CPP_VENDOR CPP_HAIKU_VENDOR
-  #elif defined(_3DS) || defined(__SWITCH__)
-  # define CPP_VENDOR CPP_NINTENDO_VENDOR
   #elif defined(__NT__) || defined(__TOS_WIN__) || defined(__WIN32__) || defined(__WINDOWS__) || defined(_WIN16) || defined(_WIN32) || defined(_WIN32_WCE) || defined(_WIN64)
   # define CPP_VENDOR CPP_MICROSOFT_WINDOWS_VENDOR
-  #elif defined(__bsdi__) || defined(__DragonFly__) || defined(__FreeBSD__) || defined(__FreeBSD_version) || defined(__NETBSD__) || defined(__NETBSD_version) || defined(NetBSD0_8) || defined(NetBSD0_9) || defined(NetBSD1_0) || defined(__OpenBSD__) || defined(OpenBSD2_0) || defined(OpenBSD2_1) || defined(OpenBSD2_2) || defined(OpenBSD2_3) || defined(OpenBSD2_4) || defined(OpenBSD2_5) || defined(OpenBSD2_6) || defined(OpenBSD2_7) || defined(OpenBSD2_8) || defined(OpenBSD2_9) || defined(OpenBSD3_0) || defined(OpenBSD3_1) || defined(OpenBSD3_2) || defined(OpenBSD3_3) || defined(OpenBSD3_4) || defined(OpenBSD3_5) || defined(OpenBSD3_6) || defined(OpenBSD3_7) || defined(OpenBSD3_8) || defined(OpenBSD3_9) || defined(OpenBSD4_0) || defined(OpenBSD4_1) || defined(OpenBSD4_2) || defined(OpenBSD4_3) || defined(OpenBSD4_4) || defined(OpenBSD4_5) || defined(OpenBSD4_6) || defined(OpenBSD4_7) || defined(OpenBSD4_8) || defined(OpenBSD4_9) || defined(__OS400__) || defined(__unix) || defined(__unix__) || defined(_POSIX_SOURCE) || defined(_XOPEN_SOURCE) || defined(__QNX__) || defined(__QNXNTO__) || defined(_NTO_VERSION) || defined(sun) || defined(__sun) || defined(__sysv__) || defined(__SVR4) || defined(__svr4__) || defined(_SYSTYPE_SVR4) || defined(VMS) || defined(__VMS) || defined(__VMS_VER) || defined(unix)
-  # define CPP_VENDOR CPP_UNIX_VENDOR
   #elif defined(WIN32)
   # define CPP_VENDOR CPP_MICROSOFT_WINDOWS_VENDOR
   #else
@@ -297,9 +568,20 @@
   # include <sys/endian.h>
   #endif
 
+static_cast<unsigned char*>(std::memcpy(as<unsigned char[sizeof(unsigned long)]>(0uL), &static_cast<unsigned long const&>(1uL), sizeof(unsigned long)))[0 of unsigned long] == 1u;
+static_cast<unsigned char*>(std::memcpy(as<unsigned char[sizeof(unsigned long)]>(0uL), &static_cast<unsigned long const&>(1uL), sizeof(unsigned long)))[1 of unsigned long] == 1u;
+static_cast<unsigned char*>(std::memcpy(as<unsigned char[sizeof(unsigned long)]>(0uL), &static_cast<unsigned long const&>(1uL), sizeof(unsigned long)))[2 of unsigned long] == 1u;
+static_cast<unsigned char*>(std::memcpy(as<unsigned char[sizeof(unsigned long)]>(0uL), &static_cast<unsigned long const&>(1uL), sizeof(unsigned long)))[3 of unsigned long] == 1u;
+
   #ifdef __cpp_lib_endian
   # include <bit>
-  # define CPP_ENDIAN (std::endian::native == std::endian::little ? CPP_BYTE_LITTLE_ENDIAN : CPP_BYTE_BIG_ENDIAN)
+  # if CPP_VERSION >= 2011uL
+  #   define CPP_ENDIAN_RUNTIME (0x00 == (std::endian::native & (std::endian::big | std::endian::little)) && sizeof(unsigned char) != sizeof(unsigned long long))
+  #   define CPP_ENDIAN (std::endian::native == std::endian::little ? CPP_BYTE_LITTLE_ENDIAN : std::endian::native == std::endian::big ? CPP_BYTE_BIG_ENDIAN : sizeof(unsigned char) == sizeof(unsigned long long) || reinterpret_cast<unsigned char const&>(static_cast<unsigned long long const&>(1uLL) == 1u) ? CPP_BYTE_LITTLE_ENDIAN : CPP_BYTE_BIG_ENDIAN)
+  # else
+  #   define CPP_ENDIAN_RUNTIME (0x00 == (std::endian::native & (std::endian::big | std::endian::little)) && sizeof(unsigned char) != sizeof(unsigned long))
+  #   define CPP_ENDIAN (std::endian::native == std::endian::little ? CPP_BYTE_LITTLE_ENDIAN : std::endian::native == std::endian::big ? CPP_BYTE_BIG_ENDIAN : sizeof(unsigned char) == sizeof(unsigned long)      || reinterpret_cast<unsigned char const&>(static_cast<unsigned long const&>     (1uL)  == 1u) ? CPP_BYTE_LITTLE_ENDIAN : CPP_BYTE_BIG_ENDIAN)
+  # endif
   #else
   # if included(<machine/endian.h>) && (CPP_VENDOR & CPP_APPLE_MACINTOSH_VENDOR)
   #   include <machine/endian.h>
@@ -386,43 +668,48 @@
   #
   # if false == defined(CPP_ENDIAN) // ->> Language endian constants
   #   undef  CPP_ENDIAN_RUNTIME
-  #   if CPP_VERSION < 2011uL
-  #     define CPP_ENDIAN_RUNTIME (sizeof(unsigned char) != sizeof(unsigned long))
-  #     define CPP_ENDIAN (false == CPP_ENDIAN_RUNTIME) || (1u == reinterpret_cast<unsigned char const&>(static_cast<unsigned long const&>(1u))      ? CPP_BYTE_LITTLE_ENDIAN : CPP_BYTE_BIG_ENDIAN)
-  #   else
+  #   if CPP_VERSION >= 2011uL
   #     define CPP_ENDIAN_RUNTIME (sizeof(unsigned char) != sizeof(unsigned long long))
-  #     define CPP_ENDIAN (false == CPP_ENDIAN_RUNTIME) || (1u == reinterpret_cast<unsigned char const&>(static_cast<unsigned long long const&>(1u)) ? CPP_BYTE_LITTLE_ENDIAN : CPP_BYTE_BIG_ENDIAN)
+  #     define CPP_ENDIAN (false == CPP_ENDIAN_RUNTIME || reinterpret_cast<unsigned char const&>(static_cast<unsigned long long const&>(1uLL) == 1u) ? CPP_BYTE_LITTLE_ENDIAN : CPP_BYTE_BIG_ENDIAN)
+  #   else
+  #     define CPP_ENDIAN_RUNTIME (sizeof(unsigned char) != sizeof(unsigned long))
+  #     define CPP_ENDIAN (false == CPP_ENDIAN_RUNTIME || reinterpret_cast<unsigned char const&>(static_cast<unsigned long const&>     (1uL)  == 1u) ? CPP_BYTE_LITTLE_ENDIAN : CPP_BYTE_BIG_ENDIAN)
   #   endif
   # endif
   #endif
 
   /* Definition */
-  // : [Address Specifier]
-  #if CPP_COMPILER == CPP_MSVC_COMPILER
-  # pragma warning(disable: 4848)
-  # define nouniqueaddr [[msvc::no_unique_address]]
-  #elif CPP_VERSION < 2020uL
-  # if CPP_COMPILER == CPP_INTEL_COMPILER
-  #   define nouniqueaddr [[no_unique_address]]
-  # elif (CPP_COMPILER == CPP_CLANG_COMPILER || CPP_COMPILER == CPP_GNUC_COMPILER) && CPP_VERSION >= 2011uL
-  #   define nouniqueaddr [[no_unique_address]]
-  # else
-  #   define nouniqueaddr
-  # endif
-  #else
-  # define nouniqueaddr [[no_unique_address]]
+  // : [Assertion Checking] ->> Compile-time assertion checking
+  #ifndef __cpp_static_assert
+    template <bool>
+    union static_assert {
+      inline static_assert(char const[]) throw() {}
+    };
+
+    template <> // ... ->> or just undefine the falsy definition
+    union static_assert<false> {
+      private:
+        template <typename, unsigned char = 0x0u>
+        struct static_assert_message;
+
+        template <unsigned char specialization>
+        struct static_assert_message<char const, specialization> {};
+
+      public:
+        template <typename type, std::size_t capacity> // ->> Single constructor, no overload disambiguation
+        inline static_assert(type (&)[capacity]) throw(static_assert<false>) {
+          static_assert_message<type>();
+          throw static_assert<false>(*this); // ->> Error handling is unfortunately runtime-only so re-throw a copy of itself and indirectly call `std::terminate(...)`
+        }
+    };
+
+    #define static_assert static_assert_declaration
+    # define static_assert_1u(id, condition, message) ::static_assert<(condition)> _ ## id = ::static_assert<(condition)>("" message "");
+    # define static_assert_2u(id, condition, message) static_assert_1u(id, condition, message)
+    # define static_assert_declaration(condition, message) static_assert_2u(__LINE__, condition, message)
   #endif
 
-  // : [Constant Enumeration] --- NOTE (Lapys) -> Attempts to define a compile-time constant of a specified integral type
-  #ifdef __cpp_constexpr
-  # define constenum(type, name, value) constexpr static type name varinit(value)
-  #elif CPP_VERSION >= 2011uL
-  # define constenum(type, name, value) enum : type { name = value }
-  #else
-  # define constenum(type, name, value) enum { name = value }
-  #endif
-
-  // : [Constant Function] --- NOTE (Lapys) -> Attempts to make a function callable in a constant evaluated context
+  // : [Constant Function] ->> Attempts to specify a constant evaluable function
   #define constfunc(unrelaxed) constfunc_ ## unrelaxed
   #ifdef __cpp_constexpr
   # if CPP_VERSION >= 2014uL || __cpp_constexpr >= 201304L
@@ -437,29 +724,42 @@
   # define constfunc_true
   #endif
 
-  // : [Constant Variable] --- NOTE (Lapys) -> Attempts to specify a variable as compile-time
+  // : [Constant Integer] ->> Attempts to specify a constant evaluable integer
+  #define constint(type, name, value) constint_2u(__LINE__, type, name, value)
+  # ifdef __cpp_constexpr
+  #   define constint_1u(id, type, name, value)                                                        constexpr static type name varinit(value)
+  # elif CPP_VERSION >= 2011uL
+  #   define constint_1u(id, type, name, value) enum : type { name ## id = static_cast<type>(value) }; const     static type name varinit(value)
+  # else
+  #   define constint_1u(id, type, name, value) enum        { name ## id = static_cast<int> (value) }; const     static type name varinit(value)
+  # endif
+  # define constint_2u(id, type, name, value) constint_1u(id, type, name, value)
+
+  // : [Constant Variable] ->> Attempts to specify a constant evaluable variable
   #ifdef __cpp_constexpr
   # define constvar constexpr
   #else
   # define constvar
   #endif
 
-  // : [Deleted Function Specifier] --- NOTE (Lapys) -> Attempts to mark a function `delete`d
-  #if CPP_VERSION < 2011uL
-  # define discard // ->> Leaving the function undefined mostly also works
-  #else
+  // : [Deleted Function Specifier] ->> Attempts to mark a function ill-formed to evaluate
+  #if CPP_VERSION >= 2011uL
   # define discard = delete
-  #endif
-
-  // : [Exception Operator] --- NOTE (Lapys) -> Attempts to determine if an expression can `throw` an exception
-  #if CPP_VERSION < 2011uL
-  # define exceptof(expression) false
   #else
-  # define exceptof(expression) noexcept(expression)
+  # define discard // ->> Not defining the function also mostly works
   #endif
 
-  // : [Exception Specifier] --- NOTE (Lapys) -> Attempts to explicitly anticipate `throw` in a specified function
-  #if CPP_VERSION < 2011uL
+  // : [Exception Operator] ->> Determines if an expression can `throw` an exception
+  #if CPP_VERSION >= 2011uL
+  # define exceptof(expression) noexcept(expression)
+  #else
+  # define exceptof(expression) false
+  #endif
+
+  // : [Exception Specifier] ->> Attempts to explicitly anticipate `throw` in a specified function
+  #if CPP_VERSION >= 2011uL
+  # define exceptspec(specification) noexcept(specification)
+  #else
   # define exceptspec(specification) choose(specification, exceptspec_true, exceptspec_false)
   #   if CPP_COMPILER == CPP_MSVC_COMPILER
   #     define exceptspec_false throw(...)
@@ -469,11 +769,34 @@
   #     define exceptspec_true noexcept
   #   endif
   # define noexcept throw() // ->> Shim the `noexcept` keyword
-  #else
-  # define exceptspec(specification) noexcept(specification)
   #endif
 
-  // : [Forwarding Reference] --- NOTE (Lapys) -> Perfect-forwarding reference-qualification
+  // : [Floating-Point Types] ->> Acknowledges extended floating-point types
+  #if __STDCPP_FLOAT16_T__
+  # define float16_t std::float16_t
+  #elif defined(float16_t)
+  # error Lapys C++: Unexpected `float16_t` macro definition
+  #endif
+
+  #if __STDCPP_FLOAT32_T__
+  # define float32_t std::float32_t
+  #elif defined(float32_t)
+  # error Lapys C++: Unexpected `float32_t` macro definition
+  #endif
+
+  #if __STDCPP_FLOAT64_T__
+  # define float64_t std::float64_t
+  #elif defined(float64_t)
+  # error Lapys C++: Unexpected `float64_t` macro definition
+  #endif
+
+  #if __STDCPP_FLOAT128_T__
+  # define float128_t std::float128_t
+  #elif defined(float128_t)
+  # error Lapys C++: Unexpected `float128_t` macro definition
+  #endif
+
+  // : [Forwarding Reference] ->> Perfect-forwarding reference-qualification
   #ifdef __cpp_rvalue_references
   # define nodecay &&
   # define nodecayparam(name) (&&name)
@@ -482,12 +805,12 @@
   # define nodecayparam(name) const (&name)
   #endif
 
-  // : [Inheritance Specifier] --- NOTE (Lapys) -> Attempt to specify a `class` or `struct` as non-inheritable
+  // : [Inheritance Specifier] ->> Attempt to specify a `class` or `struct` as non-inheritable
   #if CPP_VERSION < 2011uL
   # define final
   #endif
 
-  // : [Initialization] --- NOTE (Lapys) -> Common initialization syntax
+  // : [Initialization] ->> Common initialization syntax
   #ifdef __cpp_aggregate_paren_init
   # define init(arguments)   {arguments}
   # define nilinit(type)     {}
@@ -498,7 +821,14 @@
   # define varinit(argument) = argument
   #endif
 
-  // : [Integer Types] --- NOTE (Lapys) -> Acknowledges extended integer types --- WARN (Lapys) -> Not intended to be type definitions
+  // : [Integral Enumeration] ->> Attempts to define an enumeration with a specified underlying type
+  #if CPP_VERSION < 2011uL
+  # define enumint(type, name) enum name
+  #else
+  # define enumint(type, name) enum name : type
+  #endif
+
+  // : [Integral Types] ->> Acknowledges extended integer types
   #if CPP_COMPILER == CPP_CLANG_COMPILER
   # define int128_t  __int128_t
   # define uint128_t __uint128_t
@@ -509,6 +839,13 @@
   #   define int128_t           __int128
   #   define uint128_t unsigned __int128
   #   pragma GCC diagnostic pop
+  # else
+  #   ifdef int128_t
+  #     error Lapys C++: Unexpected `int128_t` macro definition
+  #   endif
+  #   ifdef uint128_t
+  #     error Lapys C++: Unexpected `uint128_t` macro definition
+  #   endif
   # endif
   #elif CPP_COMPILER == CPP_INTEL_COMPILER
   # ifdef __SSE2__
@@ -516,15 +853,12 @@
   # define uint128_t __u128
   # endif
   #else
-  # undef int128_t
-  # undef uint128_t
-  #endif
-
-  // : [Integral Enumeration] --- NOTE (Lapys) -> Attempts to define an `enum` with a specified underlying type
-  #if CPP_VERSION < 2011uL
-  # define intenum(type, name) enum name
-  #else
-  # define intenum(type, name) enum name : type
+  # ifdef int128_t
+  #   error Lapys C++: Unexpected `int128_t` macro definition
+  # endif
+  # ifdef uint128_t
+  #   error Lapys C++: Unexpected `uint128_t` macro definition
+  # endif
   #endif
 
   // : [Pointer Aliasing]
@@ -548,19 +882,23 @@
 
   // : [Pointer Nullity]
   #if CPP_VERSION < 2011uL
-  # define nullptr NULL
-  #endif
-
-  // : [Reference Qualifier] --- NOTE (Lapys) -> Attempts to reference-qualify
-  #ifdef __cpp_ref_qualifiers
-  # define lref &
-  # define rref &&
+  # define nullptr NULL // ->> Closest null pointer alias for function pointers
   #else
-  # define lref
-  # define rref
+  # define nullptr nullptr
   #endif
 
-  // : [Return Specifier] --- NOTE (Lapys) -> Attempts to modify certain attributes of specified functions
+  // : [Reference Qualifier] ->> Attempts to reference-qualify
+  #ifdef __cpp_ref_qualifiers
+  # define lref  &
+  # define rref  &&
+  # define rlref rref
+  #else
+  # define lref  &
+  # define rref
+  # define rlref lref
+  #endif
+
+  // : [Return Specifier] ->> Attempts to modify certain attributes of specified functions
   #if CPP_COMPILER == CPP_CLANG_COMPILER || CPP_COMPILER == CPP_GNUC_COMPILER
   # define mustinline __attribute__((always_inline))
   #elif CPP_COMPILER == CPP_INTEL_COMPILER || CPP_COMPILER == CPP_MSVC_COMPILER
@@ -609,7 +947,17 @@
   #   define noinline // ->> Does not prevent constant-folding
   #endif
 
-  // : [Type Alignment Specifier] --- NOTE (Lapys) -> Attempt to align members or variables on a specified boundary, or evaluate an acceptable alignment width of a specified type
+  // : [Storage Specifier]
+  #if CPP_COMPILER == CPP_MSVC_COMPILER
+  # pragma warning(disable: 4848)
+  # define nouniqueaddr [[msvc::no_unique_address]]
+  #elif CPP_VERSION >= 2020uL || CPP_COMPILER == CPP_INTEL_COMPILER || (CPP_VERSION >= 2011uL && (CPP_COMPILER == CPP_CLANG_COMPILER || CPP_COMPILER == CPP_GNUC_COMPILER))
+  # define nouniqueaddr [[no_unique_address]]
+  #else
+  # define nouniqueaddr
+  #endif
+
+  // : [Type Alignment Specifier] ->> Attempt to align members or variables on a specified boundary, or evaluate an acceptable alignment width of a specified type
   #if CPP_VERSION < 2011uL
   # if CPP_COMPILER == CPP_GNUC_COMPILER && included(<stdalign.h>)
   #  include <stdalign.h> // ->> since C++11
@@ -653,7 +1001,7 @@
   # define boundsof(type)     alignof(type)
   #endif
 
-  // : [Type Inspection Specifier] --- NOTE (Lapys) -> Reflect on the resulting data type of an expression
+  // : [Type Inspection Specifier] ->> Reflect on the resulting data type of an expression
   #ifndef typeof
   # ifdef __cpp_decltype
   #   if CPP_COMPILER == CPP_CLANG_COMPILER
@@ -1290,7 +1638,7 @@
     # define apply_end(function, separator, applyer, argument, ...) // ->> Stop expanding
     # undef  apply_setup
     # define apply_terminator(argument, ...)
-    # if CPP_PREPROCESSOR_FORMAT == CPP_PREPROCESSOR_STANDARD_FORMAT || CPP_COMPILER == CPP_INTEL_COMPILER
+    # if CPP_PREPROCESSOR_FORMAT == CPP_PREPROCESSOR_ISO_FORMAT || CPP_COMPILER == CPP_INTEL_COMPILER
     #   define apply(...) parse(apply_setup(__VA_ARGS__))
     #     define apply_condition(argument, ...) defer(choose_2u, reapply_ ## argument, true, ~)
     #     define apply_setup(function, condition, separator, ...) apply_begin(                            \

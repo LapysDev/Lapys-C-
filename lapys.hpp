@@ -38,6 +38,11 @@
 /* ... */
 #ifndef LAPYS
 # define LAPYS
+  /* Guard > Lapys */
+  #ifdef Lapys
+  # error Lapys C++: Well, this is awkward... Unexpected `Lapys` macro definition
+  #endif
+
   /* Namespace */
   namespace Lapys {}
 
@@ -56,8 +61,12 @@
 
   /* Import */
   // : [C/ C++ Standard Library]
+  #include "lapys/guards/c.h"
+  #include "lapys/guards/cpp.h"
+  #include <ciso646>   // C ISO 646
   #include <cstddef>   // C Standard Definitions
   #include <stdbool.h> // Standard Boolean
+  #include <stdfloat>  // Standard Float ->> Optional in freestanding environments?
 
   // : [C Standard Library]
 
@@ -108,6 +117,7 @@
   # define WIN32_LEAN_AND_MEAN
   #
   # if included(<windows.h>)
+  #   include "lapys/guards/windows.h"
   #   include <windows.h>
   # else
   #   error Lapys C++: Microsoft Windows-specific header `<windows.h>` required
@@ -117,6 +127,7 @@
   // : [UNIX]
   #if CPP_VENDOR & CPP__UNIX__VENDOR
   # if included(<sys/mman.h>)
+  #   include "lapys/guards/sys_mman.h"
   #   include <sys/mman.h>
   # else
   #   error Lapys C++: Unix-specific POSIX header `<sys/mman.h>` required
@@ -130,13 +141,16 @@
 /* Deletion */
 #undef boundsas
 #undef boundsof
-#undef constenum
 #undef constfunc
 # undef constfunc_
 # undef constfunc_false
 # undef constfunc_true
+#undef constint
+# undef constint_1u
+# undef constint_2u
 #undef constvar
 #undef discard
+#undef enumint
 #undef exceptof
 #undef exceptspec
 # if CPP_VERSION < 2011uL
@@ -149,8 +163,6 @@
 #endif
 #undef included
 #undef init
-#undef int128_t
-#undef intenum
 #undef lref
 #undef mustinline
 #undef mustreturn
@@ -162,17 +174,35 @@
 #undef nouniqueaddr
 #undef nullptr
 #undef restricted
+#undef rlref
 #undef rref
 #undef typeof
-#undef uint128_t
 #undef varinit
 
 #if LAPYS_PREPROCESSOR
+# undef widthof
+# define widthof(argument) (CHAR_BIT * sizeof(argument))
 #else
+# undef as
+#   undef as_operator
 # undef choose
 #   undef choose_false
 #   undef choose_true
 # undef empty
+# undef float16_t
+# undef float32_t
+# undef float64_t
+# undef float128_t
+# undef int128_t
+# undef uint128_t
+# undef widthof
+#   undef widthof_operator
+# ifndef __cpp_static_assert
+#   undef static_assert
+#     undef static_assert_1u
+#     undef static_assert_2u
+#     undef static_assert_declaration
+# endif
 #endif
 
 #if LAPYS_PREPROCESSOR
