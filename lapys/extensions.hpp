@@ -1,11 +1,6 @@
 #ifndef LAPYS_MODULE_EXTENSIONS
 # define LAPYS_MODULE_EXTENSIONS
-  /* Deletion
-    --- NOTE ---
-    #Lapys:
-      Remove identifiers unexpectedly `#define`d as macros since these are used in the expansion steps of the following defined macros.
-      (explicit removal is not required for the following defined macros which won't quietly fail when re-purposed)
-  */
+  /* Deletion ->> Silently remove stray tokens used in conditional/ iterative/ recursive function-like macro substitutions */
   #undef _FORMAT
   #undef choose_
   #undef constfunc_
@@ -21,24 +16,24 @@
   # define CPP_INTEL_COMPILER   0x04u // -> https://en.wikipedia.org/wiki/Intel_C++
   # define CPP_LLVM_COMPILER    0x05u // -> https://en.wikipedia.org/wiki/LLVM
   # define CPP_MSVC_COMPILER    0x06u // -> https://en.wikipedia.org/wiki/Visual_studio
+  # define CPP_NVCC_COMPILER    0x07u // -> https://docs.nvidia.com/hpc-sdk/compilers/hpc-compilers-ref-guide/
   #                                   // ->> Unsupported compilers
-  # define CPP_BORLAND_COMPILER 0x07u // -> https://en.wikipedia.org/wiki/C_plus_plus_builder
-  # define CPP_COMEAU_COMPILER  0x08u // -> https://en.wikipedia.org/wiki/Comeau_C/C++
-  # define CPP_DEC_COMPILER     0x09u // -> https://www.openvms.compaq.com/openvms/brochures/deccplus/
-  # define CPP_DIAB_COMPILER    0x0Au // -> https://www.windriver.com/products/development_suite/wind_river_compiler/
-  # define CPP_DMC_COMPILER     0x0Bu // -> https://en.wikipedia.org/wiki/Digital_Mars
-  # define CPP_EDG_COMPILER     0x0Cu // -> https://en.wikipedia.org/wiki/Edison_Design_Group
-  # define CPP_GCCXML_COMPILER  0x0Du // -> https://en.wikipedia.org/wiki/GNU_Compiler_Collection
-  # define CPP_GHS_COMPILER     0x0Eu // -> https://en.wikipedia.org/wiki/Green_Hills_Software
-  # define CPP_HIGHC_COMPILER   0x0Fu // ->
-  # define CPP_HPACC_COMPILER   0x10u // ->
-  # define CPP_IAR_COMPILER     0x11u // ->
-  # define CPP_IBM_COMPILER     0x12u // -> https://en.wikipedia.org/wiki/VisualAge
-  # define CPP_KCC_COMPILER     0x13u // ->
-  # define CPP_MPW_COMPILER     0x14u // -> https://en.wikipedia.org/wiki/Macintosh_Programmer's_Workshop
-  # define CPP_MRI_COMPILER     0x15u // -> https://www.mentor.com/microtec/
-  # define CPP_MWERKS_COMPILER  0x16u // -> https://en.wikipedia.org/wiki/CodeWarrior
-  # define CPP_NVCC_COMPILER    0x17u // -> https://docs.nvidia.com/hpc-sdk/compilers/hpc-compilers-ref-guide/
+  # define CPP_BORLAND_COMPILER 0x08u // -> https://en.wikipedia.org/wiki/C_plus_plus_builder
+  # define CPP_COMEAU_COMPILER  0x09u // -> https://en.wikipedia.org/wiki/Comeau_C/C++
+  # define CPP_DEC_COMPILER     0x0Au // -> https://www.openvms.compaq.com/openvms/brochures/deccplus/
+  # define CPP_DIAB_COMPILER    0x0Bu // -> https://www.windriver.com/products/development_suite/wind_river_compiler/
+  # define CPP_DMC_COMPILER     0x0Cu // -> https://en.wikipedia.org/wiki/Digital_Mars
+  # define CPP_EDG_COMPILER     0x0Du // -> https://en.wikipedia.org/wiki/Edison_Design_Group
+  # define CPP_GCCXML_COMPILER  0x0Eu // -> https://en.wikipedia.org/wiki/GNU_Compiler_Collection
+  # define CPP_GHS_COMPILER     0x0Fu // -> https://en.wikipedia.org/wiki/Green_Hills_Software
+  # define CPP_HIGHC_COMPILER   0x10u // ->
+  # define CPP_HPACC_COMPILER   0x11u // ->
+  # define CPP_IAR_COMPILER     0x12u // ->
+  # define CPP_IBM_COMPILER     0x13u // -> https://en.wikipedia.org/wiki/VisualAge
+  # define CPP_KCC_COMPILER     0x14u // ->
+  # define CPP_MPW_COMPILER     0x15u // -> https://en.wikipedia.org/wiki/Macintosh_Programmer's_Workshop
+  # define CPP_MRI_COMPILER     0x16u // -> https://www.mentor.com/microtec/
+  # define CPP_MWERKS_COMPILER  0x17u // -> https://en.wikipedia.org/wiki/CodeWarrior
   # define CPP_PALM_COMPILER    0x18u // ->
   # define CPP_PATH_COMPILER    0x19u // -> https://en.wikipedia.org/wiki/PathScale
   # define CPP_PGI_COMPILER     0x1Au // -> https://en.wikipedia.org/wiki/The_Portland_Group
@@ -146,286 +141,16 @@
   # endif
   #endif
 
-  /* Guard > ... */
-  #ifdef bool
-  # error Lapys C++: Unexpected `bool` macro definition
-  #endif
-
-  #ifdef break
-  # error Lapys C++: Unexpected `break` macro definition
-  #endif
-
-  #ifdef case
-  # error Lapys C++: Unexpected `case` macro definition
-  #endif
-
-  #ifdef catch
-  # error Lapys C++: Unexpected `catch` macro definition
-  #endif
-
-  #ifdef char
-  # error Lapys C++: Unexpected `char` macro definition
-  #endif
-
-  #ifdef char8_t
-  # error Lapys C++: Unexpected `char8_t` macro definition
-  #endif
-
-  #ifdef char16_t
-  # error Lapys C++: Unexpected `char16_t` macro definition
-  #endif
-
-  #ifdef char32_t
-  # error Lapys C++: Unexpected `char32_t` macro definition
-  #endif
-
-  #ifdef class
-  # error Lapys C++: Unexpected `class` macro definition
-  #endif
-
-  #ifdef concept
-  # error Lapys C++: Unexpected `concept` macro definition
-  #endif
-
-  #ifdef const
-  # error Lapys C++: Unexpected `const` macro definition
-  #endif
-
-  #ifdef const_cast
-  # error Lapys C++: Unexpected `const_cast` macro definition
-  #endif
-
-  #ifdef consteval
-  # error Lapys C++: Unexpected `consteval` macro definition
-  #endif
-
-  #ifdef constexpr
-  # error Lapys C++: Unexpected `constexpr` macro definition
-  #endif
-
-  #ifdef constinit
-  # error Lapys C++: Unexpected `constinit` macro definition
-  #endif
-
-  #ifdef continue
-  # error Lapys C++: Unexpected `continue` macro definition
-  #endif
-
-  #ifdef default
-  # error Lapys C++: Unexpected `default` macro definition
-  #endif
-
-  #ifdef delete
-  # error Lapys C++: Unexpected `delete` macro definition
-  #endif
-
-  #ifdef do
-  # error Lapys C++: Unexpected `do` macro definition
-  #endif
-
-  #ifdef double
-  # error Lapys C++: Unexpected `double` macro definition
-  #endif
-
-  #ifdef dynamic_cast
-  # error Lapys C++: Unexpected `dynamic_cast` macro definition
-  #endif
-
-  #ifdef else
-  # error Lapys C++: Unexpected `else` macro definition
-  #endif
-
-  #ifdef enum
-  # error Lapys C++: Unexpected `enum` macro definition
-  #endif
-
-  #ifdef explicit
-  # error Lapys C++: Unexpected `explicit` macro definition
-  #endif
-
-  #ifdef extern
-  # error Lapys C++: Unexpected `extern` macro definition
-  #endif
-
-  #ifdef false
-  # error Lapys C++: Unexpected `false` macro definition
-  #endif
-
-  #ifdef float
-  # error Lapys C++: Unexpected `float` macro definition
-  #endif
-
-  #ifdef for
-  # error Lapys C++: Unexpected `for` macro definition
-  #endif
-
-  #ifdef friend
-  # error Lapys C++: Unexpected `friend` macro definition
-  #endif
-
-  #ifdef goto
-  # error Lapys C++: Unexpected `goto` macro definition
-  #endif
-
-  #ifdef if
-  # error Lapys C++: Unexpected `if` macro definition
-  #endif
-
-  #ifdef inline
-  # error Lapys C++: Unexpected `inline` macro definition
-  #endif
-
-  #ifdef int
-  # error Lapys C++: Unexpected `int` macro definition
-  #endif
-
-  #ifdef long
-  # error Lapys C++: Unexpected `long` macro definition
-  #endif
-
-  #ifdef mutable
-  # error Lapys C++: Unexpected `mutable` macro definition
-  #endif
-
-  #ifdef namespace
-  # error Lapys C++: Unexpected `namespace` macro definition
-  #endif
-
-  #ifdef new
-  # error Lapys C++: Unexpected `new` macro definition
-  #endif
-
-  #ifdef operator
-  # error Lapys C++: Unexpected `operator` macro definition
-  #endif
-
-  #ifdef private
-  # error Lapys C++: Unexpected `private` macro definition
-  #endif
-
-  #ifdef protected
-  # error Lapys C++: Unexpected `protected` macro definition
-  #endif
-
-  #ifdef public
-  # error Lapys C++: Unexpected `public` macro definition
-  #endif
-
-  #ifdef reflexpr
-  # error Lapys C++: Unexpected `reflexpr` macro definition
-  #endif
-
-  #ifdef register
-  # error Lapys C++: Unexpected `register` macro definition
-  #endif
-
-  #ifdef reinterpret_cast
-  # error Lapys C++: Unexpected `reinterpret_cast` macro definition
-  #endif
-
-  #ifdef return
-  # error Lapys C++: Unexpected `return` macro definition
-  #endif
-
-  #ifdef short
-  # error Lapys C++: Unexpected `short` macro definition
-  #endif
-
-  #ifdef signed
-  # error Lapys C++: Unexpected `signed` macro definition
-  #endif
-
-  #ifdef static
-  # error Lapys C++: Unexpected `static` macro definition
-  #endif
-
-  #ifdef static_cast
-  # error Lapys C++: Unexpected `static_cast` macro definition
-  #endif
-
-  #ifdef struct
-  # error Lapys C++: Unexpected `struct` macro definition
-  #endif
-
-  #ifdef switch
-  # error Lapys C++: Unexpected `switch` macro definition
-  #endif
-
-  #ifdef template
-  # error Lapys C++: Unexpected `template` macro definition
-  #endif
-
-  #ifdef this
-  # error Lapys C++: Unexpected `this` macro definition
-  #endif
-
-  #ifdef thread_local
-  # error Lapys C++: Unexpected `thread_local` macro definition
-  #endif
-
-  #ifdef throw
-  # error Lapys C++: Unexpected `throw` macro definition
-  #endif
-
-  #ifdef true
-  # error Lapys C++: Unexpected `true` macro definition
-  #endif
-
-  #ifdef try
-  # error Lapys C++: Unexpected `try` macro definition
-  #endif
-
-  #ifdef typedef
-  # error Lapys C++: Unexpected `typedef` macro definition
-  #endif
-
-  #ifdef typeid
-  # error Lapys C++: Unexpected `typeid` macro definition
-  #endif
-
-  #ifdef typename
-  # error Lapys C++: Unexpected `typename` macro definition
-  #endif
-
-  #ifdef union
-  # error Lapys C++: Unexpected `union` macro definition
-  #endif
-
-  #ifdef unsigned
-  # error Lapys C++: Unexpected `unsigned` macro definition
-  #endif
-
-  #ifdef using
-  # error Lapys C++: Unexpected `using` macro definition
-  #endif
-
-  #ifdef virtual
-  # error Lapys C++: Unexpected `virtual` macro definition
-  #endif
-
-  #ifdef void
-  # error Lapys C++: Unexpected `void` macro definition
-  #endif
-
-  #ifdef volatile
-  # error Lapys C++: Unexpected `volatile` macro definition
-  #endif
-
-  #ifdef wchar_t
-  # error Lapys C++: Unexpected `wchar_t` macro definition
-  #endif
-
-  #ifdef while
-  # error Lapys C++: Unexpected `while` macro definition
-  #endif
-
-  /* Import > C++ Standard Library > Language Support */
-  #if CPP_VERSION >= 2020uL || (CPP_COMPILER == CPP_CLANG_COMPILER || CPP_COMPILER == CPP_GNUC_COMPILER || CPP_COMPILER == CPP_INTEL_COMPILER || CPP_COMPILER == CPP_MSVC_COMPILER || CPP_COMPILER == CPP_NVCC_COMPILER)
-  # include <version>
+  /* Import > C++ Standard Library */
+  #if CPP_VERSION >= 2020uL
+  # include <stdfloat> // Standard Float ->> Optional in freestanding environments?
+  # if CPP_COMPILER == CPP_CLANG_COMPILER || CPP_COMPILER == CPP_GNUC_COMPILER || CPP_COMPILER == CPP_INTEL_COMPILER || CPP_COMPILER == CPP_MSVC_COMPILER || CPP_COMPILER == CPP_NVCC_COMPILER
+  #   include <version> // Language Support
+  # endif
   #endif
 
   /* Definition */
-  // : [Source File Inclusion] --- NOTE (Lapys) -> Conditionally preferable error diagnostics when `#include`ing other source files
+  // : [Source File Inclusion] ->> Conditionally preferable error diagnostics when `#include`ing other source files
   #if CPP_VERSION < 2011uL
   # define included(file) true
   #else
@@ -510,22 +235,22 @@
   #   pragma clang diagnostic push
   #   pragma clang diagnostic ignored "-Wvariadic-macros"
   # elif CPP_COMPILER == CPP_GNUC_COMPILER
-  #   pragma GCC system_header // ->> `-Wno-variadic-macros` doesn't work
+  #   pragma GCC system_header // ->> `-Wno-variadic-macros` does not work
   # endif
 
   # define CPP_PREPROCESSOR_FORMAT CPP_PREPROCESSOR_FORMAT_CHECK(~, MSVC)
   #   define CPP_PREPROCESSOR_ISO_FORMAT  0x0u
   #   define CPP_PREPROCESSOR_MSVC_FORMAT 0x1u
   #
-  #   define CPP_PREPROCESSOR_FORMAT_CHECK(...) CPP_PREPROCESSOR_FORMAT_SELECT(__VA_ARGS__)
+  #   define CPP_PREPROCESSOR_FORMAT_CHECK(...)             CPP_PREPROCESSOR_FORMAT_SELECT(__VA_ARGS__)
   #   define CPP_PREPROCESSOR_FORMAT_SELECT(arguments, ...) defer(combine, defer(combine, CPP_PREPROCESSOR_, choose(2u, arguments, ISO, ~)), _FORMAT)
 
   # if CPP_COMPILER == CPP_CLANG_COMPILER
-  #    pragma clang diagnostic pop
+  #   pragma clang diagnostic pop
   # endif
   #endif
 
-  // : [C++ Vendor] --- NOTE (Lapys) -> Cross-platform (partial) awareness
+  // : [C++ Vendor] ->> Cross-platform (partial) awareness
   # define CPP_APPLE_MACINTOSH_VENDOR   0x01u
   # define CPP_CYGWIN_VENDOR            0x02u
   # define CPP_HAIKU_VENDOR             0x04u
@@ -554,7 +279,7 @@
   # define CPP_VENDOR 0x00u
   #endif
 
-  // : [C++ Endianness] --- NOTE (Lapys) -> Possibly runtime value determining environment endianness
+  // : [C++ Endianness] ->> Possibly runtime value determining environment endianness
   #define CPP_ENDIAN_RUNTIME false
   # define CPP_BYTE_BIG_ENDIAN    0x01u
   # define CPP_BYTE_LITTLE_ENDIAN 0x02u
@@ -568,19 +293,14 @@
   # include <sys/endian.h>
   #endif
 
-static_cast<unsigned char*>(std::memcpy(as<unsigned char[sizeof(unsigned long)]>(0uL), &static_cast<unsigned long const&>(1uL), sizeof(unsigned long)))[0 of unsigned long] == 1u;
-static_cast<unsigned char*>(std::memcpy(as<unsigned char[sizeof(unsigned long)]>(0uL), &static_cast<unsigned long const&>(1uL), sizeof(unsigned long)))[1 of unsigned long] == 1u;
-static_cast<unsigned char*>(std::memcpy(as<unsigned char[sizeof(unsigned long)]>(0uL), &static_cast<unsigned long const&>(1uL), sizeof(unsigned long)))[2 of unsigned long] == 1u;
-static_cast<unsigned char*>(std::memcpy(as<unsigned char[sizeof(unsigned long)]>(0uL), &static_cast<unsigned long const&>(1uL), sizeof(unsigned long)))[3 of unsigned long] == 1u;
-
   #ifdef __cpp_lib_endian
   # include <bit>
   # if CPP_VERSION >= 2011uL
   #   define CPP_ENDIAN_RUNTIME (0x00 == (std::endian::native & (std::endian::big | std::endian::little)) && sizeof(unsigned char) != sizeof(unsigned long long))
-  #   define CPP_ENDIAN (std::endian::native == std::endian::little ? CPP_BYTE_LITTLE_ENDIAN : std::endian::native == std::endian::big ? CPP_BYTE_BIG_ENDIAN : sizeof(unsigned char) == sizeof(unsigned long long) || reinterpret_cast<unsigned char const&>(static_cast<unsigned long long const&>(1uLL) == 1u) ? CPP_BYTE_LITTLE_ENDIAN : CPP_BYTE_BIG_ENDIAN)
+  #   define CPP_ENDIAN (std::endian::native == std::endian::little ? CPP_BYTE_LITTLE_ENDIAN : std::endian::native == std::endian::big ? CPP_BYTE_BIG_ENDIAN : sizeof(unsigned char) == sizeof(unsigned long long) || reinterpret_cast<unsigned char const&>(static_cast<unsigned long long const&>(1uLL)) == 1u ? CPP_BYTE_LITTLE_ENDIAN : reinterpret_cast<unsigned char const*>(&static_cast<unsigned long long const&>(1uLL))[sizeof(unsigned long long) - 1u] == 1u ? CPP_BYTE_BIG_ENDIAN : CPP_MIXED_ENDIAN)
   # else
   #   define CPP_ENDIAN_RUNTIME (0x00 == (std::endian::native & (std::endian::big | std::endian::little)) && sizeof(unsigned char) != sizeof(unsigned long))
-  #   define CPP_ENDIAN (std::endian::native == std::endian::little ? CPP_BYTE_LITTLE_ENDIAN : std::endian::native == std::endian::big ? CPP_BYTE_BIG_ENDIAN : sizeof(unsigned char) == sizeof(unsigned long)      || reinterpret_cast<unsigned char const&>(static_cast<unsigned long const&>     (1uL)  == 1u) ? CPP_BYTE_LITTLE_ENDIAN : CPP_BYTE_BIG_ENDIAN)
+  #   define CPP_ENDIAN (std::endian::native == std::endian::little ? CPP_BYTE_LITTLE_ENDIAN : std::endian::native == std::endian::big ? CPP_BYTE_BIG_ENDIAN : sizeof(unsigned char) == sizeof(unsigned long)      || reinterpret_cast<unsigned char const&>(static_cast<unsigned long      const&>(1uL))  == 1u ? CPP_BYTE_LITTLE_ENDIAN : reinterpret_cast<unsigned char const*>(&static_cast<unsigned long      const&>(1uL)) [sizeof(unsigned long)      - 1u] == 1u ? CPP_BYTE_BIG_ENDIAN : CPP_MIXED_ENDIAN)
   # endif
   #else
   # if included(<machine/endian.h>) && (CPP_VENDOR & CPP_APPLE_MACINTOSH_VENDOR)
@@ -670,23 +390,23 @@ static_cast<unsigned char*>(std::memcpy(as<unsigned char[sizeof(unsigned long)]>
   #   undef  CPP_ENDIAN_RUNTIME
   #   if CPP_VERSION >= 2011uL
   #     define CPP_ENDIAN_RUNTIME (sizeof(unsigned char) != sizeof(unsigned long long))
-  #     define CPP_ENDIAN (false == CPP_ENDIAN_RUNTIME || reinterpret_cast<unsigned char const&>(static_cast<unsigned long long const&>(1uLL) == 1u) ? CPP_BYTE_LITTLE_ENDIAN : CPP_BYTE_BIG_ENDIAN)
+  #     define CPP_ENDIAN (false == CPP_ENDIAN_RUNTIME || reinterpret_cast<unsigned char const&>(static_cast<unsigned long long const&>(1uLL)) == 1u ? CPP_BYTE_LITTLE_ENDIAN : reinterpret_cast<unsigned char const*>(&static_cast<unsigned long long const&>(1uLL))[sizeof(unsigned long long) - 1u] == 1u ? CPP_BYTE_BIG_ENDIAN : CPP_MIXED_ENDIAN)
   #   else
   #     define CPP_ENDIAN_RUNTIME (sizeof(unsigned char) != sizeof(unsigned long))
-  #     define CPP_ENDIAN (false == CPP_ENDIAN_RUNTIME || reinterpret_cast<unsigned char const&>(static_cast<unsigned long const&>     (1uL)  == 1u) ? CPP_BYTE_LITTLE_ENDIAN : CPP_BYTE_BIG_ENDIAN)
+  #     define CPP_ENDIAN (false == CPP_ENDIAN_RUNTIME || reinterpret_cast<unsigned char const&>(static_cast<unsigned long      const&>(1uL))  == 1u ? CPP_BYTE_LITTLE_ENDIAN : reinterpret_cast<unsigned char const*>(&static_cast<unsigned long      const&>(1uL)) [sizeof(unsigned long)      - 1u] == 1u ? CPP_BYTE_BIG_ENDIAN : CPP_MIXED_ENDIAN)
   #   endif
   # endif
   #endif
 
   /* Definition */
-  // : [Assertion Checking] ->> Compile-time assertion checking
+  // : [Assertion] ->> Compile-time assertion
   #ifndef __cpp_static_assert
     template <bool>
     union static_assert {
       inline static_assert(char const[]) throw() {}
     };
 
-    template <> // ... ->> or just undefine the falsy definition
+    template <> // ... ->> alternatively declare `static_assert<false>` but not define it
     union static_assert<false> {
       private:
         template <typename, unsigned char = 0x0u>
@@ -724,7 +444,7 @@ static_cast<unsigned char*>(std::memcpy(as<unsigned char[sizeof(unsigned long)]>
   # define constfunc_true
   #endif
 
-  // : [Constant Integer] ->> Attempts to specify a constant evaluable integer
+  // : [Constant Integer] ->> Specifies a constant evaluable integer
   #define constint(type, name, value) constint_2u(__LINE__, type, name, value)
   # ifdef __cpp_constexpr
   #   define constint_1u(id, type, name, value)                                                        constexpr static type name varinit(value)
@@ -742,7 +462,7 @@ static_cast<unsigned char*>(std::memcpy(as<unsigned char[sizeof(unsigned long)]>
   # define constvar
   #endif
 
-  // : [Deleted Function Specifier] ->> Attempts to mark a function ill-formed to evaluate
+  // : [Deleted Function Specifier] ->> Attempts to mark a function ill-formed to evaluate; Recommended to use exclusively from `inline`
   #if CPP_VERSION >= 2011uL
   # define discard = delete
   #else
@@ -773,24 +493,36 @@ static_cast<unsigned char*>(std::memcpy(as<unsigned char[sizeof(unsigned long)]>
 
   // : [Floating-Point Types] ->> Acknowledges extended floating-point types
   #if __STDCPP_FLOAT16_T__
+  # if LAPYS_PREPROCESSOR_GUARD && defined(float16_t)
+  #   error Awkward. Unexpected `float16_t` macro definition
+  # endif
   # define float16_t std::float16_t
   #elif defined(float16_t)
   # error Lapys C++: Unexpected `float16_t` macro definition
   #endif
 
   #if __STDCPP_FLOAT32_T__
+  # if LAPYS_PREPROCESSOR_GUARD && defined(float32_t)
+  #   error Awkward. Unexpected `float32_t` macro definition
+  # endif
   # define float32_t std::float32_t
   #elif defined(float32_t)
   # error Lapys C++: Unexpected `float32_t` macro definition
   #endif
 
   #if __STDCPP_FLOAT64_T__
+  # if LAPYS_PREPROCESSOR_GUARD && defined(float64_t)
+  #   error Awkward. Unexpected `float64_t` macro definition
+  # endif
   # define float64_t std::float64_t
   #elif defined(float64_t)
   # error Lapys C++: Unexpected `float64_t` macro definition
   #endif
 
   #if __STDCPP_FLOAT128_T__
+  # if LAPYS_PREPROCESSOR_GUARD && defined(float128_t)
+  #   error Awkward. Unexpected `float128_t` macro definition
+  # endif
   # define float128_t std::float128_t
   #elif defined(float128_t)
   # error Lapys C++: Unexpected `float128_t` macro definition
@@ -798,10 +530,10 @@ static_cast<unsigned char*>(std::memcpy(as<unsigned char[sizeof(unsigned long)]>
 
   // : [Forwarding Reference] ->> Perfect-forwarding reference-qualification
   #ifdef __cpp_rvalue_references
-  # define nodecay &&
+  # define nodecay             &&
   # define nodecayparam(name) (&&name)
   #else
-  # define nodecay const&
+  # define nodecay            const&
   # define nodecayparam(name) const (&name)
   #endif
 
@@ -839,7 +571,7 @@ static_cast<unsigned char*>(std::memcpy(as<unsigned char[sizeof(unsigned long)]>
   #   define int128_t           __int128
   #   define uint128_t unsigned __int128
   #   pragma GCC diagnostic pop
-  # else
+  # elif LAPYS_PREPROCESSOR_GUARD
   #   ifdef int128_t
   #     error Lapys C++: Unexpected `int128_t` macro definition
   #   endif
@@ -849,10 +581,10 @@ static_cast<unsigned char*>(std::memcpy(as<unsigned char[sizeof(unsigned long)]>
   # endif
   #elif CPP_COMPILER == CPP_INTEL_COMPILER
   # ifdef __SSE2__
-  # define int128_t  __i128
-  # define uint128_t __u128
+  #   define int128_t  __i128
+  #   define uint128_t __u128
   # endif
-  #else
+  #elif LAPYS_PREPROCESSOR_GUARD
   # ifdef int128_t
   #   error Lapys C++: Unexpected `int128_t` macro definition
   # endif
@@ -1001,7 +733,7 @@ static_cast<unsigned char*>(std::memcpy(as<unsigned char[sizeof(unsigned long)]>
   # define boundsof(type)     alignof(type)
   #endif
 
-  // : [Type Inspection Specifier] ->> Reflect on the resulting data type of an expression
+  // : [Type Inspection Specifier] ->> Reflect on the resulting type of an expression
   #ifndef typeof
   # ifdef __cpp_decltype
   #   if CPP_COMPILER == CPP_CLANG_COMPILER
@@ -1021,8 +753,6 @@ static_cast<unsigned char*>(std::memcpy(as<unsigned char[sizeof(unsigned long)]>
   #     define typeof(expression) typeof(expression)
   #   elif CPP_COMPILER == CPP_MSVC_COMPILER
   #     define typeof(expression) decltype(expression)
-  #   else // TODO (Lapys) -> Limited `typeof(...)` functionality is doable
-  #     error Lapys C++: Static type inspection feature `typeof(...)` required
   #   endif
   # endif
   #endif
@@ -1035,7 +765,7 @@ static_cast<unsigned char*>(std::memcpy(as<unsigned char[sizeof(unsigned long)]>
   #define empty()
 
   #if (LAPYS_MAX_ARITY) > 127u
-  # undef LAPYS_MAX_ARITY
+  # undef  LAPYS_MAX_ARITY
   # define LAPYS_MAX_ARITY 127u
   #endif
 
@@ -1566,36 +1296,36 @@ static_cast<unsigned char*>(std::memcpy(as<unsigned char[sizeof(unsigned long)]>
     #undef  choose
     #define choose(argument, ...) defer(combine, choose_, argument)(__VA_ARGS__)
     # define choose_0u(...)
-    # define choose_1u(argument1, ...) argument1
+    # define choose_1u(argument1, ...)            argument1
     # define choose_2u(argument1, argument2, ...) argument2
 
     #define combine(argument1, argument2) argument1 ## argument2
 
     #define defer(function, ...) defer_1u(function, (__VA_ARGS__))
-    # define defer_0u(function, ...) function(__VA_ARGS__)
-    # define defer_1u(function, call) function call
-    # define defer_2u(function, call) defer_1u(function, call)
-    # define defer_3u(function, call) defer_2u(function, call)
-    # define defer_4u(function, call) defer_3u(function, call)
-    # define defer_5u(function, call) defer_4u(function, call)
-    # define defer_6u(function, call) defer_5u(function, call)
-    # define defer_7u(function, call) defer_6u(function, call)
-    # define defer_8u(function, call) defer_7u(function, call)
-    # define defer_9u(function, call) defer_8u(function, call)
-    # define defer_10u(function, call) defer_9u(function, call)
+    # define defer_0u(function, ...)   function(__VA_ARGS__)
+    # define defer_1u(function, call)  function call
+    # define defer_2u(function, call)  defer_1u (function, call)
+    # define defer_3u(function, call)  defer_2u (function, call)
+    # define defer_4u(function, call)  defer_3u (function, call)
+    # define defer_5u(function, call)  defer_4u (function, call)
+    # define defer_6u(function, call)  defer_5u (function, call)
+    # define defer_7u(function, call)  defer_6u (function, call)
+    # define defer_8u(function, call)  defer_7u (function, call)
+    # define defer_9u(function, call)  defer_8u (function, call)
+    # define defer_10u(function, call) defer_9u (function, call)
     # define defer_11u(function, call) defer_10u(function, call)
     # define defer_12u(function, call) defer_11u(function, call)
 
     #undef apply // UPDATE (Lapys) -> Allow for nested `apply(...)`s within `apply(...)`s
-    # define apply_begin(function, condition, separator, currentArgument, nextArgument, ...) choose(condition(currentArgument, nextArgument, __VA_ARGS__), apply_continue, apply_end)( /* ->> Body of the `apply(...)` loop */ \
-      function,                                                                                                                                                                                                                \
-      choose(condition(nextArgument, __VA_ARGS__), separator, apply_terminator),                                                                                                                                               \
-      stall(reapply)()(function, condition, separator, nextArgument, __VA_ARGS__, break),                                                                                                                                      \
-      currentArgument, nextArgument, __VA_ARGS__                                                                                                                                                                               \
+    # define apply_begin(function, condition, separator, currentArgument, nextArgument, ...) choose(condition(currentArgument, nextArgument, __VA_ARGS__), apply_continue, apply_break)( /* ->> Body of the `apply(...)` loop */ \
+      function,                                                                                                                                                                                                                  \
+      choose(condition(nextArgument, __VA_ARGS__), separator, apply_terminator),                                                                                                                                                 \
+      stall(reapply)()stall((function, condition, separator, nextArgument, __VA_ARGS__, break)),                                                                                                                                 \
+      currentArgument, nextArgument, __VA_ARGS__                                                                                                                                                                                 \
     )
-    # undef  apply_condition                   // ->> Asserts to `false` or `true` by default
-    # define apply_function(argument)argument  // ->> Evaluates to `argument` by default
-    # define apply_separator(argument, ...)    // ->> Does not separate by default
+    # undef  apply_condition                  // ->> Asserts to `false` or `true` by default
+    # define apply_function(argument)argument // ->> Evaluates to `argument` by default
+    # define apply_separator(argument, ...)   // ->> Does not separate by default
     #   define apply_condition_default ~, false
     #   define apply_function_default  ~, false
     #   define apply_separator_default ~, false
@@ -1634,11 +1364,11 @@ static_cast<unsigned char*>(std::memcpy(as<unsigned char[sizeof(unsigned long)]>
     #   define apply_ternary_falsy(argument, ...)               :
     #   define apply_ternary_truthy(argument, ...)              ?
     #   define apply_unequals(argument, ...)                    !=
+    # define apply_break(function, separator, applyer, argument, ...) // ->> Stop expanding
     # define apply_continue(function, separator, applyer, argument, ...) function(argument)separator(argument, __VA_ARGS__) applyer
-    # define apply_end(function, separator, applyer, argument, ...) // ->> Stop expanding
     # undef  apply_setup
     # define apply_terminator(argument, ...)
-    # if CPP_PREPROCESSOR_FORMAT == CPP_PREPROCESSOR_ISO_FORMAT || CPP_COMPILER == CPP_INTEL_COMPILER
+    # if CPP_PREPROCESSOR_FORMAT == CPP_PREPROCESSOR_ISO_FORMAT
     #   define apply(...) parse(apply_setup(__VA_ARGS__))
     #     define apply_condition(argument, ...) defer(choose_2u, reapply_ ## argument, true, ~)
     #     define apply_setup(function, condition, separator, ...) apply_begin(                            \
@@ -1647,47 +1377,71 @@ static_cast<unsigned char*>(std::memcpy(as<unsigned char[sizeof(unsigned long)]>
             choose(defer(choose_2u, apply_separator_ ## separator, true, ~), separator, apply_separator), \
             __VA_ARGS__, break, break                                                                     \
           )
-    #     if CPP_COMPILER == CPP_INTEL_COMPILER
-    #       undef  apply_continue // ->> Unknown why the `applyer` function needs to become redundant
-    #       define apply_continue(function, separator, applyer, argument, ...) function(argument)separator(argument, __VA_ARGS__)
-    #     endif
     # elif CPP_PREPROCESSOR_FORMAT == CPP_PREPROCESSOR_MSVC_FORMAT
-    #   if (LAPYS_MAX_ARITY) <= (1u << 1u)
-    #     define apply(...) parse_2u(defer(apply_setup, __VA_ARGS__))
-    #   elif (LAPYS_MAX_ARITY) <= (1u << 2u)
-    #     define apply(...) parse_3u(defer(apply_setup, __VA_ARGS__))
-    #   elif (LAPYS_MAX_ARITY) <= (1u << 3u)
-    #     define apply(...) parse_4u(defer(apply_setup, __VA_ARGS__))
-    #   elif (LAPYS_MAX_ARITY) <= (1u << 4u)
-    #     define apply(...) parse_5u(defer(apply_setup, __VA_ARGS__))
-    #   elif (LAPYS_MAX_ARITY) <= (1u << 5u)
-    #     define apply(...) parse_6u(defer(apply_setup, __VA_ARGS__))
-    #   elif (LAPYS_MAX_ARITY) <= (1u << 6u)
-    #     define apply(...) parse_7u(defer(apply_setup, __VA_ARGS__))
-    #   elif (LAPYS_MAX_ARITY) <= (1u << 7u)
-    #     define apply(...) parse_8u(defer(apply_setup, __VA_ARGS__))
-    #   elif (LAPYS_MAX_ARITY) <= (1u << 8u)
-    #     define apply(...) parse_9u(defer(apply_setup, __VA_ARGS__))
-    #   elif (LAPYS_MAX_ARITY) <= (1u << 9u)
-    #     define apply(...) parse_10u(defer(apply_setup, __VA_ARGS__))
-    #   elif (LAPYS_MAX_ARITY) <= (1u << 10u)
-    #     define apply(...) parse_11u(defer(apply_setup, __VA_ARGS__))
+    #   if CPP_COMPILER == CPP_INTEL_COMPILER
+    #     define apply(...) parse(apply_setup(__VA_ARGS__))
+    #       define apply_condition(argument, ...) defer_1u(choose_2u, (reapply_ ## argument, true, ~))
+    #       define apply_setup(function, condition, separator, ...) defer_2u(apply_begin, (                 \
+              choose(defer(choose_2u, apply_function_  ## function,  true, ~), function,  apply_function),  \
+              choose(defer(choose_2u, apply_condition_ ## condition, true, ~), condition, apply_condition), \
+              choose(defer(choose_2u, apply_separator_ ## separator, true, ~), separator, apply_separator), \
+              __VA_ARGS__, break, break                                                                     \
+            ))
     #   else
     #     define apply(...) parse_12u(defer(apply_setup, __VA_ARGS__))
+    #       define apply_condition(argument, ...) stall(defer(choose_2u, choose_1u(reapply_ ## argument, ~), true))
+    #       define apply_setup(function, condition, separator, ...) defer(apply_begin,                                           \
+              stall(choose(defer(choose_2u, choose_1u(apply_function_  ## function,  ~), true, ~), function,  apply_function)),  \
+              stall(choose(defer(choose_2u, choose_1u(apply_condition_ ## condition, ~), true, ~), condition, apply_condition)), \
+              stall(choose(defer(choose_2u, choose_1u(apply_separator_ ## separator, ~), true, ~), separator, apply_separator)), \
+              __VA_ARGS__, break, break                                                                                          \
+            )
     #   endif
-    #     define apply_condition(argument, ...) stall(defer(choose_2u, choose_1u(reapply_ ## argument, ~), true))
-    #     define apply_setup(function, condition, separator, ...) defer(apply_begin,                                           \
-            stall(choose(defer(choose_2u, choose_1u(apply_function_  ## function,  ~), true, ~), function,  apply_function)),  \
-            stall(choose(defer(choose_2u, choose_1u(apply_condition_ ## condition, ~), true, ~), condition, apply_condition)), \
-            stall(choose(defer(choose_2u, choose_1u(apply_separator_ ## separator, ~), true, ~), separator, apply_separator)), \
-            __VA_ARGS__, break, break                                                                                          \
-          )
     # else
-    #   error Variadic macro expansion feature `apply(...)` required
+    #   error Variadic macro expansion feature `apply(...)` requested
     # endif
-    # define reapply() apply_begin // ->> Update of the `apply(...)` loop
-    #   define reapply_break ~, false // ->> End of the `apply(...)` loop
-    # define subapply apply
+    # define reapply() apply_begin // ->> Succession of the `apply(...)` loop
+    #   define reapply_break ~, false // ->> End     of the `apply(...)` loop
+
+    #undef subapply // --> `subapply(...)`, `subapply_begin(...)`, `subapply_continue(...)`, and `subapply_setup(...)` are similar to their `apply(...)` counterparts
+    # define subapply_begin(function, condition, separator, currentArgument, nextArgument, ...) choose(condition(currentArgument, nextArgument, __VA_ARGS__), subapply_continue, apply_break)( \
+      function,                                                                                                                                                                                \
+      choose(condition(nextArgument, __VA_ARGS__), separator, apply_terminator),                                                                                                               \
+      stall(resubapply)()stall((function, condition, separator, nextArgument, __VA_ARGS__, break)),                                                                                            \
+      currentArgument, nextArgument, __VA_ARGS__                                                                                                                                               \
+    )
+    # define subapply_continue(function, separator, applyer, argument, ...) function(argument)separator(argument, __VA_ARGS__) applyer
+    # undef  subapply_setup
+    # if CPP_PREPROCESSOR_FORMAT == CPP_PREPROCESSOR_ISO_FORMAT
+    #   define subapply(...) subapply_setup(__VA_ARGS__)
+    #     define subapply_setup(function, condition, separator, ...) subapply_begin(                      \
+            choose(defer(choose_2u, apply_function_  ## function,  true, ~), function,  apply_function),  \
+            choose(defer(choose_2u, apply_condition_ ## condition, true, ~), condition, apply_condition), \
+            choose(defer(choose_2u, apply_separator_ ## separator, true, ~), separator, apply_separator), \
+            __VA_ARGS__, break, break                                                                     \
+          )
+    # elif CPP_PREPROCESSOR_FORMAT == CPP_PREPROCESSOR_MSVC_FORMAT
+    #   if CPP_COMPILER == CPP_INTEL_COMPILER
+    #     define subapply(...) defer_1u(subapply_setup, (__VA_ARGS__))
+    #       define subapply_setup(function, condition, separator, ...) subapply_begin(                           \
+              choose(defer_1u(choose_2u, (apply_function_  ## function,  true, ~)), function,  apply_function),  \
+              choose(defer_1u(choose_2u, (apply_condition_ ## condition, true, ~)), condition, apply_condition), \
+              choose(defer_1u(choose_2u, (apply_separator_ ## separator, true, ~)), separator, apply_separator), \
+              __VA_ARGS__, break, break                                                                          \
+            )
+    #   else
+    #     define subapply(...) defer(subapply_setup, __VA_ARGS__)
+    #       define subapply_setup(function, condition, separator, ...) defer(subapply_begin,                                     \
+              stall(choose(defer(choose_2u, choose_1u(apply_function_  ## function,  ~), true, ~), function,  apply_function)),  \
+              stall(choose(defer(choose_2u, choose_1u(apply_condition_ ## condition, ~), true, ~), condition, apply_condition)), \
+              stall(choose(defer(choose_2u, choose_1u(apply_separator_ ## separator, ~), true, ~), separator, apply_separator)), \
+              __VA_ARGS__, break, break                                                                                          \
+            )
+    #   endif
+    # else
+    #   error Variadic macro expansion feature `subapply(...)` requested
+    # endif
+    # define resubapply() subapply_begin
 
     #if (LAPYS_MAX_ARITY) <= (1u << 1u)
     # define parse(...) parse_1u(__VA_ARGS__)
@@ -1715,28 +1469,28 @@ static_cast<unsigned char*>(std::memcpy(as<unsigned char[sizeof(unsigned long)]>
     # define parse(...) parse_12u(__VA_ARGS__)
     #endif
     # define parse_1u(...)  __VA_ARGS__
-    # define parse_2u(...)  parse_1u(parse_1u(__VA_ARGS__))
-    # define parse_3u(...)  parse_2u(parse_2u(__VA_ARGS__))
-    # define parse_4u(...)  parse_3u(parse_3u(__VA_ARGS__))
-    # define parse_5u(...)  parse_4u(parse_4u(__VA_ARGS__))
-    # define parse_6u(...)  parse_5u(parse_5u(__VA_ARGS__))
-    # define parse_7u(...)  parse_6u(parse_6u(__VA_ARGS__))
-    # define parse_8u(...)  parse_7u(parse_7u(__VA_ARGS__))
-    # define parse_9u(...)  parse_8u(parse_8u(__VA_ARGS__))
-    # define parse_10u(...) parse_9u(parse_9u(__VA_ARGS__))
+    # define parse_2u(...)  parse_1u (parse_1u (__VA_ARGS__))
+    # define parse_3u(...)  parse_2u (parse_2u (__VA_ARGS__))
+    # define parse_4u(...)  parse_3u (parse_3u (__VA_ARGS__))
+    # define parse_5u(...)  parse_4u (parse_4u (__VA_ARGS__))
+    # define parse_6u(...)  parse_5u (parse_5u (__VA_ARGS__))
+    # define parse_7u(...)  parse_6u (parse_6u (__VA_ARGS__))
+    # define parse_8u(...)  parse_7u (parse_7u (__VA_ARGS__))
+    # define parse_9u(...)  parse_8u (parse_8u (__VA_ARGS__))
+    # define parse_10u(...) parse_9u (parse_9u (__VA_ARGS__))
     # define parse_11u(...) parse_10u(parse_10u(__VA_ARGS__))
     # define parse_12u(...) parse_11u(parse_11u(__VA_ARGS__))
 
     #define stall(macro) stall_2u(macro)
-    # define stall_1u(macro) macro empty()
-    # define stall_2u(macro) macro empty empty()()
-    # define stall_3u(macro) macro empty empty empty()()()
-    # define stall_4u(macro) macro empty empty empty empty()()()()
-    # define stall_5u(macro) macro empty empty empty empty empty()()()()()
-    # define stall_6u(macro) macro empty empty empty empty empty empty()()()()()()
-    # define stall_7u(macro) macro empty empty empty empty empty empty empty()()()()()()()
-    # define stall_8u(macro) macro empty empty empty empty empty empty empty empty()()()()()()()()
-    # define stall_9u(macro) macro empty empty empty empty empty empty empty empty empty()()()()()()()()()
+    # define stall_1u(macro)  macro empty()
+    # define stall_2u(macro)  macro empty empty()()
+    # define stall_3u(macro)  macro empty empty empty()()()
+    # define stall_4u(macro)  macro empty empty empty empty()()()()
+    # define stall_5u(macro)  macro empty empty empty empty empty()()()()()
+    # define stall_6u(macro)  macro empty empty empty empty empty empty()()()()()()
+    # define stall_7u(macro)  macro empty empty empty empty empty empty empty()()()()()()()
+    # define stall_8u(macro)  macro empty empty empty empty empty empty empty empty()()()()()()()()
+    # define stall_9u(macro)  macro empty empty empty empty empty empty empty empty empty()()()()()()()()()
     # define stall_10u(macro) macro empty empty empty empty empty empty empty empty empty empty()()()()()()()()()()
     # define stall_11u(macro) macro empty empty empty empty empty empty empty empty empty empty empty()()()()()()()()()()()
     # define stall_12u(macro) macro empty empty empty empty empty empty empty empty empty empty empty empty()()()()()()()()()()()()
