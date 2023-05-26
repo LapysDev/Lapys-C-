@@ -45,7 +45,7 @@
       template <typename type> constfunc(true) mustinline type volatile&       (pass)(type volatile&       object) noexcept { return object; }
     #endif
 
-    // Width Of ->> Queries bit width of expression object (or type)
+    // Width Of ->> Queries bit width of expression (object)
     #define widthof(expression) (sizeof(::Lapys::widthof(expression)) / sizeof(unsigned char))
 
     template <std::size_t width> constfunc(true) mustinline unsigned char /* --> byte */ (&(widthof)(bit<width> const)   noexcept)[width];
