@@ -88,6 +88,7 @@
   #include <ciso646>   // C ISO 646
   #include <cstddef>   // C Standard Definitions
   #include <stdbool.h> // Standard Boolean
+  #include <stdint.h>  // Standard Integer
 
   // : [...]
   #include "lapys/extensions.hpp"
@@ -205,7 +206,7 @@
   #endif
 
   // : [...]
-  // #include "lapys/traits.hpp"
+  #include "lapys/traits.hpp"
 
   /* Deletion */
   #undef LAPYS_PREPROCESSOR_GUARD
@@ -253,7 +254,7 @@
   #undef varinit
 
   #if LAPYS_PREPROCESSOR
-  # undef widthof
+  # undef  widthof
   # define widthof(argument) (CHAR_BIT * sizeof(argument))
   #else
   # undef as

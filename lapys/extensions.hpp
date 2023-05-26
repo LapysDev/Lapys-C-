@@ -1316,7 +1316,7 @@
     # define defer_11u(function, call) defer_10u(function, call)
     # define defer_12u(function, call) defer_11u(function, call)
 
-    #undef apply // UPDATE (Lapys) -> Allow for nested `apply(...)`s within `apply(...)`s
+    #undef apply
     # define apply_begin(function, condition, separator, currentArgument, nextArgument, ...) choose(condition(currentArgument, nextArgument, __VA_ARGS__), apply_continue, apply_break)( /* ->> Body of the `apply(...)` loop */ \
       function,                                                                                                                                                                                                                  \
       choose(condition(nextArgument, __VA_ARGS__), separator, apply_terminator),                                                                                                                                                 \
