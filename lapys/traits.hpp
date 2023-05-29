@@ -53,7 +53,11 @@
     template <typename    type>  constfunc(true) mustinline unsigned char /* --> byte */ (&(widthof)(type       nodecay) noexcept)[CHAR_BIT * sizeof(type)];
 
     /* Alias > Byte ->> Aliases to an (unsigned) byte type blessed by the standard (as specified in the C++ language definition) */
+<<<<<<< HEAD
     #ifndef __cpp_lib_byte // --> 201603L
+=======
+    #ifndef __cpp_lib_byte
+>>>>>>> d21a0056102e64e5bc13c9bc5723901239808f07
       typedef unsigned char byte;
     #else
       typedef std::byte byte;
