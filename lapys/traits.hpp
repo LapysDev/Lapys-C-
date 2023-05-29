@@ -1,25 +1,26 @@
 #ifndef LAPYS_MODULE_TRAITS
 # define LAPYS_MODULE_TRAITS
   /* Guard > ... */
-  #ifdef byte
-  # error Lapys C++: Unexpected `byte` macro definition
-  #endif
-
   #ifdef Traits
   # error Lapys C++: Awkward. Unexpected `Traits` macro definition
+  #endif
+
+  #ifdef widthof
+  # error Lapys C++: Unexpected `widthof` macro definition
   #endif
 
   /* Import */
   // : [...]
   #include "extensions.hpp"
 
-  // : [C++ Standard Library]
-  #include <climits> // C Limits
+  // : [C/ C++ Standard Library]
+  #include <climits>  // C Limits
+  #include <stdint.h> // Standard Integer
   #if CPP_VERSION >= 2011uL
   # include <type_traits> // Type Traits
   #endif
 
-  #if defined(__cpp_impl_three_way_comparison) && defined(__cpp_lib_three_way_comparison)
+  #if defined(__cpp_impl_three_way_comparison) && defined(__cpp_lib_three_way_comparison) // --> 201907L
   # include <compare> // Compare
   #endif
 
@@ -35,7 +36,7 @@
     constfunc(true) type (instanceof)() noexcept;
 
     // Pass ->> Prevent redundant copying (and preserve type qualifications) when forwarding parameters between functions
-    #ifdef __cpp_rvalue_references
+    #ifdef __cpp_rvalue_references // --> 200610L
       template <typename type> constfunc(true) mustinline type&  (pass)(type&  object) noexcept { return static_cast<type&&>(object); }
       template <typename type> constfunc(true) mustinline type&& (pass)(type&& object) noexcept { return static_cast<type&&>(object); }
     #else
@@ -45,14 +46,14 @@
       template <typename type> constfunc(true) mustinline type volatile&       (pass)(type volatile&       object) noexcept { return object; }
     #endif
 
-    // Width Of ->> Queries bit width of expression object (or type)
+    // Width Of ->> Queries bit width of expression (object)
     #define widthof(expression) (sizeof(::Lapys::widthof(expression)) / sizeof(unsigned char))
 
     template <std::size_t width> constfunc(true) mustinline unsigned char /* --> byte */ (&(widthof)(bit<width> const)   noexcept)[width];
     template <typename    type>  constfunc(true) mustinline unsigned char /* --> byte */ (&(widthof)(type       nodecay) noexcept)[CHAR_BIT * sizeof(type)];
 
-    /* ALias > Byte ->> Aliases to an (unsigned) byte type blessed by the standard (as specified in the C++ language definition) */
-    #ifndef __cpp_lib_byte
+    /* Alias > Byte ->> Aliases to an (unsigned) byte type blessed by the standard (as specified in the C++ language definition) */
+    #ifndef __cpp_lib_byte // --> 201603L
       typedef unsigned char byte;
     #else
       typedef std::byte byte;
@@ -62,104 +63,108 @@
       constfunc(true) mustinline std::byte operator -(std::byte const byte) noexcept { return static_cast<std::byte>(-std::to_integer<unsigned char>(byte)); }
       constfunc(true) mustinline bool      operator !(std::byte const byte) noexcept { return !std::to_integer<unsigned char>(byte); }
 
-      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          +=  instanceof<type nodecay>())                    operator += (std::byte&          byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char&>()          +=  instanceof<type nodecay>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          +=  instanceof<type nodecay>()) evaluation = (value +=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          +=  instanceof<type nodecay>())>(evaluation); }
-      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() +=  instanceof<type nodecay>())                    operator += (std::byte volatile& byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char volatile&>() +=  instanceof<type nodecay>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() +=  instanceof<type nodecay>()) evaluation = (value +=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() +=  instanceof<type nodecay>())>(evaluation); }
-      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          -=  instanceof<type nodecay>())                    operator -= (std::byte&          byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char&>()          -=  instanceof<type nodecay>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          -=  instanceof<type nodecay>()) evaluation = (value -=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          -=  instanceof<type nodecay>())>(evaluation); }
-      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() -=  instanceof<type nodecay>())                    operator -= (std::byte volatile& byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char volatile&>() -=  instanceof<type nodecay>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() -=  instanceof<type nodecay>()) evaluation = (value -=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() -=  instanceof<type nodecay>())>(evaluation); }
-      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          *=  instanceof<type nodecay>())                    operator *= (std::byte&          byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char&>()          *=  instanceof<type nodecay>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          *=  instanceof<type nodecay>()) evaluation = (value *=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          *=  instanceof<type nodecay>())>(evaluation); }
-      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() *=  instanceof<type nodecay>())                    operator *= (std::byte volatile& byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char volatile&>() *=  instanceof<type nodecay>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() *=  instanceof<type nodecay>()) evaluation = (value *=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() *=  instanceof<type nodecay>())>(evaluation); }
-      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          /=  instanceof<type nodecay>())                    operator /= (std::byte&          byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char&>()          /=  instanceof<type nodecay>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          /=  instanceof<type nodecay>()) evaluation = (value /=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          /=  instanceof<type nodecay>())>(evaluation); }
-      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() /=  instanceof<type nodecay>())                    operator /= (std::byte volatile& byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char volatile&>() /=  instanceof<type nodecay>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() /=  instanceof<type nodecay>()) evaluation = (value /=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() /=  instanceof<type nodecay>())>(evaluation); }
-      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          %=  instanceof<type nodecay>())                    operator %= (std::byte&          byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char&>()          %=  instanceof<type nodecay>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          %=  instanceof<type nodecay>()) evaluation = (value %=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          %=  instanceof<type nodecay>())>(evaluation); }
-      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() %=  instanceof<type nodecay>())                    operator %= (std::byte volatile& byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char volatile&>() %=  instanceof<type nodecay>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() %=  instanceof<type nodecay>()) evaluation = (value %=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() %=  instanceof<type nodecay>())>(evaluation); }
-      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() &=  instanceof<type nodecay>())                    operator &= (std::byte volatile& byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char volatile&>() &=  instanceof<type nodecay>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() &=  instanceof<type nodecay>()) evaluation = (value &=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() &=  instanceof<type nodecay>())>(evaluation); }
-      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() |=  instanceof<type nodecay>())                    operator |= (std::byte volatile& byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char volatile&>() |=  instanceof<type nodecay>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() |=  instanceof<type nodecay>()) evaluation = (value |=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() |=  instanceof<type nodecay>())>(evaluation); }
-      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type nodecay>())                    operator ^= (std::byte volatile& byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char volatile&>() ^=  instanceof<type nodecay>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type nodecay>()) evaluation = (value ^=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type nodecay>())>(evaluation); }
-      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() <<= instanceof<type nodecay>())                    operator <<=(std::byte volatile& byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char volatile&>() <<= instanceof<type nodecay>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() <<= instanceof<type nodecay>()) evaluation = (value <<= pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() <<= instanceof<type nodecay>())>(evaluation); }
-      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() >>= instanceof<type nodecay>())                    operator >>=(std::byte volatile& byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char volatile&>() >>= instanceof<type nodecay>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() >>= instanceof<type nodecay>()) evaluation = (value >>= pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() >>= instanceof<type nodecay>())>(evaluation); }
-      template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) == instanceof<type nodecay>())) operator == (std::byte const     byte, type nodecay object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) == instanceof<type nodecay>())) { return std::to_integer<unsigned char>(byte) == pass<type>(object); }
-      template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) != instanceof<type nodecay>())) operator != (std::byte const     byte, type nodecay object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) != instanceof<type nodecay>())) { return std::to_integer<unsigned char>(byte) != pass<type>(object); }
-      template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <  instanceof<type nodecay>())) operator <  (std::byte const     byte, type nodecay object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <  instanceof<type nodecay>())) { return std::to_integer<unsigned char>(byte) <  pass<type>(object); }
-      template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) >  instanceof<type nodecay>())) operator >  (std::byte const     byte, type nodecay object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) >  instanceof<type nodecay>())) { return std::to_integer<unsigned char>(byte) >  pass<type>(object); }
-      template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <= instanceof<type nodecay>())) operator <= (std::byte const     byte, type nodecay object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <= instanceof<type nodecay>())) { return std::to_integer<unsigned char>(byte) <= pass<type>(object); }
-      template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) >= instanceof<type nodecay>())) operator >= (std::byte const     byte, type nodecay object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) >= instanceof<type nodecay>())) { return std::to_integer<unsigned char>(byte) >= pass<type>(object); }
+      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          +=  instanceof<type nodecay>())                    (operator += )(std::byte&          byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char&>()          +=  instanceof<type nodecay>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          +=  instanceof<type nodecay>()) evaluation = (value +=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          +=  instanceof<type nodecay>())>(evaluation); }
+      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() +=  instanceof<type nodecay>())                    (operator += )(std::byte volatile& byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char volatile&>() +=  instanceof<type nodecay>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() +=  instanceof<type nodecay>()) evaluation = (value +=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() +=  instanceof<type nodecay>())>(evaluation); }
+      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          -=  instanceof<type nodecay>())                    (operator -= )(std::byte&          byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char&>()          -=  instanceof<type nodecay>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          -=  instanceof<type nodecay>()) evaluation = (value -=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          -=  instanceof<type nodecay>())>(evaluation); }
+      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() -=  instanceof<type nodecay>())                    (operator -= )(std::byte volatile& byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char volatile&>() -=  instanceof<type nodecay>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() -=  instanceof<type nodecay>()) evaluation = (value -=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() -=  instanceof<type nodecay>())>(evaluation); }
+      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          *=  instanceof<type nodecay>())                    (operator *= )(std::byte&          byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char&>()          *=  instanceof<type nodecay>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          *=  instanceof<type nodecay>()) evaluation = (value *=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          *=  instanceof<type nodecay>())>(evaluation); }
+      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() *=  instanceof<type nodecay>())                    (operator *= )(std::byte volatile& byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char volatile&>() *=  instanceof<type nodecay>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() *=  instanceof<type nodecay>()) evaluation = (value *=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() *=  instanceof<type nodecay>())>(evaluation); }
+      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          /=  instanceof<type nodecay>())                    (operator /= )(std::byte&          byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char&>()          /=  instanceof<type nodecay>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          /=  instanceof<type nodecay>()) evaluation = (value /=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          /=  instanceof<type nodecay>())>(evaluation); }
+      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() /=  instanceof<type nodecay>())                    (operator /= )(std::byte volatile& byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char volatile&>() /=  instanceof<type nodecay>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() /=  instanceof<type nodecay>()) evaluation = (value /=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() /=  instanceof<type nodecay>())>(evaluation); }
+      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          %=  instanceof<type nodecay>())                    (operator %= )(std::byte&          byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char&>()          %=  instanceof<type nodecay>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          %=  instanceof<type nodecay>()) evaluation = (value %=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          %=  instanceof<type nodecay>())>(evaluation); }
+      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() %=  instanceof<type nodecay>())                    (operator %= )(std::byte volatile& byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char volatile&>() %=  instanceof<type nodecay>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() %=  instanceof<type nodecay>()) evaluation = (value %=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() %=  instanceof<type nodecay>())>(evaluation); }
+      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() &=  instanceof<type nodecay>())                    (operator &= )(std::byte volatile& byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char volatile&>() &=  instanceof<type nodecay>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() &=  instanceof<type nodecay>()) evaluation = (value &=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() &=  instanceof<type nodecay>())>(evaluation); }
+      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() |=  instanceof<type nodecay>())                    (operator |= )(std::byte volatile& byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char volatile&>() |=  instanceof<type nodecay>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() |=  instanceof<type nodecay>()) evaluation = (value |=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() |=  instanceof<type nodecay>())>(evaluation); }
+      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type nodecay>())                    (operator ^= )(std::byte volatile& byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char volatile&>() ^=  instanceof<type nodecay>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type nodecay>()) evaluation = (value ^=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type nodecay>())>(evaluation); }
+      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() <<= instanceof<type nodecay>())                    (operator <<=)(std::byte volatile& byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char volatile&>() <<= instanceof<type nodecay>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() <<= instanceof<type nodecay>()) evaluation = (value <<= pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() <<= instanceof<type nodecay>())>(evaluation); }
+      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() >>= instanceof<type nodecay>())                    (operator >>=)(std::byte volatile& byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char volatile&>() >>= instanceof<type nodecay>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() >>= instanceof<type nodecay>()) evaluation = (value >>= pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() >>= instanceof<type nodecay>())>(evaluation); }
+      template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) == instanceof<type nodecay>())) (operator == )(std::byte const     byte, type nodecay object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) == instanceof<type nodecay>())) { return std::to_integer<unsigned char>(byte) == pass<type>(object); }
+      template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) != instanceof<type nodecay>())) (operator != )(std::byte const     byte, type nodecay object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) != instanceof<type nodecay>())) { return std::to_integer<unsigned char>(byte) != pass<type>(object); }
+      template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <  instanceof<type nodecay>())) (operator <  )(std::byte const     byte, type nodecay object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <  instanceof<type nodecay>())) { return std::to_integer<unsigned char>(byte) <  pass<type>(object); }
+      template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) >  instanceof<type nodecay>())) (operator >  )(std::byte const     byte, type nodecay object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) >  instanceof<type nodecay>())) { return std::to_integer<unsigned char>(byte) >  pass<type>(object); }
+      template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <= instanceof<type nodecay>())) (operator <= )(std::byte const     byte, type nodecay object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <= instanceof<type nodecay>())) { return std::to_integer<unsigned char>(byte) <= pass<type>(object); }
+      template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) >= instanceof<type nodecay>())) (operator >= )(std::byte const     byte, type nodecay object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) >= instanceof<type nodecay>())) { return std::to_integer<unsigned char>(byte) >= pass<type>(object); }
 
-      #if defined(__cpp_impl_three_way_comparison) || defined(__cpp_lib_three_way_comparison)
-        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <=> instanceof<type nodecay>())) operator <=>(std::byte const byte, type nodecay object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <=> instanceof<type nodecay>())) { return std::to_integer<unsigned char>(byte) <=> pass<type>(object); }
+      #if defined(__cpp_impl_three_way_comparison) || defined(__cpp_lib_three_way_comparison) // --> 201907L
+        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <=> instanceof<type nodecay>())) (operator <=>)(std::byte const byte, type nodecay object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <=> instanceof<type nodecay>())) { return std::to_integer<unsigned char>(byte) <=> pass<type>(object); }
       #endif
 
       #if CPP_VERSION < 2011uL // ->> A preview of the cost of over-compensating for not having perfect-forwarding syntax; not abstracted with convenience macros such as `apply(...)` due to possibly unreliable preprocessor speeds
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          +=  instanceof<type               &>())                  operator += (std::byte&          byte, type               & object) exceptspec(exceptof(instanceof<unsigned char&>()          +=  instanceof<type               &>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          +=  instanceof<type               &>()) evaluation = (value +=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          +=  instanceof<type               &>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          +=  instanceof<type       volatile&>())                  operator += (std::byte&          byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char&>()          +=  instanceof<type       volatile&>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          +=  instanceof<type       volatile&>()) evaluation = (value +=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          +=  instanceof<type       volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          +=  instanceof<type const volatile&>())                  operator += (std::byte&          byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char&>()          +=  instanceof<type const volatile&>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          +=  instanceof<type const volatile&>()) evaluation = (value +=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          +=  instanceof<type const volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() +=  instanceof<type               &>())                  operator += (std::byte volatile& byte, type               & object) exceptspec(exceptof(instanceof<unsigned char volatile&>() +=  instanceof<type               &>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() +=  instanceof<type               &>()) evaluation = (value +=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() +=  instanceof<type               &>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() +=  instanceof<type       volatile&>())                  operator += (std::byte volatile& byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() +=  instanceof<type       volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() +=  instanceof<type       volatile&>()) evaluation = (value +=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() +=  instanceof<type       volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() +=  instanceof<type const volatile&>())                  operator += (std::byte volatile& byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() +=  instanceof<type const volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() +=  instanceof<type const volatile&>()) evaluation = (value +=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() +=  instanceof<type const volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          -=  instanceof<type               &>())                  operator -= (std::byte&          byte, type               & object) exceptspec(exceptof(instanceof<unsigned char&>()          -=  instanceof<type               &>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          -=  instanceof<type               &>()) evaluation = (value -=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          -=  instanceof<type               &>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          -=  instanceof<type       volatile&>())                  operator -= (std::byte&          byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char&>()          -=  instanceof<type       volatile&>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          -=  instanceof<type       volatile&>()) evaluation = (value -=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          -=  instanceof<type       volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          -=  instanceof<type const volatile&>())                  operator -= (std::byte&          byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char&>()          -=  instanceof<type const volatile&>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          -=  instanceof<type const volatile&>()) evaluation = (value -=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          -=  instanceof<type const volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() -=  instanceof<type               &>())                  operator -= (std::byte volatile& byte, type               & object) exceptspec(exceptof(instanceof<unsigned char volatile&>() -=  instanceof<type               &>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() -=  instanceof<type               &>()) evaluation = (value -=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() -=  instanceof<type               &>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() -=  instanceof<type       volatile&>())                  operator -= (std::byte volatile& byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() -=  instanceof<type       volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() -=  instanceof<type       volatile&>()) evaluation = (value -=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() -=  instanceof<type       volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() -=  instanceof<type const volatile&>())                  operator -= (std::byte volatile& byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() -=  instanceof<type const volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() -=  instanceof<type const volatile&>()) evaluation = (value -=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() -=  instanceof<type const volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          *=  instanceof<type               &>())                  operator *= (std::byte&          byte, type               & object) exceptspec(exceptof(instanceof<unsigned char&>()          *=  instanceof<type               &>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          *=  instanceof<type               &>()) evaluation = (value *=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          *=  instanceof<type               &>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          *=  instanceof<type       volatile&>())                  operator *= (std::byte&          byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char&>()          *=  instanceof<type       volatile&>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          *=  instanceof<type       volatile&>()) evaluation = (value *=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          *=  instanceof<type       volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          *=  instanceof<type const volatile&>())                  operator *= (std::byte&          byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char&>()          *=  instanceof<type const volatile&>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          *=  instanceof<type const volatile&>()) evaluation = (value *=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          *=  instanceof<type const volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() *=  instanceof<type               &>())                  operator *= (std::byte volatile& byte, type               & object) exceptspec(exceptof(instanceof<unsigned char volatile&>() *=  instanceof<type               &>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() *=  instanceof<type               &>()) evaluation = (value *=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() *=  instanceof<type               &>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() *=  instanceof<type       volatile&>())                  operator *= (std::byte volatile& byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() *=  instanceof<type       volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() *=  instanceof<type       volatile&>()) evaluation = (value *=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() *=  instanceof<type       volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() *=  instanceof<type const volatile&>())                  operator *= (std::byte volatile& byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() *=  instanceof<type const volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() *=  instanceof<type const volatile&>()) evaluation = (value *=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() *=  instanceof<type const volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          /=  instanceof<type               &>())                  operator /= (std::byte&          byte, type               & object) exceptspec(exceptof(instanceof<unsigned char&>()          /=  instanceof<type               &>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          /=  instanceof<type               &>()) evaluation = (value /=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          /=  instanceof<type               &>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          /=  instanceof<type       volatile&>())                  operator /= (std::byte&          byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char&>()          /=  instanceof<type       volatile&>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          /=  instanceof<type       volatile&>()) evaluation = (value /=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          /=  instanceof<type       volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          /=  instanceof<type const volatile&>())                  operator /= (std::byte&          byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char&>()          /=  instanceof<type const volatile&>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          /=  instanceof<type const volatile&>()) evaluation = (value /=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          /=  instanceof<type const volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() /=  instanceof<type               &>())                  operator /= (std::byte volatile& byte, type               & object) exceptspec(exceptof(instanceof<unsigned char volatile&>() /=  instanceof<type               &>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() /=  instanceof<type               &>()) evaluation = (value /=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() /=  instanceof<type               &>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() /=  instanceof<type       volatile&>())                  operator /= (std::byte volatile& byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() /=  instanceof<type       volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() /=  instanceof<type       volatile&>()) evaluation = (value /=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() /=  instanceof<type       volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() /=  instanceof<type const volatile&>())                  operator /= (std::byte volatile& byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() /=  instanceof<type const volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() /=  instanceof<type const volatile&>()) evaluation = (value /=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() /=  instanceof<type const volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          %=  instanceof<type               &>())                  operator %= (std::byte&          byte, type               & object) exceptspec(exceptof(instanceof<unsigned char&>()          %=  instanceof<type               &>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          %=  instanceof<type               &>()) evaluation = (value %=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          %=  instanceof<type               &>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          %=  instanceof<type       volatile&>())                  operator %= (std::byte&          byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char&>()          %=  instanceof<type       volatile&>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          %=  instanceof<type       volatile&>()) evaluation = (value %=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          %=  instanceof<type       volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          %=  instanceof<type const volatile&>())                  operator %= (std::byte&          byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char&>()          %=  instanceof<type const volatile&>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          %=  instanceof<type const volatile&>()) evaluation = (value %=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          %=  instanceof<type const volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() %=  instanceof<type               &>())                  operator %= (std::byte volatile& byte, type               & object) exceptspec(exceptof(instanceof<unsigned char volatile&>() %=  instanceof<type               &>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() %=  instanceof<type               &>()) evaluation = (value %=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() %=  instanceof<type               &>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() %=  instanceof<type       volatile&>())                  operator %= (std::byte volatile& byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() %=  instanceof<type       volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() %=  instanceof<type       volatile&>()) evaluation = (value %=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() %=  instanceof<type       volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() %=  instanceof<type const volatile&>())                  operator %= (std::byte volatile& byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() %=  instanceof<type const volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() %=  instanceof<type const volatile&>()) evaluation = (value %=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() %=  instanceof<type const volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() &=  instanceof<type               &>())                  operator &= (std::byte volatile& byte, type               & object) exceptspec(exceptof(instanceof<unsigned char volatile&>() &=  instanceof<type               &>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() &=  instanceof<type               &>()) evaluation = (value &=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() &=  instanceof<type               &>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() &=  instanceof<type       volatile&>())                  operator &= (std::byte volatile& byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() &=  instanceof<type       volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() &=  instanceof<type       volatile&>()) evaluation = (value &=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() &=  instanceof<type       volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() &=  instanceof<type const volatile&>())                  operator &= (std::byte volatile& byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() &=  instanceof<type const volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() &=  instanceof<type const volatile&>()) evaluation = (value &=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() &=  instanceof<type const volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() |=  instanceof<type               &>())                  operator |= (std::byte volatile& byte, type               & object) exceptspec(exceptof(instanceof<unsigned char volatile&>() |=  instanceof<type               &>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() |=  instanceof<type               &>()) evaluation = (value |=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() |=  instanceof<type               &>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() |=  instanceof<type       volatile&>())                  operator |= (std::byte volatile& byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() |=  instanceof<type       volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() |=  instanceof<type       volatile&>()) evaluation = (value |=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() |=  instanceof<type       volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() |=  instanceof<type const volatile&>())                  operator |= (std::byte volatile& byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() |=  instanceof<type const volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() |=  instanceof<type const volatile&>()) evaluation = (value |=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() |=  instanceof<type const volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type               &>())                  operator ^= (std::byte volatile& byte, type               & object) exceptspec(exceptof(instanceof<unsigned char volatile&>() ^=  instanceof<type               &>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type               &>()) evaluation = (value ^=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type               &>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type       volatile&>())                  operator ^= (std::byte volatile& byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() ^=  instanceof<type       volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type       volatile&>()) evaluation = (value ^=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type       volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type const volatile&>())                  operator ^= (std::byte volatile& byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() ^=  instanceof<type const volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type const volatile&>()) evaluation = (value ^=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type const volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() <<= instanceof<type               &>())                  operator <<=(std::byte volatile& byte, type               & object) exceptspec(exceptof(instanceof<unsigned char volatile&>() <<= instanceof<type               &>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() <<= instanceof<type               &>()) evaluation = (value <<= pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() <<= instanceof<type               &>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() <<= instanceof<type       volatile&>())                  operator <<=(std::byte volatile& byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() <<= instanceof<type       volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() <<= instanceof<type       volatile&>()) evaluation = (value <<= pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() <<= instanceof<type       volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() <<= instanceof<type const volatile&>())                  operator <<=(std::byte volatile& byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() <<= instanceof<type const volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() <<= instanceof<type const volatile&>()) evaluation = (value <<= pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() <<= instanceof<type const volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() >>= instanceof<type               &>())                  operator >>=(std::byte volatile& byte, type               & object) exceptspec(exceptof(instanceof<unsigned char volatile&>() >>= instanceof<type               &>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() >>= instanceof<type               &>()) evaluation = (value >>= pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() >>= instanceof<type               &>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() >>= instanceof<type       volatile&>())                  operator >>=(std::byte volatile& byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() >>= instanceof<type       volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() >>= instanceof<type       volatile&>()) evaluation = (value >>= pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() >>= instanceof<type       volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() >>= instanceof<type const volatile&>())                  operator >>=(std::byte volatile& byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() >>= instanceof<type const volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() >>= instanceof<type const volatile&>()) evaluation = (value >>= pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() >>= instanceof<type const volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(std::to_integer<unsigned char>(instanceof<std::byte>()) == instanceof<type               &>()) operator == (std::byte const     byte, type               & object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) == instanceof<type               &>())) { return std::to_integer<unsigned char>(byte) == pass<type>(object); }
-        template <typename type> constfunc(false) mustinline typeof(std::to_integer<unsigned char>(instanceof<std::byte>()) == instanceof<type       volatile&>()) operator == (std::byte const     byte, type       volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) == instanceof<type       volatile&>())) { return std::to_integer<unsigned char>(byte) == pass<type>(object); }
-        template <typename type> constfunc(false) mustinline typeof(std::to_integer<unsigned char>(instanceof<std::byte>()) == instanceof<type const volatile&>()) operator == (std::byte const     byte, type const volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) == instanceof<type const volatile&>())) { return std::to_integer<unsigned char>(byte) == pass<type>(object); }
-        template <typename type> constfunc(false) mustinline typeof(std::to_integer<unsigned char>(instanceof<std::byte>()) != instanceof<type               &>()) operator != (std::byte const     byte, type               & object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) != instanceof<type               &>())) { return std::to_integer<unsigned char>(byte) != pass<type>(object); }
-        template <typename type> constfunc(false) mustinline typeof(std::to_integer<unsigned char>(instanceof<std::byte>()) != instanceof<type       volatile&>()) operator != (std::byte const     byte, type       volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) != instanceof<type       volatile&>())) { return std::to_integer<unsigned char>(byte) != pass<type>(object); }
-        template <typename type> constfunc(false) mustinline typeof(std::to_integer<unsigned char>(instanceof<std::byte>()) != instanceof<type const volatile&>()) operator != (std::byte const     byte, type const volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) != instanceof<type const volatile&>())) { return std::to_integer<unsigned char>(byte) != pass<type>(object); }
-        template <typename type> constfunc(false) mustinline typeof(std::to_integer<unsigned char>(instanceof<std::byte>()) <  instanceof<type               &>()) operator <  (std::byte const     byte, type               & object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <  instanceof<type               &>())) { return std::to_integer<unsigned char>(byte) <  pass<type>(object); }
-        template <typename type> constfunc(false) mustinline typeof(std::to_integer<unsigned char>(instanceof<std::byte>()) <  instanceof<type       volatile&>()) operator <  (std::byte const     byte, type       volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <  instanceof<type       volatile&>())) { return std::to_integer<unsigned char>(byte) <  pass<type>(object); }
-        template <typename type> constfunc(false) mustinline typeof(std::to_integer<unsigned char>(instanceof<std::byte>()) <  instanceof<type const volatile&>()) operator <  (std::byte const     byte, type const volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <  instanceof<type const volatile&>())) { return std::to_integer<unsigned char>(byte) <  pass<type>(object); }
-        template <typename type> constfunc(false) mustinline typeof(std::to_integer<unsigned char>(instanceof<std::byte>()) >  instanceof<type               &>()) operator >  (std::byte const     byte, type               & object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) >  instanceof<type               &>())) { return std::to_integer<unsigned char>(byte) >  pass<type>(object); }
-        template <typename type> constfunc(false) mustinline typeof(std::to_integer<unsigned char>(instanceof<std::byte>()) >  instanceof<type       volatile&>()) operator >  (std::byte const     byte, type       volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) >  instanceof<type       volatile&>())) { return std::to_integer<unsigned char>(byte) >  pass<type>(object); }
-        template <typename type> constfunc(false) mustinline typeof(std::to_integer<unsigned char>(instanceof<std::byte>()) >  instanceof<type const volatile&>()) operator >  (std::byte const     byte, type const volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) >  instanceof<type const volatile&>())) { return std::to_integer<unsigned char>(byte) >  pass<type>(object); }
-        template <typename type> constfunc(false) mustinline typeof(std::to_integer<unsigned char>(instanceof<std::byte>()) <= instanceof<type               &>()) operator <= (std::byte const     byte, type               & object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <= instanceof<type               &>())) { return std::to_integer<unsigned char>(byte) <= pass<type>(object); }
-        template <typename type> constfunc(false) mustinline typeof(std::to_integer<unsigned char>(instanceof<std::byte>()) <= instanceof<type       volatile&>()) operator <= (std::byte const     byte, type       volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <= instanceof<type       volatile&>())) { return std::to_integer<unsigned char>(byte) <= pass<type>(object); }
-        template <typename type> constfunc(false) mustinline typeof(std::to_integer<unsigned char>(instanceof<std::byte>()) <= instanceof<type const volatile&>()) operator <= (std::byte const     byte, type const volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <= instanceof<type const volatile&>())) { return std::to_integer<unsigned char>(byte) <= pass<type>(object); }
-        template <typename type> constfunc(false) mustinline typeof(std::to_integer<unsigned char>(instanceof<std::byte>()) >= instanceof<type               &>()) operator >= (std::byte const     byte, type               & object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) >= instanceof<type               &>())) { return std::to_integer<unsigned char>(byte) >= pass<type>(object); }
-        template <typename type> constfunc(false) mustinline typeof(std::to_integer<unsigned char>(instanceof<std::byte>()) >= instanceof<type       volatile&>()) operator >= (std::byte const     byte, type       volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) >= instanceof<type       volatile&>())) { return std::to_integer<unsigned char>(byte) >= pass<type>(object); }
-        template <typename type> constfunc(false) mustinline typeof(std::to_integer<unsigned char>(instanceof<std::byte>()) >= instanceof<type const volatile&>()) operator >= (std::byte const     byte, type const volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) >= instanceof<type const volatile&>())) { return std::to_integer<unsigned char>(byte) >= pass<type>(object); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          +=  instanceof<type&>               ())                    (operator += )(std::byte&          byte, type&                object) exceptspec(exceptof(instanceof<unsigned char&>()          +=  instanceof<type&>               ()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          +=  instanceof<type&>               ()) evaluation = (value +=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          +=  instanceof<type&>               ())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          +=  instanceof<type       volatile&>())                    (operator += )(std::byte&          byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char&>()          +=  instanceof<type       volatile&>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          +=  instanceof<type       volatile&>()) evaluation = (value +=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          +=  instanceof<type       volatile&>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          +=  instanceof<type const volatile&>())                    (operator += )(std::byte&          byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char&>()          +=  instanceof<type const volatile&>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          +=  instanceof<type const volatile&>()) evaluation = (value +=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          +=  instanceof<type const volatile&>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() +=  instanceof<type&>               ())                    (operator += )(std::byte volatile& byte, type&                object) exceptspec(exceptof(instanceof<unsigned char volatile&>() +=  instanceof<type&>               ()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() +=  instanceof<type&>               ()) evaluation = (value +=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() +=  instanceof<type&>               ())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() +=  instanceof<type       volatile&>())                    (operator += )(std::byte volatile& byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() +=  instanceof<type       volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() +=  instanceof<type       volatile&>()) evaluation = (value +=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() +=  instanceof<type       volatile&>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() +=  instanceof<type const volatile&>())                    (operator += )(std::byte volatile& byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() +=  instanceof<type const volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() +=  instanceof<type const volatile&>()) evaluation = (value +=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() +=  instanceof<type const volatile&>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          -=  instanceof<type&>               ())                    (operator -= )(std::byte&          byte, type&                object) exceptspec(exceptof(instanceof<unsigned char&>()          -=  instanceof<type&>               ()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          -=  instanceof<type&>               ()) evaluation = (value -=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          -=  instanceof<type&>               ())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          -=  instanceof<type       volatile&>())                    (operator -= )(std::byte&          byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char&>()          -=  instanceof<type       volatile&>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          -=  instanceof<type       volatile&>()) evaluation = (value -=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          -=  instanceof<type       volatile&>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          -=  instanceof<type const volatile&>())                    (operator -= )(std::byte&          byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char&>()          -=  instanceof<type const volatile&>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          -=  instanceof<type const volatile&>()) evaluation = (value -=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          -=  instanceof<type const volatile&>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() -=  instanceof<type&>               ())                    (operator -= )(std::byte volatile& byte, type&                object) exceptspec(exceptof(instanceof<unsigned char volatile&>() -=  instanceof<type&>               ()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() -=  instanceof<type&>               ()) evaluation = (value -=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() -=  instanceof<type&>               ())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() -=  instanceof<type       volatile&>())                    (operator -= )(std::byte volatile& byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() -=  instanceof<type       volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() -=  instanceof<type       volatile&>()) evaluation = (value -=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() -=  instanceof<type       volatile&>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() -=  instanceof<type const volatile&>())                    (operator -= )(std::byte volatile& byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() -=  instanceof<type const volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() -=  instanceof<type const volatile&>()) evaluation = (value -=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() -=  instanceof<type const volatile&>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          *=  instanceof<type&>               ())                    (operator *= )(std::byte&          byte, type&                object) exceptspec(exceptof(instanceof<unsigned char&>()          *=  instanceof<type&>               ()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          *=  instanceof<type&>               ()) evaluation = (value *=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          *=  instanceof<type&>               ())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          *=  instanceof<type       volatile&>())                    (operator *= )(std::byte&          byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char&>()          *=  instanceof<type       volatile&>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          *=  instanceof<type       volatile&>()) evaluation = (value *=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          *=  instanceof<type       volatile&>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          *=  instanceof<type const volatile&>())                    (operator *= )(std::byte&          byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char&>()          *=  instanceof<type const volatile&>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          *=  instanceof<type const volatile&>()) evaluation = (value *=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          *=  instanceof<type const volatile&>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() *=  instanceof<type&>               ())                    (operator *= )(std::byte volatile& byte, type&                object) exceptspec(exceptof(instanceof<unsigned char volatile&>() *=  instanceof<type&>               ()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() *=  instanceof<type&>               ()) evaluation = (value *=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() *=  instanceof<type&>               ())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() *=  instanceof<type       volatile&>())                    (operator *= )(std::byte volatile& byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() *=  instanceof<type       volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() *=  instanceof<type       volatile&>()) evaluation = (value *=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() *=  instanceof<type       volatile&>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() *=  instanceof<type const volatile&>())                    (operator *= )(std::byte volatile& byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() *=  instanceof<type const volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() *=  instanceof<type const volatile&>()) evaluation = (value *=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() *=  instanceof<type const volatile&>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          /=  instanceof<type&>               ())                    (operator /= )(std::byte&          byte, type&                object) exceptspec(exceptof(instanceof<unsigned char&>()          /=  instanceof<type&>               ()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          /=  instanceof<type&>               ()) evaluation = (value /=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          /=  instanceof<type&>               ())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          /=  instanceof<type       volatile&>())                    (operator /= )(std::byte&          byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char&>()          /=  instanceof<type       volatile&>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          /=  instanceof<type       volatile&>()) evaluation = (value /=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          /=  instanceof<type       volatile&>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          /=  instanceof<type const volatile&>())                    (operator /= )(std::byte&          byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char&>()          /=  instanceof<type const volatile&>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          /=  instanceof<type const volatile&>()) evaluation = (value /=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          /=  instanceof<type const volatile&>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() /=  instanceof<type&>               ())                    (operator /= )(std::byte volatile& byte, type&                object) exceptspec(exceptof(instanceof<unsigned char volatile&>() /=  instanceof<type&>               ()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() /=  instanceof<type&>               ()) evaluation = (value /=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() /=  instanceof<type&>               ())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() /=  instanceof<type       volatile&>())                    (operator /= )(std::byte volatile& byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() /=  instanceof<type       volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() /=  instanceof<type       volatile&>()) evaluation = (value /=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() /=  instanceof<type       volatile&>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() /=  instanceof<type const volatile&>())                    (operator /= )(std::byte volatile& byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() /=  instanceof<type const volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() /=  instanceof<type const volatile&>()) evaluation = (value /=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() /=  instanceof<type const volatile&>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          %=  instanceof<type&>               ())                    (operator %= )(std::byte&          byte, type&                object) exceptspec(exceptof(instanceof<unsigned char&>()          %=  instanceof<type&>               ()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          %=  instanceof<type&>               ()) evaluation = (value %=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          %=  instanceof<type&>               ())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          %=  instanceof<type       volatile&>())                    (operator %= )(std::byte&          byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char&>()          %=  instanceof<type       volatile&>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          %=  instanceof<type       volatile&>()) evaluation = (value %=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          %=  instanceof<type       volatile&>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          %=  instanceof<type const volatile&>())                    (operator %= )(std::byte&          byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char&>()          %=  instanceof<type const volatile&>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          %=  instanceof<type const volatile&>()) evaluation = (value %=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          %=  instanceof<type const volatile&>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() %=  instanceof<type&>               ())                    (operator %= )(std::byte volatile& byte, type&                object) exceptspec(exceptof(instanceof<unsigned char volatile&>() %=  instanceof<type&>               ()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() %=  instanceof<type&>               ()) evaluation = (value %=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() %=  instanceof<type&>               ())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() %=  instanceof<type       volatile&>())                    (operator %= )(std::byte volatile& byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() %=  instanceof<type       volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() %=  instanceof<type       volatile&>()) evaluation = (value %=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() %=  instanceof<type       volatile&>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() %=  instanceof<type const volatile&>())                    (operator %= )(std::byte volatile& byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() %=  instanceof<type const volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() %=  instanceof<type const volatile&>()) evaluation = (value %=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() %=  instanceof<type const volatile&>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() &=  instanceof<type&>               ())                    (operator &= )(std::byte volatile& byte, type&                object) exceptspec(exceptof(instanceof<unsigned char volatile&>() &=  instanceof<type&>               ()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() &=  instanceof<type&>               ()) evaluation = (value &=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() &=  instanceof<type&>               ())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() &=  instanceof<type       volatile&>())                    (operator &= )(std::byte volatile& byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() &=  instanceof<type       volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() &=  instanceof<type       volatile&>()) evaluation = (value &=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() &=  instanceof<type       volatile&>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() &=  instanceof<type const volatile&>())                    (operator &= )(std::byte volatile& byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() &=  instanceof<type const volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() &=  instanceof<type const volatile&>()) evaluation = (value &=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() &=  instanceof<type const volatile&>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() |=  instanceof<type&>               ())                    (operator |= )(std::byte volatile& byte, type&                object) exceptspec(exceptof(instanceof<unsigned char volatile&>() |=  instanceof<type&>               ()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() |=  instanceof<type&>               ()) evaluation = (value |=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() |=  instanceof<type&>               ())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() |=  instanceof<type       volatile&>())                    (operator |= )(std::byte volatile& byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() |=  instanceof<type       volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() |=  instanceof<type       volatile&>()) evaluation = (value |=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() |=  instanceof<type       volatile&>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() |=  instanceof<type const volatile&>())                    (operator |= )(std::byte volatile& byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() |=  instanceof<type const volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() |=  instanceof<type const volatile&>()) evaluation = (value |=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() |=  instanceof<type const volatile&>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type&>               ())                    (operator ^= )(std::byte volatile& byte, type&                object) exceptspec(exceptof(instanceof<unsigned char volatile&>() ^=  instanceof<type&>               ()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type&>               ()) evaluation = (value ^=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type&>               ())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type       volatile&>())                    (operator ^= )(std::byte volatile& byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() ^=  instanceof<type       volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type       volatile&>()) evaluation = (value ^=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type       volatile&>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type const volatile&>())                    (operator ^= )(std::byte volatile& byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() ^=  instanceof<type const volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type const volatile&>()) evaluation = (value ^=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type const volatile&>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() <<= instanceof<type&>               ())                    (operator <<=)(std::byte volatile& byte, type&                object) exceptspec(exceptof(instanceof<unsigned char volatile&>() <<= instanceof<type&>               ()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() <<= instanceof<type&>               ()) evaluation = (value <<= pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() <<= instanceof<type&>               ())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() <<= instanceof<type       volatile&>())                    (operator <<=)(std::byte volatile& byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() <<= instanceof<type       volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() <<= instanceof<type       volatile&>()) evaluation = (value <<= pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() <<= instanceof<type       volatile&>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() <<= instanceof<type const volatile&>())                    (operator <<=)(std::byte volatile& byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() <<= instanceof<type const volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() <<= instanceof<type const volatile&>()) evaluation = (value <<= pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() <<= instanceof<type const volatile&>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() >>= instanceof<type&>               ())                    (operator >>=)(std::byte volatile& byte, type&                object) exceptspec(exceptof(instanceof<unsigned char volatile&>() >>= instanceof<type&>               ()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() >>= instanceof<type&>               ()) evaluation = (value >>= pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() >>= instanceof<type&>               ())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() >>= instanceof<type       volatile&>())                    (operator >>=)(std::byte volatile& byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() >>= instanceof<type       volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() >>= instanceof<type       volatile&>()) evaluation = (value >>= pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() >>= instanceof<type       volatile&>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() >>= instanceof<type const volatile&>())                    (operator >>=)(std::byte volatile& byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() >>= instanceof<type const volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() >>= instanceof<type const volatile&>()) evaluation = (value >>= pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() >>= instanceof<type const volatile&>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) == instanceof<type&>               ())) (operator == )(std::byte const     byte, type&                object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) == instanceof<type&>               ())) { return std::to_integer<unsigned char>(byte) == pass<type>(object); }
+        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) == instanceof<type       volatile&>())) (operator == )(std::byte const     byte, type       volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) == instanceof<type       volatile&>())) { return std::to_integer<unsigned char>(byte) == pass<type>(object); }
+        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) == instanceof<type const volatile&>())) (operator == )(std::byte const     byte, type const volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) == instanceof<type const volatile&>())) { return std::to_integer<unsigned char>(byte) == pass<type>(object); }
+        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) != instanceof<type&>               ())) (operator != )(std::byte const     byte, type&                object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) != instanceof<type&>               ())) { return std::to_integer<unsigned char>(byte) != pass<type>(object); }
+        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) != instanceof<type       volatile&>())) (operator != )(std::byte const     byte, type       volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) != instanceof<type       volatile&>())) { return std::to_integer<unsigned char>(byte) != pass<type>(object); }
+        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) != instanceof<type const volatile&>())) (operator != )(std::byte const     byte, type const volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) != instanceof<type const volatile&>())) { return std::to_integer<unsigned char>(byte) != pass<type>(object); }
+        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <  instanceof<type&>               ())) (operator <  )(std::byte const     byte, type&                object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <  instanceof<type&>               ())) { return std::to_integer<unsigned char>(byte) <  pass<type>(object); }
+        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <  instanceof<type       volatile&>())) (operator <  )(std::byte const     byte, type       volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <  instanceof<type       volatile&>())) { return std::to_integer<unsigned char>(byte) <  pass<type>(object); }
+        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <  instanceof<type const volatile&>())) (operator <  )(std::byte const     byte, type const volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <  instanceof<type const volatile&>())) { return std::to_integer<unsigned char>(byte) <  pass<type>(object); }
+        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) >  instanceof<type&>               ())) (operator >  )(std::byte const     byte, type&                object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) >  instanceof<type&>               ())) { return std::to_integer<unsigned char>(byte) >  pass<type>(object); }
+        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) >  instanceof<type       volatile&>())) (operator >  )(std::byte const     byte, type       volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) >  instanceof<type       volatile&>())) { return std::to_integer<unsigned char>(byte) >  pass<type>(object); }
+        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) >  instanceof<type const volatile&>())) (operator >  )(std::byte const     byte, type const volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) >  instanceof<type const volatile&>())) { return std::to_integer<unsigned char>(byte) >  pass<type>(object); }
+        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <= instanceof<type&>               ())) (operator <= )(std::byte const     byte, type&                object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <= instanceof<type&>               ())) { return std::to_integer<unsigned char>(byte) <= pass<type>(object); }
+        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <= instanceof<type       volatile&>())) (operator <= )(std::byte const     byte, type       volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <= instanceof<type       volatile&>())) { return std::to_integer<unsigned char>(byte) <= pass<type>(object); }
+        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <= instanceof<type const volatile&>())) (operator <= )(std::byte const     byte, type const volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <= instanceof<type const volatile&>())) { return std::to_integer<unsigned char>(byte) <= pass<type>(object); }
+        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) >= instanceof<type&>               ())) (operator >= )(std::byte const     byte, type&                object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) >= instanceof<type&>               ())) { return std::to_integer<unsigned char>(byte) >= pass<type>(object); }
+        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) >= instanceof<type       volatile&>())) (operator >= )(std::byte const     byte, type       volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) >= instanceof<type       volatile&>())) { return std::to_integer<unsigned char>(byte) >= pass<type>(object); }
+        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) >= instanceof<type const volatile&>())) (operator >= )(std::byte const     byte, type const volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) >= instanceof<type const volatile&>())) { return std::to_integer<unsigned char>(byte) >= pass<type>(object); }
 
-        #if defined(__cpp_impl_three_way_comparison) || defined(__cpp_lib_three_way_comparison)
-          template <typename type> constfunc(false) mustinline typeof(std::to_integer<unsigned char>(instanceof<std::byte>()) <=> instanceof<type               &>()) operator <=> (std::byte const byte, type               & object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <=> instanceof<type               &>())) { return std::to_integer<unsigned char>(byte) <=> pass<type>(object); }
-          template <typename type> constfunc(false) mustinline typeof(std::to_integer<unsigned char>(instanceof<std::byte>()) <=> instanceof<type       volatile&>()) operator <=> (std::byte const byte, type       volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <=> instanceof<type       volatile&>())) { return std::to_integer<unsigned char>(byte) <=> pass<type>(object); }
-          template <typename type> constfunc(false) mustinline typeof(std::to_integer<unsigned char>(instanceof<std::byte>()) <=> instanceof<type const volatile&>()) operator <=> (std::byte const byte, type const volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <=> instanceof<type const volatile&>())) { return std::to_integer<unsigned char>(byte) <=> pass<type>(object); }
+        #if defined(__cpp_impl_three_way_comparison) || defined(__cpp_lib_three_way_comparison) // --> 201907L
+          template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <=> instanceof<type&>               ())) (operator <=>)(std::byte const byte, type&                object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <=> instanceof<type&>               ())) { return std::to_integer<unsigned char>(byte) <=> pass<type>(object); }
+          template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <=> instanceof<type       volatile&>())) (operator <=>)(std::byte const byte, type       volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <=> instanceof<type       volatile&>())) { return std::to_integer<unsigned char>(byte) <=> pass<type>(object); }
+          template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <=> instanceof<type const volatile&>())) (operator <=>)(std::byte const byte, type const volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <=> instanceof<type const volatile&>())) { return std::to_integer<unsigned char>(byte) <=> pass<type>(object); }
         #endif
       #endif
     #endif
+
+    /* Class > Bit ->> Distinct "unsigned" type similar to `byte` for bitwise storage */
+    template <std::size_t>
+    struct bit;
 
     /* Namespace */
     namespace Traits {
@@ -167,42 +172,56 @@
       typedef bool nodecayparam(boolean_false)[false + 1u];
       typedef bool nodecayparam(boolean_true) [true  + 1u];
 
-      /* Trait > ... */
+      /* Trait > ... ->> Not all traits are neatly declarable without their definition eg: `struct constant<...>` */
       struct defer;
+      struct opinfo;
 
-      // ...
-      template <typename>    struct alias;
-      template <std::size_t> struct float_fast_t;
-      template <std::size_t> struct float_fast_width_t;
-      template <std::size_t> struct float_least_t;
-      template <std::size_t> struct float_least_width_t;
-      template <std::size_t> struct float_t;
-      template <std::size_t> struct float_width_t;
-      template <std::size_t> struct int_fast_t;
-      template <std::size_t> struct int_fast_width_t;
-      template <std::size_t> struct int_least_t;
-      template <std::size_t> struct int_least_width_t;
-      template <std::size_t> struct int_t;
-      template <std::size_t> struct int_width_t;
-      template <typename>    struct maxof;
-      template <typename>    struct minof;
-      template <typename>    struct nilof;
-      template <typename>    struct signedof;
-      template <std::size_t> struct uint_fast_t;
-      template <std::size_t> struct uint_fast_width_t;
-      template <std::size_t> struct uint_least_t;
-      template <std::size_t> struct uint_least_width_t;
-      template <std::size_t> struct uint_t;
-      template <std::size_t> struct uint_width_t;
-      template <typename>    struct unsignedof;
+      template <typename>                 struct alias;
+      template <typename, bool = false>   struct classinfo;
+      template <bool, typename, typename> struct conditional;
+      template <typename>                 struct enuminfo;
+      template <std::size_t>              struct float_fast_t;
+      template <std::size_t>              struct float_fast_width_t;
+      template <std::size_t>              struct float_least_t;
+      template <std::size_t>              struct float_least_width_t;
+      template <std::size_t>              struct float_t;
+      template <std::size_t>              struct float_width_t;
+      template <std::size_t>              struct int_fast_t;
+      template <std::size_t>              struct int_fast_width_t;
+      template <std::size_t>              struct int_least_t;
+      template <std::size_t>              struct int_least_width_t;
+      template <std::size_t>              struct int_t;
+      template <std::size_t>              struct int_width_t;
+      template <typename>                 struct is_class;
+      template <typename>                 struct is_enum;
+      template <typename>                 struct is_final;
+      template <typename>                 struct is_integer;
+      template <typename>                 struct is_null;
+      template <typename, typename>       struct is_same;
+      template <typename>                 struct is_signed;
+      template <typename>                 struct is_union;
+      template <typename>                 struct is_unsigned;
+      template <typename>                 struct maxof;
+      template <typename>                 struct minof;
+      template <typename>                 struct nilof;
+      template <typename>                 struct signedof;
+      template <std::size_t>              struct uint_fast_t;
+      template <std::size_t>              struct uint_fast_width_t;
+      template <std::size_t>              struct uint_least_t;
+      template <std::size_t>              struct uint_least_width_t;
+      template <std::size_t>              struct uint_t;
+      template <std::size_t>              struct uint_width_t;
+      template <typename>                 struct unsignedof;
 
-      #ifdef __cpp_variadic_templates
+      #ifdef __cpp_variadic_templates // --> 200704L
         template <bool, bool...> struct boolean_and;
         template <bool, bool...> struct boolean_or;
       #else
         template <bool, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true> struct boolean_and;
         template <bool, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true> struct boolean_or;
       #endif
+
+      // --> constant
     }
 
     /* Trait */
@@ -226,8 +245,14 @@
     /* Namespace */
     namespace Traits {
       /* Trait */
+      // ... ->> Aliases specified type (plain and simple)
+      template <typename base>
+      struct alias final {
+        typedef base type;
+      };
+
       // ... ->> Class type diagnostics
-      template <typename base, bool fallback = false>
+      template <typename base, bool fallback>
       struct classinfo final {
         private:
           // ... ->> Evaluates if type is a union type
@@ -297,7 +322,7 @@
           static bool const variant   = unionof<base>::value;
       };
 
-      // ... ->> Evaluates type based on (boolean) condition
+      // ... ->> Aliases dependent type based on (boolean) condition
       template <bool, typename = null, typename = null>
       struct conditional;
 
@@ -334,223 +359,6 @@
 
       template <typename base>
       struct conditional<true, null volatile, base> final {};
-
-      // ... ->> Enumeration type diagnostics
-      template <typename base>
-      struct enuminfo final {
-        private:
-          // ... ->> Evaluates if specified type has a conversion `operator` overload as member function
-          #if CPP_COMPILER == CPP_CIRCLE_COMPILER
-            template <typename, typename>
-            constfunc(true) static boolean_true (has_overloaded_cast)(...) noexcept;
-          #else
-            template <typename typeA, typename typeB>
-            constfunc(true) static boolean_true (has_overloaded_cast)(sfinae_t const, bool (*const)[static_cast<bool>(sizeof(&typeB::operator typeA)) + 1u] = nullptr) noexcept;
-
-            template <typename, typename>
-            constfunc(true) static boolean_false (has_overloaded_cast)(...) noexcept;
-          #endif
-
-          // ... ->> Evaluates if specified type has a conversion (of any type qualification) `operator` overload as member function
-          template <typename typeA, typename typeB>
-          constfunc(true) static typename conditional<sizeof(boolean_false) != (
-            sizeof(has_overloaded_cast<typeA,                 typeB>(SFINAE)) |
-            sizeof(has_overloaded_cast<typeA const,           typeB>(SFINAE)) |
-            sizeof(has_overloaded_cast<typeA const volatile,  typeB>(SFINAE)) |
-            sizeof(has_overloaded_cast<typeA       volatile,  typeB>(SFINAE)) |
-            sizeof(has_overloaded_cast<typeA&,                typeB>(SFINAE)) |
-            sizeof(has_overloaded_cast<typeA const&,          typeB>(SFINAE)) |
-            sizeof(has_overloaded_cast<typeA const volatile&, typeB>(SFINAE)) |
-            sizeof(has_overloaded_cast<typeA       volatile&, typeB>(SFINAE)) |
-            #ifdef __cpp_rvalue_references
-              sizeof(has_overloaded_cast<typeA&&,                typeB>(SFINAE)) |
-              sizeof(has_overloaded_cast<typeA const&&,          typeB>(SFINAE)) |
-              sizeof(has_overloaded_cast<typeA const volatile&&, typeB>(SFINAE)) |
-              sizeof(has_overloaded_cast<typeA       volatile&&, typeB>(SFINAE)) |
-            #endif
-            sizeof(boolean_false)
-          ), boolean_true, boolean_false>::type has_overloaded_casts() noexcept;
-
-          // ... ->> Evaluates if `type` has an `operator +` overload as a member function
-          // template <typename type>
-          // constfunc(true) static boolean_true has_overloaded_member_plus(sfinae_t const, bool (*const)[(static_cast<void>(instanceof<type>().operator +()), 1u)] = nullptr) noexcept;
-
-          template <typename>
-          constfunc(true) static boolean_false has_overloaded_member_plus(...) noexcept;
-
-          // ... ->> Evaluates if `type` has an `operator +` overload
-          #if CPP_COMPILER == CPP_MSVC_COMPILER
-            template <typename>
-            constfunc(true) static boolean_true has_overloaded_nonmember_plus(...) noexcept;
-          #else
-            // template <typename type>
-            // constfunc(true) static boolean_true has_overloaded_nonmember_plus(sfinae_t const, bool (*const)[(static_cast<void>(operator +(instanceof<type>())), 1u)] = nullptr) noexcept;
-
-            template <typename>
-            constfunc(true) static boolean_false has_overloaded_nonmember_plus(...) noexcept;
-          #endif
-
-          // ... ->> Disambiguate underlying type of enumeration via overload resolution
-          template <typename, sfinae_t = SFINAE>
-          struct sus final {};
-
-          template <sfinae_t sfinae>
-          struct sus<bool, sfinae> final {
-            static std::size_t const value = 0x3u;
-          };
-
-          constfunc(true) static byte (&(typeinfo)(bool           const) noexcept)[0x3u | (sizeof(bool)           << 2u)];
-          constfunc(true) static byte (&(typeinfo)(char           const) noexcept)[0x2u | (sizeof(char)           << 2u)];
-          constfunc(true) static byte (&(typeinfo)(int            const) noexcept)[0x0u | (sizeof(int)            << 2u)];
-          constfunc(true) static byte (&(typeinfo)(long           const) noexcept)[0x0u | (sizeof(long)           << 2u)];
-          constfunc(true) static byte (&(typeinfo)(short          const) noexcept)[0x0u | (sizeof(short)          << 2u)];
-          constfunc(true) static byte (&(typeinfo)(signed char    const) noexcept)[0x0u | (sizeof(signed char)    << 2u)];
-          constfunc(true) static byte (&(typeinfo)(unsigned       const) noexcept)[0x1u | (sizeof(unsigned)       << 2u)];
-          constfunc(true) static byte (&(typeinfo)(unsigned char  const) noexcept)[0x1u | (sizeof(unsigned char)  << 2u)];
-          constfunc(true) static byte (&(typeinfo)(unsigned long  const) noexcept)[0x1u | (sizeof(unsigned long)  << 2u)];
-          constfunc(true) static byte (&(typeinfo)(unsigned short const) noexcept)[0x1u | (sizeof(unsigned short) << 2u)];
-          constfunc(true) static byte (&(typeinfo)(wchar_t        const) noexcept)[0x1u | (sizeof(wchar_t)        << 2u)];
-          #if CPP_VERSION >= 2011uL
-            constfunc(true) static long long          (typeinfo)(long long          const) noexcept;
-            constfunc(true) static unsigned long long (typeinfo)(unsigned long long const) noexcept;
-          #endif
-          #ifdef __cpp_char8_t
-            constfunc(true) static char8_t (typeinfo)(char8_t const) noexcept;
-          #endif
-          #ifdef __cpp_lib_byte
-            constfunc(true) static std::byte (typeinfo)(std::byte const) noexcept;
-          #endif
-          #ifdef __cpp_unicode_characters
-            constfunc(true) static char16_t (typeinfo)(char16_t const) noexcept;
-            constfunc(true) static char32_t (typeinfo)(char32_t const) noexcept;
-          #endif
-          #ifdef int128_t
-            constfunc(true) static int128_t (typeinfo)(int128_t const) noexcept;
-          #endif
-          #ifdef uint128_t
-            constfunc(true) static uint128_t (typeinfo)(uint128_t const) noexcept;
-          #endif
-
-          constfunc(true) static unsigned char (&(typeinfo)(...) noexcept)[(
-            #if CPP_VERSION < 2011uL
-              sizeof(unsigned long) |
-            #else
-              sizeof(unsigned long long) |
-            #endif
-            #ifdef __cpp_unicode_characters
-              sizeof(char32_t) |
-            #endif
-            #ifdef int128_t
-              sizeof(int128_t) |
-            #endif
-            #ifdef uint128_t
-              sizeof(uint128_t) |
-            #endif
-            sizeof(long double) |
-            sizeof(void*)
-          ) + 1u];
-
-          /* ...
-              --- NOTE (Lapys) -> Base enumeration types must not have `operator +` or conversion `operator` overloads but must yet still adhere to the constant evaluated expression `static_cast<std::size_t>(+static_cast<type>(0))`
-              --- WARN (Lapys) -> Fails to determine `operator` overloaded enumeration types
-          */
-          template <typename type>
-          constfunc(true) static typename conditional<sizeof(boolean_false) == (
-            sizeof(has_overloaded_member_plus   <type>(SFINAE)) |
-            sizeof(has_overloaded_nonmember_plus<type>(SFINAE)) |
-
-            // ... ->> All underlying types (likely not fully exhaustive)
-            sizeof(has_overloaded_casts<bool,           type>()) |
-            sizeof(has_overloaded_casts<byte,           type>()) |
-            sizeof(has_overloaded_casts<char,           type>()) |
-            sizeof(has_overloaded_casts<int,            type>()) |
-            sizeof(has_overloaded_casts<long,           type>()) |
-            sizeof(has_overloaded_casts<short,          type>()) |
-            sizeof(has_overloaded_casts<signed char,    type>()) |
-            sizeof(has_overloaded_casts<unsigned,       type>()) |
-            sizeof(has_overloaded_casts<unsigned char,  type>()) |
-            sizeof(has_overloaded_casts<unsigned long,  type>()) |
-            sizeof(has_overloaded_casts<unsigned short, type>()) |
-            sizeof(has_overloaded_casts<wchar_t,        type>()) |
-            #if CPP_VERSION >= 2011uL
-              sizeof(has_overloaded_casts<long long,          type>()) |
-              sizeof(has_overloaded_casts<unsigned long long, type>()) |
-            #endif
-            #ifdef __cpp_char8_t
-              sizeof(has_overloaded_casts<char8_t, type>()) |
-            #endif
-            #ifdef __cpp_unicode_characters
-              sizeof(has_overloaded_casts<char16_t, type>()) |
-              sizeof(has_overloaded_casts<char32_t, type>()) |
-            #endif
-            #ifdef int128_t
-              sizeof(has_overloaded_casts<int128_t, type>()) |
-            #endif
-            #ifdef uint128_t
-              sizeof(has_overloaded_casts<uint128_t, type>()) |
-            #endif
-            sizeof(boolean_false)
-          ), boolean_true, boolean_false>::type valueof(sfinae_t const, bool (*const)[static_cast<std::size_t>(+static_cast<type>(0)) + 1u] = nullptr) noexcept;
-
-          template <typename>
-          constfunc(true) static boolean_false valueof(...) noexcept;
-
-        public:
-          static bool const value =
-            #if CPP_VERSION >= 2011uL
-              std::is_enum<base>::value or
-            #elif CPP_COMPILER == CPP_MSVC_COMPILER
-              __is_enum(base) or
-            #elif CPP_COMPILER == CPP_CIRCLE_COMPILER || CPP_COMPILER == CPP_CLANG_COMPILER || CPP_COMPILER == CPP_GNUC_COMPILER || CPP_COMPILER == CPP_INTEL_COMPILER || CPP_COMPILER == CPP_LLVM_COMPILER || CPP_COMPILER == CPP_NVCC_COMPILER
-            # ifdef __has_builtin // --> `__is_enum(...)` may still exist otherwise
-            #   if __has_builtin(__is_enum)
-                  __is_enum(base) or
-            #   endif
-            # endif
-            #endif
-          sizeof(boolean_true) == sizeof(valueof<base>(SFINAE)) or
-          not classinfo<base, true>::value;
-
-          typedef typename conditional<value, typename int_t<sizeof((typeof)(instanceof<base>()))>::type, void>::type type;
-      };
-
-      // ... ->> Operation diagnostics
-      struct opinfo final {
-        struct membered final {};
-
-        // ...
-        struct nonmembered final {};
-
-        // ...
-        struct nonoverloaded final {};
-
-        // ... ->> Dis-junction of `member` and `nonmember` traits
-        struct overloaded final {};
-      };
-
-      // ... ->> Evaluates if type is a class or union type
-      template <typename base>
-      struct is_class final {
-        static bool const value = classinfo<base>::value;
-      };
-
-      // ... ->> Evaluates if type is a class or union type
-      template <typename base>
-      struct is_final final {
-        static bool const value = not is_class<base>::value or not classinfo<base>::derivable;
-      };
-
-      // ... ->> Evaluates if type is a union type
-      template <typename base>
-      struct is_union final {
-        static bool const value = classinfo<base>::value and classinfo<base>::variant;
-      };
-
-      // ... ->> Evaluates if type is an enumeration type
-      template <typename base>
-      struct is_enum final {
-        static bool const value = enuminfo<base>::value;
-      };
 
       // ... ->> Evaluates if type is (based on) an integer type
       template <typename base>
@@ -625,21 +433,21 @@
         };
       #endif
 
-      #ifdef __cpp_char8_t
+      #ifdef __cpp_char8_t // --> 201811L
         template <>
         struct is_integer<char8_t /* --> unsigned char */> final {
           static bool const value = true;
         };
       #endif
 
-      #ifdef __cpp_lib_byte
+      #ifdef __cpp_lib_byte // --> 201603L
         template <>
         struct is_integer<std::byte /* --> unsigned char */> final {
           static bool const value = true;
         };
       #endif
 
-      #ifdef __cpp_unicode_characters
+      #ifdef __cpp_unicode_characters // --> 200704L
         template <>
         struct is_integer<char16_t /* --> std::uint_least16_t */> final {
           static bool const value = true;
@@ -665,6 +473,11 @@
         };
       #endif
 
+      template <std::size_t width>
+      struct is_integer<bit<width> > final {
+        static bool const value = true;
+      };
+
       template <typename base>
       struct is_integer<base const> final {
         static bool const value = is_integer<base>::value;
@@ -678,6 +491,309 @@
       template <typename base>
       struct is_integer<base volatile> final {
         static bool const value = is_integer<base>::value;
+      };
+
+      // ... ->> Constant of specified type preferably instantiated at compile-time
+      #ifdef __cpp_constexpr // --> 200704L
+        template <typename base, base constantValue>
+        struct constant final {
+          constexpr static base value = constantValue;
+        };
+      #else
+        template <typename base, base constantValue, bool = is_integer<base>::value>
+        struct constant final {
+          static base const value = constantValue;
+        };
+
+        template <typename base, base constantValue>
+        struct constant<base, constantValue, false> final {
+          static base const value;
+        };
+          template <typename base, base constantValue>
+          base const constant<base, constantValue, false>::value = constantValue;
+      #endif
+
+      // ... ->> Enumeration type diagnostics
+      template <typename base>
+      struct enuminfo final {
+        private:
+          // ... ->> Evaluates if specified type has a conversion `operator` overload as member function
+          #if CPP_COMPILER == CPP_CIRCLE_COMPILER
+            template <typename, typename>
+            constfunc(true) static boolean_true (has_overloaded_cast)(...) noexcept;
+          #else
+            template <typename typeA, typename typeB>
+            constfunc(true) static boolean_true (has_overloaded_cast)(sfinae_t const, bool (*const)[static_cast<bool>(sizeof(&typeB::operator typeA)) + 1u] = nullptr) noexcept;
+
+            template <typename, typename>
+            constfunc(true) static boolean_false (has_overloaded_cast)(...) noexcept;
+          #endif
+
+          // ... ->> Evaluates if specified type has a conversion (of any type qualification) `operator` overload as member function
+          template <typename typeA, typename typeB>
+          constfunc(true) static typename conditional<sizeof(boolean_false) != (
+            sizeof(has_overloaded_cast<typeA,                 typeB>(SFINAE)) |
+            sizeof(has_overloaded_cast<typeA const,           typeB>(SFINAE)) |
+            sizeof(has_overloaded_cast<typeA const volatile,  typeB>(SFINAE)) |
+            sizeof(has_overloaded_cast<typeA       volatile,  typeB>(SFINAE)) |
+            sizeof(has_overloaded_cast<typeA&,                typeB>(SFINAE)) |
+            sizeof(has_overloaded_cast<typeA const&,          typeB>(SFINAE)) |
+            sizeof(has_overloaded_cast<typeA const volatile&, typeB>(SFINAE)) |
+            sizeof(has_overloaded_cast<typeA       volatile&, typeB>(SFINAE)) |
+            #ifdef __cpp_rvalue_references // --> 200610L
+              sizeof(has_overloaded_cast<typeA&&,                typeB>(SFINAE)) |
+              sizeof(has_overloaded_cast<typeA const&&,          typeB>(SFINAE)) |
+              sizeof(has_overloaded_cast<typeA const volatile&&, typeB>(SFINAE)) |
+              sizeof(has_overloaded_cast<typeA       volatile&&, typeB>(SFINAE)) |
+            #endif
+            sizeof(boolean_false)
+          ), boolean_true, boolean_false>::type has_overloaded_casts() noexcept;
+
+          // ... ->> Evaluates if `type` has an `operator +` overload as a member function
+          // template <typename type>
+          // constfunc(true) static boolean_true has_overloaded_member_plus(sfinae_t const, bool (*const)[(static_cast<void>(instanceof<type>().operator +()), 1u)] = nullptr) noexcept;
+
+          template <typename>
+          constfunc(true) static boolean_false has_overloaded_member_plus(...) noexcept;
+
+          // ... ->> Evaluates if `type` has an `operator +` overload
+          #if CPP_COMPILER == CPP_MSVC_COMPILER
+            template <typename>
+            constfunc(true) static boolean_true has_overloaded_nonmember_plus(...) noexcept;
+          #else
+            // template <typename type>
+            // constfunc(true) static boolean_true has_overloaded_nonmember_plus(sfinae_t const, bool (*const)[(static_cast<void>(operator +(instanceof<type>())), 1u)] = nullptr) noexcept;
+
+            template <typename>
+            constfunc(true) static boolean_false has_overloaded_nonmember_plus(...) noexcept;
+          #endif
+
+          // ... ->> Disambiguate underlying type of enumeration via overload resolution
+          struct typeinfo final {
+            private:
+              typedef unsigned char metadata_t;
+              typedef bool          signedness_t;
+              typedef std::size_t   size_t;
+
+              /* ... */
+              template <typename, sfinae_t = SFINAE> struct metadataof                  final { static metadata_t const value = 0u; };
+              template <sfinae_t sfinae>             struct metadataof<bool,    sfinae> final { static metadata_t const value = 1u; };
+              template <sfinae_t sfinae>             struct metadataof<char,    sfinae> final { static metadata_t const value = 2u; };
+              template <sfinae_t sfinae>             struct metadataof<wchar_t, sfinae> final { static metadata_t const value = 1u; };
+              #ifdef __cpp_char8_t // --> 201811L
+                template <sfinae_t sfinae> struct metadataof<char8_t, sfinae> final { static metadata_t const value = 3u; };
+              #endif
+              #ifdef __cpp_lib_byte // --> 201603L
+                template <sfinae_t sfinae> struct metadataof<std::byte, sfinae> final { static metadata_t const value = 4u; };
+              #endif
+              #ifdef __cpp_unicode_characters // --> 200704L
+                template <sfinae_t sfinae> struct metadataof<char16_t, sfinae> final { static metadata_t const value = 1u; };
+                template <sfinae_t sfinae> struct metadataof<char32_t, sfinae> final { static metadata_t const value = 1u; };
+              #endif
+
+              /* ... */
+              static unsigned char const METADATA_WIDTH   = 3u;
+              static unsigned char const SIGNEDNESS_WIDTH = 1u;
+              static unsigned char const SIZE_WIDTH       = (CHAR_BIT * sizeof(std::size_t)) - (METADATA_WIDTH + SIGNEDNESS_WIDTH);
+
+            public:
+              template <std::size_t subbase>
+              struct decode final {
+                private:
+                  static metadata_t   const metadata   = (subbase >> 0u)                                  & ((((1u << (METADATA_WIDTH   - 1u)) - 1u) << 1u) + 1u);
+                  static signedness_t const signedness = (subbase >> METADATA_WIDTH)                      & ((((1u << (SIGNEDNESS_WIDTH - 1u)) - 1u) << 1u) + 1u);
+                  static size_t       const size       = (subbase >> (METADATA_WIDTH + SIGNEDNESS_WIDTH)) & ((((1u << (SIZE_WIDTH       - 1u)) - 1u) << 1u) + 1u);
+
+                  typedef typename conditional<signedness, typename int_t<subbase>::type, typename uint_t<subbase>::type>::type base;
+
+                public:
+                  typedef
+                    typename conditional<metadata == metadataof<bool>   ::value && size == sizeof(bool),    bool,
+                    typename conditional<metadata == metadataof<char>   ::value && size == sizeof(char),    char,
+                    typename conditional<metadata == metadataof<wchar_t>::value && size == sizeof(wchar_t), wchar_t,
+
+                    typename conditional<
+                    #ifdef __cpp_char8_t // --> 201811L
+                      metadata == metadataof<char8_t>::value && size == sizeof(char8_t), char8_t,
+                    #else
+                      false, null,
+                    #endif
+
+                    typename conditional<
+                    #ifdef __cpp_lib_byte // --> 201603L
+                      metadata == metadataof<std::byte>::value && size == sizeof(std::byte), std::byte,
+                    #else
+                      false, null,
+                    #endif
+
+                    typename conditional<
+                    #ifdef __cpp_unicode_characters // --> 200704L
+                      metadata == metadataof<char16_t>::value && size == sizeof(char16_t), char16_t,
+                    #else
+                      false, null,
+                    #endif
+
+                    typename conditional<
+                    #ifdef __cpp_unicode_characters // --> 200704L
+                      metadata == metadataof<char32_t>::value && size == sizeof(char32_t), char32_t,
+                    #else
+                      false, null,
+                    #endif
+
+                      base
+                    >::type>::type>::type>::type>::type>::type>::type
+                  type;
+              };
+
+              // ...
+              template <typename subbase>
+              struct encode final {
+                private:
+                  typedef constant<bool, 0u == (sizeof(subbase) >> SIZE_WIDTH)> enum_underlying_type_unrepresentable;
+                  static_assert(enum_underlying_type_unrepresentable::value, "Expected enumeration underlying type to be of smaller size");
+
+                public:
+                  static std::size_t const value = (
+                    ((metadataof<subbase>::value                            & ((((1u << (METADATA_WIDTH   - 1u)) - 1u) << 1u) + 1u)) << 0u)             |
+                    ((static_cast<unsigned char>(is_signed<subbase>::value) & ((((1u << (SIGNEDNESS_WIDTH - 1u)) - 1u) << 1u) + 1u)) << METADATA_WIDTH) |
+                    ((sizeof(subbase)                                       & ((((1u << (SIZE_WIDTH       - 1u)) - 1u) << 1u) + 1u)) << (METADATA_WIDTH + SIGNEDNESS_WIDTH))
+                  );
+              };
+          };
+
+          constfunc(true) static byte (&(typeof)(bool           const) noexcept)[typeinfo::template encode<bool>          ::value];
+          constfunc(true) static byte (&(typeof)(char           const) noexcept)[typeinfo::template encode<char>          ::value];
+          constfunc(true) static byte (&(typeof)(int            const) noexcept)[typeinfo::template encode<int>           ::value];
+          constfunc(true) static byte (&(typeof)(long           const) noexcept)[typeinfo::template encode<long>          ::value];
+          constfunc(true) static byte (&(typeof)(short          const) noexcept)[typeinfo::template encode<short>         ::value];
+          constfunc(true) static byte (&(typeof)(signed char    const) noexcept)[typeinfo::template encode<signed char>   ::value];
+          constfunc(true) static byte (&(typeof)(unsigned       const) noexcept)[typeinfo::template encode<unsigned>      ::value];
+          constfunc(true) static byte (&(typeof)(unsigned char  const) noexcept)[typeinfo::template encode<unsigned char> ::value];
+          constfunc(true) static byte (&(typeof)(unsigned long  const) noexcept)[typeinfo::template encode<unsigned long> ::value];
+          constfunc(true) static byte (&(typeof)(unsigned short const) noexcept)[typeinfo::template encode<unsigned short>::value];
+          constfunc(true) static byte (&(typeof)(wchar_t        const) noexcept)[typeinfo::template encode<wchar_t>       ::value];
+          #if CPP_VERSION >= 2011uL
+            constfunc(true) static byte (&(typeof)(long long          const) noexcept)[typeinfo::template encode<long long>         ::value];
+            constfunc(true) static byte (&(typeof)(unsigned long long const) noexcept)[typeinfo::template encode<unsigned long long>::value];
+          #endif
+          #ifdef __cpp_char8_t // --> 201811L
+            constfunc(true) static byte (&(typeof)(char8_t const) noexcept)[typeinfo::template encode<char8_t>::value];
+          #endif
+          #ifdef __cpp_lib_byte // --> 201603L
+            constfunc(true) static byte (&(typeof)(std::byte const) noexcept)[typeinfo::template encode<std::byte>::value];
+          #endif
+          #ifdef __cpp_unicode_characters // --> 200704L
+            constfunc(true) static byte (&(typeof)(char16_t const) noexcept)[typeinfo::template encode<char16_t>::value];
+            constfunc(true) static byte (&(typeof)(char32_t const) noexcept)[typeinfo::template encode<char32_t>::value];
+          #endif
+          #ifdef int128_t
+            constfunc(true) static byte (&(typeof)(int128_t const) noexcept)[typeinfo::template encode<int128_t>::value];
+          #endif
+          #ifdef uint128_t
+            constfunc(true) static byte (&(typeof)(uint128_t const) noexcept)[typeinfo::template encode<uint128_t>::value];
+          #endif
+          constfunc(true) static byte (&(typeof)(...) noexcept)[typeinfo::template encode<uintmax_t>::value + 1u];
+
+          /* ...
+              --- NOTE (Lapys) -> Base enumeration types must not have `operator +` or conversion `operator` overloads but must yet still adhere to the constant evaluated expression `static_cast<std::size_t>(+static_cast<type>(0))`
+              --- WARN (Lapys) -> Fails to determine `operator` overloaded enumeration types
+          */
+          template <typename type>
+          constfunc(true) static typename conditional<sizeof(boolean_false) == (
+            sizeof(has_overloaded_member_plus   <type>(SFINAE)) |
+            sizeof(has_overloaded_nonmember_plus<type>(SFINAE)) |
+
+            // ... ->> All underlying types (likely not fully exhaustive)
+            sizeof(has_overloaded_casts<bool,           type>()) |
+            sizeof(has_overloaded_casts<byte,           type>()) |
+            sizeof(has_overloaded_casts<char,           type>()) |
+            sizeof(has_overloaded_casts<int,            type>()) |
+            sizeof(has_overloaded_casts<long,           type>()) |
+            sizeof(has_overloaded_casts<short,          type>()) |
+            sizeof(has_overloaded_casts<signed char,    type>()) |
+            sizeof(has_overloaded_casts<unsigned,       type>()) |
+            sizeof(has_overloaded_casts<unsigned char,  type>()) |
+            sizeof(has_overloaded_casts<unsigned long,  type>()) |
+            sizeof(has_overloaded_casts<unsigned short, type>()) |
+            sizeof(has_overloaded_casts<wchar_t,        type>()) |
+            #if CPP_VERSION >= 2011uL
+              sizeof(has_overloaded_casts<long long,          type>()) |
+              sizeof(has_overloaded_casts<unsigned long long, type>()) |
+            #endif
+            #ifdef __cpp_char8_t // --> 201811L
+              sizeof(has_overloaded_casts<char8_t, type>()) |
+            #endif
+            #ifdef __cpp_unicode_characters // --> 200704L
+              sizeof(has_overloaded_casts<char16_t, type>()) |
+              sizeof(has_overloaded_casts<char32_t, type>()) |
+            #endif
+            #ifdef int128_t
+              sizeof(has_overloaded_casts<int128_t, type>()) |
+            #endif
+            #ifdef uint128_t
+              sizeof(has_overloaded_casts<uint128_t, type>()) |
+            #endif
+            sizeof(boolean_false)
+          ), boolean_true, boolean_false>::type valueof(sfinae_t const, bool (*const)[static_cast<std::size_t>(+static_cast<type>(0)) + 1u] = nullptr) noexcept;
+
+          template <typename>
+          constfunc(true) static boolean_false valueof(...) noexcept;
+
+        public:
+          static bool const value =
+            #if CPP_VERSION >= 2011uL
+              std::is_enum<base>::value or
+            #elif CPP_COMPILER == CPP_MSVC_COMPILER
+              __is_enum(base) or
+            #elif CPP_COMPILER == CPP_CIRCLE_COMPILER || CPP_COMPILER == CPP_CLANG_COMPILER || CPP_COMPILER == CPP_GNUC_COMPILER || CPP_COMPILER == CPP_INTEL_COMPILER || CPP_COMPILER == CPP_LLVM_COMPILER || CPP_COMPILER == CPP_NVCC_COMPILER
+            # ifdef __has_builtin // --> `__is_enum(...)` may still exist otherwise
+            #   if __has_builtin(__is_enum)
+                  __is_enum(base) or
+            #   endif
+            # endif
+            #endif
+          sizeof(boolean_true) == sizeof(valueof<base>(SFINAE)) or
+          not classinfo<base, true>::value;
+
+          typedef typeinfo::template decode<sizeof((typeof)(instanceof<base>())) / sizeof(byte)>::type type;
+      };
+
+      // ... ->> Operation diagnostics
+      struct opinfo final {
+        struct membered final {};
+
+        // ...
+        struct nonmembered final {};
+
+        // ...
+        struct nonoverloaded final {};
+
+        // ... ->> Dis-junction of `member` and `nonmember` traits
+        struct overloaded final {};
+      };
+
+      // ... ->> Evaluates if type is a class or union type
+      template <typename base>
+      struct is_class final {
+        static bool const value = classinfo<base>::value;
+      };
+
+      // ... ->> Evaluates if type is a class or union type
+      template <typename base>
+      struct is_final final {
+        static bool const value = not is_class<base>::value or not classinfo<base>::derivable;
+      };
+
+      // ... ->> Evaluates if type is a union type
+      template <typename base>
+      struct is_union final {
+        static bool const value = classinfo<base>::value and classinfo<base>::variant;
+      };
+
+      // ... ->> Evaluates if type is an enumeration type
+      template <typename base>
+      struct is_enum final {
+        static bool const value = enuminfo<base>::value;
       };
 
       // ...
@@ -716,35 +832,104 @@
       struct is_same<base, base> final {
         static bool const value = true;
       };
+
+      // ... ->> Type signedness
+      template <typename>
+      struct is_signed final {
+        static bool const value = false;
+      };
+
+      template <>
+      struct is_signed<signed char> final {
+        static bool const value = true;
+      };
+
+      template <>
+      struct is_signed<signed int> final {
+        static bool const value = true;
+      };
+
+      template <>
+      struct is_signed<signed long> final {
+        static bool const value = true;
+      };
+
+      template <>
+      struct is_signed<signed short> final {
+        static bool const value = true;
+      };
+
+      #if CHAR_MIN - 0
+        template <>
+        struct is_signed<char> final {
+          static bool const value = true;
+        };
+      #endif
+
+      #if CPP_VERSION >= 2011uL
+        template <>
+        struct is_signed<signed long long> final {
+          static bool const value = true;
+        };
+      #endif
+
+      #ifdef int128_t
+        template <>
+        struct is_signed<int128_t> final {
+          static bool const value = true;
+        };
+      #endif
+
+      // ... ->> Type un-signedness
+      template <typename>
+      struct is_unsigned final {
+        static bool const value = false;
+      };
+
+      template <>
+      struct is_unsigned<unsigned char> final {
+        static bool const value = true;
+      };
+
+      template <>
+      struct is_unsigned<unsigned int> final {
+        static bool const value = true;
+      };
+
+      template <>
+      struct is_unsigned<unsigned long> final {
+        static bool const value = true;
+      };
+
+      template <>
+      struct is_unsigned<unsigned short> final {
+        static bool const value = true;
+      };
+
+      #if CHAR_MIN - 0
+      #else
+        template <>
+        struct is_unsigned<char> final {
+          static bool const value = true;
+        };
+      #endif
+
+      #if CPP_VERSION >= 2011uL
+        template <>
+        struct is_unsigned<unsigned long long> final {
+          static bool const value = true;
+        };
+      #endif
+
+      #ifdef uint128_t
+        template <>
+        struct is_unsigned<uint128_t> final {
+          static bool const value = true;
+        };
+      #endif
     }
 
     namespace Traits {
-      // ... ->> Aliases specified type (plain and simple)
-      template <typename base>
-      struct alias final {
-        typedef base type;
-      };
-
-      // ... ->> Constant of specified type preferably instantiated at compile-time
-      #ifdef __cpp_constexpr
-        template <typename base, base constantValue>
-        struct constant final {
-          constexpr static base value = constantValue;
-        };
-      #else
-        template <typename base, base constantValue, bool = is_integer<base>::value>
-        struct constant final {
-          static base const value = constantValue;
-        };
-
-        template <typename base, base constantValue>
-        struct constant<base, constantValue, false> final {
-          static base const value;
-        };
-          template <typename base, base constantValue>
-          base const constant<base, constantValue, false>::value = constantValue;
-      #endif
-
       // ... ->> Dummy type for overarching evaluation eg: `sizeof defer::type<T>` instead of `sizeof T` for incomplete type `T`
       struct defer final {
         template <typename base, base>
@@ -1024,148 +1209,148 @@
           #endif
         };
       #endif
+
+      // ... ->> Distinct "unsigned" type similar to `byte` for bitwise storage
+      template <std::size_t width>
+      struct bit final {
+        private:
+          typename uint_least_width_t<width>::type value : width;
+
+        public:
+      };
+
+      template <>
+      struct bit<0u> final {
+        constfunc(true) bit(uintmin_t const) noexcept discard;
+
+        /* ... --- TODO (Lapys) */
+        template <typename type> constfunc(true) bit         & operator =(type nodecay)         & noexcept discard { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_assignment; static_assert(invalid_assignment::value, "Assignment of empty type `bit<0zu>`"); return *this; }
+        template <typename type> constfunc(true) bit volatile& operator =(type nodecay) volatile& noexcept discard { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_assignment; static_assert(invalid_assignment::value, "Assignment of empty type `bit<0zu>`"); return *this; }
+        template <typename type> constfunc(true) friend bit         & operator  +=(bit&,          type nodecay) noexcept discard;
+        template <typename type> constfunc(true) friend bit volatile& operator  +=(bit volatile&, type nodecay) noexcept discard;
+        template <typename type> constfunc(true) friend bit         & operator  -=(bit&,          type nodecay) noexcept discard;
+        template <typename type> constfunc(true) friend bit volatile& operator  -=(bit volatile&, type nodecay) noexcept discard;
+        template <typename type> constfunc(true) friend bit         & operator  *=(bit&,          type nodecay) noexcept discard;
+        template <typename type> constfunc(true) friend bit volatile& operator  *=(bit volatile&, type nodecay) noexcept discard;
+        template <typename type> constfunc(true) friend bit         & operator  /=(bit&,          type nodecay) noexcept discard;
+        template <typename type> constfunc(true) friend bit volatile& operator  /=(bit volatile&, type nodecay) noexcept discard;
+        template <typename type> constfunc(true) friend bit         & operator  %=(bit&,          type nodecay) noexcept discard;
+        template <typename type> constfunc(true) friend bit volatile& operator  %=(bit volatile&, type nodecay) noexcept discard;
+        template <typename type> constfunc(true) friend bit         & operator  &=(bit&,          type nodecay) noexcept discard;
+        template <typename type> constfunc(true) friend bit volatile& operator  &=(bit volatile&, type nodecay) noexcept discard;
+        template <typename type> constfunc(true) friend bit         & operator  |=(bit&,          type nodecay) noexcept discard;
+        template <typename type> constfunc(true) friend bit volatile& operator  |=(bit volatile&, type nodecay) noexcept discard;
+        template <typename type> constfunc(true) friend bit         & operator  ^=(bit&,          type nodecay) noexcept discard;
+        template <typename type> constfunc(true) friend bit volatile& operator  ^=(bit volatile&, type nodecay) noexcept discard;
+        template <typename type> constfunc(true) friend bit         & operator <<=(bit&,          type nodecay) noexcept discard;
+        template <typename type> constfunc(true) friend bit volatile& operator <<=(bit volatile&, type nodecay) noexcept discard;
+        template <typename type> constfunc(true) friend bit         & operator >>=(bit&,          type nodecay) noexcept discard;
+        template <typename type> constfunc(true) friend bit volatile& operator >>=(bit volatile&, type nodecay) noexcept discard;
+
+        constfunc(true) operator uintmin_t() noexcept discard;
+      };
+
+      // ...
+      template <typename>
+      struct maxof {};
+
+      // ...
+      template <typename>
+      struct minof final {};
+
+      // ...
+      template <typename>
+      struct nilof final {};
+
+      /* Alias > ... */
+      typedef typename float_fast_width_t<8u>   ::type                                 float_fast8_t;
+      typedef typename float_fast_width_t<16u>  ::type                                 float_fast16_t;
+      typedef typename float_fast_width_t<32u>  ::type                                 float_fast32_t;
+      typedef typename float_fast_width_t<128u> ::type                                 float_fast128_t;
+      typedef typename float_least_width_t<8u>  ::type                                 float_least8_t;
+      typedef typename float_least_width_t<16u> ::type                                 float_least16_t;
+      typedef typename float_least_width_t<32u> ::type                                 float_least32_t;
+      typedef typename float_least_width_t<128u>::type                                 float_least128_t;
+      typedef typename float_least_width_t<widthof(static_cast<void*>(nullptr))>::type floatptr_t;
+      typedef std::uint_fast8_t                                                        uint_fast8_t;
+      typedef std::uint_fast16_t                                                       uint_fast16_t;
+      typedef std::uint_fast32_t                                                       uint_fast32_t;
+      typedef std::uint_fast64_t                                                       uint_fast64_t;
+      typedef typename uint_fast_width_t <128u> ::type                                 uint_fast128_t;
+      typedef typename uint_least_width_t<8u>   ::type                                 uint_least8_t;
+      typedef typename uint_least_width_t<16u>  ::type                                 uint_least16_t;
+      typedef typename uint_least_width_t<32u>  ::type                                 uint_least32_t;
+      typedef typename uint_least_width_t<64u>  ::type                                 uint_least64_t;
+      typedef typename uint_least_width_t<128u> ::type                                 uint_least128_t;
+      typedef typename uint_width_t      <8u>   ::type                                 uint8_t;
+      typedef typename uint_width_t      <16u>  ::type                                 uint16_t;
+      typedef typename uint_width_t      <32u>  ::type                                 uint32_t;
+      typedef typename uint_width_t      <64u>  ::type                                 uint64_t;
+      typedef unsigned char                                                            uintmin_t;
+      typedef typename uint_least_width_t<widthof(static_cast<void*>(nullptr))>::type  uintptr_t;
+
+      typedef
+        typename conditional<not is_same<float_least128_t, void>::value, float_least128_t,
+        typename conditional<not is_same<float_least64_t,  void>::value, float_least64_t,
+        typename conditional<not is_same<float_least32_t,  void>::value, float_least32_t,
+        typename conditional<not is_same<float_least16_t,  void>::value, float_least16_t,
+        typename conditional<not is_same<float_least8_t,   void>::value, float_least8_t,
+          void
+        >::type>::type>::type>::type>::type
+      floatmax_t;
+
+      typedef
+        typename conditional<not is_same<uint_least128_t, void>::value, uint_least128_t,
+        typename conditional<not is_same<uint_least64_t,  void>::value, uint_least64_t,
+        typename conditional<not is_same<uint_least32_t,  void>::value, uint_least32_t,
+        typename conditional<not is_same<uint_least16_t,  void>::value, uint_least16_t,
+        typename conditional<not is_same<uint_least8_t,   void>::value, uint_least8_t,
+          void
+        >::type>::type>::type>::type>::type
+      uintmax_t;
+
+      #ifdef float16_t
+        typedef typename conditional<sizeof(float) <= sizeof(float16_t), float, float16_t>::type floatmin_t;
+      #else
+        typedef typename float_width_t<16u>::type float16_t;
+        typedef float                             floatmin_t;
+      #endif
+
+      #ifndef float32_t
+        typedef typename float_width_t<32u>::type float32_t;
+      #endif
+
+      #ifndef float64_t
+        typedef typename float_width_t<64u>::type float64_t;
+      #endif
+
+      #ifndef float128_t
+        typedef typename float_width_t<128u>::type float128_t;
+      #endif
+
+      #ifndef uint128_t
+        typedef typename uint_width_t<128u>::type uint128_t;
+      #endif
+
+      typedef typename signedof<uint_fast8_t>   ::type int_fast8_t;
+      typedef typename signedof<uint_fast16_t>  ::type int_fast16_t;
+      typedef typename signedof<uint_fast32_t>  ::type int_fast32_t;
+      typedef typename signedof<uint_fast64_t>  ::type int_fast64_t;
+      typedef typename signedof<uint_fast128_t> ::type int_fast128_t;
+      typedef typename signedof<uint_least8_t>  ::type int_least8_t;
+      typedef typename signedof<uint_least16_t> ::type int_least16_t;
+      typedef typename signedof<uint_least32_t> ::type int_least32_t;
+      typedef typename signedof<uint_least64_t> ::type int_least64_t;
+      typedef typename signedof<uint_least128_t>::type int_least128_t;
+      typedef typename signedof<uint8_t>        ::type int8_t;
+      typedef typename signedof<uint16_t>       ::type int16_t;
+      typedef typename signedof<uint32_t>       ::type int32_t;
+      typedef typename signedof<uint64_t>       ::type int64_t;
+      typedef typename signedof<uint128_t>      ::type int128_t;
+      typedef typename signedof<uintmax_t>      ::type intmax_t;
+      typedef typename signedof<uintmin_t>      ::type intmin_t;
+      typedef typename signedof<uintptr_t>      ::type intptr_t;
     }
-  //     // ... ->> Distinct "unsigned" type similar to `byte` for bitwise storage
-  //     template <std::size_t width>
-  //     struct bit final {
-  //       private:
-  //         typename uint_least_width_t<width>::type value : width;
-
-  //       public:
-  //     };
-
-  //     template <>
-  //     struct bit<0u> final {
-  //       constfunc(true) bit(uintmin_t const) noexcept discard;
-
-  //       /* ... --- TODO (Lapys) */
-  //       template <typename type> constfunc(true) bit         & operator =(type nodecay)         & noexcept discard { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_assignment; static_assert(invalid_assignment::value, "Assignment of empty type `bit<0zu>`"); return *this; }
-  //       template <typename type> constfunc(true) bit volatile& operator =(type nodecay) volatile& noexcept discard { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_assignment; static_assert(invalid_assignment::value, "Assignment of empty type `bit<0zu>`"); return *this; }
-  //       template <typename type> constfunc(true) friend bit         & operator  +=(bit&,          type nodecay) noexcept discard;
-  //       template <typename type> constfunc(true) friend bit volatile& operator  +=(bit volatile&, type nodecay) noexcept discard;
-  //       template <typename type> constfunc(true) friend bit         & operator  -=(bit&,          type nodecay) noexcept discard;
-  //       template <typename type> constfunc(true) friend bit volatile& operator  -=(bit volatile&, type nodecay) noexcept discard;
-  //       template <typename type> constfunc(true) friend bit         & operator  *=(bit&,          type nodecay) noexcept discard;
-  //       template <typename type> constfunc(true) friend bit volatile& operator  *=(bit volatile&, type nodecay) noexcept discard;
-  //       template <typename type> constfunc(true) friend bit         & operator  /=(bit&,          type nodecay) noexcept discard;
-  //       template <typename type> constfunc(true) friend bit volatile& operator  /=(bit volatile&, type nodecay) noexcept discard;
-  //       template <typename type> constfunc(true) friend bit         & operator  %=(bit&,          type nodecay) noexcept discard;
-  //       template <typename type> constfunc(true) friend bit volatile& operator  %=(bit volatile&, type nodecay) noexcept discard;
-  //       template <typename type> constfunc(true) friend bit         & operator  &=(bit&,          type nodecay) noexcept discard;
-  //       template <typename type> constfunc(true) friend bit volatile& operator  &=(bit volatile&, type nodecay) noexcept discard;
-  //       template <typename type> constfunc(true) friend bit         & operator  |=(bit&,          type nodecay) noexcept discard;
-  //       template <typename type> constfunc(true) friend bit volatile& operator  |=(bit volatile&, type nodecay) noexcept discard;
-  //       template <typename type> constfunc(true) friend bit         & operator  ^=(bit&,          type nodecay) noexcept discard;
-  //       template <typename type> constfunc(true) friend bit volatile& operator  ^=(bit volatile&, type nodecay) noexcept discard;
-  //       template <typename type> constfunc(true) friend bit         & operator <<=(bit&,          type nodecay) noexcept discard;
-  //       template <typename type> constfunc(true) friend bit volatile& operator <<=(bit volatile&, type nodecay) noexcept discard;
-  //       template <typename type> constfunc(true) friend bit         & operator >>=(bit&,          type nodecay) noexcept discard;
-  //       template <typename type> constfunc(true) friend bit volatile& operator >>=(bit volatile&, type nodecay) noexcept discard;
-
-  //       constfunc(true) operator uintmin_t() noexcept discard;
-  //     };
-
-  //     // ...
-  //     template <typename>
-  //     struct maxof {};
-
-  //     // ...
-  //     template <typename>
-  //     struct minof final {};
-
-  //     // ...
-  //     template <typename>
-  //     struct nilof final {};
-
-  //     /* Alias > ... */
-  //     typedef typename float_fast_width_t<8u>   ::type                    float_fast8_t;
-  //     typedef typename float_fast_width_t<16u>  ::type                    float_fast16_t;
-  //     typedef typename float_fast_width_t<32u>  ::type                    float_fast32_t;
-  //     typedef typename float_fast_width_t<128u> ::type                    float_fast128_t;
-  //     typedef typename float_least_width_t<8u>  ::type                    float_least8_t;
-  //     typedef typename float_least_width_t<16u> ::type                    float_least16_t;
-  //     typedef typename float_least_width_t<32u> ::type                    float_least32_t;
-  //     typedef typename float_least_width_t<128u>::type                    float_least128_t;
-  //     typedef typename float_least_width_t<widthof(void*(nullptr))>::type floatptr_t;
-  //     typedef std::uint_fast8_t                                           uint_fast8_t;
-  //     typedef std::uint_fast16_t                                          uint_fast16_t;
-  //     typedef std::uint_fast32_t                                          uint_fast32_t;
-  //     typedef std::uint_fast64_t                                          uint_fast64_t;
-  //     typedef typename uint_fast_width_t <128u> ::type                    uint_fast128_t;
-  //     typedef typename uint_least_width_t<8u>   ::type                    uint_least8_t;
-  //     typedef typename uint_least_width_t<16u>  ::type                    uint_least16_t;
-  //     typedef typename uint_least_width_t<32u>  ::type                    uint_least32_t;
-  //     typedef typename uint_least_width_t<64u>  ::type                    uint_least64_t;
-  //     typedef typename uint_least_width_t<128u> ::type                    uint_least128_t;
-  //     typedef typename uint_width_t      <8u>   ::type                    uint8_t;
-  //     typedef typename uint_width_t      <16u>  ::type                    uint16_t;
-  //     typedef typename uint_width_t      <32u>  ::type                    uint32_t;
-  //     typedef typename uint_width_t      <64u>  ::type                    uint64_t;
-  //     typedef unsigned char                                               uintmin_t;
-  //     typedef typename uint_least_width_t<widthof(void*(nullptr))>::type  uintptr_t;
-
-  //     typedef
-  //       typename conditional<not is_same<float_least128_t, void>::value, float_least128_t,
-  //       typename conditional<not is_same<float_least64_t,  void>::value, float_least64_t,
-  //       typename conditional<not is_same<float_least32_t,  void>::value, float_least32_t,
-  //       typename conditional<not is_same<float_least16_t,  void>::value, float_least16_t,
-  //       typename conditional<not is_same<float_least8_t,   void>::value, float_least8_t,
-  //         void
-  //       >::type>::type>::type>::type>::type
-  //     floatmax_t;
-
-  //     typedef
-  //       typename conditional<not is_same<uint_least128_t, void>::value, uint_least128_t,
-  //       typename conditional<not is_same<uint_least64_t,  void>::value, uint_least64_t,
-  //       typename conditional<not is_same<uint_least32_t,  void>::value, uint_least32_t,
-  //       typename conditional<not is_same<uint_least16_t,  void>::value, uint_least16_t,
-  //       typename conditional<not is_same<uint_least8_t,   void>::value, uint_least8_t,
-  //         void
-  //       >::type>::type>::type>::type>::type
-  //     uintmax_t;
-
-  //     #ifdef float16_t
-  //       typedef typename conditional<sizeof(float) <= sizeof(float16_t), float, float16_t>::type floatmin_t;
-  //     #else
-  //       typedef typename float_width_t<16u>::type float16_t;
-  //       typedef float                             floatmin_t;
-  //     #endif
-
-  //     #ifndef float32_t
-  //       typedef typename float_width_t<32u>::type float32_t;
-  //     #endif
-
-  //     #ifndef float64_t
-  //       typedef typename float_width_t<64u>::type float64_t;
-  //     #endif
-
-  //     #ifndef float128_t
-  //       typedef typename float_width_t<128u>::type float128_t;
-  //     #endif
-
-  //     #ifndef uint128_t
-  //       typedef typename uint_width_t<128u>::type uint128_t;
-  //     #endif
-
-  //     typedef typename signedof<uint_fast8_t>   ::type int_fast8_t;
-  //     typedef typename signedof<uint_fast16_t>  ::type int_fast16_t;
-  //     typedef typename signedof<uint_fast32_t>  ::type int_fast32_t;
-  //     typedef typename signedof<uint_fast64_t>  ::type int_fast64_t;
-  //     typedef typename signedof<uint_fast128_t> ::type int_fast128_t;
-  //     typedef typename signedof<uint_least8_t>  ::type int_least8_t;
-  //     typedef typename signedof<uint_least16_t> ::type int_least16_t;
-  //     typedef typename signedof<uint_least32_t> ::type int_least32_t;
-  //     typedef typename signedof<uint_least64_t> ::type int_least64_t;
-  //     typedef typename signedof<uint_least128_t>::type int_least128_t;
-  //     typedef typename signedof<uint8_t>        ::type int8_t;
-  //     typedef typename signedof<uint16_t>       ::type int16_t;
-  //     typedef typename signedof<uint32_t>       ::type int32_t;
-  //     typedef typename signedof<uint64_t>       ::type int64_t;
-  //     typedef typename signedof<uint128_t>      ::type int128_t;
-  //     typedef typename signedof<uintmax_t>      ::type intmax_t;
-  //     typedef typename signedof<uintmin_t>      ::type intmin_t;
-  //     typedef typename signedof<uintptr_t>      ::type intptr_t;
-  //   }
 
   //   namespace Traits {
   //     // ... ->> For configurable function code paths (eg: `Memory::allocate(...)`, ...) or generic data structures (eg: `Array`, ...)

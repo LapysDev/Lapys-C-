@@ -5,6 +5,7 @@
   #undef choose_
   #undef constfunc_
   #undef CPP_PREPROCESSOR_
+  #undef exceptspec_
   #undef ISO
   #undef MSVC
 
@@ -150,6 +151,20 @@
   #endif
 
   /* Definition */
+  // : [Preprocessor Substitution] ->> Evaluate preprocessor token as boolean
+  #if CPP_COMPILER == CPP_CLANG_COMPILER
+  # pragma clang diagnostic push
+  # pragma clang diagnostic ignored "-Wvariadic-macros"
+  #elif CPP_COMPILER == CPP_GNUC_COMPILER
+  # pragma GCC system_header // ->> `-Wno-variadic-macros` does not work
+  #endif
+
+  #define preprocessed(...) (__VA_ARGS__ + 0)
+
+  #if CPP_COMPILER == CPP_CLANG_COMPILER
+  # pragma clang diagnostic pop
+  #endif
+
   // : [Source File Inclusion] ->> Conditionally preferable error diagnostics when `#include`ing other source files
   #if CPP_VERSION < 2011uL
   # define included(file) true
@@ -230,7 +245,7 @@
   #endif
 
   // : [C++ Preprocessor]
-  #if LAPYS_PREPROCESSOR
+  #if preprocessed(LAPYS_PREPROCESSOR)
   # if CPP_COMPILER == CPP_CLANG_COMPILER
   #   pragma clang diagnostic push
   #   pragma clang diagnostic ignored "-Wvariadic-macros"
@@ -293,7 +308,7 @@
   # include <sys/endian.h>
   #endif
 
-  #ifdef __cpp_lib_endian
+  #ifdef __cpp_lib_endian // --> 201907L
   # include <bit>
   # if CPP_VERSION >= 2011uL
   #   define CPP_ENDIAN_RUNTIME (0x00 == (std::endian::native & (std::endian::big | std::endian::little)) && sizeof(unsigned char) != sizeof(unsigned long long))
@@ -399,39 +414,9 @@
   #endif
 
   /* Definition */
-  // : [Assertion] ->> Compile-time assertion
-  #ifndef __cpp_static_assert
-    template <bool>
-    union static_assert {
-      inline static_assert(char const[]) throw() {}
-    };
-
-    template <> // ... ->> alternatively declare `static_assert<false>` but not define it
-    union static_assert<false> {
-      private:
-        template <typename, unsigned char = 0x0u>
-        struct static_assert_message;
-
-        template <unsigned char specialization>
-        struct static_assert_message<char const, specialization> {};
-
-      public:
-        template <typename type, std::size_t capacity> // ->> Single constructor, no overload disambiguation
-        inline static_assert(type (&)[capacity]) throw(static_assert<false>) {
-          static_assert_message<type>();
-          throw static_assert<false>(*this); // ->> Error handling is unfortunately runtime-only so re-throw a copy of itself and indirectly call `std::terminate(...)`
-        }
-    };
-
-    #define static_assert static_assert_declaration
-    # define static_assert_1u(id, condition, message) ::static_assert<(condition)> _ ## id = ::static_assert<(condition)>("" message "");
-    # define static_assert_2u(id, condition, message) static_assert_1u(id, condition, message)
-    # define static_assert_declaration(condition, message) static_assert_2u(__LINE__, condition, message)
-  #endif
-
   // : [Constant Function] ->> Attempts to specify a constant evaluable function
   #define constfunc(unrelaxed) constfunc_ ## unrelaxed
-  #ifdef __cpp_constexpr
+  #ifdef __cpp_constexpr // --> 200704L
   # if CPP_VERSION >= 2014uL || __cpp_constexpr >= 201304L
   #   define constfunc_false constexpr
   #   define constfunc_true  constexpr
@@ -446,7 +431,7 @@
 
   // : [Constant Integer] ->> Specifies a constant evaluable integer
   #define constint(type, name, value) constint_2u(__LINE__, type, name, value)
-  # ifdef __cpp_constexpr
+  # ifdef __cpp_constexpr // --> 200704L
   #   define constint_1u(id, type, name, value)                                                        constexpr static type name varinit(value)
   # elif CPP_VERSION >= 2011uL
   #   define constint_1u(id, type, name, value) enum : type { name ## id = static_cast<type>(value) }; const     static type name varinit(value)
@@ -456,7 +441,7 @@
   # define constint_2u(id, type, name, value) constint_1u(id, type, name, value)
 
   // : [Constant Variable] ->> Attempts to specify a constant evaluable variable
-  #ifdef __cpp_constexpr
+  #ifdef __cpp_constexpr // --> 200704L
   # define constvar constexpr
   #else
   # define constvar
@@ -480,7 +465,7 @@
   #if CPP_VERSION >= 2011uL
   # define exceptspec(specification) noexcept(specification)
   #else
-  # define exceptspec(specification) choose(specification, exceptspec_true, exceptspec_false)
+  # define exceptspec(specification) exceptspec_ ## specification // --> choose(specification, exceptspec_true, exceptspec_false)
   #   if CPP_COMPILER == CPP_MSVC_COMPILER
   #     define exceptspec_false throw(...)
   #     define exceptspec_true  noexcept
@@ -494,7 +479,7 @@
   // : [Floating-Point Types] ->> Acknowledges extended floating-point types
   #if __STDCPP_FLOAT16_T__
   # if LAPYS_PREPROCESSOR_GUARD && defined(float16_t)
-  #   error Awkward. Unexpected `float16_t` macro definition
+  #   error Lapys C++: Unexpected `float16_t` macro definition
   # endif
   # define float16_t std::float16_t
   #elif defined(float16_t)
@@ -503,7 +488,7 @@
 
   #if __STDCPP_FLOAT32_T__
   # if LAPYS_PREPROCESSOR_GUARD && defined(float32_t)
-  #   error Awkward. Unexpected `float32_t` macro definition
+  #   error Lapys C++: Unexpected `float32_t` macro definition
   # endif
   # define float32_t std::float32_t
   #elif defined(float32_t)
@@ -512,7 +497,7 @@
 
   #if __STDCPP_FLOAT64_T__
   # if LAPYS_PREPROCESSOR_GUARD && defined(float64_t)
-  #   error Awkward. Unexpected `float64_t` macro definition
+  #   error Lapys C++: Unexpected `float64_t` macro definition
   # endif
   # define float64_t std::float64_t
   #elif defined(float64_t)
@@ -521,7 +506,7 @@
 
   #if __STDCPP_FLOAT128_T__
   # if LAPYS_PREPROCESSOR_GUARD && defined(float128_t)
-  #   error Awkward. Unexpected `float128_t` macro definition
+  #   error Lapys C++: Unexpected `float128_t` macro definition
   # endif
   # define float128_t std::float128_t
   #elif defined(float128_t)
@@ -529,7 +514,7 @@
   #endif
 
   // : [Forwarding Reference] ->> Perfect-forwarding reference-qualification
-  #ifdef __cpp_rvalue_references
+  #ifdef __cpp_rvalue_references // --> 200610L
   # define nodecay             &&
   # define nodecayparam(name) (&&name)
   #else
@@ -543,7 +528,7 @@
   #endif
 
   // : [Initialization] ->> Common initialization syntax
-  #ifdef __cpp_aggregate_paren_init
+  #ifdef __cpp_aggregate_paren_init // --> 201902L
   # define init(arguments)   {arguments}
   # define nilinit(type)     {}
   # define varinit(argument) {argument}
@@ -620,7 +605,7 @@
   #endif
 
   // : [Reference Qualifier] ->> Attempts to reference-qualify
-  #ifdef __cpp_ref_qualifiers
+  #ifdef __cpp_ref_qualifiers // --> 200710L
   # define lref  &
   # define rref  &&
   # define rlref rref
@@ -735,7 +720,7 @@
 
   // : [Type Inspection Specifier] ->> Reflect on the resulting type of an expression
   #ifndef typeof
-  # ifdef __cpp_decltype
+  # ifdef __cpp_decltype // --> 200707L
   #   if CPP_COMPILER == CPP_CLANG_COMPILER
   #     pragma clang diagnostic push
   #     pragma clang diagnostic ignored "-Wkeyword-macro"
@@ -757,6 +742,39 @@
   # endif
   #endif
 
+  // : [Assertion] ->> Compile-time assertion
+  #ifndef __cpp_static_assert // --> 200410L
+    template <bool>
+    union static_assert {
+      constfunc(true) static_assert(char const[]) noexcept {}
+    };
+
+    template <> // ... ->> alternatively declare `static_assert<false>` but not define it
+    union static_assert<false> {
+      private:
+        template <typename, unsigned char = 0x00u>
+        struct static_assert_message;
+
+        template <unsigned char specialization>
+        struct static_assert_message<char const, specialization> final {};
+
+      public:
+        template <typename type, std::size_t capacity> // ->> Single constructor, no overload disambiguation
+        constfunc(false) static_assert(type (&)[capacity]) exceptspec(false) /* --> static_assert<false> */ {
+          static_assert_message<type>();
+          throw static_assert<false>(*this); // ->> Error handling is unfortunately runtime-only so re-throw a copy of itself and indirectly call `std::terminate(...)`
+        }
+    };
+
+    #define static_assert(condition, message) static_assert_2u(__LINE__, condition, message)
+    # ifdef __cpp_nsdmi // --> 200809L
+    #   define static_assert_1u(id, condition, message) ::static_assert<(condition)> _ ## id = ::static_assert<(condition)>("" message "")
+    # else
+    #   define static_assert_1u(id, condition, message) typedef typename ::Lapys::Traits::conditional<static_cast<bool>(condition), SFINAE>::type _ ## id
+    # endif
+    # define static_assert_2u(id, condition, message) static_assert_1u(id, condition, message)
+  #endif
+
   /* Definition */
   #define choose(argument, truthy, falsy) defer(combine, choose_, argument)(truthy, falsy)
   # define choose_false(truthy, falsy) falsy
@@ -769,7 +787,7 @@
   # define LAPYS_MAX_ARITY 127u
   #endif
 
-  #if LAPYS_PREPROCESSOR
+  #if preprocessed(LAPYS_PREPROCESSOR)
   # if CPP_COMPILER == CPP_CLANG_COMPILER
   #   pragma clang diagnostic push
   #   pragma clang diagnostic ignored "-Wc++20-compat"

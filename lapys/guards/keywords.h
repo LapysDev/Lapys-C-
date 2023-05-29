@@ -1,4 +1,4 @@
-#if LAPYS_PREPROCESSOR_GUARD
+#if preprocessed(LAPYS_PREPROCESSOR_GUARD)
   /* Guard > ... */
   #ifdef bool
   # error Lapys C++: Unexpected `bool` macro definition
