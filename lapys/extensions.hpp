@@ -310,6 +310,7 @@
 
   #ifdef __cpp_lib_endian // --> 201907L
   # include <bit>
+  # undef CPP_ENDIAN_RUNTIME
   # if CPP_VERSION >= 2011uL
   #   define CPP_ENDIAN_RUNTIME (0x00 == (std::endian::native & (std::endian::big | std::endian::little)) && sizeof(unsigned char) != sizeof(unsigned long long))
   #   define CPP_ENDIAN (std::endian::native == std::endian::little ? CPP_BYTE_LITTLE_ENDIAN : std::endian::native == std::endian::big ? CPP_BYTE_BIG_ENDIAN : sizeof(unsigned char) == sizeof(unsigned long long) || reinterpret_cast<unsigned char const&>(static_cast<unsigned long long const&>(1uLL)) == 1u ? CPP_BYTE_LITTLE_ENDIAN : reinterpret_cast<unsigned char const*>(&static_cast<unsigned long long const&>(1uLL))[sizeof(unsigned long long) - 1u] == 1u ? CPP_BYTE_BIG_ENDIAN : CPP_MIXED_ENDIAN)
@@ -770,7 +771,7 @@
     # ifdef __cpp_nsdmi // --> 200809L
     #   define static_assert_1u(id, condition, message) ::static_assert<(condition)> _ ## id = ::static_assert<(condition)>("" message "")
     # else
-    #   define static_assert_1u(id, condition, message) typedef typename ::Lapys::Traits::conditional<static_cast<bool>(condition), SFINAE>::type _ ## id
+    #   define static_assert_1u(id, condition, message) typedef typename ::Lapys::Traits::conditional<static_cast<bool>(condition), ::static_assert<(condition)> >::type _ ## id
     # endif
     # define static_assert_2u(id, condition, message) static_assert_1u(id, condition, message)
   #endif

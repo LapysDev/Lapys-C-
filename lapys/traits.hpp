@@ -52,16 +52,17 @@
     template <std::size_t width> constfunc(true) mustinline unsigned char /* --> byte */ (&(widthof)(bit<width> const)   noexcept)[width];
     template <typename    type>  constfunc(true) mustinline unsigned char /* --> byte */ (&(widthof)(type       nodecay) noexcept)[CHAR_BIT * sizeof(type)];
 
-    /* Alias > Byte ->> Aliases to an (unsigned) byte type blessed by the standard (as specified in the C++ language definition) */
+    /* Alias */
+    // Byte ->> Aliases to an (unsigned) byte type blessed by the standard (as specified in the C++ language definition)
     #ifndef __cpp_lib_byte // --> 201603L
       typedef unsigned char byte;
     #else
       typedef std::byte byte;
 
       // ... ->> Make `Lapys::byte` types operationally consistent; cannot override standard-defined operator overloads
-      constfunc(true) mustinline std::byte operator +(std::byte const byte) noexcept { return byte; }
-      constfunc(true) mustinline std::byte operator -(std::byte const byte) noexcept { return static_cast<std::byte>(-std::to_integer<unsigned char>(byte)); }
-      constfunc(true) mustinline bool      operator !(std::byte const byte) noexcept { return !std::to_integer<unsigned char>(byte); }
+      constfunc(true) mustinline std::byte (operator +)(std::byte const byte) noexcept { return byte; }
+      constfunc(true) mustinline std::byte (operator -)(std::byte const byte) noexcept { return static_cast<std::byte>(-std::to_integer<unsigned char>(byte)); }
+      constfunc(true) mustinline bool      (operator !)(std::byte const byte) noexcept { return !std::to_integer<unsigned char>(byte); }
 
       template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          +=  instanceof<type nodecay>())                    (operator += )(std::byte&          byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char&>()          +=  instanceof<type nodecay>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          +=  instanceof<type nodecay>()) evaluation = (value +=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          +=  instanceof<type nodecay>())>(evaluation); }
       template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() +=  instanceof<type nodecay>())                    (operator += )(std::byte volatile& byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char volatile&>() +=  instanceof<type nodecay>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() +=  instanceof<type nodecay>()) evaluation = (value +=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() +=  instanceof<type nodecay>())>(evaluation); }
@@ -162,9 +163,21 @@
       #endif
     #endif
 
-    /* Class > Bit ->> Distinct "unsigned" type similar to `byte` for bitwise storage */
-    template <std::size_t>
-    struct bit;
+    // ...
+    typedef unsigned long uintmax_template_t;
+
+    /* Trait */
+    // Null ->> Specialization type denoting an "empty set of values"; See `void` type
+    union null;
+
+    // SFINAE Pointer ->> Specialization-only type
+    #if CPP_VERSION < 2011uL
+      #define sfinaeptr sfinaeptr
+      enum sfinaeptr_t /* : unsigned char */ { sfinaeptr /* = 0x00hhu */ };
+    #else
+      #define sfinaeptr nullptr
+      typedef std::nullptr_t sfinaeptr_t;
+    #endif
 
     /* Namespace */
     namespace Traits {
@@ -172,46 +185,52 @@
       typedef bool nodecayparam(boolean_false)[false + 1u];
       typedef bool nodecayparam(boolean_true) [true  + 1u];
 
-      /* Trait > ... ->> Not all traits are neatly declarable without their definition eg: `struct constant<...>` */
+      /* Trait > ... ->> Not all traits are neatly declarable without their definition */
       struct defer;
+      struct enumtypeinfo;
       struct opinfo;
 
-      template <typename>                 struct alias;
-      template <typename, bool = false>   struct classinfo;
-      template <bool, typename, typename> struct conditional;
-      template <typename>                 struct enuminfo;
-      template <std::size_t>              struct float_fast_t;
-      template <std::size_t>              struct float_fast_width_t;
-      template <std::size_t>              struct float_least_t;
-      template <std::size_t>              struct float_least_width_t;
-      template <std::size_t>              struct float_t;
-      template <std::size_t>              struct float_width_t;
-      template <std::size_t>              struct int_fast_t;
-      template <std::size_t>              struct int_fast_width_t;
-      template <std::size_t>              struct int_least_t;
-      template <std::size_t>              struct int_least_width_t;
-      template <std::size_t>              struct int_t;
-      template <std::size_t>              struct int_width_t;
-      template <typename>                 struct is_class;
-      template <typename>                 struct is_enum;
-      template <typename>                 struct is_final;
-      template <typename>                 struct is_integer;
-      template <typename>                 struct is_null;
-      template <typename, typename>       struct is_same;
-      template <typename>                 struct is_signed;
-      template <typename>                 struct is_union;
-      template <typename>                 struct is_unsigned;
-      template <typename>                 struct maxof;
-      template <typename>                 struct minof;
-      template <typename>                 struct nilof;
-      template <typename>                 struct signedof;
-      template <std::size_t>              struct uint_fast_t;
-      template <std::size_t>              struct uint_fast_width_t;
-      template <std::size_t>              struct uint_least_t;
-      template <std::size_t>              struct uint_least_width_t;
-      template <std::size_t>              struct uint_t;
-      template <std::size_t>              struct uint_width_t;
-      template <typename>                 struct unsignedof;
+      template <typename>                               struct alias;
+      template <typename, bool = false>                 struct classinfo;
+      template <bool, typename = null, typename = null> struct conditional;
+      template <typename base, base, bool>              struct constant;
+      template <typename>                               struct enuminfo;
+      template <std::size_t>                            struct float_fast_t;
+      template <std::size_t>                            struct float_fast_width_t;
+      template <std::size_t>                            struct float_least_t;
+      template <std::size_t>                            struct float_least_width_t;
+      template <std::size_t>                            struct float_t;
+      template <std::size_t>                            struct float_width_t;
+      template <std::size_t>                            struct int_fast_t;
+      template <std::size_t>                            struct int_fast_width_t;
+      template <std::size_t>                            struct int_least_t;
+      template <std::size_t>                            struct int_least_width_t;
+      template <std::size_t>                            struct int_t;
+      template <std::size_t>                            struct int_width_t;
+      template <typename>                               struct is_class;
+      template <typename>                               struct is_enum;
+      template <typename>                               struct is_final;
+      template <typename, bool = false>                 struct is_integer;
+      template <typename>                               struct is_null;
+      template <typename, typename>                     struct is_same;
+      template <typename>                               struct is_signed;
+      template <typename>                               struct is_similar;
+      template <typename>                               struct is_union;
+      template <typename>                               struct is_unsigned;
+      template <typename>                               struct maxof;
+      template <typename>                               struct minof;
+      template <typename>                               struct nilof;
+      template <typename>                               struct remove_const;
+      template <typename>                               struct remove_const_volatile;
+      template <typename>                               struct remove_volatile;
+      template <typename>                               struct signedof;
+      template <std::size_t>                            struct uint_fast_t;
+      template <std::size_t>                            struct uint_fast_width_t;
+      template <std::size_t>                            struct uint_least_t;
+      template <std::size_t>                            struct uint_least_width_t;
+      template <std::size_t>                            struct uint_t;
+      template <std::size_t>                            struct uint_width_t;
+      template <typename>                               struct unsignedof;
 
       #ifdef __cpp_variadic_templates // --> 200704L
         template <bool, bool...> struct boolean_and;
@@ -220,22 +239,7 @@
         template <bool, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true> struct boolean_and;
         template <bool, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true> struct boolean_or;
       #endif
-
-      // --> constant
     }
-
-    /* Trait */
-    // Null ->> Specialization type denoting an "empty set of values"; See `void` type
-    union null;
-
-    // SFINAE ->> Specialization-only type
-    #if CPP_VERSION < 2011uL
-    # define SFINAE SFINAE
-      enum sfinae_t /* : unsigned char */ { SFINAE };
-    #else
-    # define SFINAE nullptr
-      typedef std::nullptr_t sfinae_t;
-    #endif
 
     /* ... */
     using namespace Traits;
@@ -258,19 +262,28 @@
           // ... ->> Evaluates if type is a union type
           template <typename subbase, bool subfallback = false>
           struct unionof final {
-            static bool const value =
-              #if CPP_VERSION >= 2011uL
-                std::is_union<subbase>::value or
-              #elif CPP_COMPILER == CPP_CIRCLE_COMPILER || CPP_COMPILER == CPP_CLANG_COMPILER || CPP_COMPILER == CPP_GNUC_COMPILER || CPP_COMPILER == CPP_INTEL_COMPILER || CPP_COMPILER == CPP_LLVM_COMPILER || CPP_COMPILER == CPP_NVCC_COMPILER
-              # ifdef __has_builtin // --> `__is_union(...)` may still exist otherwise
-              #   if __has_builtin(__is_union)
-                    __is_union(subbase) or
-              #   endif
-              # endif
-              #elif CPP_COMPILER == CPP_MSVC_COMPILER
-                __is_union(subbase) or
-              #endif
-            subfallback;
+            private:
+              template <typename type>
+              constfunc(false) static boolean_true valueof(sfinaeptr_t const, byte type::* const = NULL) noexcept;
+
+              template <typename>
+              constfunc(false) static boolean_false valueof(...) noexcept;
+
+            public:
+              static bool const value =
+                #if CPP_VERSION >= 2011uL
+                  std::is_union<subbase>::value or
+                #elif CPP_COMPILER == CPP_CIRCLE_COMPILER || CPP_COMPILER == CPP_CLANG_COMPILER || CPP_COMPILER == CPP_GNUC_COMPILER || CPP_COMPILER == CPP_INTEL_COMPILER || CPP_COMPILER == CPP_LLVM_COMPILER || CPP_COMPILER == CPP_NVCC_COMPILER
+                # ifdef __has_builtin // --> `__is_union(...)` may still exist otherwise
+                #   if __has_builtin(__is_union)
+                      __is_union(subbase) or
+                #   endif
+                # endif
+                #elif CPP_COMPILER == CPP_MSVC_COMPILER
+                  __is_union(subbase) or
+                #endif
+              sizeof(boolean_true) == sizeof(valueof<subbase>(sfinaeptr)) or
+              subfallback;
           };
 
           // ... ->> Evaluates if type is a class or union type
@@ -323,9 +336,6 @@
       };
 
       // ... ->> Aliases dependent type based on (boolean) condition
-      template <bool, typename = null, typename = null>
-      struct conditional;
-
       template <typename baseA, typename baseB>
       struct conditional<false, baseA, baseB> final {
         typedef baseB type;
@@ -361,141 +371,141 @@
       struct conditional<true, null volatile, base> final {};
 
       // ... ->> Evaluates if type is (based on) an integer type
-      template <typename base>
+      template <typename base, bool enumerable>
       struct is_integer final {
-        static bool const value = is_enum<base>::value;
+        static bool const value = conditional<enumerable, constant<bool, false, true>, is_enum<base> >::type::value;
       };
 
-      template <>
-      struct is_integer<bool> final {
+      template <bool enumerable>
+      struct is_integer<bool, enumerable> final {
         static bool const value = true;
       };
 
-      template <>
-      struct is_integer<char /* --> ... char */> final {
+      template <bool enumerable>
+      struct is_integer<char, enumerable> final {
         static bool const value = true;
       };
 
-      template <>
-      struct is_integer<int> final {
+      template <bool enumerable>
+      struct is_integer<int, enumerable> final {
         static bool const value = true;
       };
 
-      template <>
-      struct is_integer<long> final {
+      template <bool enumerable>
+      struct is_integer<long, enumerable> final {
         static bool const value = true;
       };
 
-      template <>
-      struct is_integer<short> final {
+      template <bool enumerable>
+      struct is_integer<short, enumerable> final {
         static bool const value = true;
       };
 
-      template <>
-      struct is_integer<signed char> final {
+      template <bool enumerable>
+      struct is_integer<signed char, enumerable> final {
         static bool const value = true;
       };
 
-      template <>
-      struct is_integer<unsigned char> final {
+      template <bool enumerable>
+      struct is_integer<unsigned char, enumerable> final {
         static bool const value = true;
       };
 
-      template <>
-      struct is_integer<unsigned int> final {
+      template <bool enumerable>
+      struct is_integer<unsigned int, enumerable> final {
         static bool const value = true;
       };
 
-      template <>
-      struct is_integer<unsigned long> final {
+      template <bool enumerable>
+      struct is_integer<unsigned long, enumerable> final {
         static bool const value = true;
       };
 
-      template <>
-      struct is_integer<unsigned short> final {
+      template <bool enumerable>
+      struct is_integer<unsigned short, enumerable> final {
         static bool const value = true;
       };
 
-      template <>
-      struct is_integer<wchar_t /* --> ... */> final {
+      template <bool enumerable>
+      struct is_integer<wchar_t, enumerable> final {
         static bool const value = true;
       };
 
       #if CPP_VERSION >= 2011uL
-        template <>
-        struct is_integer<long long> final {
+        template <bool enumerable>
+        struct is_integer<long long, enumerable> final {
           static bool const value = true;
         };
 
-        template <>
-        struct is_integer<unsigned long long> final {
+        template <bool enumerable>
+        struct is_integer<unsigned long long, enumerable> final {
           static bool const value = true;
         };
       #endif
 
       #ifdef __cpp_char8_t // --> 201811L
-        template <>
-        struct is_integer<char8_t /* --> unsigned char */> final {
+        template <bool enumerable>
+        struct is_integer<char8_t /* --> unsigned char */, enumerable> final {
           static bool const value = true;
         };
       #endif
 
       #ifdef __cpp_lib_byte // --> 201603L
-        template <>
-        struct is_integer<std::byte /* --> unsigned char */> final {
+        template <bool enumerable>
+        struct is_integer<std::byte /* --> unsigned char */, enumerable> final {
           static bool const value = true;
         };
       #endif
 
       #ifdef __cpp_unicode_characters // --> 200704L
-        template <>
-        struct is_integer<char16_t /* --> std::uint_least16_t */> final {
+        template <bool enumerable>
+        struct is_integer<char16_t /* --> std::uint_least16_t */, enumerable> final {
           static bool const value = true;
         };
 
-        template <>
-        struct is_integer<char32_t /* --> std::uint_least32_t */> final {
+        template <bool enumerable>
+        struct is_integer<char32_t /* --> std::uint_least32_t */, enumerable> final {
           static bool const value = true;
         };
       #endif
 
       #ifdef int128_t
-        template <>
-        struct is_integer<int128_t> final {
+        template <bool enumerable>
+        struct is_integer<int128_t, enumerable> final {
           static bool const value = true;
         };
       #endif
 
       #ifdef uint128_t
-        template <>
-        struct is_integer<uint128_t> final {
+        template <bool enumerable>
+        struct is_integer<uint128_t, enumerable> final {
           static bool const value = true;
         };
       #endif
 
       template <std::size_t width>
-      struct is_integer<bit<width> > final {
+      struct is_integer<bit<width>, false> final {
         static bool const value = true;
       };
 
-      template <typename base>
-      struct is_integer<base const> final {
-        static bool const value = is_integer<base>::value;
+      template <typename base, bool enumerable>
+      struct is_integer<base const, enumerable> final {
+        static bool const value = is_integer<base, enumerable>::value;
       };
 
-      template <typename base>
-      struct is_integer<base const volatile> final {
-        static bool const value = is_integer<base>::value;
+      template <typename base, bool enumerable>
+      struct is_integer<base const volatile, enumerable> final {
+        static bool const value = is_integer<base, enumerable>::value;
       };
 
-      template <typename base>
-      struct is_integer<base volatile> final {
-        static bool const value = is_integer<base>::value;
+      template <typename base, bool enumerable>
+      struct is_integer<base volatile, enumerable> final {
+        static bool const value = is_integer<base, enumerable>::value;
       };
 
       // ... ->> Constant of specified type preferably instantiated at compile-time
       #ifdef __cpp_constexpr // --> 200704L
-        template <typename base, base constantValue>
+        template <typename base, base constantValue, bool = false>
         struct constant final {
           constexpr static base value = constantValue;
         };
@@ -509,328 +519,18 @@
         struct constant<base, constantValue, false> final {
           static base const value;
         };
-          template <typename base, base constantValue>
-          base const constant<base, constantValue, false>::value = constantValue;
+          template <typename base, base value>
+          base const constant<base, value, false>::value = value;
       #endif
 
-      // ... ->> Enumeration type diagnostics
-      template <typename base>
-      struct enuminfo final {
-        private:
-          // ... ->> Evaluates if specified type has a conversion `operator` overload as member function
-          #if CPP_COMPILER == CPP_CIRCLE_COMPILER
-            template <typename, typename>
-            constfunc(true) static boolean_true (has_overloaded_cast)(...) noexcept;
-          #else
-            template <typename typeA, typename typeB>
-            constfunc(true) static boolean_true (has_overloaded_cast)(sfinae_t const, bool (*const)[static_cast<bool>(sizeof(&typeB::operator typeA)) + 1u] = nullptr) noexcept;
-
-            template <typename, typename>
-            constfunc(true) static boolean_false (has_overloaded_cast)(...) noexcept;
-          #endif
-
-          // ... ->> Evaluates if specified type has a conversion (of any type qualification) `operator` overload as member function
-          template <typename typeA, typename typeB>
-          constfunc(true) static typename conditional<sizeof(boolean_false) != (
-            sizeof(has_overloaded_cast<typeA,                 typeB>(SFINAE)) |
-            sizeof(has_overloaded_cast<typeA const,           typeB>(SFINAE)) |
-            sizeof(has_overloaded_cast<typeA const volatile,  typeB>(SFINAE)) |
-            sizeof(has_overloaded_cast<typeA       volatile,  typeB>(SFINAE)) |
-            sizeof(has_overloaded_cast<typeA&,                typeB>(SFINAE)) |
-            sizeof(has_overloaded_cast<typeA const&,          typeB>(SFINAE)) |
-            sizeof(has_overloaded_cast<typeA const volatile&, typeB>(SFINAE)) |
-            sizeof(has_overloaded_cast<typeA       volatile&, typeB>(SFINAE)) |
-            #ifdef __cpp_rvalue_references // --> 200610L
-              sizeof(has_overloaded_cast<typeA&&,                typeB>(SFINAE)) |
-              sizeof(has_overloaded_cast<typeA const&&,          typeB>(SFINAE)) |
-              sizeof(has_overloaded_cast<typeA const volatile&&, typeB>(SFINAE)) |
-              sizeof(has_overloaded_cast<typeA       volatile&&, typeB>(SFINAE)) |
-            #endif
-            sizeof(boolean_false)
-          ), boolean_true, boolean_false>::type has_overloaded_casts() noexcept;
-
-          // ... ->> Evaluates if `type` has an `operator +` overload as a member function
-          // template <typename type>
-          // constfunc(true) static boolean_true has_overloaded_member_plus(sfinae_t const, bool (*const)[(static_cast<void>(instanceof<type>().operator +()), 1u)] = nullptr) noexcept;
-
-          template <typename>
-          constfunc(true) static boolean_false has_overloaded_member_plus(...) noexcept;
-
-          // ... ->> Evaluates if `type` has an `operator +` overload
-          #if CPP_COMPILER == CPP_MSVC_COMPILER
-            template <typename>
-            constfunc(true) static boolean_true has_overloaded_nonmember_plus(...) noexcept;
-          #else
-            // template <typename type>
-            // constfunc(true) static boolean_true has_overloaded_nonmember_plus(sfinae_t const, bool (*const)[(static_cast<void>(operator +(instanceof<type>())), 1u)] = nullptr) noexcept;
-
-            template <typename>
-            constfunc(true) static boolean_false has_overloaded_nonmember_plus(...) noexcept;
-          #endif
-
-          // ... ->> Disambiguate underlying type of enumeration via overload resolution
-          struct typeinfo final {
-            private:
-              typedef unsigned char metadata_t;
-              typedef bool          signedness_t;
-              typedef std::size_t   size_t;
-
-              /* ... */
-              template <typename, sfinae_t = SFINAE> struct metadataof                  final { static metadata_t const value = 0u; };
-              template <sfinae_t sfinae>             struct metadataof<bool,    sfinae> final { static metadata_t const value = 1u; };
-              template <sfinae_t sfinae>             struct metadataof<char,    sfinae> final { static metadata_t const value = 2u; };
-              template <sfinae_t sfinae>             struct metadataof<wchar_t, sfinae> final { static metadata_t const value = 1u; };
-              #ifdef __cpp_char8_t // --> 201811L
-                template <sfinae_t sfinae> struct metadataof<char8_t, sfinae> final { static metadata_t const value = 3u; };
-              #endif
-              #ifdef __cpp_lib_byte // --> 201603L
-                template <sfinae_t sfinae> struct metadataof<std::byte, sfinae> final { static metadata_t const value = 4u; };
-              #endif
-              #ifdef __cpp_unicode_characters // --> 200704L
-                template <sfinae_t sfinae> struct metadataof<char16_t, sfinae> final { static metadata_t const value = 1u; };
-                template <sfinae_t sfinae> struct metadataof<char32_t, sfinae> final { static metadata_t const value = 1u; };
-              #endif
-
-              /* ... */
-              static unsigned char const METADATA_WIDTH   = 3u;
-              static unsigned char const SIGNEDNESS_WIDTH = 1u;
-              static unsigned char const SIZE_WIDTH       = (CHAR_BIT * sizeof(std::size_t)) - (METADATA_WIDTH + SIGNEDNESS_WIDTH);
-
-            public:
-              template <std::size_t subbase>
-              struct decode final {
-                private:
-                  static metadata_t   const metadata   = (subbase >> 0u)                                  & ((((1u << (METADATA_WIDTH   - 1u)) - 1u) << 1u) + 1u);
-                  static signedness_t const signedness = (subbase >> METADATA_WIDTH)                      & ((((1u << (SIGNEDNESS_WIDTH - 1u)) - 1u) << 1u) + 1u);
-                  static size_t       const size       = (subbase >> (METADATA_WIDTH + SIGNEDNESS_WIDTH)) & ((((1u << (SIZE_WIDTH       - 1u)) - 1u) << 1u) + 1u);
-
-                  typedef typename conditional<signedness, typename int_t<subbase>::type, typename uint_t<subbase>::type>::type base;
-
-                public:
-                  typedef
-                    typename conditional<metadata == metadataof<bool>   ::value && size == sizeof(bool),    bool,
-                    typename conditional<metadata == metadataof<char>   ::value && size == sizeof(char),    char,
-                    typename conditional<metadata == metadataof<wchar_t>::value && size == sizeof(wchar_t), wchar_t,
-
-                    typename conditional<
-                    #ifdef __cpp_char8_t // --> 201811L
-                      metadata == metadataof<char8_t>::value && size == sizeof(char8_t), char8_t,
-                    #else
-                      false, null,
-                    #endif
-
-                    typename conditional<
-                    #ifdef __cpp_lib_byte // --> 201603L
-                      metadata == metadataof<std::byte>::value && size == sizeof(std::byte), std::byte,
-                    #else
-                      false, null,
-                    #endif
-
-                    typename conditional<
-                    #ifdef __cpp_unicode_characters // --> 200704L
-                      metadata == metadataof<char16_t>::value && size == sizeof(char16_t), char16_t,
-                    #else
-                      false, null,
-                    #endif
-
-                    typename conditional<
-                    #ifdef __cpp_unicode_characters // --> 200704L
-                      metadata == metadataof<char32_t>::value && size == sizeof(char32_t), char32_t,
-                    #else
-                      false, null,
-                    #endif
-
-                      base
-                    >::type>::type>::type>::type>::type>::type>::type
-                  type;
-              };
-
-              // ...
-              template <typename subbase>
-              struct encode final {
-                private:
-                  typedef constant<bool, 0u == (sizeof(subbase) >> SIZE_WIDTH)> enum_underlying_type_unrepresentable;
-                  static_assert(enum_underlying_type_unrepresentable::value, "Expected enumeration underlying type to be of smaller size");
-
-                public:
-                  static std::size_t const value = (
-                    ((metadataof<subbase>::value                            & ((((1u << (METADATA_WIDTH   - 1u)) - 1u) << 1u) + 1u)) << 0u)             |
-                    ((static_cast<unsigned char>(is_signed<subbase>::value) & ((((1u << (SIGNEDNESS_WIDTH - 1u)) - 1u) << 1u) + 1u)) << METADATA_WIDTH) |
-                    ((sizeof(subbase)                                       & ((((1u << (SIZE_WIDTH       - 1u)) - 1u) << 1u) + 1u)) << (METADATA_WIDTH + SIGNEDNESS_WIDTH))
-                  );
-              };
-          };
-
-          constfunc(true) static byte (&(typeof)(bool           const) noexcept)[typeinfo::template encode<bool>          ::value];
-          constfunc(true) static byte (&(typeof)(char           const) noexcept)[typeinfo::template encode<char>          ::value];
-          constfunc(true) static byte (&(typeof)(int            const) noexcept)[typeinfo::template encode<int>           ::value];
-          constfunc(true) static byte (&(typeof)(long           const) noexcept)[typeinfo::template encode<long>          ::value];
-          constfunc(true) static byte (&(typeof)(short          const) noexcept)[typeinfo::template encode<short>         ::value];
-          constfunc(true) static byte (&(typeof)(signed char    const) noexcept)[typeinfo::template encode<signed char>   ::value];
-          constfunc(true) static byte (&(typeof)(unsigned       const) noexcept)[typeinfo::template encode<unsigned>      ::value];
-          constfunc(true) static byte (&(typeof)(unsigned char  const) noexcept)[typeinfo::template encode<unsigned char> ::value];
-          constfunc(true) static byte (&(typeof)(unsigned long  const) noexcept)[typeinfo::template encode<unsigned long> ::value];
-          constfunc(true) static byte (&(typeof)(unsigned short const) noexcept)[typeinfo::template encode<unsigned short>::value];
-          constfunc(true) static byte (&(typeof)(wchar_t        const) noexcept)[typeinfo::template encode<wchar_t>       ::value];
-          #if CPP_VERSION >= 2011uL
-            constfunc(true) static byte (&(typeof)(long long          const) noexcept)[typeinfo::template encode<long long>         ::value];
-            constfunc(true) static byte (&(typeof)(unsigned long long const) noexcept)[typeinfo::template encode<unsigned long long>::value];
-          #endif
-          #ifdef __cpp_char8_t // --> 201811L
-            constfunc(true) static byte (&(typeof)(char8_t const) noexcept)[typeinfo::template encode<char8_t>::value];
-          #endif
-          #ifdef __cpp_lib_byte // --> 201603L
-            constfunc(true) static byte (&(typeof)(std::byte const) noexcept)[typeinfo::template encode<std::byte>::value];
-          #endif
-          #ifdef __cpp_unicode_characters // --> 200704L
-            constfunc(true) static byte (&(typeof)(char16_t const) noexcept)[typeinfo::template encode<char16_t>::value];
-            constfunc(true) static byte (&(typeof)(char32_t const) noexcept)[typeinfo::template encode<char32_t>::value];
-          #endif
-          #ifdef int128_t
-            constfunc(true) static byte (&(typeof)(int128_t const) noexcept)[typeinfo::template encode<int128_t>::value];
-          #endif
-          #ifdef uint128_t
-            constfunc(true) static byte (&(typeof)(uint128_t const) noexcept)[typeinfo::template encode<uint128_t>::value];
-          #endif
-          constfunc(true) static byte (&(typeof)(...) noexcept)[typeinfo::template encode<uintmax_t>::value + 1u];
-
-          /* ...
-              --- NOTE (Lapys) -> Base enumeration types must not have `operator +` or conversion `operator` overloads but must yet still adhere to the constant evaluated expression `static_cast<std::size_t>(+static_cast<type>(0))`
-              --- WARN (Lapys) -> Fails to determine `operator` overloaded enumeration types
-          */
-          template <typename type>
-          constfunc(true) static typename conditional<sizeof(boolean_false) == (
-            sizeof(has_overloaded_member_plus   <type>(SFINAE)) |
-            sizeof(has_overloaded_nonmember_plus<type>(SFINAE)) |
-
-            // ... ->> All underlying types (likely not fully exhaustive)
-            sizeof(has_overloaded_casts<bool,           type>()) |
-            sizeof(has_overloaded_casts<byte,           type>()) |
-            sizeof(has_overloaded_casts<char,           type>()) |
-            sizeof(has_overloaded_casts<int,            type>()) |
-            sizeof(has_overloaded_casts<long,           type>()) |
-            sizeof(has_overloaded_casts<short,          type>()) |
-            sizeof(has_overloaded_casts<signed char,    type>()) |
-            sizeof(has_overloaded_casts<unsigned,       type>()) |
-            sizeof(has_overloaded_casts<unsigned char,  type>()) |
-            sizeof(has_overloaded_casts<unsigned long,  type>()) |
-            sizeof(has_overloaded_casts<unsigned short, type>()) |
-            sizeof(has_overloaded_casts<wchar_t,        type>()) |
-            #if CPP_VERSION >= 2011uL
-              sizeof(has_overloaded_casts<long long,          type>()) |
-              sizeof(has_overloaded_casts<unsigned long long, type>()) |
-            #endif
-            #ifdef __cpp_char8_t // --> 201811L
-              sizeof(has_overloaded_casts<char8_t, type>()) |
-            #endif
-            #ifdef __cpp_unicode_characters // --> 200704L
-              sizeof(has_overloaded_casts<char16_t, type>()) |
-              sizeof(has_overloaded_casts<char32_t, type>()) |
-            #endif
-            #ifdef int128_t
-              sizeof(has_overloaded_casts<int128_t, type>()) |
-            #endif
-            #ifdef uint128_t
-              sizeof(has_overloaded_casts<uint128_t, type>()) |
-            #endif
-            sizeof(boolean_false)
-          ), boolean_true, boolean_false>::type valueof(sfinae_t const, bool (*const)[static_cast<std::size_t>(+static_cast<type>(0)) + 1u] = nullptr) noexcept;
-
-          template <typename>
-          constfunc(true) static boolean_false valueof(...) noexcept;
-
-        public:
-          static bool const value =
-            #if CPP_VERSION >= 2011uL
-              std::is_enum<base>::value or
-            #elif CPP_COMPILER == CPP_MSVC_COMPILER
-              __is_enum(base) or
-            #elif CPP_COMPILER == CPP_CIRCLE_COMPILER || CPP_COMPILER == CPP_CLANG_COMPILER || CPP_COMPILER == CPP_GNUC_COMPILER || CPP_COMPILER == CPP_INTEL_COMPILER || CPP_COMPILER == CPP_LLVM_COMPILER || CPP_COMPILER == CPP_NVCC_COMPILER
-            # ifdef __has_builtin // --> `__is_enum(...)` may still exist otherwise
-            #   if __has_builtin(__is_enum)
-                  __is_enum(base) or
-            #   endif
-            # endif
-            #endif
-          sizeof(boolean_true) == sizeof(valueof<base>(SFINAE)) or
-          not classinfo<base, true>::value;
-
-          typedef typeinfo::template decode<sizeof((typeof)(instanceof<base>())) / sizeof(byte)>::type type;
-      };
-
-      // ... ->> Operation diagnostics
-      struct opinfo final {
-        struct membered final {};
+      // ... ->> Dummy type for overarching evaluation eg: `sizeof defer::type<T>` instead of `sizeof T` for incomplete type `T`
+      struct defer final {
+        template <typename base, base>
+        struct constant final {};
 
         // ...
-        struct nonmembered final {};
-
-        // ...
-        struct nonoverloaded final {};
-
-        // ... ->> Dis-junction of `member` and `nonmember` traits
-        struct overloaded final {};
-      };
-
-      // ... ->> Evaluates if type is a class or union type
-      template <typename base>
-      struct is_class final {
-        static bool const value = classinfo<base>::value;
-      };
-
-      // ... ->> Evaluates if type is a class or union type
-      template <typename base>
-      struct is_final final {
-        static bool const value = not is_class<base>::value or not classinfo<base>::derivable;
-      };
-
-      // ... ->> Evaluates if type is a union type
-      template <typename base>
-      struct is_union final {
-        static bool const value = classinfo<base>::value and classinfo<base>::variant;
-      };
-
-      // ... ->> Evaluates if type is an enumeration type
-      template <typename base>
-      struct is_enum final {
-        static bool const value = enuminfo<base>::value;
-      };
-
-      // ...
-      template <typename>
-      struct is_null final {
-        static bool const value = false;
-      };
-
-      template <>
-      struct is_null<null> final {
-        static bool const value = true;
-      };
-
-      template <>
-      struct is_null<null const> final {
-        static bool const value = true;
-      };
-
-      template <>
-      struct is_null<null const volatile> final {
-        static bool const value = true;
-      };
-
-      template <>
-      struct is_null<null volatile> final {
-        static bool const value = true;
-      };
-
-      // ... ->> Type equality
-      template <typename, typename>
-      struct is_same final {
-        static bool const value = false;
-      };
-
-      template <typename base>
-      struct is_same<base, base> final {
-        static bool const value = true;
+        template <typename>
+        struct type final {};
       };
 
       // ... ->> Type signedness
@@ -880,64 +580,150 @@
         };
       #endif
 
-      // ... ->> Type un-signedness
-      template <typename>
-      struct is_unsigned final {
-        static bool const value = false;
-      };
-
-      template <>
-      struct is_unsigned<unsigned char> final {
-        static bool const value = true;
-      };
-
-      template <>
-      struct is_unsigned<unsigned int> final {
-        static bool const value = true;
-      };
-
-      template <>
-      struct is_unsigned<unsigned long> final {
-        static bool const value = true;
-      };
-
-      template <>
-      struct is_unsigned<unsigned short> final {
-        static bool const value = true;
-      };
-
-      #if CHAR_MIN - 0
-      #else
-        template <>
-        struct is_unsigned<char> final {
-          static bool const value = true;
-        };
-      #endif
-
-      #if CPP_VERSION >= 2011uL
-        template <>
-        struct is_unsigned<unsigned long long> final {
-          static bool const value = true;
-        };
-      #endif
-
-      #ifdef uint128_t
-        template <>
-        struct is_unsigned<uint128_t> final {
-          static bool const value = true;
-        };
-      #endif
-    }
-
-    namespace Traits {
-      // ... ->> Dummy type for overarching evaluation eg: `sizeof defer::type<T>` instead of `sizeof T` for incomplete type `T`
-      struct defer final {
-        template <typename base, base>
-        struct constant final {};
-
-        // ...
+      // ... ->> Enumeration type diagnostics
+      struct enumtypeinfo final {
         template <typename>
-        struct type final {};
+        friend struct enuminfo;
+
+        private:
+          typedef unsigned char      metadata_t;
+          typedef bool               signedness_t;
+          typedef uintmax_template_t size_t;
+
+          /* ... */
+          static unsigned char const METADATA_WIDTH   = 3u;
+          static unsigned char const SIGNEDNESS_WIDTH = 1u;
+          static unsigned char const SIZE_WIDTH       = (CHAR_BIT * sizeof(size_t)) - (METADATA_WIDTH + SIGNEDNESS_WIDTH);
+
+          /* ... */
+          template <typename, sfinaeptr_t = sfinaeptr> struct metadataof                  final { static metadata_t const value = 0u; };
+          template <sfinaeptr_t sfinae>                struct metadataof<bool,    sfinae> final { static metadata_t const value = 1u; };
+          template <sfinaeptr_t sfinae>                struct metadataof<char,    sfinae> final { static metadata_t const value = 2u; };
+          template <sfinaeptr_t sfinae>                struct metadataof<wchar_t, sfinae> final { static metadata_t const value = 1u; };
+          #ifdef __cpp_char8_t // --> 201811L
+            template <sfinaeptr_t sfinae> struct metadataof<char8_t, sfinae> final { static metadata_t const value = 3u; };
+          #endif
+          #ifdef __cpp_lib_byte // --> 201603L
+            template <sfinaeptr_t sfinae> struct metadataof<std::byte, sfinae> final { static metadata_t const value = 4u; };
+          #endif
+          #ifdef __cpp_unicode_characters // --> 200704L
+            template <sfinaeptr_t sfinae> struct metadataof<char16_t, sfinae> final { static metadata_t const value = 1u; };
+            template <sfinaeptr_t sfinae> struct metadataof<char32_t, sfinae> final { static metadata_t const value = 1u; };
+          #endif
+
+          // ...
+          template <std::size_t base>
+          struct decode final {
+            private:
+              static metadata_t   const metadata   = (base >> 0u)                                  & ((((1u << (METADATA_WIDTH   - 1u)) - 1u) << 1u) + 1u);
+              static signedness_t const signedness = (base >> METADATA_WIDTH)                      & ((((1u << (SIGNEDNESS_WIDTH - 1u)) - 1u) << 1u) + 1u);
+              static size_t       const size       = (base >> (METADATA_WIDTH + SIGNEDNESS_WIDTH)) & ((((1u << (SIZE_WIDTH       - 1u)) - 1u) << 1u) + 1u);
+
+            public:
+              typedef
+                typename conditional<metadata == metadataof<bool>   ::value && size == sizeof(bool),    bool,
+                typename conditional<metadata == metadataof<char>   ::value && size == sizeof(char),    char,
+                typename conditional<metadata == metadataof<wchar_t>::value && size == sizeof(wchar_t), wchar_t,
+
+                typename conditional<
+                #ifdef __cpp_char8_t // --> 201811L
+                  metadata == metadataof<char8_t>::value && size == sizeof(char8_t), char8_t,
+                #else
+                  false, null,
+                #endif
+
+                typename conditional<
+                #ifdef __cpp_lib_byte // --> 201603L
+                  metadata == metadataof<std::byte>::value && size == sizeof(std::byte), std::byte,
+                #else
+                  false, null,
+                #endif
+
+                typename conditional<
+                #ifdef __cpp_unicode_characters // --> 200704L
+                  metadata == metadataof<char16_t>::value && size == sizeof(char16_t), char16_t,
+                #else
+                  false, null,
+                #endif
+
+                typename conditional<
+                #ifdef __cpp_unicode_characters // --> 200704L
+                  metadata == metadataof<char32_t>::value && size == sizeof(char32_t), char32_t,
+                #else
+                  false, null,
+                #endif
+
+                  typename conditional<signedness, typename int_t<size>::type, typename uint_t<size>::type>::type
+                >::type>::type>::type>::type>::type>::type>::type
+              type;
+          };
+
+          // ...
+          template <typename base, metadata_t metadata = 0u>
+          struct encode final {
+            private:
+              typedef constant<bool, 0u == (sizeof(base) >> SIZE_WIDTH)> enum_underlying_type_unrepresentable;
+              static_assert(enum_underlying_type_unrepresentable::value, "Expected enumeration underlying type to be of smaller size");
+
+            public:
+              static std::size_t const value = (
+                ((0u != metadata ? metadata : metadataof<base>::value & ((((1u << (METADATA_WIDTH   - 1u)) - 1u) << 1u) + 1u)) << 0u)             |
+                ((static_cast<unsigned char>(is_signed<base>::value)  & ((((1u << (SIGNEDNESS_WIDTH - 1u)) - 1u) << 1u) + 1u)) << METADATA_WIDTH) |
+                ((sizeof(base)                                        & ((((1u << (SIZE_WIDTH       - 1u)) - 1u) << 1u) + 1u)) << (METADATA_WIDTH + SIGNEDNESS_WIDTH))
+              );
+          };
+
+          /* ... ->> Disambiguate underlying type of enumeration via overload resolution */
+          constfunc(true) static byte (&(typeof)(bool           const) noexcept)[enumtypeinfo::encode<bool>          ::value];
+          constfunc(true) static byte (&(typeof)(char           const) noexcept)[enumtypeinfo::encode<char>          ::value];
+          constfunc(true) static byte (&(typeof)(int            const) noexcept)[enumtypeinfo::encode<int>           ::value];
+          constfunc(true) static byte (&(typeof)(long           const) noexcept)[enumtypeinfo::encode<long>          ::value];
+          constfunc(true) static byte (&(typeof)(short          const) noexcept)[enumtypeinfo::encode<short>         ::value];
+          constfunc(true) static byte (&(typeof)(signed char    const) noexcept)[enumtypeinfo::encode<signed char>   ::value];
+          constfunc(true) static byte (&(typeof)(unsigned       const) noexcept)[enumtypeinfo::encode<unsigned>      ::value];
+          constfunc(true) static byte (&(typeof)(unsigned char  const) noexcept)[enumtypeinfo::encode<unsigned char> ::value];
+          constfunc(true) static byte (&(typeof)(unsigned long  const) noexcept)[enumtypeinfo::encode<unsigned long> ::value];
+          constfunc(true) static byte (&(typeof)(unsigned short const) noexcept)[enumtypeinfo::encode<unsigned short>::value];
+          constfunc(true) static byte (&(typeof)(wchar_t        const) noexcept)[enumtypeinfo::encode<wchar_t>       ::value];
+          #if CPP_VERSION >= 2011uL
+            constfunc(true) static byte (&(typeof)(long long          const) noexcept)[enumtypeinfo::encode<long long>         ::value];
+            constfunc(true) static byte (&(typeof)(unsigned long long const) noexcept)[enumtypeinfo::encode<unsigned long long>::value];
+          #endif
+          #ifdef __cpp_char8_t // --> 201811L
+            constfunc(true) static byte (&(typeof)(char8_t const) noexcept)[enumtypeinfo::encode<char8_t>::value];
+          #endif
+          #ifdef __cpp_lib_byte // --> 201603L
+            constfunc(true) static byte (&(typeof)(std::byte const) noexcept)[enumtypeinfo::encode<std::byte>::value];
+          #endif
+          #ifdef __cpp_unicode_characters // --> 200704L
+            constfunc(true) static byte (&(typeof)(char16_t const) noexcept)[enumtypeinfo::encode<char16_t>::value];
+            constfunc(true) static byte (&(typeof)(char32_t const) noexcept)[enumtypeinfo::encode<char32_t>::value];
+          #endif
+          #ifdef int128_t
+            constfunc(true) static byte (&(typeof)(int128_t const) noexcept)[enumtypeinfo::encode<int128_t>::value];
+          #endif
+          #ifdef uint128_t
+            constfunc(true) static byte (&(typeof)(uint128_t const) noexcept)[enumtypeinfo::encode<uint128_t>::value];
+          #endif
+          constfunc(true) static byte (&(typeof)(...) noexcept)[enumtypeinfo::encode<uintmax_t>::value + 1u];
+      };
+
+      template <typename base>
+      struct enuminfo final {
+        typedef typename enumtypeinfo::template decode<sizeof((enumtypeinfo::typeof)(instanceof<base>())) / sizeof(byte)>::type type;
+        static bool const value =
+          #if CPP_VERSION >= 2011uL
+            std::is_enum<base>::value or
+          #elif CPP_COMPILER == CPP_MSVC_COMPILER
+            __is_enum(base) or
+          #elif CPP_COMPILER == CPP_CIRCLE_COMPILER || CPP_COMPILER == CPP_CLANG_COMPILER || CPP_COMPILER == CPP_GNUC_COMPILER || CPP_COMPILER == CPP_INTEL_COMPILER || CPP_COMPILER == CPP_LLVM_COMPILER || CPP_COMPILER == CPP_NVCC_COMPILER
+          # ifdef __has_builtin // --> `__is_enum(...)` may still exist otherwise
+          #   if __has_builtin(__is_enum)
+                __is_enum(base) or
+          #   endif
+          # endif
+          #endif
+        not (classinfo<base>::value or is_integer<base, true>::value);
       };
 
       // ... ->> Fastest floating-point type with at least specified size
@@ -1053,6 +839,184 @@
       template <std::size_t width>
       struct int_width_t final {
         typedef typename signedof<typename uint_width_t<width>::type>::type type;
+      };
+
+      // ... ->> Evaluates if type is a class or union type
+      template <typename base>
+      struct is_class final {
+        static bool const value = classinfo<base>::value;
+      };
+
+      // ... ->> Evaluates if type is an enumeration type
+      template <typename base>
+      struct is_enum final {
+        static bool const value = enuminfo<base>::value;
+      };
+
+      // ... ->> Evaluates if type is a class or union type
+      template <typename base>
+      struct is_final final {
+        static bool const value = not is_class<base>::value or not classinfo<base>::derivable;
+      };
+
+      // ...
+      template <typename>
+      struct is_null final {
+        static bool const value = false;
+      };
+
+      template <>
+      struct is_null<null> final {
+        static bool const value = true;
+      };
+
+      template <>
+      struct is_null<null const> final {
+        static bool const value = true;
+      };
+
+      template <>
+      struct is_null<null const volatile> final {
+        static bool const value = true;
+      };
+
+      template <>
+      struct is_null<null volatile> final {
+        static bool const value = true;
+      };
+
+      // ... ->> Type equality
+      template <typename, typename>
+      struct is_same final {
+        static bool const value = false;
+      };
+
+      template <typename base>
+      struct is_same<base, base> final {
+        static bool const value = true;
+      };
+
+      // ... ->> Type (expression) similarity
+      template <typename base>
+      struct is_similar final {
+        template <typename type>
+        constfunc(true) static typename conditional<is_same<base const volatile, type const volatile>::value, boolean_true, boolean_false>::type (value)(type nodecay) noexcept;
+      };
+
+      template <typename base>
+      struct is_similar<base&> final {
+        template <typename type> constfunc(true) static typename conditional<is_same<base, type>               ::value, boolean_true, boolean_false>::type (value)(type&)                noexcept;
+        template <typename type> constfunc(true) static typename conditional<is_same<base, type const>         ::value, boolean_true, boolean_false>::type (value)(type const&)          noexcept;
+        template <typename type> constfunc(true) static typename conditional<is_same<base, type const volatile>::value, boolean_true, boolean_false>::type (value)(type const volatile&) noexcept;
+        template <typename type> constfunc(true) static typename conditional<is_same<base, type       volatile>::value, boolean_true, boolean_false>::type (value)(type       volatile&) noexcept;
+      };
+
+      #ifdef __cpp_rvalue_references // --> 200610L
+        template <typename base>
+        struct is_similar<base&&> final {
+          constfunc(true)                          static typename conditional<is_same<base, typename remove_const_volatile<base>::type>               ::value, boolean_true, boolean_false>::type (value)(typename remove_const_volatile<base>::type&&)                noexcept;
+          constfunc(true)                          static typename conditional<is_same<base, typename remove_const_volatile<base>::type const>         ::value, boolean_true, boolean_false>::type (value)(typename remove_const_volatile<base>::type const&&)          noexcept;
+          constfunc(true)                          static typename conditional<is_same<base, typename remove_const_volatile<base>::type const volatile>::value, boolean_true, boolean_false>::type (value)(typename remove_const_volatile<base>::type const volatile&&) noexcept;
+          constfunc(true)                          static typename conditional<is_same<base, typename remove_const_volatile<base>::type       volatile>::value, boolean_true, boolean_false>::type (value)(typename remove_const_volatile<base>::type       volatile&&) noexcept;
+          template <typename type> constfunc(true) static boolean_false                                                                                                                            (value)(type const volatile&)                                        noexcept;
+        };
+      #endif
+
+      // ... ->> Evaluates if type is a union type
+      template <typename base>
+      struct is_union final {
+        static bool const value = classinfo<base>::value and classinfo<base>::variant;
+      };
+
+      // ... ->> Type un-signedness
+      template <typename>
+      struct is_unsigned final {
+        static bool const value = false;
+      };
+
+      template <>
+      struct is_unsigned<unsigned char> final {
+        static bool const value = true;
+      };
+
+      template <>
+      struct is_unsigned<unsigned int> final {
+        static bool const value = true;
+      };
+
+      template <>
+      struct is_unsigned<unsigned long> final {
+        static bool const value = true;
+      };
+
+      template <>
+      struct is_unsigned<unsigned short> final {
+        static bool const value = true;
+      };
+
+      #if CHAR_MIN - 0
+      #else
+        template <>
+        struct is_unsigned<char> final {
+          static bool const value = true;
+        };
+      #endif
+
+      #if CPP_VERSION >= 2011uL
+        template <>
+        struct is_unsigned<unsigned long long> final {
+          static bool const value = true;
+        };
+      #endif
+
+      #ifdef uint128_t
+        template <>
+        struct is_unsigned<uint128_t> final {
+          static bool const value = true;
+        };
+      #endif
+
+      // ... ->> Type topmost const-qualifier removal
+      template <typename base>
+      struct remove_const final {
+        typedef base type;
+      };
+
+      template <typename base>
+      struct remove_const<base const> final {
+        typedef base type;
+      };
+
+      // ... ->> Type topmost cv-qualifier removal
+      template <typename base>
+      struct remove_const_volatile final {
+        typedef base type;
+      };
+
+      template <typename base>
+      struct remove_const_volatile<base const> final {
+        typedef base type;
+      };
+
+      template <typename base>
+      struct remove_const_volatile<base const volatile> final {
+        typedef base type;
+      };
+
+      template <typename base>
+      struct remove_const_volatile<base volatile> final {
+        typedef base type;
+      };
+
+      // ... ->> Type topmost volatile-qualifier removal
+      template <typename base>
+      struct remove_volatile final {
+        typedef base type;
+      };
+
+      template <typename base>
+      struct remove_volatile<base volatile> final {
+        typedef base type;
       };
 
       // ... ->> Sign integer type
@@ -1209,45 +1173,21 @@
           #endif
         };
       #endif
+    }
 
-      // ... ->> Distinct "unsigned" type similar to `byte` for bitwise storage
-      template <std::size_t width>
-      struct bit final {
-        private:
-          typename uint_least_width_t<width>::type value : width;
+    namespace Traits {
+      // ... ->> Operation diagnostics
+      struct opinfo final {
+        struct membered final {};
 
-        public:
-      };
+        // ...
+        struct nonmembered final {};
 
-      template <>
-      struct bit<0u> final {
-        constfunc(true) bit(uintmin_t const) noexcept discard;
+        // ...
+        struct nonoverloaded final {};
 
-        /* ... --- TODO (Lapys) */
-        template <typename type> constfunc(true) bit         & operator =(type nodecay)         & noexcept discard { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_assignment; static_assert(invalid_assignment::value, "Assignment of empty type `bit<0zu>`"); return *this; }
-        template <typename type> constfunc(true) bit volatile& operator =(type nodecay) volatile& noexcept discard { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_assignment; static_assert(invalid_assignment::value, "Assignment of empty type `bit<0zu>`"); return *this; }
-        template <typename type> constfunc(true) friend bit         & operator  +=(bit&,          type nodecay) noexcept discard;
-        template <typename type> constfunc(true) friend bit volatile& operator  +=(bit volatile&, type nodecay) noexcept discard;
-        template <typename type> constfunc(true) friend bit         & operator  -=(bit&,          type nodecay) noexcept discard;
-        template <typename type> constfunc(true) friend bit volatile& operator  -=(bit volatile&, type nodecay) noexcept discard;
-        template <typename type> constfunc(true) friend bit         & operator  *=(bit&,          type nodecay) noexcept discard;
-        template <typename type> constfunc(true) friend bit volatile& operator  *=(bit volatile&, type nodecay) noexcept discard;
-        template <typename type> constfunc(true) friend bit         & operator  /=(bit&,          type nodecay) noexcept discard;
-        template <typename type> constfunc(true) friend bit volatile& operator  /=(bit volatile&, type nodecay) noexcept discard;
-        template <typename type> constfunc(true) friend bit         & operator  %=(bit&,          type nodecay) noexcept discard;
-        template <typename type> constfunc(true) friend bit volatile& operator  %=(bit volatile&, type nodecay) noexcept discard;
-        template <typename type> constfunc(true) friend bit         & operator  &=(bit&,          type nodecay) noexcept discard;
-        template <typename type> constfunc(true) friend bit volatile& operator  &=(bit volatile&, type nodecay) noexcept discard;
-        template <typename type> constfunc(true) friend bit         & operator  |=(bit&,          type nodecay) noexcept discard;
-        template <typename type> constfunc(true) friend bit volatile& operator  |=(bit volatile&, type nodecay) noexcept discard;
-        template <typename type> constfunc(true) friend bit         & operator  ^=(bit&,          type nodecay) noexcept discard;
-        template <typename type> constfunc(true) friend bit volatile& operator  ^=(bit volatile&, type nodecay) noexcept discard;
-        template <typename type> constfunc(true) friend bit         & operator <<=(bit&,          type nodecay) noexcept discard;
-        template <typename type> constfunc(true) friend bit volatile& operator <<=(bit volatile&, type nodecay) noexcept discard;
-        template <typename type> constfunc(true) friend bit         & operator >>=(bit&,          type nodecay) noexcept discard;
-        template <typename type> constfunc(true) friend bit volatile& operator >>=(bit volatile&, type nodecay) noexcept discard;
-
-        constfunc(true) operator uintmin_t() noexcept discard;
+        // ... ->> Dis-junction of `member` and `nonmember` traits
+        struct overloaded final {};
       };
 
       // ...
@@ -1263,93 +1203,141 @@
       struct nilof final {};
 
       /* Alias > ... */
-      typedef typename float_fast_width_t<8u>   ::type                                 float_fast8_t;
-      typedef typename float_fast_width_t<16u>  ::type                                 float_fast16_t;
-      typedef typename float_fast_width_t<32u>  ::type                                 float_fast32_t;
-      typedef typename float_fast_width_t<128u> ::type                                 float_fast128_t;
-      typedef typename float_least_width_t<8u>  ::type                                 float_least8_t;
-      typedef typename float_least_width_t<16u> ::type                                 float_least16_t;
-      typedef typename float_least_width_t<32u> ::type                                 float_least32_t;
-      typedef typename float_least_width_t<128u>::type                                 float_least128_t;
-      typedef typename float_least_width_t<widthof(static_cast<void*>(nullptr))>::type floatptr_t;
-      typedef std::uint_fast8_t                                                        uint_fast8_t;
-      typedef std::uint_fast16_t                                                       uint_fast16_t;
-      typedef std::uint_fast32_t                                                       uint_fast32_t;
-      typedef std::uint_fast64_t                                                       uint_fast64_t;
-      typedef typename uint_fast_width_t <128u> ::type                                 uint_fast128_t;
-      typedef typename uint_least_width_t<8u>   ::type                                 uint_least8_t;
-      typedef typename uint_least_width_t<16u>  ::type                                 uint_least16_t;
-      typedef typename uint_least_width_t<32u>  ::type                                 uint_least32_t;
-      typedef typename uint_least_width_t<64u>  ::type                                 uint_least64_t;
-      typedef typename uint_least_width_t<128u> ::type                                 uint_least128_t;
-      typedef typename uint_width_t      <8u>   ::type                                 uint8_t;
-      typedef typename uint_width_t      <16u>  ::type                                 uint16_t;
-      typedef typename uint_width_t      <32u>  ::type                                 uint32_t;
-      typedef typename uint_width_t      <64u>  ::type                                 uint64_t;
-      typedef unsigned char                                                            uintmin_t;
-      typedef typename uint_least_width_t<widthof(static_cast<void*>(nullptr))>::type  uintptr_t;
+      typedef float_fast_width_t <8u>  ::type                                 float_fast8_t;
+      typedef float_fast_width_t <16u> ::type                                 float_fast16_t;
+      typedef float_fast_width_t <32u> ::type                                 float_fast32_t;
+      typedef float_fast_width_t <64u> ::type                                 float_fast64_t;
+      typedef float_fast_width_t <128u>::type                                 float_fast128_t;
+      typedef float_least_width_t<8u>  ::type                                 float_least8_t;
+      typedef float_least_width_t<16u> ::type                                 float_least16_t;
+      typedef float_least_width_t<32u> ::type                                 float_least32_t;
+      typedef float_least_width_t<64u> ::type                                 float_least64_t;
+      typedef float_least_width_t<128u>::type                                 float_least128_t;
+      typedef float_least_width_t<widthof(static_cast<void*>(nullptr))>::type floatptr_t;
+
+      #ifdef float16_t
+        typedef conditional<sizeof(float) <= sizeof(float16_t), float, float16_t>::type floatmin_t;
+      #else
+        typedef float_width_t<16u>::type float16_t;
+        typedef float                    floatmin_t;
+      #endif
+
+      #ifndef float32_t
+        typedef float_width_t<32u>::type float32_t;
+      #endif
+
+      #ifndef float64_t
+        typedef float_width_t<64u>::type float64_t;
+      #endif
+
+      #ifndef float128_t
+        typedef float_width_t<128u>::type float128_t;
+      #endif
 
       typedef
-        typename conditional<not is_same<float_least128_t, void>::value, float_least128_t,
-        typename conditional<not is_same<float_least64_t,  void>::value, float_least64_t,
-        typename conditional<not is_same<float_least32_t,  void>::value, float_least32_t,
-        typename conditional<not is_same<float_least16_t,  void>::value, float_least16_t,
-        typename conditional<not is_same<float_least8_t,   void>::value, float_least8_t,
+        conditional<not is_same<float_least128_t, void>::value, float_least128_t,
+        conditional<not is_same<float_least64_t,  void>::value, float_least64_t,
+        conditional<not is_same<float_least32_t,  void>::value, float_least32_t,
+        conditional<not is_same<float_least16_t,  void>::value, float_least16_t,
+        conditional<not is_same<float_least8_t,   void>::value, float_least8_t,
           void
         >::type>::type>::type>::type>::type
       floatmax_t;
 
+      // ...
+      typedef uint_fast8_t                                                   uint_fast8_t;
+      typedef uint_fast16_t                                                  uint_fast16_t;
+      typedef uint_fast32_t                                                  uint_fast32_t;
+      typedef uint_fast64_t                                                  uint_fast64_t;
+      typedef uint_fast_width_t <128u>::type                                 uint_fast128_t;
+      typedef uint_least_width_t<8u>  ::type                                 uint_least8_t;
+      typedef uint_least_width_t<16u> ::type                                 uint_least16_t;
+      typedef uint_least_width_t<32u> ::type                                 uint_least32_t;
+      typedef uint_least_width_t<64u> ::type                                 uint_least64_t;
+      typedef uint_least_width_t<128u>::type                                 uint_least128_t;
+      typedef uint_width_t      <8u>  ::type                                 uint8_t;
+      typedef uint_width_t      <16u> ::type                                 uint16_t;
+      typedef uint_width_t      <32u> ::type                                 uint32_t;
+      typedef uint_width_t      <64u> ::type                                 uint64_t;
+      typedef unsigned char                                                  uintmin_t;
+      typedef uint_least_width_t<widthof(static_cast<void*>(nullptr))>::type uintptr_t;
+
+      #ifndef uint128_t
+        typedef uint_width_t<128u>::type uint128_t;
+      #endif
+
       typedef
-        typename conditional<not is_same<uint_least128_t, void>::value, uint_least128_t,
-        typename conditional<not is_same<uint_least64_t,  void>::value, uint_least64_t,
-        typename conditional<not is_same<uint_least32_t,  void>::value, uint_least32_t,
-        typename conditional<not is_same<uint_least16_t,  void>::value, uint_least16_t,
-        typename conditional<not is_same<uint_least8_t,   void>::value, uint_least8_t,
+        conditional<not is_same<uint_least128_t, void>::value, uint_least128_t,
+        conditional<not is_same<uint_least64_t,  void>::value, uint_least64_t,
+        conditional<not is_same<uint_least32_t,  void>::value, uint_least32_t,
+        conditional<not is_same<uint_least16_t,  void>::value, uint_least16_t,
+        conditional<not is_same<uint_least8_t,   void>::value, uint_least8_t,
           void
         >::type>::type>::type>::type>::type
       uintmax_t;
 
-      #ifdef float16_t
-        typedef typename conditional<sizeof(float) <= sizeof(float16_t), float, float16_t>::type floatmin_t;
-      #else
-        typedef typename float_width_t<16u>::type float16_t;
-        typedef float                             floatmin_t;
+      // ...
+      typedef signedof<uint_fast8_t>   ::type int_fast8_t;
+      typedef signedof<uint_fast16_t>  ::type int_fast16_t;
+      typedef signedof<uint_fast32_t>  ::type int_fast32_t;
+      typedef signedof<uint_fast64_t>  ::type int_fast64_t;
+      typedef signedof<uint_fast128_t> ::type int_fast128_t;
+      typedef signedof<uint_least8_t>  ::type int_least8_t;
+      typedef signedof<uint_least16_t> ::type int_least16_t;
+      typedef signedof<uint_least32_t> ::type int_least32_t;
+      typedef signedof<uint_least64_t> ::type int_least64_t;
+      typedef signedof<uint_least128_t>::type int_least128_t;
+      typedef signedof<uint8_t>        ::type int8_t;
+      typedef signedof<uint16_t>       ::type int16_t;
+      typedef signedof<uint32_t>       ::type int32_t;
+      typedef signedof<uint64_t>       ::type int64_t;
+      typedef signedof<uintmax_t>      ::type intmax_t;
+      typedef signedof<uintmin_t>      ::type intmin_t;
+      typedef signedof<uintptr_t>      ::type intptr_t;
+
+      #ifndef int128_t
+        typedef signedof<uint128_t>::type int128_t;
       #endif
 
-      #ifndef float32_t
-        typedef typename float_width_t<32u>::type float32_t;
-      #endif
+      /* Class > Bit */
+      template <std::size_t width>
+      struct bit final {
+        private:
+          typename uint_least_width_t<width>::type value : width;
 
-      #ifndef float64_t
-        typedef typename float_width_t<64u>::type float64_t;
-      #endif
+        public:
+      };
 
-      #ifndef float128_t
-        typedef typename float_width_t<128u>::type float128_t;
-      #endif
+      template <>
+      struct bit<0u> final {
+        constfunc(true) bit(uintmin_t const) noexcept discard;
 
-      #ifndef uint128_t
-        typedef typename uint_width_t<128u>::type uint128_t;
-      #endif
+        /* ... --- TODO (Lapys) */
+        // template <typename type> constfunc(true) bit         & operator =(type nodecay)         & noexcept discard { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_assignment; static_assert(invalid_assignment::value, "Assignment of empty type `bit<0zu>`"); return *this; }
+        // template <typename type> constfunc(true) bit volatile& operator =(type nodecay) volatile& noexcept discard { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_assignment; static_assert(invalid_assignment::value, "Assignment of empty type `bit<0zu>`"); return *this; }
+        // template <typename type> constfunc(true) friend bit         & operator  +=(bit&,          type nodecay) noexcept discard;
+        // template <typename type> constfunc(true) friend bit volatile& operator  +=(bit volatile&, type nodecay) noexcept discard;
+        // template <typename type> constfunc(true) friend bit         & operator  -=(bit&,          type nodecay) noexcept discard;
+        // template <typename type> constfunc(true) friend bit volatile& operator  -=(bit volatile&, type nodecay) noexcept discard;
+        // template <typename type> constfunc(true) friend bit         & operator  *=(bit&,          type nodecay) noexcept discard;
+        // template <typename type> constfunc(true) friend bit volatile& operator  *=(bit volatile&, type nodecay) noexcept discard;
+        // template <typename type> constfunc(true) friend bit         & operator  /=(bit&,          type nodecay) noexcept discard;
+        // template <typename type> constfunc(true) friend bit volatile& operator  /=(bit volatile&, type nodecay) noexcept discard;
+        // template <typename type> constfunc(true) friend bit         & operator  %=(bit&,          type nodecay) noexcept discard;
+        // template <typename type> constfunc(true) friend bit volatile& operator  %=(bit volatile&, type nodecay) noexcept discard;
+        // template <typename type> constfunc(true) friend bit         & operator  &=(bit&,          type nodecay) noexcept discard;
+        // template <typename type> constfunc(true) friend bit volatile& operator  &=(bit volatile&, type nodecay) noexcept discard;
+        // template <typename type> constfunc(true) friend bit         & operator  |=(bit&,          type nodecay) noexcept discard;
+        // template <typename type> constfunc(true) friend bit volatile& operator  |=(bit volatile&, type nodecay) noexcept discard;
+        // template <typename type> constfunc(true) friend bit         & operator  ^=(bit&,          type nodecay) noexcept discard;
+        // template <typename type> constfunc(true) friend bit volatile& operator  ^=(bit volatile&, type nodecay) noexcept discard;
+        // template <typename type> constfunc(true) friend bit         & operator <<=(bit&,          type nodecay) noexcept discard;
+        // template <typename type> constfunc(true) friend bit volatile& operator <<=(bit volatile&, type nodecay) noexcept discard;
+        // template <typename type> constfunc(true) friend bit         & operator >>=(bit&,          type nodecay) noexcept discard;
+        // template <typename type> constfunc(true) friend bit volatile& operator >>=(bit volatile&, type nodecay) noexcept discard;
 
-      typedef typename signedof<uint_fast8_t>   ::type int_fast8_t;
-      typedef typename signedof<uint_fast16_t>  ::type int_fast16_t;
-      typedef typename signedof<uint_fast32_t>  ::type int_fast32_t;
-      typedef typename signedof<uint_fast64_t>  ::type int_fast64_t;
-      typedef typename signedof<uint_fast128_t> ::type int_fast128_t;
-      typedef typename signedof<uint_least8_t>  ::type int_least8_t;
-      typedef typename signedof<uint_least16_t> ::type int_least16_t;
-      typedef typename signedof<uint_least32_t> ::type int_least32_t;
-      typedef typename signedof<uint_least64_t> ::type int_least64_t;
-      typedef typename signedof<uint_least128_t>::type int_least128_t;
-      typedef typename signedof<uint8_t>        ::type int8_t;
-      typedef typename signedof<uint16_t>       ::type int16_t;
-      typedef typename signedof<uint32_t>       ::type int32_t;
-      typedef typename signedof<uint64_t>       ::type int64_t;
-      typedef typename signedof<uint128_t>      ::type int128_t;
-      typedef typename signedof<uintmax_t>      ::type intmax_t;
-      typedef typename signedof<uintmin_t>      ::type intmin_t;
-      typedef typename signedof<uintptr_t>      ::type intptr_t;
+        constfunc(true) operator uintmin_t() const noexcept discard;
+      };
     }
 
   //   namespace Traits {
@@ -1373,10 +1361,6 @@
   //   // ...
   //   #define as as_operator
   //   # define as_operator(object) as(object)
-
-  //   // ...
-  //   #define widthof widthof_operator
-  //   # define widthof_operator(object) sizeof(widthof(object)) / sizeof(uintmin_t)
 
   //   /* Function */
   //   // As ->> Permissibly converts between types; amalgam of `reinterpret_cast`, `static_cast`, and `std::bit_cast<>`

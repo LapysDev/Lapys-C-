@@ -3,7 +3,6 @@
 #define LAPYS_PREPROCESSOR       true
 #define LAPYS_PREPROCESSOR_GUARD false
 
-#define private public
 #include <cstdio>
 #include "lapys.hpp"
 

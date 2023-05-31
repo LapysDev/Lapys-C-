@@ -1,5 +1,37 @@
 #if preprocessed(LAPYS_PREPROCESSOR_GUARD)
   /* Guard > ... */
+  #ifdef alignas
+  # error Lapys C++: Unexpected `alignas` macro definition
+  #endif
+
+  #ifdef alignof
+  # error Lapys C++: Unexpected `alignof` macro definition
+  #endif
+
+  #ifdef and
+  # error Lapys C++: Unexpected `and` macro definition
+  #endif
+
+  #ifdef and_eq
+  # error Lapys C++: Unexpected `and_eq` macro definition
+  #endif
+
+  #ifdef asm
+  # error Lapys C++: Unexpected `asm` macro definition
+  #endif
+
+  #ifdef auto
+  # error Lapys C++: Unexpected `auto` macro definition
+  #endif
+
+  #ifdef bitand
+  # error Lapys C++: Unexpected `bitand` macro definition
+  #endif
+
+  #ifdef bitor
+  # error Lapys C++: Unexpected `bitor` macro definition
+  #endif
+
   #ifdef bool
   # error Lapys C++: Unexpected `bool` macro definition
   #endif
@@ -20,10 +52,6 @@
   # error Lapys C++: Unexpected `char` macro definition
   #endif
 
-  #ifdef char8_t
-  # error Lapys C++: Unexpected `char8_t` macro definition
-  #endif
-
   #ifdef char16_t
   # error Lapys C++: Unexpected `char16_t` macro definition
   #endif
@@ -32,8 +60,28 @@
   # error Lapys C++: Unexpected `char32_t` macro definition
   #endif
 
+  #ifdef char8_t
+  # error Lapys C++: Unexpected `char8_t` macro definition
+  #endif
+
   #ifdef class
   # error Lapys C++: Unexpected `class` macro definition
+  #endif
+
+  #ifdef co_await
+  # error Lapys C++: Unexpected `co_await` macro definition
+  #endif
+
+  #ifdef co_return
+  # error Lapys C++: Unexpected `co_return` macro definition
+  #endif
+
+  #ifdef co_yield
+  # error Lapys C++: Unexpected `co_yield` macro definition
+  #endif
+
+  #ifdef compl
+  # error Lapys C++: Unexpected `compl` macro definition
   #endif
 
   #ifdef concept
@@ -62,6 +110,10 @@
 
   #ifdef continue
   # error Lapys C++: Unexpected `continue` macro definition
+  #endif
+
+  #ifdef decltype
+  # error Lapys C++: Unexpected `decltype` macro definition
   #endif
 
   #ifdef default
@@ -96,12 +148,20 @@
   # error Lapys C++: Unexpected `explicit` macro definition
   #endif
 
+  #ifdef export
+  # error Lapys C++: Unexpected `export` macro definition
+  #endif
+
   #ifdef extern
   # error Lapys C++: Unexpected `extern` macro definition
   #endif
 
   #ifdef false
   # error Lapys C++: Unexpected `false` macro definition
+  #endif
+
+  #ifdef final
+  # error Lapys C++: Unexpected `final` macro definition
   #endif
 
   #ifdef float
@@ -124,6 +184,10 @@
   # error Lapys C++: Unexpected `if` macro definition
   #endif
 
+  #ifdef import
+  # error Lapys C++: Unexpected `import` macro definition
+  #endif
+
   #ifdef inline
   # error Lapys C++: Unexpected `inline` macro definition
   #endif
@@ -134,6 +198,10 @@
 
   #ifdef long
   # error Lapys C++: Unexpected `long` macro definition
+  #endif
+
+  #ifdef module
+  # error Lapys C++: Unexpected `module` macro definition
   #endif
 
   #ifdef mutable
@@ -148,8 +216,36 @@
   # error Lapys C++: Unexpected `new` macro definition
   #endif
 
+  #ifdef noexcept
+  # error Lapys C++: Unexpected `noexcept` macro definition
+  #endif
+
+  #ifdef not
+  # error Lapys C++: Unexpected `not` macro definition
+  #endif
+
+  #ifdef not_eq
+  # error Lapys C++: Unexpected `not_eq` macro definition
+  #endif
+
+  #ifdef nullptr
+  # error Lapys C++: Unexpected `nullptr` macro definition
+  #endif
+
   #ifdef operator
   # error Lapys C++: Unexpected `operator` macro definition
+  #endif
+
+  #ifdef or
+  # error Lapys C++: Unexpected `or` macro definition
+  #endif
+
+  #ifdef or_eq
+  # error Lapys C++: Unexpected `or_eq` macro definition
+  #endif
+
+  #ifdef override
+  # error Lapys C++: Unexpected `override` macro definition
   #endif
 
   #ifdef private
@@ -176,6 +272,10 @@
   # error Lapys C++: Unexpected `reinterpret_cast` macro definition
   #endif
 
+  #ifdef requires
+  # error Lapys C++: Unexpected `requires` macro definition
+  #endif
+
   #ifdef return
   # error Lapys C++: Unexpected `return` macro definition
   #endif
@@ -188,8 +288,16 @@
   # error Lapys C++: Unexpected `signed` macro definition
   #endif
 
+  #ifdef sizeof
+  # error Lapys C++: Unexpected `sizeof` macro definition
+  #endif
+
   #ifdef static
   # error Lapys C++: Unexpected `static` macro definition
+  #endif
+
+  #ifdef static_assert
+  # error Lapys C++: Unexpected `static_assert` macro definition
   #endif
 
   #ifdef static_cast
@@ -270,5 +378,13 @@
 
   #ifdef while
   # error Lapys C++: Unexpected `while` macro definition
+  #endif
+
+  #ifdef xor
+  # error Lapys C++: Unexpected `xor` macro definition
+  #endif
+
+  #ifdef xor_eq
+  # error Lapys C++: Unexpected `xor_eq` macro definition
   #endif
 #endif

@@ -214,7 +214,7 @@
   #   undef widthof
   # endif
   #
-  # undef SFINAE
+  # undef sfinaeptr
   #endif
 
   #ifdef LAPYS_MODULE_EXTENSIONS
