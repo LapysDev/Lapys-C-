@@ -46,7 +46,7 @@
 
   #if defined(__circle_lang__)
   # define CPP_COMPILER CPP_CIRCLE_COMPILER
-  #elif defined(__ICC) || defined(__INTEL_COMPILER) || defined(__INTEL_LLVM_COMPILER)
+  #elif defined(__ICC) or defined(__INTEL_COMPILER) or defined(__INTEL_LLVM_COMPILER)
   # define CPP_COMPILER CPP_INTEL_COMPILER
   #elif defined(__clang__)
   # define CPP_COMPILER CPP_CLANG_COMPILER
@@ -57,19 +57,19 @@
   #elif defined(__llvm__)
   # define CPP_COMPILER CPP_LLVM_COMPILER
   # // ->> Unsupported compilers
-  #elif defined(__BORLANDC__) || defined(__CODEGEARC__)
+  #elif defined(__BORLANDC__) or defined(__CODEGEARC__)
   # define CPP_COMPILER CPP_BORLAND_COMPILER
-  #elif defined(__COMO__) || defined(__COMO_VERSION__)
+  #elif defined(__COMO__) or defined(__COMO_VERSION__)
   # define CPP_COMPILER CPP_COMEAU_COMPILER
-  #elif defined(__COMPILER_VER__) || defined(__IBMCPP__) || defined(__xlC__) || defined(__xlc__)
+  #elif defined(__COMPILER_VER__) or defined(__IBMCPP__) or defined(__xlC__) or defined(__xlc__)
   # define CPP_COMPILER CPP_IBM_COMPILER
-  #elif defined(__CUDACC_VER_BUILD__) || defined(__CUDACC_VER_MAJOR__) || defined(__CUDACC_VER_MINOR__) || defined(__NVCC__) || defined(__NVCOMPILER)
+  #elif defined(__CUDACC_VER_BUILD__) or defined(__CUDACC_VER_MAJOR__) or defined(__CUDACC_VER_MINOR__) or defined(__NVCC__) or defined(__NVCOMPILER)
   # define CPP_COMPILER CPP_NVCC_COMPILER
-  #elif defined(__CWCC__) || defined(__MWERKS__)
+  #elif defined(__CWCC__) or defined(__MWERKS__)
   # define CPP_COMPILER CPP_MWERKS_COMPILER
-  #elif defined(__DCC__) || defined(__VERSION_NUMBER__)
+  #elif defined(__DCC__) or defined(__VERSION_NUMBER__)
   # define CPP_COMPILER CPP_DIAB_COMPILER
-  #elif defined(__DECC) || defined(__DECC_VER) || defined(__DECCXX) || defined(__DECCXX_VER)
+  #elif defined(__DECC) or defined(__DECC_VER) or defined(__DECCXX) or defined(__DECCXX_VER)
   # define CPP_COMPILER CPP_DEC_COMPILER
   #elif defined(__DMC__)
   # define CPP_COMPILER CPP_DMC_COMPILER
@@ -77,23 +77,23 @@
   # define CPP_COMPILER CPP_EDG_COMPILER
   #elif defined(__GCCXML__)
   # define CPP_COMPILER CPP_GCCXML_COMPILER
-  #elif defined(__GHS_VERSION_NUMBER__) || defined(__ghs) || defined(__ghs__)
+  #elif defined(__GHS_VERSION_NUMBER__) or defined(__ghs) or defined(__ghs__)
   # define CPP_COMPILER CPP_GHS_COMPILER
   #elif defined(__HIGHC__)
   # define CPP_COMPILER CPP_HIGHC_COMPILER
   #elif defined(__HP_aCC)
   # define CPP_COMPILER CPP_HPACC_COMPILER
-  #elif defined(__IAR_SYSTEMS_ICC__) || defined(__VER__)
+  #elif defined(__IAR_SYSTEMS_ICC__) or defined(__VER__)
   # define CPP_COMPILER CPP_IAR_COMPILER
-  #elif defined(__KCC) || defined(__KCC_VERSION)
+  #elif defined(__KCC) or defined(__KCC_VERSION)
   # define CPP_COMPILER CPP_KCC_COMPILER
-  #elif defined(__MRC__) || defined(MPW_C) || defined(MPW_CPLUS)
+  #elif defined(__MRC__) or defined(MPW_C) or defined(MPW_CPLUS)
   # define CPP_COMPILER CPP_MPW_COMPILER
-  #elif defined(__PATHCC__) || defined(__PATHCC_MINOR__) || defined(__PATHCC_PATCHLEVEL__)
+  #elif defined(__PATHCC__) or defined(__PATHCC_MINOR__) or defined(__PATHCC_PATCHLEVEL__)
   # define CPP_COMPILER CPP_PATH_COMPILER
-  #elif defined(__PGI) || defined(__PGIC__) || defined(__PGIC_MINOR__) || defined(__PGIC_PATCHLEVEL__)
+  #elif defined(__PGI) or defined(__PGIC__) or defined(__PGIC_MINOR__) or defined(__PGIC_PATCHLEVEL__)
   # define CPP_COMPILER CPP_PGI_COMPILER
-  #elif defined(__SUNPRO_C) || defined(__SUNPRO_CC)
+  #elif defined(__SUNPRO_C) or defined(__SUNPRO_CC)
   # define CPP_COMPILER CPP_SUNPRO_COMPILER
   #elif defined(__SYSC_ZARCH__)
   # define CPP_COMPILER CPP_SYSC_COMPILER
@@ -101,7 +101,7 @@
   # define CPP_COMPILER CPP_TENDRA_COMPILER
   #elif defined(__WATCOMC__)
   # define CPP_COMPILER CPP_WATCOM_COMPILER
-  #elif defined(_COMPILER_VERSION) || defined(__sgi) || defined(_SGI_COMPILER_VERSION) || defined(sgi)
+  #elif defined(_COMPILER_VERSION) or defined(__sgi) or defined(_SGI_COMPILER_VERSION) or defined(sgi)
   # define CPP_COMPILER CPP_SGI_COMPILER
   #elif defined(_MRI)
   # define CPP_COMPILER CPP_MRI_COMPILER
@@ -145,7 +145,7 @@
   /* Import > C++ Standard Library */
   #if CPP_VERSION >= 2020uL
   # include <stdfloat> // Standard Float ->> Optional in freestanding environments?
-  # if CPP_COMPILER == CPP_CLANG_COMPILER || CPP_COMPILER == CPP_GNUC_COMPILER || CPP_COMPILER == CPP_INTEL_COMPILER || CPP_COMPILER == CPP_MSVC_COMPILER || CPP_COMPILER == CPP_NVCC_COMPILER
+  # if CPP_COMPILER == CPP_CLANG_COMPILER or CPP_COMPILER == CPP_GNUC_COMPILER or CPP_COMPILER == CPP_INTEL_COMPILER or CPP_COMPILER == CPP_MSVC_COMPILER or CPP_COMPILER == CPP_NVCC_COMPILER
   #   include <version> // Language Support
   # endif
   #endif
@@ -196,47 +196,47 @@
   # define CPP_SYSTEM_390_ARCHITECTURE    0x15u // -> https://en.wikipedia.org/wiki/System/390
   # define CPP_Z_ARCHITECTURE             0x16u // -> https://en.wikipedia.org/wiki/Z/Architecture
 
-  #if defined(__370__) || defined(__THW_370__)
+  #if defined(__370__) or defined(__THW_370__)
   # define CPP_ARCHITECTURE CPP_SYSTEM_370_ARCHITECTURE
-  #elif defined(__aarch64__) || defined(__aarch64__) || defined(__AARCH64EL__) || defined(__AARCH64EL__) || defined(__arm64) || defined(__arm64) || defined(__arm__) || defined(__ARM_ARCH) || defined(__ARM_ARCH) || defined(__ARM_ARCH_4__) || defined(__ARM_ARCH_4__) || defined(__ARM_ARCH_4T__) || defined(__ARM_ARCH_4T__) || defined(__ARM_ARCH_5TE__) || defined(__ARM_ARCH_5TE__) || defined(__ARM_ARCH_5TEJ__) || defined(__ARM_ARCH_5TEJ__) || defined(__ARM_ARCH_6K__) || defined(__ARM_ARCH_6K__) || defined(__ARM_ARCH_6KZ__) || defined(__ARM_ARCH_6KZ__) || defined(__ARM_ARCH_6T2__) || defined(__ARM_ARCH_6T2__) || defined(__ARM_ARCH_6Z__) || defined(__ARM_ARCH_6Z__) || defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7R__) || defined(__ARM_ARCH_7R__) || defined(__TARGET_ARCH_ARM) || defined(__TARGET_ARCH_ARM) || defined(__TARGET_ARCH_THUMB) || defined(__TARGET_ARCH_THUMB) || defined(__thumb__) || defined(_M_ARM) || defined(_M_ARM) || defined(_M_ARM64) || defined(_M_ARM64)
+  #elif defined(__aarch64__) or defined(__aarch64__) or defined(__AARCH64EL__) or defined(__AARCH64EL__) or defined(__arm64) or defined(__arm64) or defined(__arm__) or defined(__ARM_ARCH) or defined(__ARM_ARCH) or defined(__ARM_ARCH_4__) or defined(__ARM_ARCH_4__) or defined(__ARM_ARCH_4T__) or defined(__ARM_ARCH_4T__) or defined(__ARM_ARCH_5TE__) or defined(__ARM_ARCH_5TE__) or defined(__ARM_ARCH_5TEJ__) or defined(__ARM_ARCH_5TEJ__) or defined(__ARM_ARCH_6K__) or defined(__ARM_ARCH_6K__) or defined(__ARM_ARCH_6KZ__) or defined(__ARM_ARCH_6KZ__) or defined(__ARM_ARCH_6T2__) or defined(__ARM_ARCH_6T2__) or defined(__ARM_ARCH_6Z__) or defined(__ARM_ARCH_6Z__) or defined(__ARM_ARCH_7__) or defined(__ARM_ARCH_7__) or defined(__ARM_ARCH_7A__) or defined(__ARM_ARCH_7A__) or defined(__ARM_ARCH_7M__) or defined(__ARM_ARCH_7M__) or defined(__ARM_ARCH_7R__) or defined(__ARM_ARCH_7R__) or defined(__TARGET_ARCH_ARM) or defined(__TARGET_ARCH_ARM) or defined(__TARGET_ARCH_THUMB) or defined(__TARGET_ARCH_THUMB) or defined(__thumb__) or defined(_M_ARM) or defined(_M_ARM) or defined(_M_ARM64) or defined(_M_ARM64)
   # define CPP_ARCHITECTURE CPP_ARM_ARCHITECTURE
-  #elif defined(__alpha) || defined(__alpha__) || defined(__alpha_ev4__) || defined(__alpha_ev5__) || defined(__alpha_ev6__) || defined(_M_ALPHA)
+  #elif defined(__alpha) or defined(__alpha__) or defined(__alpha_ev4__) or defined(__alpha_ev5__) or defined(__alpha_ev6__) or defined(_M_ALPHA)
   # define CPP_ARCHITECTURE CPP_ALPHA_ARCHITECTURE
-  #elif defined(__amd64) || defined(__amd64__) || defined(__x86_64) || defined(__x86_64__) || defined(_M_X64)
+  #elif defined(__amd64) or defined(__amd64__) or defined(__x86_64) or defined(__x86_64__) or defined(_M_X64)
   # define CPP_ARCHITECTURE CPP_INTEL_X86_64_ARCHITECTURE
-  #elif defined(__bfin__) || defined(__BFIN__) || defined(bfin) || defined(BFIN)
+  #elif defined(__bfin__) or defined(__BFIN__) or defined(bfin) or defined(BFIN)
   # define CPP_ARCHITECTURE CPP_BLACKFIN_ARCHITECTURE
-  #elif defined(__convex__) || defined(__convex_c1__) || defined(__convex_c2__) || defined(__convex_c32__) || defined(__convex_c34__) || defined(__convex_c38__)
+  #elif defined(__convex__) or defined(__convex_c1__) or defined(__convex_c2__) or defined(__convex_c32__) or defined(__convex_c34__) or defined(__convex_c38__)
   # define CPP_ARCHITECTURE CPP_CONVEX_ARCHITECTURE
   #elif defined(__CUDA_ARCH__)
   # define CPP_ARCHITECTURE CPP_PTX_ARCHITECTURE
   #elif defined(__e2k__)
   # define CPP_ARCHITECTURE CPP_E2K_ARCHITECTURE
-  #elif defined(__hppa) || defined(__HPPA11__) || defined(__HPPA20__) || defined(__hppa__) || defined(__HPPA__) || defined(__PA7100__) || defined(__PA8000__) || defined(__RISC2_0__) || defined(_PA_RISC1_0) || defined(_PA_RISC1_1) || defined(_PA_RISC2_0)
+  #elif defined(__hppa) or defined(__HPPA11__) or defined(__HPPA20__) or defined(__hppa__) or defined(__HPPA__) or defined(__PA7100__) or defined(__PA8000__) or defined(__RISC2_0__) or defined(_PA_RISC1_0) or defined(_PA_RISC1_1) or defined(_PA_RISC2_0)
   # define CPP_ARCHITECTURE CPP_HP_PA_RISC_ARCHITECTURE
-  #elif defined(__i386) || defined(__i386__) || defined(__i386__) || defined(__i486__) || defined(__i486__) || defined(__i586__) || defined(__i586__) || defined(__i686__) || defined(__i686__) || defined(__I86__) || defined(__I86__) || defined(__INTEL__) || defined(__THW_INTEL__) || defined(_M_IX86) || defined(_M_IX86) || defined(_X86_) || defined(i386)
+  #elif defined(__i386) or defined(__i386__) or defined(__i386__) or defined(__i486__) or defined(__i486__) or defined(__i586__) or defined(__i586__) or defined(__i686__) or defined(__i686__) or defined(__I86__) or defined(__I86__) or defined(__INTEL__) or defined(__THW_INTEL__) or defined(_M_IX86) or defined(_M_IX86) or defined(_X86_) or defined(i386)
   # define CPP_ARCHITECTURE CPP_INTEL_X86_ARCHITECTURE
-  #elif defined(__ia64) || defined(__ia64__) || defined(__IA64__) || defined(__itanium__) || defined(_IA64) || defined(_M_IA64)
+  #elif defined(__ia64) or defined(__ia64__) or defined(__IA64__) or defined(__itanium__) or defined(_IA64) or defined(_M_IA64)
   # define CPP_ARCHITECTURE CPP_INTEL_ITANIUM_ARCHITECTURE
-  #elif defined(__m68k__) || defined(__mc68000) || defined(__mc68000__) || defined(__mc68010) || defined(__mc68010__) || defined(__mc68020) || defined(__mc68020__) || defined(__mc68030) || defined(__mc68030__) || defined(__mc68040) || defined(__mc68040__) || defined(__mc68060) || defined(__mc68060__) || defined(M68000) || defined(mc68000) || defined(mc68010) || defined(mc68020) || defined(mc68030) || defined(mc68040) || defined(mc68060)
+  #elif defined(__m68k__) or defined(__mc68000) or defined(__mc68000__) or defined(__mc68010) or defined(__mc68010__) or defined(__mc68020) or defined(__mc68020__) or defined(__mc68030) or defined(__mc68030__) or defined(__mc68040) or defined(__mc68040__) or defined(__mc68060) or defined(__mc68060__) or defined(M68000) or defined(mc68000) or defined(mc68010) or defined(mc68020) or defined(mc68030) or defined(mc68040) or defined(mc68060)
   # define CPP_ARCHITECTURE CPP_MOTOROLA_68K_ARCHITECTURE
-  #elif defined(__mips) || defined(__MIPS__) || defined(__MIPS_ISA2__) || defined(__MIPS_ISA3__) || defined(__MIPS_ISA4__) || defined(_MIPS_ISA_MIPS1) || defined(_MIPS_ISA_MIPS2) || defined(_MIPS_ISA_MIPS3) || defined(_MIPS_ISA_MIPS4) || defined(_R3000) || defined(_R4000)
+  #elif defined(__mips) or defined(__MIPS__) or defined(__MIPS_ISA2__) or defined(__MIPS_ISA3__) or defined(__MIPS_ISA4__) or defined(_MIPS_ISA_MIPS1) or defined(_MIPS_ISA_MIPS2) or defined(_MIPS_ISA_MIPS3) or defined(_MIPS_ISA_MIPS4) or defined(_R3000) or defined(_R4000)
   # define CPP_ARCHITECTURE CPP_MIPS_ARCHITECTURE
-  #elif defined(__powerpc) || defined(__powerpc64__) || defined(__powerpc__) || defined(__POWERPC__) || defined(__ppc) || defined(__ppc601__) || defined(__ppc603__) || defined(__ppc604__) || defined(__ppc604__) || defined(__ppc64__) || defined(__PPC64__) || defined(__ppc__) || defined(__PPC__) || defined(__PPCBROADWAY__) || defined(__PPCGECKO__) || defined(_ARCH_601) || defined(_ARCH_603) || defined(_ARCH_PPC) || defined(_ARCH_PPC64) || defined(_M_PPC) || defined(_XENON)
+  #elif defined(__powerpc) or defined(__powerpc64__) or defined(__powerpc__) or defined(__POWERPC__) or defined(__ppc) or defined(__ppc601__) or defined(__ppc603__) or defined(__ppc604__) or defined(__ppc604__) or defined(__ppc64__) or defined(__PPC64__) or defined(__ppc__) or defined(__PPC__) or defined(__PPCBROADWAY__) or defined(__PPCGECKO__) or defined(_ARCH_601) or defined(_ARCH_603) or defined(_ARCH_PPC) or defined(_ARCH_PPC64) or defined(_M_PPC) or defined(_XENON)
   # define CPP_ARCHITECTURE CPP_POWER_PC_ARCHITECTURE
-  #elif defined(__powerpc64__) || defined(__ppc64__) || defined(__PPC64__) || defined(_ARCH_PPC64)
+  #elif defined(__powerpc64__) or defined(__ppc64__) or defined(__PPC64__) or defined(_ARCH_PPC64)
   # define CPP_ARCHITECTURE CPP_POWER_PC_64_ARCHITECTURE
   #elif defined(__riscv)
   # define CPP_ARCHITECTURE CPP_RISC_V_ARCHITECTURE
-  #elif defined(__s390__) || defined(__s390x__)
+  #elif defined(__s390__) or defined(__s390x__)
   # define CPP_ARCHITECTURE CPP_SYSTEM_390_ARCHITECTURE
-  #elif defined(__sh__) || defined(__SH5__) || defined(__SH4__) || defined(__sh3__) || defined(__SH3__) || defined(__sh2__) || defined(__sh1__)
+  #elif defined(__sh__) or defined(__SH5__) or defined(__SH4__) or defined(__sh3__) or defined(__SH3__) or defined(__sh2__) or defined(__sh1__)
   # define CPP_ARCHITECTURE CPP_SUPER_H_ARCHITECTURE
-  #elif defined(__sparc) || defined(__sparc__) || defined(__sparc_v8__) || defined(__sparc_v9__) || defined(__sparcv8) || defined(__sparcv9)
+  #elif defined(__sparc) or defined(__sparc__) or defined(__sparc_v8__) or defined(__sparc_v9__) or defined(__sparcv8) or defined(__sparcv9)
   # define CPP_ARCHITECTURE CPP_SPARC_ARCHITECTURE
   #elif defined(__SYSC_ZARCH__)
   # define CPP_ARCHITECTURE CPP_Z_ARCHITECTURE
-  #elif defined(__THW_RS6000) || defined(_ARCH_PWR) || defined(_ARCH_PWR2) || defined(_IBMR2) || defined(_POWER)
+  #elif defined(__THW_RS6000) or defined(_ARCH_PWR) or defined(_ARCH_PWR2) or defined(_IBMR2) or defined(_POWER)
   # define CPP_ARCHITECTURE CPP_RS_6000_ARCHITECTURE
   #elif defined(pyr)
   # define CPP_ARCHITECTURE CPP_PYRAMID_9810_ARCHITECTURE
@@ -274,19 +274,19 @@
   # define CPP_NINTENDO_VENDOR          0x20u
   # define CPP_UNIX_VENDOR              0x40u
 
-  #if defined(_3DS) || defined(__SWITCH__)
+  #if defined(_3DS) or defined(__SWITCH__)
   # define CPP_VENDOR CPP_NINTENDO_VENDOR
-  #elif defined(__APPLE__) || defined(__ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__) || defined(__MACH__)
+  #elif defined(__APPLE__) or defined(__ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__) or defined(__MACH__)
   # define CPP_VENDOR (CPP_APPLE_MACINTOSH_VENDOR | CPP_UNIX_VENDOR)
-  #elif defined(__bsdi__) || defined(__DragonFly__) || defined(__FreeBSD__) || defined(__FreeBSD_version) || defined(__NETBSD__) || defined(__NETBSD_version) || defined(NetBSD0_8) || defined(NetBSD0_9) || defined(NetBSD1_0) || defined(__OpenBSD__) || defined(OpenBSD2_0) || defined(OpenBSD2_1) || defined(OpenBSD2_2) || defined(OpenBSD2_3) || defined(OpenBSD2_4) || defined(OpenBSD2_5) || defined(OpenBSD2_6) || defined(OpenBSD2_7) || defined(OpenBSD2_8) || defined(OpenBSD2_9) || defined(OpenBSD3_0) || defined(OpenBSD3_1) || defined(OpenBSD3_2) || defined(OpenBSD3_3) || defined(OpenBSD3_4) || defined(OpenBSD3_5) || defined(OpenBSD3_6) || defined(OpenBSD3_7) || defined(OpenBSD3_8) || defined(OpenBSD3_9) || defined(OpenBSD4_0) || defined(OpenBSD4_1) || defined(OpenBSD4_2) || defined(OpenBSD4_3) || defined(OpenBSD4_4) || defined(OpenBSD4_5) || defined(OpenBSD4_6) || defined(OpenBSD4_7) || defined(OpenBSD4_8) || defined(OpenBSD4_9) || defined(__OS400__) || defined(__unix) || defined(__unix__) || defined(_POSIX_SOURCE) || defined(_XOPEN_SOURCE) || defined(__QNX__) || defined(__QNXNTO__) || defined(_NTO_VERSION) || defined(sun) || defined(__sun) || defined(__sysv__) || defined(__SVR4) || defined(__svr4__) || defined(_SYSTYPE_SVR4) || defined(VMS) || defined(__VMS) || defined(__VMS_VER) || defined(unix)
+  #elif defined(__bsdi__) or defined(__DragonFly__) or defined(__FreeBSD__) or defined(__FreeBSD_version) or defined(__NETBSD__) or defined(__NETBSD_version) or defined(NetBSD0_8) or defined(NetBSD0_9) or defined(NetBSD1_0) or defined(__OpenBSD__) or defined(OpenBSD2_0) or defined(OpenBSD2_1) or defined(OpenBSD2_2) or defined(OpenBSD2_3) or defined(OpenBSD2_4) or defined(OpenBSD2_5) or defined(OpenBSD2_6) or defined(OpenBSD2_7) or defined(OpenBSD2_8) or defined(OpenBSD2_9) or defined(OpenBSD3_0) or defined(OpenBSD3_1) or defined(OpenBSD3_2) or defined(OpenBSD3_3) or defined(OpenBSD3_4) or defined(OpenBSD3_5) or defined(OpenBSD3_6) or defined(OpenBSD3_7) or defined(OpenBSD3_8) or defined(OpenBSD3_9) or defined(OpenBSD4_0) or defined(OpenBSD4_1) or defined(OpenBSD4_2) or defined(OpenBSD4_3) or defined(OpenBSD4_4) or defined(OpenBSD4_5) or defined(OpenBSD4_6) or defined(OpenBSD4_7) or defined(OpenBSD4_8) or defined(OpenBSD4_9) or defined(__OS400__) or defined(__unix) or defined(__unix__) or defined(_POSIX_SOURCE) or defined(_XOPEN_SOURCE) or defined(__QNX__) or defined(__QNXNTO__) or defined(_NTO_VERSION) or defined(sun) or defined(__sun) or defined(__sysv__) or defined(__SVR4) or defined(__svr4__) or defined(_SYSTYPE_SVR4) or defined(VMS) or defined(__VMS) or defined(__VMS_VER) or defined(unix)
   # define CPP_VENDOR CPP_UNIX_VENDOR
   #elif defined(__CYGWIN__)
   # define CPP_VENDOR (CPP_CYGWIN_VENDOR | CPP_UNIX_VENDOR)
-  #elif defined(__gnu_linux__) || defined(linux) || defined(__linux) || defined(__linux__)
+  #elif defined(__gnu_linux__) or defined(linux) or defined(__linux) or defined(__linux__)
   # define CPP_VENDOR (CPP_LINUX_VENDOR | CPP_UNIX_VENDOR)
   #elif defined(__HAIKU__)
   # define CPP_VENDOR CPP_HAIKU_VENDOR
-  #elif defined(__NT__) || defined(__TOS_WIN__) || defined(__WIN32__) || defined(__WINDOWS__) || defined(_WIN16) || defined(_WIN32) || defined(_WIN32_WCE) || defined(_WIN64)
+  #elif defined(__NT__) or defined(__TOS_WIN__) or defined(__WIN32__) or defined(__WINDOWS__) or defined(_WIN16) or defined(_WIN32) or defined(_WIN32_WCE) or defined(_WIN64)
   # define CPP_VENDOR CPP_MICROSOFT_WINDOWS_VENDOR
   #elif defined(WIN32)
   # define CPP_VENDOR CPP_MICROSOFT_WINDOWS_VENDOR
@@ -302,9 +302,9 @@
   # define CPP_WORD_BIG_ENDIAN    0x08u
   # define CPP_WORD_LITTLE_ENDIAN 0x10u
 
-  #if included(<machine/endian.h>) && (defined(__APPLE__) || defined(__ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__) || defined(__MACH__) || defined(__OpenBSD__) || defined(OpenBSD2_0) || defined(OpenBSD2_1) || defined(OpenBSD2_2) || defined(OpenBSD2_3) || defined(OpenBSD2_4) || defined(OpenBSD2_5) || defined(OpenBSD2_6) || defined(OpenBSD2_7) || defined(OpenBSD2_8) || defined(OpenBSD2_9) || defined(OpenBSD3_0) || defined(OpenBSD3_1) || defined(OpenBSD3_2) || defined(OpenBSD3_3) || defined(OpenBSD3_4) || defined(OpenBSD3_5) || defined(OpenBSD3_6) || defined(OpenBSD3_7) || defined(OpenBSD3_8) || defined(OpenBSD3_9) || defined(OpenBSD4_0) || defined(OpenBSD4_1) || defined(OpenBSD4_2) || defined(OpenBSD4_3) || defined(OpenBSD4_4) || defined(OpenBSD4_5) || defined(OpenBSD4_6) || defined(OpenBSD4_7) || defined(OpenBSD4_8) || defined(OpenBSD4_9))
+  #if included(<machine/endian.h>) and (defined(__APPLE__) or defined(__ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__) or defined(__MACH__) or defined(__OpenBSD__) or defined(OpenBSD2_0) or defined(OpenBSD2_1) or defined(OpenBSD2_2) or defined(OpenBSD2_3) or defined(OpenBSD2_4) or defined(OpenBSD2_5) or defined(OpenBSD2_6) or defined(OpenBSD2_7) or defined(OpenBSD2_8) or defined(OpenBSD2_9) or defined(OpenBSD3_0) or defined(OpenBSD3_1) or defined(OpenBSD3_2) or defined(OpenBSD3_3) or defined(OpenBSD3_4) or defined(OpenBSD3_5) or defined(OpenBSD3_6) or defined(OpenBSD3_7) or defined(OpenBSD3_8) or defined(OpenBSD3_9) or defined(OpenBSD4_0) or defined(OpenBSD4_1) or defined(OpenBSD4_2) or defined(OpenBSD4_3) or defined(OpenBSD4_4) or defined(OpenBSD4_5) or defined(OpenBSD4_6) or defined(OpenBSD4_7) or defined(OpenBSD4_8) or defined(OpenBSD4_9))
   # include <machine/endian.h>
-  #elif included(<sys/endian.h>) && (defined(__bsdi__) || defined(__DragonFly__) || defined(__FreeBSD__) || defined(__FreeBSD_version) || defined(__NETBSD__) || defined(__NETBSD_version) || defined(NetBSD0_8) || defined(NetBSD0_9) || defined(NetBSD1_0) || defined(__OpenBSD__) || defined(OpenBSD2_0) || defined(OpenBSD2_1) || defined(OpenBSD2_2) || defined(OpenBSD2_3) || defined(OpenBSD2_4) || defined(OpenBSD2_5) || defined(OpenBSD2_6) || defined(OpenBSD2_7) || defined(OpenBSD2_8) || defined(OpenBSD2_9) || defined(OpenBSD3_0) || defined(OpenBSD3_1) || defined(OpenBSD3_2) || defined(OpenBSD3_3) || defined(OpenBSD3_4) || defined(OpenBSD3_5) || defined(OpenBSD3_6) || defined(OpenBSD3_7) || defined(OpenBSD3_8) || defined(OpenBSD3_9) || defined(OpenBSD4_0) || defined(OpenBSD4_1) || defined(OpenBSD4_2) || defined(OpenBSD4_3) || defined(OpenBSD4_4) || defined(OpenBSD4_5) || defined(OpenBSD4_6) || defined(OpenBSD4_7) || defined(OpenBSD4_8) || defined(OpenBSD4_9))
+  #elif included(<sys/endian.h>) and (defined(__bsdi__) or defined(__DragonFly__) or defined(__FreeBSD__) or defined(__FreeBSD_version) or defined(__NETBSD__) or defined(__NETBSD_version) or defined(NetBSD0_8) or defined(NetBSD0_9) or defined(NetBSD1_0) or defined(__OpenBSD__) or defined(OpenBSD2_0) or defined(OpenBSD2_1) or defined(OpenBSD2_2) or defined(OpenBSD2_3) or defined(OpenBSD2_4) or defined(OpenBSD2_5) or defined(OpenBSD2_6) or defined(OpenBSD2_7) or defined(OpenBSD2_8) or defined(OpenBSD2_9) or defined(OpenBSD3_0) or defined(OpenBSD3_1) or defined(OpenBSD3_2) or defined(OpenBSD3_3) or defined(OpenBSD3_4) or defined(OpenBSD3_5) or defined(OpenBSD3_6) or defined(OpenBSD3_7) or defined(OpenBSD3_8) or defined(OpenBSD3_9) or defined(OpenBSD4_0) or defined(OpenBSD4_1) or defined(OpenBSD4_2) or defined(OpenBSD4_3) or defined(OpenBSD4_4) or defined(OpenBSD4_5) or defined(OpenBSD4_6) or defined(OpenBSD4_7) or defined(OpenBSD4_8) or defined(OpenBSD4_9))
   # include <sys/endian.h>
   #endif
 
@@ -312,23 +312,23 @@
   # include <bit>
   # undef CPP_ENDIAN_RUNTIME
   # if CPP_VERSION >= 2011uL
-  #   define CPP_ENDIAN_RUNTIME (0x00 == (std::endian::native & (std::endian::big | std::endian::little)) && sizeof(unsigned char) != sizeof(unsigned long long))
-  #   define CPP_ENDIAN (std::endian::native == std::endian::little ? CPP_BYTE_LITTLE_ENDIAN : std::endian::native == std::endian::big ? CPP_BYTE_BIG_ENDIAN : sizeof(unsigned char) == sizeof(unsigned long long) || reinterpret_cast<unsigned char const&>(static_cast<unsigned long long const&>(1uLL)) == 1u ? CPP_BYTE_LITTLE_ENDIAN : reinterpret_cast<unsigned char const*>(&static_cast<unsigned long long const&>(1uLL))[sizeof(unsigned long long) - 1u] == 1u ? CPP_BYTE_BIG_ENDIAN : CPP_MIXED_ENDIAN)
+  #   define CPP_ENDIAN_RUNTIME (0x00 == (std::endian::native & (std::endian::big | std::endian::little)) and sizeof(unsigned char) != sizeof(unsigned long long))
+  #   define CPP_ENDIAN (std::endian::native == std::endian::little ? CPP_BYTE_LITTLE_ENDIAN : std::endian::native == std::endian::big ? CPP_BYTE_BIG_ENDIAN : sizeof(unsigned char) == sizeof(unsigned long long) or reinterpret_cast<unsigned char const&>(static_cast<unsigned long long const&>(1uLL)) == 1u ? CPP_BYTE_LITTLE_ENDIAN : reinterpret_cast<unsigned char const*>(&static_cast<unsigned long long const&>(1uLL))[sizeof(unsigned long long) - 1u] == 1u ? CPP_BYTE_BIG_ENDIAN : CPP_MIXED_ENDIAN)
   # else
-  #   define CPP_ENDIAN_RUNTIME (0x00 == (std::endian::native & (std::endian::big | std::endian::little)) && sizeof(unsigned char) != sizeof(unsigned long))
-  #   define CPP_ENDIAN (std::endian::native == std::endian::little ? CPP_BYTE_LITTLE_ENDIAN : std::endian::native == std::endian::big ? CPP_BYTE_BIG_ENDIAN : sizeof(unsigned char) == sizeof(unsigned long)      || reinterpret_cast<unsigned char const&>(static_cast<unsigned long      const&>(1uL))  == 1u ? CPP_BYTE_LITTLE_ENDIAN : reinterpret_cast<unsigned char const*>(&static_cast<unsigned long      const&>(1uL)) [sizeof(unsigned long)      - 1u] == 1u ? CPP_BYTE_BIG_ENDIAN : CPP_MIXED_ENDIAN)
+  #   define CPP_ENDIAN_RUNTIME (0x00 == (std::endian::native & (std::endian::big | std::endian::little)) and sizeof(unsigned char) != sizeof(unsigned long))
+  #   define CPP_ENDIAN (std::endian::native == std::endian::little ? CPP_BYTE_LITTLE_ENDIAN : std::endian::native == std::endian::big ? CPP_BYTE_BIG_ENDIAN : sizeof(unsigned char) == sizeof(unsigned long)      or reinterpret_cast<unsigned char const&>(static_cast<unsigned long      const&>(1uL))  == 1u ? CPP_BYTE_LITTLE_ENDIAN : reinterpret_cast<unsigned char const*>(&static_cast<unsigned long      const&>(1uL)) [sizeof(unsigned long)      - 1u] == 1u ? CPP_BYTE_BIG_ENDIAN : CPP_MIXED_ENDIAN)
   # endif
   #else
-  # if included(<machine/endian.h>) && (CPP_VENDOR & CPP_APPLE_MACINTOSH_VENDOR)
+  # if included(<machine/endian.h>) and (CPP_VENDOR & CPP_APPLE_MACINTOSH_VENDOR)
   #   include <machine/endian.h>
-  # elif included(<endian.h>) && (defined(__CYGWIN__) || defined(__GLIBC__) || defined(__gnu_linux__) || defined(__linux) || defined(__linux__) || defined(__QNX__) || defined(__QNXNTO__) || defined(__sun) || defined(__SVR4) || defined(__svr4__) || defined(__sysv__) || defined(__unix) || defined(__unix__) || defined(__VMS) || defined(__VMS_VER) || defined(_NTO_VERSION) || defined(_POSIX_SOURCE) || defined(_SYSTYPE_SVR4) || defined(_XOPEN_SOURCE) || defined(linux) || defined(sun) || defined(unix) || defined(VMS))
+  # elif included(<endian.h>) and (defined(__CYGWIN__) or defined(__GLIBC__) or defined(__gnu_linux__) or defined(__linux) or defined(__linux__) or defined(__QNX__) or defined(__QNXNTO__) or defined(__sun) or defined(__SVR4) or defined(__svr4__) or defined(__sysv__) or defined(__unix) or defined(__unix__) or defined(__VMS) or defined(__VMS_VER) or defined(_NTO_VERSION) or defined(_POSIX_SOURCE) or defined(_SYSTYPE_SVR4) or defined(_XOPEN_SOURCE) or defined(linux) or defined(sun) or defined(unix) or defined(VMS))
   #   include <endian.h>
-  # elif included(<sys/endian.h>) && (defined(__bsdi__) || defined(__DragonFly__) || defined(__FreeBSD__) || defined(__FreeBSD_version) || defined(__NETBSD__) || defined(__NETBSD_version) || defined(NetBSD0_8) || defined(NetBSD0_9) || defined(NetBSD1_0) || defined(__OpenBSD__) || defined(OpenBSD2_0) || defined(OpenBSD2_1) || defined(OpenBSD2_2) || defined(OpenBSD2_3) || defined(OpenBSD2_4) || defined(OpenBSD2_5) || defined(OpenBSD2_6) || defined(OpenBSD2_7) || defined(OpenBSD2_8) || defined(OpenBSD2_9) || defined(OpenBSD3_0) || defined(OpenBSD3_1) || defined(OpenBSD3_2) || defined(OpenBSD3_3) || defined(OpenBSD3_4) || defined(OpenBSD3_5) || defined(OpenBSD3_6) || defined(OpenBSD3_7) || defined(OpenBSD3_8) || defined(OpenBSD3_9) || defined(OpenBSD4_0) || defined(OpenBSD4_1) || defined(OpenBSD4_2) || defined(OpenBSD4_3) || defined(OpenBSD4_4) || defined(OpenBSD4_5) || defined(OpenBSD4_6) || defined(OpenBSD4_7) || defined(OpenBSD4_8) || defined(OpenBSD4_9) || defined(__OS400__) || defined(__unix))
+  # elif included(<sys/endian.h>) and (defined(__bsdi__) or defined(__DragonFly__) or defined(__FreeBSD__) or defined(__FreeBSD_version) or defined(__NETBSD__) or defined(__NETBSD_version) or defined(NetBSD0_8) or defined(NetBSD0_9) or defined(NetBSD1_0) or defined(__OpenBSD__) or defined(OpenBSD2_0) or defined(OpenBSD2_1) or defined(OpenBSD2_2) or defined(OpenBSD2_3) or defined(OpenBSD2_4) or defined(OpenBSD2_5) or defined(OpenBSD2_6) or defined(OpenBSD2_7) or defined(OpenBSD2_8) or defined(OpenBSD2_9) or defined(OpenBSD3_0) or defined(OpenBSD3_1) or defined(OpenBSD3_2) or defined(OpenBSD3_3) or defined(OpenBSD3_4) or defined(OpenBSD3_5) or defined(OpenBSD3_6) or defined(OpenBSD3_7) or defined(OpenBSD3_8) or defined(OpenBSD3_9) or defined(OpenBSD4_0) or defined(OpenBSD4_1) or defined(OpenBSD4_2) or defined(OpenBSD4_3) or defined(OpenBSD4_4) or defined(OpenBSD4_5) or defined(OpenBSD4_6) or defined(OpenBSD4_7) or defined(OpenBSD4_8) or defined(OpenBSD4_9) or defined(__OS400__) or defined(__unix))
   #   include <sys/endian.h>
   # endif
   #
   #
-  # if false == defined(CPP_ENDIAN) && defined(__GLIBC__) // ->> Compiler endian constants
+  # if false == defined(CPP_ENDIAN) and defined(__GLIBC__) // ->> Compiler endian constants
   #   if defined(_BYTE_ORDER)
   #     if defined(_LITTLE_ENDIAN)
   #       if _BYTE_ORDER == _LITTLE_ENDIAN
@@ -360,7 +360,7 @@
   #   endif
   # endif
   #
-  # if false == defined(CPP_ENDIAN) && defined(__GNUC__)
+  # if false == defined(CPP_ENDIAN) and defined(__GNUC__)
   #   ifdef __BYTE_ORDER__
   #     if defined(__ORDER_LITTLE_ENDIAN__)
   #       if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
@@ -379,25 +379,25 @@
   # endif
   #
   # if false == defined(CPP_ENDIAN)
-  #   if (defined(__LITTLE_ENDIAN__) && false == defined(__BIG_ENDIAN__)) || (defined(_LITTLE_ENDIAN) && false == defined(_BIG_ENDIAN))
+  #   if (defined(__LITTLE_ENDIAN__) and false == defined(__BIG_ENDIAN__)) or (defined(_LITTLE_ENDIAN) and false == defined(_BIG_ENDIAN))
   #     define CPP_ENDIAN CPP_BYTE_LITTLE_ENDIAN
-  #   elif (defined(__BIG_ENDIAN__) && false == defined(__LITTLE_ENDIAN__)) || (defined(_BIG_ENDIAN) && false == defined(_LITTLE_ENDIAN))
+  #   elif (defined(__BIG_ENDIAN__) and false == defined(__LITTLE_ENDIAN__)) or (defined(_BIG_ENDIAN) and false == defined(_LITTLE_ENDIAN))
   #     define CPP_ENDIAN CPP_BYTE_BIG_ENDIAN
   #   endif
   # endif
   #
   # if false == defined(CPP_ENDIAN) // ->> Vendor endian constants
-  #   if defined(__ARMEL__) || defined(__MIPSEL) || defined(__MIPSEL__) || defined(__THUMBEL__) || defined(_MIPSEL)
+  #   if defined(__ARMEL__) or defined(__MIPSEL) or defined(__MIPSEL__) or defined(__THUMBEL__) or defined(_MIPSEL)
   #     define CPP_ENDIAN CPP_BYTE_LITTLE_ENDIAN
-  #   elif defined(__AARCH64EB__) || defined(__ARMEB__) || defined(__MIPSEB) || defined(__MIPSEB__) || defined(__THUMBEB__) || defined(_MIPSEB)
+  #   elif defined(__AARCH64EB__) or defined(__ARMEB__) or defined(__MIPSEB) or defined(__MIPSEB__) or defined(__THUMBEB__) or defined(_MIPSEB)
   #     define CPP_ENDIAN CPP_BYTE_BIG_ENDIAN
   #   endif
   # endif
   #
   # if false == defined(CPP_ENDIAN)
-  #   if defined(_M_AMD64) || CPP_ARCHITECTURE == CPP_ALPHA_ARCHITECTURE || CPP_ARCHITECTURE == CPP_BLACKFIN_ARCHITECTURE || CPP_ARCHITECTURE == CPP_INTEL_ITANIUM_ARCHITECTURE || CPP_ARCHITECTURE == CPP_INTEL_X86_64_ARCHITECTURE || CPP_ARCHITECTURE == CPP_INTEL_X86_ARCHITECTURE || (CPP_ARCHITECTURE == CPP_ARM_ARCHITECTURE && (CPP_VENDOR & CPP_MICROSOFT_WINDOWS_VENDOR))
+  #   if defined(_M_AMD64) or CPP_ARCHITECTURE == CPP_ALPHA_ARCHITECTURE or CPP_ARCHITECTURE == CPP_BLACKFIN_ARCHITECTURE or CPP_ARCHITECTURE == CPP_INTEL_ITANIUM_ARCHITECTURE or CPP_ARCHITECTURE == CPP_INTEL_X86_64_ARCHITECTURE or CPP_ARCHITECTURE == CPP_INTEL_X86_ARCHITECTURE or (CPP_ARCHITECTURE == CPP_ARM_ARCHITECTURE and (CPP_VENDOR & CPP_MICROSOFT_WINDOWS_VENDOR))
   #     define CPP_ENDIAN CPP_BYTE_LITTLE_ENDIAN
-  #   elif defined(__hpux) || CPP_ARCHITECTURE == CPP_HP_PA_RISC_ARCHITECTURE || CPP_ARCHITECTURE == CPP_MOTOROLA_68K_ARCHITECTURE || CPP_ARCHITECTURE == CPP_POWER_PC_ARCHITECTURE || CPP_ARCHITECTURE == CPP_RS_6000_ARCHITECTURE || CPP_ARCHITECTURE == CPP_SPARC_ARCHITECTURE || CPP_ARCHITECTURE == CPP_SYSTEM_370_ARCHITECTURE || CPP_ARCHITECTURE == CPP_SYSTEM_390_ARCHITECTURE || CPP_ARCHITECTURE == CPP_Z_ARCHITECTURE
+  #   elif defined(__hpux) or CPP_ARCHITECTURE == CPP_HP_PA_RISC_ARCHITECTURE or CPP_ARCHITECTURE == CPP_MOTOROLA_68K_ARCHITECTURE or CPP_ARCHITECTURE == CPP_POWER_PC_ARCHITECTURE or CPP_ARCHITECTURE == CPP_RS_6000_ARCHITECTURE or CPP_ARCHITECTURE == CPP_SPARC_ARCHITECTURE or CPP_ARCHITECTURE == CPP_SYSTEM_370_ARCHITECTURE or CPP_ARCHITECTURE == CPP_SYSTEM_390_ARCHITECTURE or CPP_ARCHITECTURE == CPP_Z_ARCHITECTURE
   #     define CPP_ENDIAN CPP_BYTE_BIG_ENDIAN
   #   endif
   # endif
@@ -406,10 +406,10 @@
   #   undef  CPP_ENDIAN_RUNTIME
   #   if CPP_VERSION >= 2011uL
   #     define CPP_ENDIAN_RUNTIME (sizeof(unsigned char) != sizeof(unsigned long long))
-  #     define CPP_ENDIAN (false == CPP_ENDIAN_RUNTIME || reinterpret_cast<unsigned char const&>(static_cast<unsigned long long const&>(1uLL)) == 1u ? CPP_BYTE_LITTLE_ENDIAN : reinterpret_cast<unsigned char const*>(&static_cast<unsigned long long const&>(1uLL))[sizeof(unsigned long long) - 1u] == 1u ? CPP_BYTE_BIG_ENDIAN : CPP_MIXED_ENDIAN)
+  #     define CPP_ENDIAN (false == CPP_ENDIAN_RUNTIME or reinterpret_cast<unsigned char const&>(static_cast<unsigned long long const&>(1uLL)) == 1u ? CPP_BYTE_LITTLE_ENDIAN : reinterpret_cast<unsigned char const*>(&static_cast<unsigned long long const&>(1uLL))[sizeof(unsigned long long) - 1u] == 1u ? CPP_BYTE_BIG_ENDIAN : CPP_MIXED_ENDIAN)
   #   else
   #     define CPP_ENDIAN_RUNTIME (sizeof(unsigned char) != sizeof(unsigned long))
-  #     define CPP_ENDIAN (false == CPP_ENDIAN_RUNTIME || reinterpret_cast<unsigned char const&>(static_cast<unsigned long      const&>(1uL))  == 1u ? CPP_BYTE_LITTLE_ENDIAN : reinterpret_cast<unsigned char const*>(&static_cast<unsigned long      const&>(1uL)) [sizeof(unsigned long)      - 1u] == 1u ? CPP_BYTE_BIG_ENDIAN : CPP_MIXED_ENDIAN)
+  #     define CPP_ENDIAN (false == CPP_ENDIAN_RUNTIME or reinterpret_cast<unsigned char const&>(static_cast<unsigned long      const&>(1uL))  == 1u ? CPP_BYTE_LITTLE_ENDIAN : reinterpret_cast<unsigned char const*>(&static_cast<unsigned long      const&>(1uL)) [sizeof(unsigned long)      - 1u] == 1u ? CPP_BYTE_BIG_ENDIAN : CPP_MIXED_ENDIAN)
   #   endif
   # endif
   #endif
@@ -418,7 +418,7 @@
   // : [Constant Function] ->> Attempts to specify a constant evaluable function
   #define constfunc(unrelaxed) constfunc_ ## unrelaxed
   #ifdef __cpp_constexpr // --> 200704L
-  # if CPP_VERSION >= 2014uL || __cpp_constexpr >= 201304L
+  # if CPP_VERSION >= 2014uL or __cpp_constexpr >= 201304L
   #   define constfunc_false constexpr
   #   define constfunc_true  constexpr
   # else
@@ -479,7 +479,7 @@
 
   // : [Floating-Point Types] ->> Acknowledges extended floating-point types
   #if __STDCPP_FLOAT16_T__
-  # if LAPYS_PREPROCESSOR_GUARD && defined(float16_t)
+  # if LAPYS_PREPROCESSOR_GUARD and defined(float16_t)
   #   error Lapys C++: Unexpected `float16_t` macro definition
   # endif
   # define float16_t std::float16_t
@@ -488,7 +488,7 @@
   #endif
 
   #if __STDCPP_FLOAT32_T__
-  # if LAPYS_PREPROCESSOR_GUARD && defined(float32_t)
+  # if LAPYS_PREPROCESSOR_GUARD and defined(float32_t)
   #   error Lapys C++: Unexpected `float32_t` macro definition
   # endif
   # define float32_t std::float32_t
@@ -497,7 +497,7 @@
   #endif
 
   #if __STDCPP_FLOAT64_T__
-  # if LAPYS_PREPROCESSOR_GUARD && defined(float64_t)
+  # if LAPYS_PREPROCESSOR_GUARD and defined(float64_t)
   #   error Lapys C++: Unexpected `float64_t` macro definition
   # endif
   # define float64_t std::float64_t
@@ -506,7 +506,7 @@
   #endif
 
   #if __STDCPP_FLOAT128_T__
-  # if LAPYS_PREPROCESSOR_GUARD && defined(float128_t)
+  # if LAPYS_PREPROCESSOR_GUARD and defined(float128_t)
   #   error Lapys C++: Unexpected `float128_t` macro definition
   # endif
   # define float128_t std::float128_t
@@ -580,8 +580,8 @@
   #endif
 
   // : [Pointer Aliasing]
-  #if CPP_COMPILER == CPP_CIRCLE_COMPILER || CPP_COMPILER == CPP_CLANG_COMPILER || CPP_COMPILER == CPP_GNUC_COMPILER || CPP_COMPILER == CPP_INTEL_COMPILER || CPP_COMPILER == CPP_MSVC_COMPILER
-  # if false == defined(restricted) && CPP_COMPILER != CPP_MSVC_COMPILER
+  #if CPP_COMPILER == CPP_CIRCLE_COMPILER or CPP_COMPILER == CPP_CLANG_COMPILER or CPP_COMPILER == CPP_GNUC_COMPILER or CPP_COMPILER == CPP_INTEL_COMPILER or CPP_COMPILER == CPP_MSVC_COMPILER
+  # if false == defined(restricted) and CPP_COMPILER != CPP_MSVC_COMPILER
   #   ifdef __restrict__
   #     define restricted __restrict__
   #   endif
@@ -607,26 +607,32 @@
 
   // : [Reference Qualifier] ->> Attempts to reference-qualify
   #ifdef __cpp_ref_qualifiers // --> 200710L
-  # define lref  &
-  # define rref  &&
-  # define rlref rref
+  # define lref         &
+  # define member_lref  &
+  # define member_rlref member_rref
+  # define member_rref  &&
+  # define rlref        rref
+  # define rref         &&
   #else
-  # define lref  &
+  # define lref         &
+  # define member_lref
+  # define member_rlref member_lref
+  # define member_rref
+  # define rlref        lref
   # define rref
-  # define rlref lref
   #endif
 
   // : [Return Specifier] ->> Attempts to modify certain attributes of specified functions
-  #if CPP_COMPILER == CPP_CLANG_COMPILER || CPP_COMPILER == CPP_GNUC_COMPILER
+  #if CPP_COMPILER == CPP_CLANG_COMPILER or CPP_COMPILER == CPP_GNUC_COMPILER
   # define mustinline __attribute__((always_inline))
-  #elif CPP_COMPILER == CPP_INTEL_COMPILER || CPP_COMPILER == CPP_MSVC_COMPILER
+  #elif CPP_COMPILER == CPP_INTEL_COMPILER or CPP_COMPILER == CPP_MSVC_COMPILER
   # define mustinline __forceinline
   #else
   # define mustinline inline
   #endif
 
   #if CPP_VERSION < 2011uL
-  # if CPP_COMPILER == CPP_CLANG_COMPILER || CPP_COMPILER == CPP_GNUC_COMPILER
+  # if CPP_COMPILER == CPP_CLANG_COMPILER or CPP_COMPILER == CPP_GNUC_COMPILER
   #   define mustreturn __attribute__((warn_unused_result))
   # else
   #   define mustreturn
@@ -657,7 +663,7 @@
   # else
   #   define noinline
   # endif
-  #elif CPP_COMPILER == CPP_GNUC_COMPILER || CPP_COMPILER == CPP_INTEL_COMPILER
+  #elif CPP_COMPILER == CPP_GNUC_COMPILER or CPP_COMPILER == CPP_INTEL_COMPILER
   #   define noinline __attribute__((noinline))
   #elif CPP_COMPILER == CPP_MSVC_COMPILER
   #   define noinline __declspec(noinline)
@@ -669,7 +675,7 @@
   #if CPP_COMPILER == CPP_MSVC_COMPILER
   # pragma warning(disable: 4848)
   # define nouniqueaddr [[msvc::no_unique_address]]
-  #elif CPP_VERSION >= 2020uL || CPP_COMPILER == CPP_INTEL_COMPILER || (CPP_VERSION >= 2011uL && (CPP_COMPILER == CPP_CLANG_COMPILER || CPP_COMPILER == CPP_GNUC_COMPILER))
+  #elif CPP_VERSION >= 2020uL or CPP_COMPILER == CPP_INTEL_COMPILER or (CPP_VERSION >= 2011uL and (CPP_COMPILER == CPP_CLANG_COMPILER or CPP_COMPILER == CPP_GNUC_COMPILER))
   # define nouniqueaddr [[no_unique_address]]
   #else
   # define nouniqueaddr
@@ -677,7 +683,7 @@
 
   // : [Type Alignment Specifier] ->> Attempt to align members or variables on a specified boundary, or evaluate an acceptable alignment width of a specified type
   #if CPP_VERSION < 2011uL
-  # if CPP_COMPILER == CPP_GNUC_COMPILER && included(<stdalign.h>)
+  # if CPP_COMPILER == CPP_GNUC_COMPILER and included(<stdalign.h>)
   #  include <stdalign.h> // ->> since C++11
   # elif CPP_COMPILER == CPP_MSVC_COMPILER
   #  define __alignof_is_defined true
@@ -746,12 +752,12 @@
   // : [Assertion] ->> Compile-time assertion
   #ifndef __cpp_static_assert // --> 200410L
     template <bool>
-    union static_assert {
-      constfunc(true) static_assert(char const[]) noexcept {}
+    union static_assert_declaration {
+      constfunc(true) static_assert_declaration(char const[]) noexcept {}
     };
 
-    template <> // ... ->> alternatively declare `static_assert<false>` but not define it
-    union static_assert<false> {
+    template <> // ... ->> alternatively declare `static_assert_declaration<false>` but not define it
+    union static_assert_declaration<false> {
       private:
         template <typename, unsigned char = 0x00u>
         struct static_assert_message;
@@ -761,32 +767,33 @@
 
       public:
         template <typename type, std::size_t capacity> // ->> Single constructor, no overload disambiguation
-        constfunc(false) static_assert(type (&)[capacity]) exceptspec(false) /* --> static_assert<false> */ {
+        constfunc(false) static_assert_declaration(type (&)[capacity]) exceptspec(false) /* --> static_assert_declaration<false> */ {
           static_assert_message<type>();
-          throw static_assert<false>(*this); // ->> Error handling is unfortunately runtime-only so re-throw a copy of itself and indirectly call `std::terminate(...)`
+          throw static_assert_declaration<false>(*this); // ->> Error handling is unfortunately runtime-only so re-throw a copy of itself and indirectly call `std::terminate(...)`
         }
     };
 
-    #define static_assert(condition, message) static_assert_2u(__LINE__, condition, message)
-    # ifdef __cpp_nsdmi // --> 200809L
-    #   define static_assert_1u(id, condition, message) ::static_assert<(condition)> _ ## id = ::static_assert<(condition)>("" message "")
-    # else
-    #   define static_assert_1u(id, condition, message) typedef typename ::Lapys::Traits::conditional<static_cast<bool>(condition), ::static_assert<(condition)> >::type _ ## id
-    # endif
-    # define static_assert_2u(id, condition, message) static_assert_1u(id, condition, message)
+    #define static_assert static_assert_declaration
+    # define static_assert_declaration(condition, message) static_assert_2u(__LINE__, condition, message)
+    #   ifdef __cpp_nsdmi // --> 200809L
+    #     define static_assert_1u(id, condition, message) ::static_assert_declaration<(condition)> _ ## id = ::static_assert_declaration<(condition)>(message)
+    #   else
+    #     define static_assert_1u(id, condition, message) typedef typename ::Lapys::Traits::conditional<static_cast<bool>(condition), ::static_assert_declaration<(condition)> >::type _ ## id
+    #   endif
+    #   define static_assert_2u(id, condition, message) static_assert_1u(id, condition, "" message "")
   #endif
 
   /* Definition */
+  #if (LAPYS_MAX_ARITY) > 127u
+  # undef  LAPYS_MAX_ARITY
+  # define LAPYS_MAX_ARITY 127u
+  #endif
+
   #define choose(argument, truthy, falsy) defer(combine, choose_, argument)(truthy, falsy)
   # define choose_false(truthy, falsy) falsy
   # define choose_true(truthy, falsy)  truthy
 
   #define empty()
-
-  #if (LAPYS_MAX_ARITY) > 127u
-  # undef  LAPYS_MAX_ARITY
-  # define LAPYS_MAX_ARITY 127u
-  #endif
 
   #if preprocessed(LAPYS_PREPROCESSOR)
   # if CPP_COMPILER == CPP_CLANG_COMPILER
@@ -1302,14 +1309,14 @@
     #endif
     #if (LAPYS_MAX_ARITY) >= 127u
     # define arity_127u 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 16u, 17u, 18u, 19u, 20u, 21u, 22u, 23u, 24u, 25u, 26u, 27u, 28u, 29u, 30u, 31u, 32u, 33u, 34u, 35u, 36u, 37u, 38u, 39u, 40u, 41u, 42u, 43u, 44u, 45u, 46u, 47u, 48u, 49u, 50u, 51u, 52u, 53u, 54u, 55u, 56u, 57u, 58u, 59u, 60u, 61u, 62u, 63u, 64u, 65u, 66u, 67u, 68u, 69u, 70u, 71u, 72u, 73u, 74u, 75u, 76u, 77u, 78u, 79u, 80u, 81u, 82u, 83u, 84u, 85u, 86u, 87u, 88u, 89u, 90u, 91u, 92u, 93u, 94u, 95u, 96u, 97u, 98u, 99u, 100u, 101u, 102u, 103u, 104u, 105u, 106u, 107u, 108u, 109u, 110u, 111u, 112u, 113u, 114u, 115u, 116u, 117u, 118u, 119u, 120u, 121u, 122u, 123u, 124u, 125u, 126u, 127u
-    # if CPP_COMPILER == CPP_CIRCLE_COMPILER || CPP_COMPILER == CPP_CLANG_COMPILER || CPP_COMPILER == CPP_GNUC_COMPILER || CPP_COMPILER == CPP_INTEL_COMPILER
+    # if CPP_COMPILER == CPP_CIRCLE_COMPILER or CPP_COMPILER == CPP_CLANG_COMPILER or CPP_COMPILER == CPP_GNUC_COMPILER or CPP_COMPILER == CPP_INTEL_COMPILER
     #   define choose_127u(argument1, argument2, argument3, argument4, argument5, argument6, argument7, argument8, argument9, argument10, argument11, argument12, argument13, argument14, argument15, argument16, argument17, argument18, argument19, argument20, argument21, argument22, argument23, argument24, argument25, argument26, argument27, argument28, argument29, argument30, argument31, argument32, argument33, argument34, argument35, argument36, argument37, argument38, argument39, argument40, argument41, argument42, argument43, argument44, argument45, argument46, argument47, argument48, argument49, argument50, argument51, argument52, argument53, argument54, argument55, argument56, argument57, argument58, argument59, argument60, argument61, argument62, argument63, argument64, argument65, argument66, argument67, argument68, argument69, argument70, argument71, argument72, argument73, argument74, argument75, argument76, argument77, argument78, argument79, argument80, argument81, argument82, argument83, argument84, argument85, argument86, argument87, argument88, argument89, argument90, argument91, argument92, argument93, argument94, argument95, argument96, argument97, argument98, argument99, argument100, argument101, argument102, argument103, argument104, argument105, argument106, argument107, argument108, argument109, argument110, argument111, argument112, argument113, argument114, argument115, argument116, argument117, argument118, argument119, argument120, argument121, argument122, argument123, argument124, argument125, argument126, argument127, ...) argument127
     # else
     #   define choose_127u(argument1, argument2, argument3, argument4, argument5, argument6, argument7, argument8, argument9, argument10, argument11, argument12, argument13, argument14, argument15, argument16, argument17, argument18, argument19, argument20, argument21, argument22, argument23, argument24, argument25, argument26, argument27, argument28, argument29, argument30, argument31, argument32, argument33, argument34, argument35, argument36, argument37, argument38, argument39, argument40, argument41, argument42, argument43, argument44, argument45, argument46, argument47, argument48, argument49, argument50, argument51, argument52, argument53, argument54, argument55, argument56, argument57, argument58, argument59, argument60, argument61, argument62, argument63, argument64, argument65, argument66, argument67, argument68, argument69, argument70, argument71, argument72, argument73, argument74, argument75, argument76, argument77, argument78, argument79, argument80, argument81, argument82, argument83, argument84, argument85, argument86, argument87, argument88, argument89, argument90, argument91, argument92, argument93, argument94, argument95, argument96, argument97, argument98, argument99, argument100, argument101, argument102, argument103, argument104, argument105, argument106, argument107, argument108, argument109, argument110, argument111, argument112, argument113, argument114, argument115, argument116, argument117, argument118, argument119, argument120, argument121, argument122, argument123, argument124, argument125, argument126, argument127) argument127
     # endif
     #endif
 
-    #define arity(count) arity_ ## count
+    #define arity(count) combine(arity_, count)
     # define arity_0u
 
     #undef  choose

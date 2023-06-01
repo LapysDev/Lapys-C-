@@ -1,7 +1,7 @@
 /* Definition */
 // Maximum Arity ->> Maximum number of supported function/ template arguments in variadics --> LAPYS_MAX_ARITY < 127u
 #ifndef LAPYS_MAX_ARITY
-# define LAPYS_MAX_ARITY 8u
+# define LAPYS_MAX_ARITY 127u
 #endif
 
 // Maximum Template Instantiation Depth ->> Maximum template instantiation depth for recursive traits --> LAPYS_MAX_TEMPLATE_INSTANTIATION_DEPTH > 1u
@@ -211,6 +211,7 @@
   #   undef  widthof
   #   define widthof(argument) (CHAR_BIT * sizeof(argument))
   # else
+  #   undef CPP_MAX_SIZE
   #   undef widthof
   # endif
   #
@@ -314,8 +315,9 @@
   #   undef uint128_t
   #   ifndef __cpp_static_assert
   #     undef static_assert
-  #       undef static_assert_1u
-  #       undef static_assert_2u
+  #       undef static_assert_declaration
+  #         undef static_assert_1u
+  #         undef static_assert_2u
   #   endif
   # endif
   #
@@ -341,6 +343,9 @@
   # undef included
   # undef init
   # undef lref
+  # undef member_lref
+  # undef member_rlref
+  # undef member_rref
   # undef mustinline
   # undef mustreturn
   # undef nilinit
