@@ -11,7 +11,7 @@ using namespace Lapys;
 
 /* Main */
 int main(int, char*[]) /* noexcept */ {
-  instanceof<typename collection<int (&)[3], int (&)[2], int (&)[1]>::add<int (&)[]>::type>() * 2;
+  instanceof<typename collection<int (&)[3], int (&)[2], int (&)[1]>::concatenate<collection<int (*)[3], int (*)[2], int (*)[1]> >::type>() * 2;
   std::printf("%1.13s", "Hello, World!");
   return 0x00; // --> EXIT_SUCCESS
 }
