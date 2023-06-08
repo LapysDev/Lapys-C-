@@ -579,6 +579,13 @@
   # endif
   #endif
 
+  // : [Parameter Pack]
+  #if CPP_VERSION >= 2011uL
+  # define packof(pack) ::Lapys::Traits::alias<unsigned char[sizeof...(pack)]>::type
+  #else
+  # define packof(pack) ::Lapys::Traits::alias<unsigned char[::Lapys::Traits::collection<::Lapys::Traits::constant<std::size_t, sizeof(pack), true>...>::length]>::type
+  #endif
+
   // : [Pointer Aliasing]
   #if CPP_COMPILER == CPP_CIRCLE_COMPILER or CPP_COMPILER == CPP_CLANG_COMPILER or CPP_COMPILER == CPP_GNUC_COMPILER or CPP_COMPILER == CPP_INTEL_COMPILER or CPP_COMPILER == CPP_MSVC_COMPILER
   # if false == defined(restricted) and CPP_COMPILER != CPP_MSVC_COMPILER
@@ -745,6 +752,8 @@
   #     define typeof(expression) typeof(expression)
   #   elif CPP_COMPILER == CPP_MSVC_COMPILER
   #     define typeof(expression) decltype(expression)
+  #   else
+  #     define typeof(expression) static_assert(false, "Unable to inspect the type (and value category) of the given expression")
   #   endif
   # endif
   #endif

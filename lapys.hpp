@@ -203,7 +203,18 @@
   #endif
 
   // : [...]
-  #include "lapys/traits.hpp"
+  #if CPP_COMPILER == CPP_CLANG_COMPILER
+  # ifndef __cpp_nsdmi // --> 200809L
+  #   pragma clang diagnostic push
+  #   pragma clang diagnostic ignored "-Wunused-local-typedef"
+  # endif
+  #endif
+  # include "lapys/traits.hpp"
+  #if CPP_COMPILER == CPP_CLANG_COMPILER
+  # ifndef __cpp_nsdmi // --> 200809L
+  #   pragma clang diagnostic pop
+  # endif
+  #endif
 
   /* Deletion */
   #ifdef LAPYS_MODULE_TRAITS
@@ -355,6 +366,7 @@
   # undef noinline
   # undef nouniqueaddr
   # undef nullptr
+  # undef packof
   # undef preprocessed
   # undef restricted
   # undef rlref
