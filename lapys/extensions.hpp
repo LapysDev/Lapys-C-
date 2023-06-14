@@ -111,6 +111,21 @@
   # define CPP_COMPILER 0x00u
   #endif
 
+  // : [C++ Front-end]
+  # define CPP_CLANG_FRONTEND 0x01u
+  # define CPP_GNUC_FRONTEND  0x02u
+  # define CPP_MSVC_FRONTEND  0x04u
+
+  #if defined(__clang__)
+  # define CPP_FRONTEND CPP_CLANG_FRONTEND
+  #elif defined(__GNUC__)
+  # define CPP_FRONTEND CPP_GNUC_FRONTEND
+  #elif defined(_MSC_VER)
+  # define CPP_FRONTEND CPP_MSVC_FRONTEND
+  #else
+  # define CPP_FRONTEND 0x00u
+  #endif
+
   // : [C++ Version] ->> Assume most universal version, otherwise
   #if CPP_COMPILER == CPP_MSVC_COMPILER
   # ifndef _MSVC_LANG
@@ -565,11 +580,6 @@
   #     error Lapys C++: Unexpected `uint128_t` macro definition
   #   endif
   # endif
-  #elif CPP_COMPILER == CPP_INTEL_COMPILER
-  # ifdef __SSE2__
-  #   define int128_t  __i128
-  #   define uint128_t __u128
-  # endif
   #elif LAPYS_PREPROCESSOR_GUARD
   # ifdef int128_t
   #   error Lapys C++: Unexpected `int128_t` macro definition
@@ -580,10 +590,10 @@
   #endif
 
   // : [Parameter Pack]
-  #if CPP_VERSION >= 2011uL
-  # define packof(pack) ::Lapys::Traits::alias<unsigned char[sizeof...(pack)]>::type
-  #else
+  #if CPP_VERSION < 2011uL
   # define packof(pack) ::Lapys::Traits::alias<unsigned char[::Lapys::Traits::collection<::Lapys::Traits::constant<std::size_t, sizeof(pack), true>...>::length]>::type
+  #else
+  # define packof(pack) typename ::Lapys::Traits::alias<unsigned char[sizeof...(pack)]>::type
   #endif
 
   // : [Pointer Aliasing]
@@ -805,11 +815,11 @@
   #define empty()
 
   #if preprocessed(LAPYS_PREPROCESSOR)
-  # if CPP_COMPILER == CPP_CLANG_COMPILER
+  # if CPP_FRONTEND == CPP_CLANG_FRONTEND
   #   pragma clang diagnostic push
   #   pragma clang diagnostic ignored "-Wc++20-compat"
   #   pragma clang diagnostic ignored "-Wvariadic-macros"
-  # elif CPP_COMPILER == CPP_GNUC_COMPILER
+  # elif CPP_FRONTEND == CPP_GNUC_FRONTEND
   #   pragma GCC diagnostic push
   #   pragma GCC diagnostic ignored "-Wvariadic-macros"
   #   pragma GCC system_header
@@ -1378,6 +1388,8 @@
     #   define apply_boolean_or(argument, ...)                  ||
     #   define apply_comma(argument, ...)                       ,
     #   define apply_compare(argument, ...)                     <=>
+    #   define apply_conditional_falsy(argument, ...)           :
+    #   define apply_conditional_truthy(argument, ...)          ?
     #   define apply_dereferenced_access(argument, ...)         ->
     #   define apply_dereferenced_access_pointer(argument, ...) ->*
     #   define apply_divide(argument, ...)                      /
@@ -1396,8 +1408,6 @@
     #   define apply_subscript_begin(argument, ...)             [
     #   define apply_subscript_end(argument, ...)               ]
     #   define apply_subtract(argument, ...)                    -
-    #   define apply_ternary_falsy(argument, ...)               :
-    #   define apply_ternary_truthy(argument, ...)              ?
     #   define apply_unequals(argument, ...)                    !=
     # define apply_break(function, separator, applyer, argument, ...) // ->> Stop expanding
     # define apply_continue(function, separator, applyer, argument, ...) function(argument)separator(argument, __VA_ARGS__) applyer

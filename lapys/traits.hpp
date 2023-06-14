@@ -20,6 +20,7 @@
   // : [C/ C++ Standard Library]
   #include <climits>  // C Limits
   #include <stdint.h> // Standard Integer
+  #include <typeinfo> // Type Information
   #if CPP_VERSION >= 2011uL
   # include <type_traits> // Type Traits
   #endif
@@ -59,11 +60,11 @@
       template <typename type> constfunc(true) mustinline type volatile&       (pass)(type volatile&       object) noexcept { return object; }
     #endif
 
-    // Width Of ->> Queries bit width of expression (object)
+    // Width Of ->> Queries bit width of expression (object) TODO
     #define widthof(expression) (CPP_MAX_SIZE > sizeof(::Lapys::widthof(expression)) / sizeof(unsigned char) ? sizeof(::Lapys::widthof(expression)) / sizeof(unsigned char) : 0u)
 
-    constfunc(true)                              mustinline unsigned char /* --> byte */ (&(widthof)(bit<0u>    const)   noexcept)[CPP_MAX_SIZE];
-    template <std::size_t width> constfunc(true) mustinline unsigned char /* --> byte */ (&(widthof)(bit<width> const)   noexcept)[CPP_MAX_SIZE > width                   ? width                   : CPP_MAX_SIZE];
+    // constfunc(true)                              mustinline unsigned char /* --> byte */ (&(widthof)(bit<0u>    const)   noexcept)[CPP_MAX_SIZE];
+    // template <std::size_t width> constfunc(true) mustinline unsigned char /* --> byte */ (&(widthof)(bit<width> const)   noexcept)[CPP_MAX_SIZE > width                   ? width                   : CPP_MAX_SIZE];
     template <typename    type>  constfunc(true) mustinline unsigned char /* --> byte */ (&(widthof)(type       nodecay) noexcept)[CPP_MAX_SIZE > CHAR_BIT * sizeof(type) ? CHAR_BIT * sizeof(type) : CPP_MAX_SIZE];
 
     /* Alias > Byte ->> Aliases to an (unsigned) byte type blessed by the standard (as specified in the C++ language definition) */
@@ -199,6 +200,7 @@
       struct defer;
       struct enumtypeinfo;
       struct opinfo;
+      struct optraitinfo;
 
       template <typename>                               struct alias;
       template <typename, bool = false>                 struct classinfo;
@@ -275,6 +277,12 @@
       typedef unsigned char   uintmin_t;
 
       /* Trait */
+      // ... ->> Aliases specified type (plain and simple)
+      template <typename base>
+      struct alias final {
+        typedef base type;
+      };
+
       // ... ->> Aliases dependent type based on (boolean) condition
       template <typename baseA, typename baseB>
       struct conditional<false, baseA, baseB> final {
@@ -291,6 +299,159 @@
 
       template <typename base>
       struct conditional<true, null, base> final {};
+
+      // ... ->> Evaluates if type is (based on) an integer type
+      template <typename base, bool enumerable>
+      struct is_integer final {
+        static bool const value = conditional<enumerable, constant<bool, false, true>, is_enum<base> >::type::value;
+      };
+
+      template <bool enumerable>
+      struct is_integer<bool, enumerable> final {
+        static bool const value = true;
+      };
+
+      template <bool enumerable>
+      struct is_integer<char, enumerable> final {
+        static bool const value = true;
+      };
+
+      template <bool enumerable>
+      struct is_integer<int, enumerable> final {
+        static bool const value = true;
+      };
+
+      template <bool enumerable>
+      struct is_integer<long, enumerable> final {
+        static bool const value = true;
+      };
+
+      template <bool enumerable>
+      struct is_integer<short, enumerable> final {
+        static bool const value = true;
+      };
+
+      template <bool enumerable>
+      struct is_integer<signed char, enumerable> final {
+        static bool const value = true;
+      };
+
+      template <bool enumerable>
+      struct is_integer<unsigned char, enumerable> final {
+        static bool const value = true;
+      };
+
+      template <bool enumerable>
+      struct is_integer<unsigned int, enumerable> final {
+        static bool const value = true;
+      };
+
+      template <bool enumerable>
+      struct is_integer<unsigned long, enumerable> final {
+        static bool const value = true;
+      };
+
+      template <bool enumerable>
+      struct is_integer<unsigned short, enumerable> final {
+        static bool const value = true;
+      };
+
+      template <bool enumerable>
+      struct is_integer<wchar_t, enumerable> final {
+        static bool const value = true;
+      };
+
+      #if CPP_VERSION >= 2011uL
+        template <bool enumerable>
+        struct is_integer<long long, enumerable> final {
+          static bool const value = true;
+        };
+
+        template <bool enumerable>
+        struct is_integer<unsigned long long, enumerable> final {
+          static bool const value = true;
+        };
+      #endif
+
+      #ifdef __cpp_char8_t // --> 201811L
+        template <bool enumerable>
+        struct is_integer<char8_t /* --> unsigned char */, enumerable> final {
+          static bool const value = true;
+        };
+      #endif
+
+      #ifdef __cpp_lib_byte // --> 201603L
+        template <bool enumerable>
+        struct is_integer<std::byte /* --> unsigned char */, enumerable> final {
+          static bool const value = true;
+        };
+      #endif
+
+      #ifdef __cpp_unicode_characters // --> 200704L
+        template <bool enumerable>
+        struct is_integer<char16_t /* --> ::uint_least16_t */, enumerable> final {
+          static bool const value = true;
+        };
+
+        template <bool enumerable>
+        struct is_integer<char32_t /* --> ::uint_least32_t */, enumerable> final {
+          static bool const value = true;
+        };
+      #endif
+
+      #ifdef int128_t
+        template <bool enumerable>
+        struct is_integer<int128_t, enumerable> final {
+          static bool const value = true;
+        };
+      #endif
+
+      #ifdef uint128_t
+        template <bool enumerable>
+        struct is_integer<uint128_t, enumerable> final {
+          static bool const value = true;
+        };
+      #endif
+
+      template <std::size_t width>
+      struct is_integer<bit<width>, false> final {
+        static bool const value = true;
+      };
+
+      template <typename base, bool enumerable>
+      struct is_integer<base const, enumerable> final {
+        static bool const value = is_integer<base, enumerable>::value;
+      };
+
+      template <typename base, bool enumerable>
+      struct is_integer<base const volatile, enumerable> final {
+        static bool const value = is_integer<base, enumerable>::value;
+      };
+
+      template <typename base, bool enumerable>
+      struct is_integer<base volatile, enumerable> final {
+        static bool const value = is_integer<base, enumerable>::value;
+      };
+
+      // ... ->> Constant of specified type preferably instantiated at compile-time
+      #ifdef __cpp_constexpr // --> 200704L
+        template <typename base, base constantValue, bool = true>
+        struct constant final {
+          constexpr static base value = constantValue;
+        };
+      #else
+        template <typename base, base constantValue, bool = is_integer<base>::value>
+        struct constant final {
+          static base const value = constantValue;
+        };
+
+        template <typename base, base constantValue>
+        struct constant<base, constantValue, false> final {
+          static base const value;
+        };
+          template <typename base, base value>
+          base const constant<base, value, false>::value = value;
+      #endif
 
       // ... ->> Evaluates number of digits in specified numeral integer
       template <std::size_t integer, std::size_t radix>
@@ -333,21 +494,25 @@
           template <typename... bases>
           struct nontyped_template final {
             private:
-              typedef Traits::constant<bool, sizeof(packof(bases)) != 0u,              true> undeclarable_nontyped_template;
-              typedef Traits::constant<bool, sizeof(packof(bases)) <= LAPYS_MAX_ARITY, true> unrepresentable_nontyped_template;
+              typedef Traits::constant<bool, sizeof(packof(bases)) != 0u>              undeclarable_nontyped_template;
+              typedef Traits::constant<bool, sizeof(packof(bases)) <= LAPYS_MAX_ARITY> unrepresentable_nontyped_template;
 
-            public:
+              /* ... */
               static_assert(undeclarable_nontyped_template::value, "Unable to declare `nontyped_template<...>` trait with no parameters");
               static_assert(unrepresentable_nontyped_template::value, "Unable to represent `nontyped_template<...>` trait with too many parameters");
+
+            public:
+              template <template <bases...> class>
+              struct value final {};
           };
         #else
           template <typename base1u = null, typename base2u = null, typename base3u = null, typename base4u = null, typename base5u = null, typename base6u = null, typename base7u = null, typename base8u = null, typename base9u = null, typename base10u = null, typename base11u = null, typename base12u = null, typename base13u = null, typename base14u = null, typename base15u = null, typename base16u = null, typename base17u = null, typename base18u = null, typename base19u = null, typename base20u = null, typename base21u = null, typename base22u = null, typename base23u = null, typename base24u = null, typename base25u = null, typename base26u = null, typename base27u = null, typename base28u = null, typename base29u = null, typename base30u = null, typename base31u = null, typename base32u = null, typename base33u = null, typename base34u = null, typename base35u = null, typename base36u = null, typename base37u = null, typename base38u = null, typename base39u = null, typename base40u = null, typename base41u = null, typename base42u = null, typename base43u = null, typename base44u = null, typename base45u = null, typename base46u = null, typename base47u = null, typename base48u = null, typename base49u = null, typename base50u = null, typename base51u = null, typename base52u = null, typename base53u = null, typename base54u = null, typename base55u = null, typename base56u = null, typename base57u = null, typename base58u = null, typename base59u = null, typename base60u = null, typename base61u = null, typename base62u = null, typename base63u = null, typename base64u = null, typename base65u = null, typename base66u = null, typename base67u = null, typename base68u = null, typename base69u = null, typename base70u = null, typename base71u = null, typename base72u = null, typename base73u = null, typename base74u = null, typename base75u = null, typename base76u = null, typename base77u = null, typename base78u = null, typename base79u = null, typename base80u = null, typename base81u = null, typename base82u = null, typename base83u = null, typename base84u = null, typename base85u = null, typename base86u = null, typename base87u = null, typename base88u = null, typename base89u = null, typename base90u = null, typename base91u = null, typename base92u = null, typename base93u = null, typename base94u = null, typename base95u = null, typename base96u = null, typename base97u = null, typename base98u = null, typename base99u = null, typename base100u = null, typename base101u = null, typename base102u = null, typename base103u = null, typename base104u = null, typename base105u = null, typename base106u = null, typename base107u = null, typename base108u = null, typename base109u = null, typename base110u = null, typename base111u = null, typename base112u = null, typename base113u = null, typename base114u = null, typename base115u = null, typename base116u = null, typename base117u = null, typename base118u = null, typename base119u = null, typename base120u = null, typename base121u = null, typename base122u = null, typename base123u = null, typename base124u = null, typename base125u = null, typename base126u = null, typename base127u = null>
           struct nontyped_template final {
             private:
               typedef collection<base1u, base2u, base3u, base4u, base5u, base6u, base7u, base8u, base9u, base10u, base11u, base12u, base13u, base14u, base15u, base16u, base17u, base18u, base19u, base20u, base21u, base22u, base23u, base24u, base25u, base26u, base27u, base28u, base29u, base30u, base31u, base32u, base33u, base34u, base35u, base36u, base37u, base38u, base39u, base40u, base41u, base42u, base43u, base44u, base45u, base46u, base47u, base48u, base49u, base50u, base51u, base52u, base53u, base54u, base55u, base56u, base57u, base58u, base59u, base60u, base61u, base62u, base63u, base64u, base65u, base66u, base67u, base68u, base69u, base70u, base71u, base72u, base73u, base74u, base75u, base76u, base77u, base78u, base79u, base80u, base81u, base82u, base83u, base84u, base85u, base86u, base87u, base88u, base89u, base90u, base91u, base92u, base93u, base94u, base95u, base96u, base97u, base98u, base99u, base100u, base101u, base102u, base103u, base104u, base105u, base106u, base107u, base108u, base109u, base110u, base111u, base112u, base113u, base114u, base115u, base116u, base117u, base118u, base119u, base120u, base121u, base122u, base123u, base124u, base125u, base126u, base127u> collection;
-              typedef Traits::constant<bool, collection::length != 0u, true> undeclarable_nontyped_template;
+              typedef Traits::constant<bool, collection::length != 0u> undeclarable_nontyped_template;
 
-            public:
+              /* ... */
               static_assert(undeclarable_nontyped_template::value, "Unable to declare `nontyped_template<...>` trait with no parameters");
           };
         #endif
@@ -356,10 +521,10 @@
         template <std::size_t arity>
         struct typed_template final {
           private:
-            typedef Traits::constant<bool, arity != 0u,              true> undeclarable_typed_template;
-            typedef Traits::constant<bool, arity <= LAPYS_MAX_ARITY, true> unrepresentable_typed_template;
+            typedef Traits::constant<bool, arity != 0u>              undeclarable_typed_template;
+            typedef Traits::constant<bool, arity <= LAPYS_MAX_ARITY> unrepresentable_typed_template;
 
-          public:
+            /* ... */
             static_assert(undeclarable_typed_template::value, "Unable to declare `typed_template<...>` trait with no parameters");
             static_assert(unrepresentable_typed_template::value, "Unable to represent `typed_template<...>` trait with too many parameters");
         };
@@ -626,139 +791,6 @@
         template <> struct defer::typed_template<126u> final { template <template <typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename>           class> struct value final {}; };
         template <> struct defer::typed_template<127u> final { template <template <typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename> class> struct value final {}; };
 
-      // ... ->> Evaluates if type is (based on) an integer type
-      template <typename base, bool enumerable>
-      struct is_integer final {
-        static bool const value = conditional<enumerable, constant<bool, false, true>, is_enum<base> >::type::value;
-      };
-
-      template <bool enumerable>
-      struct is_integer<bool, enumerable> final {
-        static bool const value = true;
-      };
-
-      template <bool enumerable>
-      struct is_integer<char, enumerable> final {
-        static bool const value = true;
-      };
-
-      template <bool enumerable>
-      struct is_integer<int, enumerable> final {
-        static bool const value = true;
-      };
-
-      template <bool enumerable>
-      struct is_integer<long, enumerable> final {
-        static bool const value = true;
-      };
-
-      template <bool enumerable>
-      struct is_integer<short, enumerable> final {
-        static bool const value = true;
-      };
-
-      template <bool enumerable>
-      struct is_integer<signed char, enumerable> final {
-        static bool const value = true;
-      };
-
-      template <bool enumerable>
-      struct is_integer<unsigned char, enumerable> final {
-        static bool const value = true;
-      };
-
-      template <bool enumerable>
-      struct is_integer<unsigned int, enumerable> final {
-        static bool const value = true;
-      };
-
-      template <bool enumerable>
-      struct is_integer<unsigned long, enumerable> final {
-        static bool const value = true;
-      };
-
-      template <bool enumerable>
-      struct is_integer<unsigned short, enumerable> final {
-        static bool const value = true;
-      };
-
-      template <bool enumerable>
-      struct is_integer<wchar_t, enumerable> final {
-        static bool const value = true;
-      };
-
-      #if CPP_VERSION >= 2011uL
-        template <bool enumerable>
-        struct is_integer<long long, enumerable> final {
-          static bool const value = true;
-        };
-
-        template <bool enumerable>
-        struct is_integer<unsigned long long, enumerable> final {
-          static bool const value = true;
-        };
-      #endif
-
-      #ifdef __cpp_char8_t // --> 201811L
-        template <bool enumerable>
-        struct is_integer<char8_t /* --> unsigned char */, enumerable> final {
-          static bool const value = true;
-        };
-      #endif
-
-      #ifdef __cpp_lib_byte // --> 201603L
-        template <bool enumerable>
-        struct is_integer<std::byte /* --> unsigned char */, enumerable> final {
-          static bool const value = true;
-        };
-      #endif
-
-      #ifdef __cpp_unicode_characters // --> 200704L
-        template <bool enumerable>
-        struct is_integer<char16_t /* --> ::uint_least16_t */, enumerable> final {
-          static bool const value = true;
-        };
-
-        template <bool enumerable>
-        struct is_integer<char32_t /* --> ::uint_least32_t */, enumerable> final {
-          static bool const value = true;
-        };
-      #endif
-
-      #ifdef int128_t
-        template <bool enumerable>
-        struct is_integer<int128_t, enumerable> final {
-          static bool const value = true;
-        };
-      #endif
-
-      #ifdef uint128_t
-        template <bool enumerable>
-        struct is_integer<uint128_t, enumerable> final {
-          static bool const value = true;
-        };
-      #endif
-
-      template <std::size_t width>
-      struct is_integer<bit<width>, false> final {
-        static bool const value = true;
-      };
-
-      template <typename base, bool enumerable>
-      struct is_integer<base const, enumerable> final {
-        static bool const value = is_integer<base, enumerable>::value;
-      };
-
-      template <typename base, bool enumerable>
-      struct is_integer<base const volatile, enumerable> final {
-        static bool const value = is_integer<base, enumerable>::value;
-      };
-
-      template <typename base, bool enumerable>
-      struct is_integer<base volatile, enumerable> final {
-        static bool const value = is_integer<base, enumerable>::value;
-      };
-
       // ... ->> Type equality
       template <typename, typename>
       struct is_same final {
@@ -905,9 +937,99 @@
       };
 
       // ... ->> Operation diagnostics
+      struct optraitinfo final {
+        private:
+          // ... --> auto trait::value() const volatile& noexcept;
+          template <class trait, std::size_t arity, typename, typename, typename>
+          constfunc(true) static boolean_true (uses_member_function)(sfinaeptr_t const, bool const (*const)[arity == 0u and sizeof(reinterpret_cast<bool (trait::*)(...)>(&trait::value))] = nullptr) noexcept;
+
+          template <class trait, std::size_t arity, typename type, typename, typename>
+          constfunc(true) static boolean_true (uses_member_function)(sfinaeptr_t const, bool const (*const)[arity == 1u and sizeof(reinterpret_cast<bool (trait::*)(...)>(&trait::template value<type>))] = nullptr) noexcept;
+
+          template <class trait, std::size_t arity, typename typeA, typename typeB, typename>
+          constfunc(true) static boolean_true (uses_member_function)(sfinaeptr_t const, bool const (*const)[arity == 2u and sizeof(reinterpret_cast<bool (trait::*)(...)>(&trait::template value<typeA, typeB>))] = nullptr) noexcept;
+
+          template <class trait, std::size_t arity, typename typeA, typename typeB, typename typeC>
+          constfunc(true) static boolean_true (uses_member_function)(sfinaeptr_t const, bool const (*const)[arity == 3u and sizeof(reinterpret_cast<bool (trait::*)(...)>(&trait::template value<typeA, typeB, typeC>))] = nullptr) noexcept;
+
+          template <class, std::size_t, typename, typename, typename>
+          constfunc(true) static boolean_false (uses_member_function)(...) noexcept;
+
+          // ... --> auto trait::value;
+          template <class trait, std::size_t arity, typename, typename, typename>
+          constfunc(true) static boolean_true (uses_object)(sfinaeptr_t const, bool const (*const)[arity == 0u and sizeof(trait::value)] = nullptr) noexcept;
+
+          template <class trait, std::size_t arity, typename type, typename, typename>
+          constfunc(true) static boolean_true (uses_object)(sfinaeptr_t const, bool const (*const)[arity == 1u and sizeof(trait::template value<type>)] = nullptr) noexcept;
+
+          template <class trait, std::size_t arity, typename typeA, typename typeB, typename>
+          constfunc(true) static boolean_true (uses_object)(sfinaeptr_t const, bool const (*const)[arity == 2u and sizeof(trait::template value<typeA, typeB>)] = nullptr) noexcept;
+
+          template <class trait, std::size_t arity, typename typeA, typename typeB, typename typeC>
+          constfunc(true) static boolean_true (uses_object)(sfinaeptr_t const, bool const (*const)[arity == 3u and sizeof(trait::template value<typeA, typeB, typeC>)] = nullptr) noexcept;
+
+          template <class, std::size_t, typename, typename, typename>
+          constfunc(true) static boolean_false (uses_object)(...) noexcept;
+
+          // ... --> class trait::value; enum trait::value; struct trait::value; union trait::value; using trait::value = ...;
+          template <class trait, std::size_t arity, typename, typename, typename>
+          constfunc(true) static boolean_true (uses_type)(sfinaeptr_t const, bool const (*const)[arity == 0u and sizeof(typeid(typename trait::value))] = nullptr) noexcept;
+
+          template <class trait, std::size_t arity, typename type, typename, typename>
+          constfunc(true) static boolean_true (uses_type)(sfinaeptr_t const, bool const (*const)[arity == 1u and sizeof(typeid(typename trait::template value<type>))] = nullptr) noexcept;
+
+          template <class trait, std::size_t arity, typename typeA, typename typeB, typename>
+          constfunc(true) static boolean_true (uses_type)(sfinaeptr_t const, bool const (*const)[arity == 2u and sizeof(typeid(typename trait::template value<typeA, typeB>))] = nullptr) noexcept;
+
+          template <class trait, std::size_t arity, typename typeA, typename typeB, typename typeC>
+          constfunc(true) static boolean_true (uses_type)(sfinaeptr_t const, bool const (*const)[arity == 3u and sizeof(typeid(typename trait::template value<typeA, typeB, typeC>))] = nullptr) noexcept;
+
+          template <class, std::size_t, typename, typename, typename>
+          constfunc(true) static boolean_false (uses_type)(...) noexcept;
+
+        public:
+          template <class trait, std::size_t arity, typename baseA = null, typename baseB = null, typename = null, typename baseC = null>
+          struct assert final {
+            static bool const value = sizeof(boolean_false) == (
+              sizeof(optraitinfo::template uses_member_function<trait, (arity < 0u ? arity : 0u), baseA, baseB, baseC>(sfinaeptr)) |
+              sizeof(optraitinfo::template uses_member_function<trait, (arity < 1u ? arity : 1u), baseA, baseB, baseC>(sfinaeptr)) |
+              sizeof(optraitinfo::template uses_member_function<trait, (arity < 2u ? arity : 2u), baseA, baseB, baseC>(sfinaeptr)) |
+              sizeof(optraitinfo::template uses_member_function<trait, (arity < 3u ? arity : 3u), baseA, baseB, baseC>(sfinaeptr)) |
+              #if CPP_COMPILER != CPP_MSVC_COMPILER
+                sizeof(optraitinfo::template uses_object<trait, (arity < 0u ? arity : 0u), baseA, baseB, baseC>(sfinaeptr)) |
+                sizeof(optraitinfo::template uses_object<trait, (arity < 1u ? arity : 1u), baseA, baseB, baseC>(sfinaeptr)) |
+                sizeof(optraitinfo::template uses_object<trait, (arity < 2u ? arity : 2u), baseA, baseB, baseC>(sfinaeptr)) |
+                sizeof(optraitinfo::template uses_type  <trait, (arity < 0u ? arity : 0u), baseA, baseB, baseC>(sfinaeptr)) |
+                sizeof(optraitinfo::template uses_type  <trait, (arity < 1u ? arity : 1u), baseA, baseB, baseC>(sfinaeptr)) |
+                sizeof(optraitinfo::template uses_type  <trait, (arity < 2u ? arity : 2u), baseA, baseB, baseC>(sfinaeptr)) |
+                sizeof(optraitinfo::template uses_type  <trait, (arity < 3u ? arity : 3u), baseA, baseB, baseC>(sfinaeptr)) |
+              #endif
+              sizeof(boolean_false)
+            );
+          };
+
+          /* ... */
+          template <class trait, std::size_t arity, typename type, typename, typename>
+          constfunc(true) static boolean_true (valueof)(sfinaeptr_t const, bool const (*const)[arity == 1u and sizeof(typeid((trait::value)(instanceof<type>())))] = nullptr) noexcept;
+
+          template <class trait, std::size_t arity, typename typeA, typename typeB, typename>
+          constfunc(true) static boolean_true (valueof)(sfinaeptr_t const, bool const (*const)[arity == 2u and sizeof(typeid((trait::value)(instanceof<typeA>(), instanceof<typeB>())))] = nullptr) noexcept;
+
+          template <class trait, std::size_t arity, typename typeA, typename typeB, typename typeC>
+          constfunc(true) static boolean_true (valueof)(sfinaeptr_t const, bool const (*const)[arity == 3u and sizeof(typeid((trait::value)(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>())))] = nullptr) noexcept;
+
+          template <class, std::size_t, typename, typename, typename>
+          constfunc(true) static boolean_false (valueof)(...) noexcept;
+      };
+
       struct opinfo final {
         // Operator identifiers -->
-        enumint(typename uint_least_value_t<3u>::type, operation) {
+        enumint(typename uint_least_value_t<64u>::type, operation) {
+          nop     = 0u,                //
+          unary   = 1u,                // x
+          binary  = 2u,                // x y
+          ternary = 3u,                // x y z
+                                       //
           access,                      //   x   . y
           access_pointer,              //   x  .* y
           add,                         //   x   + y
@@ -932,19 +1054,22 @@
           boolean_or,                  //   x  || y
           call,                        //   x(...)
           cast,                        //  (x) y
-          co_await,                    //
+          cast_const,                  // const_cast      <x>(y)
+          cast_dynamic,                // dynamic_cast    <x>(y)
+          cast_reinterpret,            // reinterpret_cast<x>(y)
+          cast_static,                 // static_cast     <x>(y)
           comma,                       //   x   , y
           compare,                     //   x <=> y
           complement,                  //  ~x
-          const_cast,                  // const_cast<x>(y)
+          conditional,                 //   x   ? y : z
           construct,                   //   x(...)
-          delete,                      // delete   x
-          delete[],                    // delete[] x
+          coroutine_await,             // co_await x
+          delete_array,                // delete[] x
+          delete_object,               // delete   x
           dereference,                 //  *x
           dereferenced_access,         //   x  -> y
           dereferenced_access_pointer, //   x ->* y
           divide,                      //   x   / y
-          dynamic_cast,                // dynamic_cast<x>(y)
           equals,                      //   x  == y
           greater,                     //   x   > y
           greater_equals,              //   x  >= y
@@ -954,23 +1079,20 @@
           modulo,                      //   x   % y
           multiply,                    //   x   * y
           negate,                      //  !x
-          new,                         // new   x
-          new[],                       // new[] x
+          new_array,                   // new[] x
+          new_object,                  // new   x
           plus,                        //  +x
           post_decrement,              //   x--
           post_increment,              //   x++
           pre_decrement,               // --x
           pre_increment,               // ++x
-          reinterpret_cast,            // reinterpret_cast<x>(y)
           scope,                       //   x  :: y
-          static_cast,                 // static_cast<x>(y)
-          subscript,                   //   x[y]
+          subscript,                   //   x[y];
                                        //   x[a, b, ..., c]
           subtract,                    //   x   - y
-          ternary,                     //   x   ? y : z
           unequals                     //   x  != y
 
-          // __cpp_static_call_operator // 202207L
+          // __cpp_static_call_operator       // 202207L
           // __cpp_multidimensional_subscript // 202211L
         };
 
@@ -983,16 +1105,67 @@
 
         // ... --> +T
         struct nonoverloaded final {
-          private:
-            struct has {};
+          struct evaluate;
 
-          public:
-            template <typename baseA, typename baseB>
-            struct has_add final {
+          // ...
+          template <operation, typename = null, typename = null, typename = null>
+          struct has;
+
+          template <typename baseA, typename baseB>
+          struct has<opinfo::add, baseA, baseB> final {
+            private:
+              template <typename typeA, typename typeB>
+              constfunc(true) static boolean_true (valueof)(sfinaeptr_t const, bool const (*const)[sizeof(typeid(instanceof<typeA>() + instanceof<typeB>()))] = nullptr) noexcept;
+
+              template <typename, typename>
+              constfunc(true) static boolean_false (valueof)(...) noexcept;
+
+            public:
+              static bool const value = sizeof(boolean_true) == sizeof(valueof<baseA, baseB>(sfinaeptr));
+          };
+
+          // ... ->> `has<opinfo::add, A, B>::value == has<opinfo::binary, A, B>::valueof<T>::value` if `T = struct { static void value(A*, B*, bool (*)[sizeof(typeid(instanceof<A>() + instanceof<B>()))] = nullptr); }`
+          template <typename baseA, typename baseB>
+          struct has<opinfo::binary, baseA, baseB> final {
+            template <class trait>
+            struct valueof final {
               private:
+                typedef optraitinfo::template assert<trait, 2u, baseA, baseB> invalid_value;
+                static_assert(invalid_value::value, "Expected `template` argument of `opinfo::nonoverloaded::has<binary, ...>::valueof<>` to declare `static` member function named `value()`");
+
               public:
-                // static bool const value = ;
+                static bool const value = sizeof(boolean_true) == sizeof(optraitinfo::template valueof<trait, 2u, baseA, baseB, null>(sfinaeptr));
             };
+          };
+
+          template <typename baseA, typename baseB, typename baseC>
+          struct has<opinfo::ternary, baseA, baseB, baseC> final {
+            template <class trait>
+            struct valueof final {
+              private:
+                typedef optraitinfo::template assert<trait, 3u, baseA, baseB, baseC> invalid_value;
+                static_assert(invalid_value::value, "Expected `template` argument of `opinfo::nonoverloaded::has<ternary, ...>::valueof<>` to declare `static` member function named `value()`");
+
+              public:
+                static bool const value = sizeof(boolean_true) == sizeof(optraitinfo::template valueof<trait, 3u, baseA, baseB, baseC>(sfinaeptr));
+            };
+          };
+
+          template <typename base>
+          struct has<opinfo::unary, base> final {
+            template <class trait>
+            struct valueof final {
+              private:
+                typedef optraitinfo::template assert<trait, 1u, base> invalid_value;
+                static_assert(invalid_value::value, "Expected `template` argument of `opinfo::nonoverloaded::has<unary, ...>::valueof<>` to declare `static` member function named `value()`");
+
+              public:
+                static bool const value = sizeof(boolean_true) == sizeof(optraitinfo::template valueof<trait, 1u, base, null, null>(sfinaeptr));
+            };
+          };
+
+          // TODO -> base::type
+          // opinfo::nonoverloaded::has<opinfo::unary, T>::valueof<trait>::value
         };
 
         // ... ->> Dis-junction of `member` and `nonmember` traits
@@ -1114,193 +1287,189 @@
         // width // width, duh
     };
 
-    template <std::size_t constantValue>
-    struct bit<0u, constantValue> final {
-      typedef void      base;
-      typedef bit<0u>   complement;
-      typedef bit<0u>   toggle;
-      typedef uintmin_t type[];
+    // TODO
+    // template <std::size_t constantValue>
+    // struct bit<0u, constantValue> final {
+    //   typedef void      base;
+    //   typedef bit<0u>   complement;
+    //   typedef bit<0u>   toggle;
+    //   typedef uintmin_t type[];
 
-      /* ... */
-      template <template <unsigned char, std::size_t> class>
-      struct apply final {
-        typedef bit<0u> type;
-      };
+    //   /* ... */
+    //   template <template <unsigned char, std::size_t> class>
+    //   struct apply final {
+    //     typedef bit<0u> type;
+    //   };
 
-      // ...
-      template <std::size_t index>
-      struct at final {
-        private:
-          typedef constant<bool, 0u == sizeof(defer::template constant<std::size_t, index>), true> invalid_bit_index;
+    //   // ...
+    //   template <std::size_t index>
+    //   struct at final {
+    //     private:
+    //       typedef constant<bool, 0u == sizeof(defer::template constant<std::size_t, index>)> invalid_bit_index;
+    //       static_assert(invalid_bit_index::value, "Out-of-bounds indexing of empty type `bit<0zu>`");
 
-        public:
-          static_assert(invalid_bit_index::value, "Out-of-bounds indexing of empty type `bit<0zu>`");
-          static unsigned char const value;
-      };
+    //     public:
+    //       static unsigned char const value;
+    //   };
 
-      // ...
-      template <typename>
-      struct bitwise_and;
+    //   // ...
+    //   template <typename>
+    //   struct bitwise_and;
 
-      template <std::size_t width>
-      struct bitwise_and<bit<width> > final {
-        typedef bit<0u> type;
-      };
+    //   template <std::size_t width>
+    //   struct bitwise_and<bit<width> > final {
+    //     typedef bit<0u> type;
+    //   };
 
-      // ...
-      template <typename>
-      struct bitwise_or;
+    //   // ...
+    //   template <typename>
+    //   struct bitwise_or;
 
-      template <std::size_t width>
-      struct bitwise_or<bit<width> > final {
-        typedef bit<0u> type;
-      };
+    //   template <std::size_t width>
+    //   struct bitwise_or<bit<width> > final {
+    //     typedef bit<0u> type;
+    //   };
 
-      // ...
-      template <typename>
-      struct bitwise_xor;
+    //   // ...
+    //   template <typename>
+    //   struct bitwise_xor;
 
-      template <std::size_t width>
-      struct bitwise_xor<bit<width> > final {
-        typedef bit<0u> type;
-      };
+    //   template <std::size_t width>
+    //   struct bitwise_xor<bit<width> > final {
+    //     typedef bit<0u> type;
+    //   };
 
-      // ...
-      template <template <std::size_t, unsigned char, std::size_t> class trait>
-      struct build final {
-        private: typedef constant<bool, 0u == sizeof(defer::template nontyped_template<std::size_t, unsigned char, std::size_t>::template value<trait>), true> invalid_bit_modification;
-        public: static_assert(invalid_bit_modification::value, "Unable to sequence value from empty type `bit<0zu>`");
-      };
+    //   // ...
+    //   template <template <std::size_t, unsigned char, std::size_t> class trait>
+    //   struct build final {
+    //     private:
+    //       typedef constant<bool, 0u == sizeof(defer::template nontyped_template<std::size_t, unsigned char, std::size_t>::template value<trait>)> invalid_bit_modification;
+    //       static_assert(invalid_bit_modification::value, "Unable to sequence value from empty type `bit<0zu>`");
+    //   };
 
-      // ...
-      template <typename>
-      struct has;
+    //   // ...
+    //   template <typename>
+    //   struct has;
 
-      template <std::size_t width>
-      struct has<bit<width> > final {
-        static bool const value = false;
-      };
+    //   template <std::size_t width>
+    //   struct has<bit<width> > final {
+    //     static bool const value = false;
+    //   };
 
-      // ...
-      template <std::size_t width>
-      struct highof final {
-        typedef bit<width> type;
-      };
+    //   // ...
+    //   template <std::size_t width>
+    //   struct highof final {
+    //     typedef bit<width> type;
+    //   };
 
-      // ...
-      template <typename>
-      struct index;
+    //   // ...
+    //   template <typename>
+    //   struct index;
 
-      template <std::size_t width>
-      struct index<bit<width> > final {
-        private:
-          typedef constant<bool, 0u == sizeof(defer::template type<bit<width> >), true> invalid_bit_search;
+    //   template <std::size_t width>
+    //   struct index<bit<width> > final {
+    //     private:
+    //       typedef constant<bool, 0u == sizeof(defer::template type<bit<width> >)> invalid_bit_search;
+    //       static_assert(invalid_bit_search::value, "Out-of-bounds searching of empty type `bit<0zu>`");
 
-        public:
-          static_assert(invalid_bit_search::value, "Out-of-bounds searching of empty type `bit<0zu>`");
-          static std::size_t const value = static_cast<std::size_t>(-1);
-      };
+    //     public:
+    //       static std::size_t const value = static_cast<std::size_t>(-1);
+    //   };
 
-      // ...
-      template <std::size_t width>
-      struct left_shift final {
-        typedef bit<0u> type;
-      };
+    //   // ...
+    //   template <std::size_t width>
+    //   struct left_shift final {
+    //     typedef bit<0u> type;
+    //   };
 
-      // ...
-      template <std::size_t width>
-      struct lowof final {
-        typedef bit<width> type;
-      };
+    //   // ...
+    //   template <std::size_t width>
+    //   struct lowof final {
+    //     typedef bit<width> type;
+    //   };
 
-      // ...
-      template <typename>
-      struct remove;
+    //   // ...
+    //   template <typename>
+    //   struct remove;
 
-      template <std::size_t width>
-      struct remove<bit<width> > final {
-        typedef bit<0u> type;
-      };
+    //   template <std::size_t width>
+    //   struct remove<bit<width> > final {
+    //     typedef bit<0u> type;
+    //   };
 
-      // ...
-      template <std::size_t width>
-      struct right_shift final {
-        typedef bit<0u> type;
-      };
+    //   // ...
+    //   template <std::size_t width>
+    //   struct right_shift final {
+    //     typedef bit<0u> type;
+    //   };
 
-      // ...
-      template <std::size_t index>
-      struct set final {
-        private:
-          typedef constant<bool, 0u == sizeof(defer::template constant<std::size_t, index>), true> invalid_bit_index;
+    //   // ...
+    //   template <std::size_t index>
+    //   struct set final {
+    //     private:
+    //       typedef constant<bool, 0u == sizeof(defer::template constant<std::size_t, index>)> invalid_bit_index;
+    //       static_assert(invalid_bit_index::value, "Out-of-bounds indexing of empty type `bit<0zu>`");
 
-        public:
-          static_assert(invalid_bit_index::value, "Out-of-bounds indexing of empty type `bit<0zu>`");
-          typedef bit<0u> type;
-      };
+    //     public:
+    //       typedef bit<0u> type;
+    //   };
 
-      // ...
-      template <std::size_t count, std::size_t = 0u>
-      struct slice final {
-        private:
-          typedef constant<bool, 0u == sizeof(defer::template constant<std::size_t, count>), true> invalid_bit_indexes;
+    //   // ...
+    //   template <std::size_t count, std::size_t = 0u>
+    //   struct slice final {
+    //     private:
+    //       typedef constant<bool, 0u == sizeof(defer::template constant<std::size_t, count>)> invalid_bit_indexes;
+    //       static_assert(invalid_bit_indexes::value, "Out-of-bounds slicing of empty type `bit<0zu>`");
 
-        public:
-          static_assert(invalid_bit_indexes::value, "Out-of-bounds slicing of empty type `bit<0zu>`");
-          typedef bit<0u> type;
-      };
+    //     public:
+    //       typedef bit<0u> type;
+    //   };
 
-      /* ... */
-      static std::size_t const count           = 0u;
-      static bool        const is_max          = false;
-      static bool        const is_nil          = false;
-      static bool        const is_power_of_two = false;
-      static std::size_t const width           = 0u;
+    //   /* ... */
+    //   static std::size_t const count           = 0u;
+    //   static bool        const is_max          = false;
+    //   static bool        const is_nil          = false;
+    //   static bool        const is_power_of_two = false;
+    //   static std::size_t const width           = 0u;
 
-      static unsigned char const first;
-      static unsigned char const last;
-      static unsigned char const value;
-      static unsigned char const values[1];
+    //   static unsigned char const first;
+    //   static unsigned char const last;
+    //   static unsigned char const value;
+    //   static unsigned char const values[1];
 
-      /* ... */
-      constfunc(true) bit(uintmin_t const = 0u) noexcept discard;
+    //   /* ... */
+    //   constfunc(true) bit(uintmin_t const = 0u) noexcept discard;
 
-      /* ... */
-      template <typename type> constfunc(true)        bit&          operator =  (type nodecay)          member_lref noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>), true> invalid_bit_assignment; static_assert(invalid_bit_assignment::value,          "Assignment of empty type `bit<0zu>`"); return const_cast<bit&>         (*this); }
-      template <typename type> constfunc(true)        bit volatile& operator =  (type nodecay) volatile member_lref noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>), true> invalid_bit_assignment; static_assert(invalid_bit_assignment::value,          "Assignment of empty type `bit<0zu>`"); return const_cast<bit volatile&>(*this); }
-      template <typename type> constfunc(true) friend bit&          operator += (bit&          bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>), true> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
-      template <typename type> constfunc(true) friend bit volatile& operator += (bit volatile& bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>), true> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
-      template <typename type> constfunc(true) friend bit&          operator -= (bit&          bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>), true> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
-      template <typename type> constfunc(true) friend bit volatile& operator -= (bit volatile& bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>), true> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
-      template <typename type> constfunc(true) friend bit&          operator *= (bit&          bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>), true> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
-      template <typename type> constfunc(true) friend bit volatile& operator *= (bit volatile& bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>), true> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
-      template <typename type> constfunc(true) friend bit&          operator /= (bit&          bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>), true> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
-      template <typename type> constfunc(true) friend bit volatile& operator /= (bit volatile& bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>), true> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
-      template <typename type> constfunc(true) friend bit&          operator %= (bit&          bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>), true> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
-      template <typename type> constfunc(true) friend bit volatile& operator %= (bit volatile& bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>), true> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
-      template <typename type> constfunc(true) friend bit&          operator &= (bit&          bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>), true> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
-      template <typename type> constfunc(true) friend bit volatile& operator &= (bit volatile& bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>), true> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
-      template <typename type> constfunc(true) friend bit&          operator |= (bit&          bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>), true> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
-      template <typename type> constfunc(true) friend bit volatile& operator |= (bit volatile& bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>), true> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
-      template <typename type> constfunc(true) friend bit&          operator ^= (bit&          bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>), true> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
-      template <typename type> constfunc(true) friend bit volatile& operator ^= (bit volatile& bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>), true> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
-      template <typename type> constfunc(true) friend bit&          operator <<=(bit&          bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>), true> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
-      template <typename type> constfunc(true) friend bit volatile& operator <<=(bit volatile& bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>), true> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
-      template <typename type> constfunc(true) friend bit&          operator >>=(bit&          bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>), true> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
-      template <typename type> constfunc(true) friend bit volatile& operator >>=(bit volatile& bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>), true> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
+    //   /* ... */
+    //   template <typename type> constfunc(false)       bit&          operator =  (type nodecay)          member_lref noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value,          "Assignment of empty type `bit<0zu>`"); return const_cast<bit&>         (*this); }
+    //   template <typename type> constfunc(false)       bit volatile& operator =  (type nodecay) volatile member_lref noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value,          "Assignment of empty type `bit<0zu>`"); return const_cast<bit volatile&>(*this); }
+    //   template <typename type> constfunc(true) friend bit&          operator += (bit&          bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
+    //   template <typename type> constfunc(true) friend bit volatile& operator += (bit volatile& bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
+    //   template <typename type> constfunc(true) friend bit&          operator -= (bit&          bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
+    //   template <typename type> constfunc(true) friend bit volatile& operator -= (bit volatile& bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
+    //   template <typename type> constfunc(true) friend bit&          operator *= (bit&          bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
+    //   template <typename type> constfunc(true) friend bit volatile& operator *= (bit volatile& bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
+    //   template <typename type> constfunc(true) friend bit&          operator /= (bit&          bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
+    //   template <typename type> constfunc(true) friend bit volatile& operator /= (bit volatile& bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
+    //   template <typename type> constfunc(true) friend bit&          operator %= (bit&          bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
+    //   template <typename type> constfunc(true) friend bit volatile& operator %= (bit volatile& bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
+    //   template <typename type> constfunc(true) friend bit&          operator &= (bit&          bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
+    //   template <typename type> constfunc(true) friend bit volatile& operator &= (bit volatile& bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
+    //   template <typename type> constfunc(true) friend bit&          operator |= (bit&          bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
+    //   template <typename type> constfunc(true) friend bit volatile& operator |= (bit volatile& bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
+    //   template <typename type> constfunc(true) friend bit&          operator ^= (bit&          bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
+    //   template <typename type> constfunc(true) friend bit volatile& operator ^= (bit volatile& bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
+    //   template <typename type> constfunc(true) friend bit&          operator <<=(bit&          bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
+    //   template <typename type> constfunc(true) friend bit volatile& operator <<=(bit volatile& bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
+    //   template <typename type> constfunc(true) friend bit&          operator >>=(bit&          bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
+    //   template <typename type> constfunc(true) friend bit volatile& operator >>=(bit volatile& bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
 
-      constfunc(true) operator uintmin_t() const noexcept discard;
-    };
+    //   constfunc(true) operator uintmin_t() const noexcept discard;
+    // };
 
     /* Namespace ->> Define remaining dependent/ non-prerequisite features */
     namespace Traits {
       /* Trait */
-      // ... ->> Aliases specified type (plain and simple)
-      template <typename base>
-      struct alias final {
-        typedef base type;
-      };
-
       // ... ->> Class type diagnostics
       template <typename base, bool fallback>
       struct classinfo final {
@@ -1310,7 +1479,7 @@
           struct unionof final {
             private:
               template <typename type>
-              constfunc(false) static boolean_true (valueof)(sfinaeptr_t const, byte type::* const = NULL) noexcept;
+              constfunc(false) static boolean_true (valueof)(sfinaeptr_t const, byte type::* const = nullptr) noexcept;
 
               template <typename>
               constfunc(false) static boolean_false (valueof)(...) noexcept;
@@ -1395,7 +1564,7 @@
           static std::size_t const maximum = 127u;
 
           private:
-            typedef constant<bool, length <= LAPYS_MAX_ARITY, true> unrepresentable_collection;
+            typedef constant<bool, length <= LAPYS_MAX_ARITY> unrepresentable_collection;
 
             /* ... */
             template <std::size_t count, sfinaeptr_t = sfinaeptr>
@@ -1519,17 +1688,16 @@
             // sizeof(boolean_true) == sizeof(has_type<trait>(sfinaeptr))
             // opinfo::nonmembered::template has_member<>
 
-          public:
             static_assert(unrepresentable_collection::value, "Unable to represent `collection<...>` trait with too many types");
 
-            /* ... */
+          public:
             template <typename base>
             struct add final {
               private:
-                typedef constant<bool, length != maximum, true> invalid_collection_modification;
+                typedef constant<bool, length != maximum> invalid_collection_modification;
+                static_assert(invalid_collection_modification::value, "Unable to add to `collection<...>` trait");
 
               public:
-                static_assert(invalid_collection_modification::value, "Unable to add to `collection<...>` trait");
                 typedef typename _add<base>::type type;
             };
 
@@ -1555,10 +1723,10 @@
             template <std::size_t index>
             struct at final {
               private:
-                typedef constant<bool, (index < length), true> invalid_collection_index;
+                typedef constant<bool, (index < length)> invalid_collection_index;
+                static_assert(invalid_collection_index::value, "Out-of-bounds indexing of `collection<...>` trait");
 
               public:
-                static_assert(invalid_collection_index::value, "Out-of-bounds indexing of `collection<...>` trait");
                 typedef typename _conditional<invalid_collection_index::value, typename _at<invalid_collection_index::value ? index : 0u>::type, null>::type type;
             };
 
@@ -1578,17 +1746,18 @@
             // ...
             template <class subcollection>
             struct concatenate final {
-              private: typedef constant<bool, 0u == sizeof(defer::template type<subcollection>), true> invalid_collection_concatenation;
-              public: static_assert(invalid_collection_concatenation::value, "Unable to concatenate with `collection<...>` trait");
+              private:
+                typedef constant<bool, 0u == sizeof(defer::template type<subcollection>)> invalid_collection_concatenation;
+                static_assert(invalid_collection_concatenation::value, "Unable to concatenate with `collection<...>` trait");
             };
 
             template <typename subbase1u, typename subbase2u, typename subbase3u, typename subbase4u, typename subbase5u, typename subbase6u, typename subbase7u, typename subbase8u, typename subbase9u, typename subbase10u, typename subbase11u, typename subbase12u, typename subbase13u, typename subbase14u, typename subbase15u, typename subbase16u, typename subbase17u, typename subbase18u, typename subbase19u, typename subbase20u, typename subbase21u, typename subbase22u, typename subbase23u, typename subbase24u, typename subbase25u, typename subbase26u, typename subbase27u, typename subbase28u, typename subbase29u, typename subbase30u, typename subbase31u, typename subbase32u, typename subbase33u, typename subbase34u, typename subbase35u, typename subbase36u, typename subbase37u, typename subbase38u, typename subbase39u, typename subbase40u, typename subbase41u, typename subbase42u, typename subbase43u, typename subbase44u, typename subbase45u, typename subbase46u, typename subbase47u, typename subbase48u, typename subbase49u, typename subbase50u, typename subbase51u, typename subbase52u, typename subbase53u, typename subbase54u, typename subbase55u, typename subbase56u, typename subbase57u, typename subbase58u, typename subbase59u, typename subbase60u, typename subbase61u, typename subbase62u, typename subbase63u, typename subbase64u, typename subbase65u, typename subbase66u, typename subbase67u, typename subbase68u, typename subbase69u, typename subbase70u, typename subbase71u, typename subbase72u, typename subbase73u, typename subbase74u, typename subbase75u, typename subbase76u, typename subbase77u, typename subbase78u, typename subbase79u, typename subbase80u, typename subbase81u, typename subbase82u, typename subbase83u, typename subbase84u, typename subbase85u, typename subbase86u, typename subbase87u, typename subbase88u, typename subbase89u, typename subbase90u, typename subbase91u, typename subbase92u, typename subbase93u, typename subbase94u, typename subbase95u, typename subbase96u, typename subbase97u, typename subbase98u, typename subbase99u, typename subbase100u, typename subbase101u, typename subbase102u, typename subbase103u, typename subbase104u, typename subbase105u, typename subbase106u, typename subbase107u, typename subbase108u, typename subbase109u, typename subbase110u, typename subbase111u, typename subbase112u, typename subbase113u, typename subbase114u, typename subbase115u, typename subbase116u, typename subbase117u, typename subbase118u, typename subbase119u, typename subbase120u, typename subbase121u, typename subbase122u, typename subbase123u, typename subbase124u, typename subbase125u, typename subbase126u, typename subbase127u>
             struct concatenate<collection<subbase1u, subbase2u, subbase3u, subbase4u, subbase5u, subbase6u, subbase7u, subbase8u, subbase9u, subbase10u, subbase11u, subbase12u, subbase13u, subbase14u, subbase15u, subbase16u, subbase17u, subbase18u, subbase19u, subbase20u, subbase21u, subbase22u, subbase23u, subbase24u, subbase25u, subbase26u, subbase27u, subbase28u, subbase29u, subbase30u, subbase31u, subbase32u, subbase33u, subbase34u, subbase35u, subbase36u, subbase37u, subbase38u, subbase39u, subbase40u, subbase41u, subbase42u, subbase43u, subbase44u, subbase45u, subbase46u, subbase47u, subbase48u, subbase49u, subbase50u, subbase51u, subbase52u, subbase53u, subbase54u, subbase55u, subbase56u, subbase57u, subbase58u, subbase59u, subbase60u, subbase61u, subbase62u, subbase63u, subbase64u, subbase65u, subbase66u, subbase67u, subbase68u, subbase69u, subbase70u, subbase71u, subbase72u, subbase73u, subbase74u, subbase75u, subbase76u, subbase77u, subbase78u, subbase79u, subbase80u, subbase81u, subbase82u, subbase83u, subbase84u, subbase85u, subbase86u, subbase87u, subbase88u, subbase89u, subbase90u, subbase91u, subbase92u, subbase93u, subbase94u, subbase95u, subbase96u, subbase97u, subbase98u, subbase99u, subbase100u, subbase101u, subbase102u, subbase103u, subbase104u, subbase105u, subbase106u, subbase107u, subbase108u, subbase109u, subbase110u, subbase111u, subbase112u, subbase113u, subbase114u, subbase115u, subbase116u, subbase117u, subbase118u, subbase119u, subbase120u, subbase121u, subbase122u, subbase123u, subbase124u, subbase125u, subbase126u, subbase127u> > final {
               private:
-                typedef constant<bool, (collection<subbase1u, subbase2u, subbase3u, subbase4u, subbase5u, subbase6u, subbase7u, subbase8u, subbase9u, subbase10u, subbase11u, subbase12u, subbase13u, subbase14u, subbase15u, subbase16u, subbase17u, subbase18u, subbase19u, subbase20u, subbase21u, subbase22u, subbase23u, subbase24u, subbase25u, subbase26u, subbase27u, subbase28u, subbase29u, subbase30u, subbase31u, subbase32u, subbase33u, subbase34u, subbase35u, subbase36u, subbase37u, subbase38u, subbase39u, subbase40u, subbase41u, subbase42u, subbase43u, subbase44u, subbase45u, subbase46u, subbase47u, subbase48u, subbase49u, subbase50u, subbase51u, subbase52u, subbase53u, subbase54u, subbase55u, subbase56u, subbase57u, subbase58u, subbase59u, subbase60u, subbase61u, subbase62u, subbase63u, subbase64u, subbase65u, subbase66u, subbase67u, subbase68u, subbase69u, subbase70u, subbase71u, subbase72u, subbase73u, subbase74u, subbase75u, subbase76u, subbase77u, subbase78u, subbase79u, subbase80u, subbase81u, subbase82u, subbase83u, subbase84u, subbase85u, subbase86u, subbase87u, subbase88u, subbase89u, subbase90u, subbase91u, subbase92u, subbase93u, subbase94u, subbase95u, subbase96u, subbase97u, subbase98u, subbase99u, subbase100u, subbase101u, subbase102u, subbase103u, subbase104u, subbase105u, subbase106u, subbase107u, subbase108u, subbase109u, subbase110u, subbase111u, subbase112u, subbase113u, subbase114u, subbase115u, subbase116u, subbase117u, subbase118u, subbase119u, subbase120u, subbase121u, subbase122u, subbase123u, subbase124u, subbase125u, subbase126u, subbase127u>::length + length <= maximum), true> invalid_collection_concatenation;
+                typedef constant<bool, (collection<subbase1u, subbase2u, subbase3u, subbase4u, subbase5u, subbase6u, subbase7u, subbase8u, subbase9u, subbase10u, subbase11u, subbase12u, subbase13u, subbase14u, subbase15u, subbase16u, subbase17u, subbase18u, subbase19u, subbase20u, subbase21u, subbase22u, subbase23u, subbase24u, subbase25u, subbase26u, subbase27u, subbase28u, subbase29u, subbase30u, subbase31u, subbase32u, subbase33u, subbase34u, subbase35u, subbase36u, subbase37u, subbase38u, subbase39u, subbase40u, subbase41u, subbase42u, subbase43u, subbase44u, subbase45u, subbase46u, subbase47u, subbase48u, subbase49u, subbase50u, subbase51u, subbase52u, subbase53u, subbase54u, subbase55u, subbase56u, subbase57u, subbase58u, subbase59u, subbase60u, subbase61u, subbase62u, subbase63u, subbase64u, subbase65u, subbase66u, subbase67u, subbase68u, subbase69u, subbase70u, subbase71u, subbase72u, subbase73u, subbase74u, subbase75u, subbase76u, subbase77u, subbase78u, subbase79u, subbase80u, subbase81u, subbase82u, subbase83u, subbase84u, subbase85u, subbase86u, subbase87u, subbase88u, subbase89u, subbase90u, subbase91u, subbase92u, subbase93u, subbase94u, subbase95u, subbase96u, subbase97u, subbase98u, subbase99u, subbase100u, subbase101u, subbase102u, subbase103u, subbase104u, subbase105u, subbase106u, subbase107u, subbase108u, subbase109u, subbase110u, subbase111u, subbase112u, subbase113u, subbase114u, subbase115u, subbase116u, subbase117u, subbase118u, subbase119u, subbase120u, subbase121u, subbase122u, subbase123u, subbase124u, subbase125u, subbase126u, subbase127u>::length + length <= maximum)> invalid_collection_concatenation;
+                static_assert(invalid_collection_concatenation::value, "Unable to evaluate concatenated `collection<...>` traits");
 
               public:
-                static_assert(invalid_collection_concatenation::value, "Unable to evaluate concatenated `collection<...>` traits");
                 typedef typename _concatenate<
                   collection<subbase1u, subbase2u, subbase3u, subbase4u, subbase5u, subbase6u, subbase7u, subbase8u, subbase9u, subbase10u, subbase11u, subbase12u, subbase13u, subbase14u, subbase15u, subbase16u, subbase17u, subbase18u, subbase19u, subbase20u, subbase21u, subbase22u, subbase23u, subbase24u, subbase25u, subbase26u, subbase27u, subbase28u, subbase29u, subbase30u, subbase31u, subbase32u, subbase33u, subbase34u, subbase35u, subbase36u, subbase37u, subbase38u, subbase39u, subbase40u, subbase41u, subbase42u, subbase43u, subbase44u, subbase45u, subbase46u, subbase47u, subbase48u, subbase49u, subbase50u, subbase51u, subbase52u, subbase53u, subbase54u, subbase55u, subbase56u, subbase57u, subbase58u, subbase59u, subbase60u, subbase61u, subbase62u, subbase63u, subbase64u, subbase65u, subbase66u, subbase67u, subbase68u, subbase69u, subbase70u, subbase71u, subbase72u, subbase73u, subbase74u, subbase75u, subbase76u, subbase77u, subbase78u, subbase79u, subbase80u, subbase81u, subbase82u, subbase83u, subbase84u, subbase85u, subbase86u, subbase87u, subbase88u, subbase89u, subbase90u, subbase91u, subbase92u, subbase93u, subbase94u, subbase95u, subbase96u, subbase97u, subbase98u, subbase99u, subbase100u, subbase101u, subbase102u, subbase103u, subbase104u, subbase105u, subbase106u, subbase107u, subbase108u, subbase109u, subbase110u, subbase111u, subbase112u, subbase113u, subbase114u, subbase115u, subbase116u, subbase117u, subbase118u, subbase119u, subbase120u, subbase121u, subbase122u, subbase123u, subbase124u, subbase125u, subbase126u, subbase127u>
                 >::type type;
@@ -1606,10 +1775,10 @@
             template <typename base>
             struct index final {
               private:
-                typedef constant<bool, has<base>::value, true> invalid_collection_search;
+                typedef constant<bool, has<base>::value> invalid_collection_search;
+                static_assert(invalid_collection_search::value, "Out-of-bounds searching of `collection<...>` trait");
 
               public:
-                static_assert(invalid_collection_search::value, "Out-of-bounds searching of `collection<...>` trait");
                 static std::size_t const value = is_null<base>::value ? static_cast<std::size_t>(-1) : _index<base>::value;
             };
 
@@ -1633,10 +1802,10 @@
             template <std::size_t begin, std::size_t end = length>
             struct slice final {
               private:
-                typedef constant<bool, (begin <= end and begin <= length), true> invalid_collection_indexes;
+                typedef constant<bool, (begin <= end and begin <= length)> invalid_collection_indexes;
+                static_assert(invalid_collection_indexes::value, "Out-of-bounds slicing of `collection<...>` trait");
 
               public:
-                static_assert(invalid_collection_indexes::value, "Out-of-bounds slicing of `collection<...>` trait");
                 typedef typename _slice<(begin < length ? begin : length)>::type::template shrink<length - (end < length ? end : length)>::type type;
             };
 
@@ -1646,26 +1815,6 @@
             typedef typename shrink<1u>                  ::type pop;
             typedef typename _reverse<>                  ::type reverse;
         };
-      #endif
-
-      // ... ->> Constant of specified type preferably instantiated at compile-time
-      #ifdef __cpp_constexpr // --> 200704L
-        template <typename base, base constantValue, bool = false>
-        struct constant final {
-          constexpr static base value = constantValue;
-        };
-      #else
-        template <typename base, base constantValue, bool = is_integer<base>::value>
-        struct constant final {
-          static base const value = constantValue;
-        };
-
-        template <typename base, base constantValue>
-        struct constant<base, constantValue, false> final {
-          static base const value;
-        };
-          template <typename base, base value>
-          base const constant<base, value, false>::value = value;
       #endif
 
       // ... ->> Enumeration type diagnostics
@@ -2326,7 +2475,7 @@
     struct CPP_MAX_SIZE final {
       private:
         template <std::size_t subsize>
-        constfunc(true) static unsigned char (&(valueof)(unsigned char const, CPP_MAX_SIZE<subsize>* const = NULL) noexcept)[subsize];
+        constfunc(true) static unsigned char (&(valueof)(unsigned char const, CPP_MAX_SIZE<subsize>* const = nullptr) noexcept)[subsize];
 
         template <std::size_t>
         constfunc(true) static unsigned char (&(valueof)(...) noexcept)[size];
@@ -2373,7 +2522,7 @@
   //   ⚬ font parsing,
   //   ⚬ hardware diagnostics, (battery, gamepad, graphics card, keyboard, stylus, USB, …)
   //   ⚬ HTML parsing,
-  //   ⚬ image parsing, (APNG, AVIF, GIF, JPEG, PNG, SVG, WEBP)
+  //   ⚬ image parsing, (APNG, AVIF, CR3, GIF, JPEG, PNG, SVG, WEBP)
   //   ⚬ internationalization/ locale,
   //   ⚬ math.,
   //   ⚬ memory management, (fixed-size allocations are sorted in buckets, not generalized; `Memory::allocate(…)` evaluates to `class MemoryBuffer` which decays to a pointer — there´s also `Memory::instantiate<>(…)`; `Memory::allocate(…)` may also allocate from "memory-mapped" files)

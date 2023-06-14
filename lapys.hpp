@@ -79,6 +79,9 @@
   #endif
 
   /* Import */
+  // : [C++ Standard Library]
+  #include <ciso646> // C ISO 646:1991
+
   // : [...]
   #include "lapys/extensions.hpp"
   #include "lapys/guards/c.h"
@@ -86,7 +89,6 @@
   #include "lapys/guards/keywords.h"
 
   // : [C/ C++ Standard Library]
-  #include <ciso646>   // C ISO 646
   #include <cstddef>   // C Standard Definitions
   #include <stdbool.h> // Standard Boolean
 
@@ -298,6 +300,10 @@
   #     undef CPP_MIXED_ENDIAN
   #     undef CPP_WORD_BIG_ENDIAN
   #     undef CPP_WORD_LITTLE_ENDIAN
+  #   undef CPP_FRONTEND
+  #     undef CPP_CLANG_FRONTEND
+  #     undef CPP_GNUC_FRONTEND
+  #     undef CPP_MSVC_FRONTEND
   #   undef CPP_PREPROCESSOR_FORMAT
   #     undef CPP_PREPROCESSOR_FORMAT_CHECK
   #     undef CPP_PREPROCESSOR_FORMAT_SELECT
