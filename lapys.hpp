@@ -210,12 +210,17 @@
   #   pragma clang diagnostic push
   #   pragma clang diagnostic ignored "-Wunused-local-typedef"
   # endif
+  #elif CPP_COMPILER == CPP_MSVC_COMPILER
+  # pragma warning(disable:4506)
+  # pragma warning(push)
   #endif
   # include "lapys/traits.hpp"
   #if CPP_COMPILER == CPP_CLANG_COMPILER
   # ifndef __cpp_nsdmi // --> 200809L
   #   pragma clang diagnostic pop
   # endif
+  #elif CPP_COMPILER == CPP_MSVC_COMPILER
+  # pragma warning(pop)
   #endif
 
   /* Deletion */
@@ -338,6 +343,7 @@
   #   endif
   # endif
   #
+  # undef arityof
   # undef boundsas
   # undef boundsof
   # undef constfunc
@@ -368,11 +374,11 @@
   # undef nilinit
   # undef nodecay
   # undef nodecayparam
+  # undef noeval
   # undef noexit
   # undef noinline
   # undef nouniqueaddr
   # undef nullptr
-  # undef packof
   # undef preprocessed
   # undef restricted
   # undef rlref

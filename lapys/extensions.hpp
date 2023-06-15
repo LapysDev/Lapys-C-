@@ -580,6 +580,14 @@
   #     error Lapys C++: Unexpected `uint128_t` macro definition
   #   endif
   # endif
+  #elif defined(__cpp_lib_ranges) // --> 201911L
+  # if CPP_VERSION > 1997uL
+  #   define int128_t  std::ranges::range_difference_t<std::ranges::iota_view<long long,          long long> >
+  #   define uint128_t std::ranges::range_difference_t<std::ranges::iota_view<unsigned long long, unsigned long long> >
+  # else
+  #   define int128_t  std::ranges::range_difference_t<std::ranges::iota_view<long,          long> >
+  #   define uint128_t std::ranges::range_difference_t<std::ranges::iota_view<unsigned long, unsigned long> >
+  # endif
   #elif LAPYS_PREPROCESSOR_GUARD
   # ifdef int128_t
   #   error Lapys C++: Unexpected `int128_t` macro definition
@@ -591,9 +599,9 @@
 
   // : [Parameter Pack]
   #if CPP_VERSION < 2011uL
-  # define packof(pack) ::Lapys::Traits::alias<unsigned char[::Lapys::Traits::collection<::Lapys::Traits::constant<std::size_t, sizeof(pack), true>...>::length]>::type
+  # define arityof(pack) ::Lapys::Traits::collection<::Lapys::Traits::constant<std::size_t, sizeof(typeid(pack)), true>...>::length
   #else
-  # define packof(pack) typename ::Lapys::Traits::alias<unsigned char[sizeof...(pack)]>::type
+  # define arityof(pack) sizeof...(pack)
   #endif
 
   // : [Pointer Aliasing]
@@ -766,6 +774,14 @@
   #     define typeof(expression) static_assert(false, "Unable to inspect the type (and value category) of the given expression")
   #   endif
   # endif
+  #endif
+
+  // : [Unevaluated Expression] ->> Returns a constant whilst parsing, but not evaluating its `expression` operand
+  #if CPP_COMPILER == CPP_MSVC_COMPILER or CPP_VERSION > 1997uL
+  # define noeval noexcept
+  #else
+  # include <typeinfo> // Type Information
+  # define noeval typeid
   #endif
 
   // : [Assertion] ->> Compile-time assertion
