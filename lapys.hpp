@@ -383,7 +383,10 @@
   # undef restricted
   # undef rlref
   # undef rref
-  # undef typeof
+  # ifdef typeof
+  #   undef notypeof
+  #   undef typeof
+  # endif
   # undef varinit
   #endif
 

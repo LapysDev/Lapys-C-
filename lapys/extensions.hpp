@@ -326,12 +326,12 @@
   #ifdef __cpp_lib_endian // --> 201907L
   # include <bit>
   # undef CPP_ENDIAN_RUNTIME
-  # if CPP_VERSION >= 2011uL
-  #   define CPP_ENDIAN_RUNTIME (0x00 == (std::endian::native & (std::endian::big | std::endian::little)) and sizeof(unsigned char) != sizeof(unsigned long long))
-  #   define CPP_ENDIAN (std::endian::native == std::endian::little ? CPP_BYTE_LITTLE_ENDIAN : std::endian::native == std::endian::big ? CPP_BYTE_BIG_ENDIAN : sizeof(unsigned char) == sizeof(unsigned long long) or reinterpret_cast<unsigned char const&>(static_cast<unsigned long long const&>(1uLL)) == 1u ? CPP_BYTE_LITTLE_ENDIAN : reinterpret_cast<unsigned char const*>(&static_cast<unsigned long long const&>(1uLL))[sizeof(unsigned long long) - 1u] == 1u ? CPP_BYTE_BIG_ENDIAN : CPP_MIXED_ENDIAN)
-  # else
+  # if CPP_VERSION < 2011uL
   #   define CPP_ENDIAN_RUNTIME (0x00 == (std::endian::native & (std::endian::big | std::endian::little)) and sizeof(unsigned char) != sizeof(unsigned long))
   #   define CPP_ENDIAN (std::endian::native == std::endian::little ? CPP_BYTE_LITTLE_ENDIAN : std::endian::native == std::endian::big ? CPP_BYTE_BIG_ENDIAN : sizeof(unsigned char) == sizeof(unsigned long)      or reinterpret_cast<unsigned char const&>(static_cast<unsigned long      const&>(1uL))  == 1u ? CPP_BYTE_LITTLE_ENDIAN : reinterpret_cast<unsigned char const*>(&static_cast<unsigned long      const&>(1uL)) [sizeof(unsigned long)      - 1u] == 1u ? CPP_BYTE_BIG_ENDIAN : CPP_MIXED_ENDIAN)
+  # else
+  #   define CPP_ENDIAN_RUNTIME (0x00 == (std::endian::native & (std::endian::big | std::endian::little)) and sizeof(unsigned char) != sizeof(unsigned long long))
+  #   define CPP_ENDIAN (std::endian::native == std::endian::little ? CPP_BYTE_LITTLE_ENDIAN : std::endian::native == std::endian::big ? CPP_BYTE_BIG_ENDIAN : sizeof(unsigned char) == sizeof(unsigned long long) or reinterpret_cast<unsigned char const&>(static_cast<unsigned long long const&>(1uLL)) == 1u ? CPP_BYTE_LITTLE_ENDIAN : reinterpret_cast<unsigned char const*>(&static_cast<unsigned long long const&>(1uLL))[sizeof(unsigned long long) - 1u] == 1u ? CPP_BYTE_BIG_ENDIAN : CPP_MIXED_ENDIAN)
   # endif
   #else
   # if included(<machine/endian.h>) and (CPP_VENDOR & CPP_APPLE_MACINTOSH_VENDOR)
@@ -419,21 +419,21 @@
   #
   # if false == defined(CPP_ENDIAN) // ->> Language endian constants
   #   undef  CPP_ENDIAN_RUNTIME
-  #   if CPP_VERSION >= 2011uL
-  #     define CPP_ENDIAN_RUNTIME (sizeof(unsigned char) != sizeof(unsigned long long))
-  #     define CPP_ENDIAN (false == CPP_ENDIAN_RUNTIME or reinterpret_cast<unsigned char const&>(static_cast<unsigned long long const&>(1uLL)) == 1u ? CPP_BYTE_LITTLE_ENDIAN : reinterpret_cast<unsigned char const*>(&static_cast<unsigned long long const&>(1uLL))[sizeof(unsigned long long) - 1u] == 1u ? CPP_BYTE_BIG_ENDIAN : CPP_MIXED_ENDIAN)
-  #   else
+  #   if CPP_VERSION < 2011uL
   #     define CPP_ENDIAN_RUNTIME (sizeof(unsigned char) != sizeof(unsigned long))
   #     define CPP_ENDIAN (false == CPP_ENDIAN_RUNTIME or reinterpret_cast<unsigned char const&>(static_cast<unsigned long      const&>(1uL))  == 1u ? CPP_BYTE_LITTLE_ENDIAN : reinterpret_cast<unsigned char const*>(&static_cast<unsigned long      const&>(1uL)) [sizeof(unsigned long)      - 1u] == 1u ? CPP_BYTE_BIG_ENDIAN : CPP_MIXED_ENDIAN)
+  #   else
+  #     define CPP_ENDIAN_RUNTIME (sizeof(unsigned char) != sizeof(unsigned long long))
+  #     define CPP_ENDIAN (false == CPP_ENDIAN_RUNTIME or reinterpret_cast<unsigned char const&>(static_cast<unsigned long long const&>(1uLL)) == 1u ? CPP_BYTE_LITTLE_ENDIAN : reinterpret_cast<unsigned char const*>(&static_cast<unsigned long long const&>(1uLL))[sizeof(unsigned long long) - 1u] == 1u ? CPP_BYTE_BIG_ENDIAN : CPP_MIXED_ENDIAN)
   #   endif
   # endif
   #endif
 
   /* Definition */
-  // : [Constant Function] ->> Attempts to specify a constant evaluable function
+  // : [Constant Function] ->> Attempts to specify a constant evaluable function; Only accepts tokens `false` and `true`
   #define constfunc(unrelaxed) constfunc_ ## unrelaxed
   #ifdef __cpp_constexpr // --> 200704L
-  # if CPP_VERSION >= 2014uL or __cpp_constexpr >= 201304L
+  # if CPP_VERSION > 2011uL or __cpp_constexpr >= 201304L
   #   define constfunc_false constexpr
   #   define constfunc_true  constexpr
   # else
@@ -446,15 +446,28 @@
   #endif
 
   // : [Constant Integer] ->> Specifies a constant evaluable integer
-  #define constint(type, name, value) constint_2u(__LINE__, type, name, value)
+  #if CPP_VERSION < 2011uL
+  # define constint(type, name, value) constint_2u(__LINE__, type, name, value)
+  #else
+  # define constint(type, name, ...) constint_2u(__LINE__, type, name, __VA_ARGS__)
+  #endif
+
   # ifdef __cpp_constexpr // --> 200704L
-  #   define constint_1u(id, type, name, value)                                                        constexpr static type name varinit(value)
-  # elif CPP_VERSION >= 2011uL
-  #   define constint_1u(id, type, name, value) enum : type { name ## id = static_cast<type>(value) }; const     static type name varinit(value)
+  #   if CPP_VERSION < 2011uL
+  #     define constint_1u(id, type, name, value)                                                        constexpr static type name varinit(value)
+  #   else
+  #     define constint_1u(id, type, name, ...)                                                          constexpr static type name varinit((__VA_ARGS__))
+  #   endif
+  # elif CPP_VERSION < 2011uL
+  #   define constint_1u(id, type, name, value) enum        { name ## id = static_cast<int> (value) };       const static type name varinit(value)
   # else
-  #   define constint_1u(id, type, name, value) enum        { name ## id = static_cast<int> (value) }; const     static type name varinit(value)
+  #   define constint_1u(id, type, name, ...)   enum : type { name ## id = static_cast<type>(__VA_ARGS__) }; const static type name varinit((__VA_ARGS__))
   # endif
-  # define constint_2u(id, type, name, value) constint_1u(id, type, name, value)
+  # if CPP_VERSION < 2011uL
+  #   define constint_2u(id, type, name, value) constint_1u(id, type, name, value)
+  # else
+  #   define constint_2u(id, type, name, ...) constint_1u(id, type, name, __VA_ARGS__)
+  # endif
 
   // : [Constant Variable] ->> Attempts to specify a constant evaluable variable
   #ifdef __cpp_constexpr // --> 200704L
@@ -464,23 +477,21 @@
   #endif
 
   // : [Deleted Function Specifier] ->> Attempts to mark a function ill-formed to evaluate; Recommended to use exclusively from `inline`
-  #if CPP_VERSION >= 2011uL
-  # define discard = delete
-  #else
+  #if CPP_VERSION < 2011uL
   # define discard // ->> Not defining the function also mostly works
+  #else
+  # define discard = delete
   #endif
 
   // : [Exception Operator] ->> Determines if an expression can `throw` an exception
-  #if CPP_VERSION >= 2011uL
-  # define exceptof(expression) noexcept(expression)
-  #else
+  #if CPP_VERSION < 2011uL
   # define exceptof(expression) false
+  #else
+  # define exceptof(expression) noexcept(expression)
   #endif
 
   // : [Exception Specifier] ->> Attempts to explicitly anticipate `throw` in a specified function
-  #if CPP_VERSION >= 2011uL
-  # define exceptspec(specification) noexcept(specification)
-  #else
+  #if CPP_VERSION < 2011uL
   # define exceptspec(specification) exceptspec_ ## specification // --> choose(specification, exceptspec_true, exceptspec_false)
   #   if CPP_COMPILER == CPP_MSVC_COMPILER
   #     define exceptspec_false throw(...)
@@ -490,6 +501,8 @@
   #     define exceptspec_true noexcept
   #   endif
   # define noexcept throw() // ->> Shim the `noexcept` keyword
+  #else
+  # define exceptspec(specification) noexcept(specification)
   #endif
 
   // : [Floating-Point Types] ->> Acknowledges extended floating-point types
@@ -545,13 +558,21 @@
 
   // : [Initialization] ->> Common initialization syntax
   #ifdef __cpp_aggregate_paren_init // --> 201902L
-  # define init(arguments)   {arguments}
   # define nilinit(type)     {}
   # define varinit(argument) {argument}
+  # if CPP_VERSION < 2011uL
+  #   define init(arguments) {arguments}
+  # else
+  #   define init(...)       {__VA_ARGS__}
+  # endif
   #else
-  # define init(arguments)   (arguments)
   # define nilinit(type)     = type()
   # define varinit(argument) = argument
+  # if CPP_VERSION < 2011uL
+  #   define init(arguments) (arguments)
+  # else
+  #   define init(...)       (__VA_ARGS__)
+  # endif
   #endif
 
   // : [Integral Enumeration] ->> Attempts to define an enumeration with a specified underlying type
@@ -581,12 +602,12 @@
   #   endif
   # endif
   #elif defined(__cpp_lib_ranges) // --> 201911L
-  # if CPP_VERSION > 1997uL
-  #   define int128_t  std::ranges::range_difference_t<std::ranges::iota_view<long long,          long long> >
-  #   define uint128_t std::ranges::range_difference_t<std::ranges::iota_view<unsigned long long, unsigned long long> >
-  # else
+  # if CPP_VERSION < 2011uL
   #   define int128_t  std::ranges::range_difference_t<std::ranges::iota_view<long,          long> >
   #   define uint128_t std::ranges::range_difference_t<std::ranges::iota_view<unsigned long, unsigned long> >
+  # else
+  #   define int128_t  std::ranges::range_difference_t<std::ranges::iota_view<long long,          long long> >
+  #   define uint128_t std::ranges::range_difference_t<std::ranges::iota_view<unsigned long long, unsigned long long> >
   # endif
   #elif LAPYS_PREPROCESSOR_GUARD
   # ifdef int128_t
@@ -631,20 +652,24 @@
   #endif
 
   // : [Reference Qualifier] ->> Attempts to reference-qualify
+  #ifdef __cpp_rvalue_references // --> 200610L
+  # define lref  &
+  # define rlref rref
+  # define rref  &&
+  #else
+  # define lref  &
+  # define rlref lref
+  # define rref
+  #endif
+
   #ifdef __cpp_ref_qualifiers // --> 200710L
-  # define lref         &
   # define member_lref  &
   # define member_rlref member_rref
   # define member_rref  &&
-  # define rlref        rref
-  # define rref         &&
   #else
-  # define lref         &
   # define member_lref
   # define member_rlref member_lref
   # define member_rref
-  # define rlref        lref
-  # define rref
   #endif
 
   // : [Return Specifier] ->> Attempts to modify certain attributes of specified functions
@@ -681,7 +706,7 @@
   #endif
 
   #if CPP_COMPILER == CPP_CLANG_COMPILER
-  # if CPP_COMPILER >= 2011uL
+  # if CPP_VERSION > 1997uL
   #   define noinline [[clang::noinline]]
   # elif __has_attribute(noinline)
   #   define noinline __attribute__((noinline))
@@ -700,7 +725,7 @@
   #if CPP_COMPILER == CPP_MSVC_COMPILER
   # pragma warning(disable: 4848)
   # define nouniqueaddr [[msvc::no_unique_address]]
-  #elif CPP_VERSION >= 2020uL or CPP_COMPILER == CPP_INTEL_COMPILER or (CPP_VERSION >= 2011uL and (CPP_COMPILER == CPP_CLANG_COMPILER or CPP_COMPILER == CPP_GNUC_COMPILER))
+  #elif CPP_VERSION >= 2020uL or CPP_COMPILER == CPP_INTEL_COMPILER or (CPP_VERSION > 1997uL and (CPP_COMPILER == CPP_CLANG_COMPILER or CPP_COMPILER == CPP_GNUC_COMPILER))
   # define nouniqueaddr [[no_unique_address]]
   #else
   # define nouniqueaddr
@@ -715,63 +740,118 @@
   # endif
   #
   # ifdef __alignas_is_defined
-  #  ifdef _Alignas
-  #    define boundsas(argument) _Alignas(argument)
-  #  else
-  #    define boundsas(argument) alignas(argument)
-  #  endif
+  #   ifdef _Alignas
+  #     if CPP_VERSION < 2011uL
+  #       define boundsas(argument) _Alignas(argument)
+  #     else
+  #       define boundsas(...)      _Alignas(__VA_ARGS__)
+  #     endif
+  #   else
+  #     if CPP_VERSION < 2011uL
+  #       define boundsas(argument) alignas(argument)
+  #     else
+  #       define boundsas(...)      alignas(__VA_ARGS__)
+  #     endif
+  #   endif
   # else
   #   if CPP_COMPILER == CPP_GNUC_COMPILER
-  #     define boundsas(argument) __attribute__((aligned(argument)))
+  #     if CPP_VERSION < 2011uL
+  #       define boundsas(argument) __attribute__(aligned(argument))
+  #     else
+  #       define boundsas(...)      __attribute__(aligned(__VA_ARGS__))
+  #     endif
   #   elif CPP_COMPILER == CPP_MSVC_COMPILER
-  #     define boundsas(argument) __declspec(align(argument))
+  #     if CPP_VERSION < 2011uL
+  #       define boundsas(argument) __declspec(align(argument))
+  #     else
+  #       define boundsas(...)      __declspec(align(__VA_ARGS__))
+  #     endif
   #   else
-  #     define boundsas(argument)
+  #     if CPP_VERSION < 2011uL
+  #       define boundsas(argument)
+  #     else
+  #       define boundsas(...)
+  #     endif
   #   endif
   # endif
   #
   # ifdef __alignof_is_defined
   #   ifdef _Alignof
-  #     define boundsof(type) _Alignof(type)
+  #     if CPP_VERSION < 2011uL
+  #       define boundsof(type) _Alignof(type)
+  #     else
+  #       define boundsof(...)  _Alignof(__VA_ARGS__)
+  #     endif
   #   else
-  #     define boundsof(type) alignof(type)
+  #     if CPP_VERSION < 2011uL
+  #       define boundsof(type) alignof(type)
+  #     else
+  #       define boundsof(...)  alignof(__VA_ARGS__)
+  #     endif
   #   endif
   # else
   #   if CPP_COMPILER == CPP_GNUC_COMPILER
-  #     define boundsof(type) __alignof__(type)
+  #     if CPP_VERSION < 2011uL
+  #       define boundsof(type) __alignof__(type)
+  #     else
+  #       define boundsof(...)  __alignof__(__VA_ARGS__)
+  #     endif
   #   elif CPP_COMPILER == CPP_MSVC_COMPILER
-  #     define boundsof(type) __alignof(type)
+  #     if CPP_VERSION < 2011uL
+  #       define boundsof(type) __alignof(type)
+  #     else
+  #       define boundsof(...)  __alignof(__VA_ARGS__)
+  #     endif
   #   else
-  #     define boundsof(type) sizeof(type)
+  #     if CPP_VERSION < 2011uL
+  #       define boundsof(type) sizeof(type)
+  #     else
+  #       define boundsof(...)  sizeof(__VA_ARGS__)
+  #     endif
   #   endif
   # endif
   #else
-  # define boundsas(argument) alignas(argument)
-  # define boundsof(type)     alignof(type)
+  # if CPP_VERSION < 2011uL
+  #   define boundsas(argument) alignas(argument)
+  #   define boundsof(type)     alignof(type)
+  # else
+  #   define boundsas(...) alignas(__VA_ARGS__)
+  #   define boundsof(...) alignof(__VA_ARGS__)
+  # endif
   #endif
 
   // : [Type Inspection Specifier] ->> Reflect on the resulting type of an expression
   #ifndef typeof
-  # ifdef __cpp_decltype // --> 200707L
+  # if CPP_FRONTEND == CPP_MSVC_FRONTEND or defined(__cpp_decltype) // --> 200707L
   #   if CPP_COMPILER == CPP_CLANG_COMPILER
   #     pragma clang diagnostic push
   #     pragma clang diagnostic ignored "-Wkeyword-macro"
   #   endif
-  #   define typeof(expression) decltype(expression)
+  #   if CPP_VERSION < 2011uL
+  #     define notypeof(expression) ::Lapys::Traits::is_void<decltype(expression)>::value
+  #     define typeof(expression)   decltype(expression)
+  #   else
+  #     define notypeof(...) ::Lapys::Traits::is_void<decltype(__VA_ARGS__)>::value
+  #     define typeof(...)   decltype(__VA_ARGS__)
+  #   endif
   #   if CPP_COMPILER == CPP_CLANG_COMPILER
   #     pragma clang diagnostic pop
   #   endif
-  # else
-  #   if CPP_COMPILER == CPP_CLANG_COMPILER
-  #     define typeof(expression) __typeof__(expression)
-  #   elif CPP_COMPILER == CPP_GNUC_COMPILER
-  #     define typeof(expression) __decltype(expression)
-  #   elif CPP_COMPILER == CPP_INTEL_COMPILER
-  #     define typeof(expression) typeof(expression)
-  #   elif CPP_COMPILER == CPP_MSVC_COMPILER
-  #     define typeof(expression) decltype(expression)
+  # elif CPP_FRONTEND == CPP_GNUC_FRONTEND
+  #   if CPP_VERSION < 2011uL
+  #     define notypeof(expression) ::Lapys::Traits::is_void<__decltype(expression)>::value
+  #     define typeof(expression)   __decltype(expression)
   #   else
-  #     define typeof(expression) static_assert(false, "Unable to inspect the type (and value category) of the given expression")
+  #     define notypeof(...) ::Lapys::Traits::is_void<__decltype(__VA_ARGS__)>::value
+  #     define typeof(...)   __decltype(__VA_ARGS__)
+  #   endif
+  # elif CPP_FRONTEND == CPP_CLANG_FRONTEND
+  #   if CPP_VERSION < 2011uL
+  #     define notypeof(expression) ::Lapys::Traits::is_void<__typeof__(expression)>::value
+  #     define typeof(expression)   typename ::Lapys::Traits::conditional<sizeof(::Lapys::Traits::boolean_true) == sizeof(::Lapys::Traits::typeinfo::is_lvalue_reference((expression))), ::Lapys::Traits::alias<__typeof__(expression) lref>, typename ::Lapys::Traits::conditional<sizeof(::Lapys::Traits::boolean_true) == sizeof(::Lapys::Traits::typeinfo::is_rvalue_reference((expression))), ::Lapys::Traits::alias<__typeof__(expression) rref>, ::Lapys::Traits::alias<__typeof__(expression)> >::type>::type::type
+  #   else
+  #     define notypeof(...) ::Lapys::Traits::is_void<__typeof__(__VA_ARGS__)>::value
+  #     define typeof(...)   typename ::Lapys::Traits::conditional<sizeof(::Lapys::Traits::boolean_true) == sizeof(::Lapys::Traits::typeinfo::is_lvalue_reference((__VA_ARGS__))), ::Lapys::Traits::alias<__typeof__(__VA_ARGS__) lref>, typename ::Lapys::Traits::conditional<sizeof(::Lapys::Traits::boolean_true) == sizeof(::Lapys::Traits::typeinfo::is_rvalue_reference((__VA_ARGS__))), ::Lapys::Traits::alias<__typeof__(__VA_ARGS__) rref>, ::Lapys::Traits::alias<__typeof__(__VA_ARGS__)> >::type>::type::type
   #   endif
   # endif
   #endif
