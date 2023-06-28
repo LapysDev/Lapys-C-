@@ -15,7 +15,7 @@
     Additional macros:
     - apply   (...) ->> Recursively invoke a function-like macro (`function_macro(argument)`) iteratively on a list of `arguments`                --> apply(function_macro, condition_macro, separator_macro, ...arguments)
     - arity   (...) ->> Evaluates to a comma-separated list of `unsigned` integers                                                                --> arity(3u) --> 1u, 2u, 3u
-    - combine (...) ->> Concatenate two arguments                                                                                                 --> combine(a, b) --> ab
+    - combine (...) ->> Concatenate two tokens                                                                                                    --> combine(a, b) --> ab
     - defer   (...) ->> Forwards invocation of a `function` with some `arguments` while `stall(...)`ing                                           --> defer(function, ...arguments)
     - first   (...) ->> Evaluates to the first `argument` in a provided list of `arguments`; Useful for conditional selection with `choose(...)`  --> first(a, b, ...arguments) --> a
     - parse   (...) ->> Delays evaluation of preprocessor tokens                                                                                  --> parse(...arguments)
@@ -325,6 +325,9 @@
   #   undef CPP_VERSION
   #   undef LAPYS_MAX_ARITY
   #   undef LAPYS_MAX_TEMPLATE_INSTANTIATION_DEPTH
+  #   undef apply_comma
+  #   undef apply_expression_begin
+  #   undef apply_expression_end
   #   undef choose
   #     undef choose_false
   #     undef choose_true
@@ -343,7 +346,6 @@
   #   endif
   # endif
   #
-  # undef arityof
   # undef boundsas
   # undef boundsof
   # undef constfunc
@@ -354,6 +356,7 @@
   #   undef constint_1u
   #   undef constint_2u
   # undef constvar
+  # undef countof
   # undef discard
   # undef enumint
   # undef exceptof
@@ -384,12 +387,15 @@
   # undef rlref
   # undef rref
   # ifdef typeof
+  #   undef kindof
   #   undef notypeof
   #   undef typeof
   # endif
   # undef varinit
   #endif
 
+  #undef LAPYS_CODEGEN    // ->> Intended for considered code generation
+  #undef LAPYS_CODESUBGEN // ->> Intended for considered code generation
   #undef LAPYS_PREPROCESSOR_GUARD
   #undef LAPYS_MODULE_EXTENSIONS
   #undef LAPYS_MODULE_TRAITS

@@ -1,6 +1,5 @@
 /* Import */
 #define LAPYS_HOSTED             true
-#define LAPYS_PREPROCESSOR       true
 #define LAPYS_PREPROCESSOR_GUARD false
 
 #include <cstdio>
@@ -23,78 +22,84 @@ struct map {
 struct object { int member; object(object const&, ...) {} };
 struct subobject : object {};
 
+struct add {
+  static int value(int, int);
+};
+
 // ...
 int main(int, char*[]) /* noexcept */ {
-  std::printf("[...]: %4.5s" "\r\n",         opinfo::nonoverloaded::operate<opinfo::access_pointer, object&, int object::*>             ::value ? "true" : "false");
-  std::printf("[...]: %4.5s" "\r\n", is_same<opinfo::nonoverloaded::operate<opinfo::access_pointer, object&, int object::*>::type, int&>::value ? "true" : "false");
-  std::printf("[...]: %4.5s" "\r\n",         opinfo::nonoverloaded::operate<opinfo::access_pointer, object&, int object::*>::is   <int&>::value ? "true" : "false");
-  std::printf("[...]: %4.5s" "\r\n",         opinfo::nonoverloaded::operate<opinfo::access_pointer, object&, int object::*>::like <int> ::value ? "true" : "false");
-  // access,                      //   x   . y
-  // access_pointer,              //   x  .* y
-  // add,                         //   x   + y
-  // address,                     //  &x
-  // assign,                      //   x   = y
-  // assign_add,                  //   x  += y
-  // assign_bitwise_and,          //   x  &= y
-  // assign_bitwise_or,           //   x  |= y
-  // assign_bitwise_shift_left,   //   x <<= y
-  // assign_bitwise_shift_right,  //   x >>= y
-  // assign_bitwise_xor,          //   x  ^= y
-  // assign_divide,               //   x  /= y
-  // assign_modulo,               //   x  %= y
-  // assign_multiply,             //   x  *= y
-  // assign_subtract,             //   x  -= y
-  // bitwise_and,                 //   x   & y
-  // bitwise_or,                  //   x   | y
-  // bitwise_shift_left,          //   x  << y
-  // bitwise_shift_right,         //   x  >> y
-  // bitwise_xor,                 //   x   ^ y
-  // boolean_and,                 //   x  && y
-  // boolean_or,                  //   x  || y
-  // call,                        //   x             (...)
-  // call_static,                 //   x::operator ()(...)
-  // cast,                        //  (x) y
-  // cast_const,                  // const_cast      <x>(y)
-  // cast_dynamic,                // dynamic_cast    <x>(y)
-  // cast_reinterpret,            // reinterpret_cast<x>(y)
-  // cast_static,                 // static_cast     <x>(y)
-  // comma,                       //   x   , y
-  // compare,                     //   x <=> y
-  // complement,                  //  ~x
-  // conditional,                 //   x   ? y : z
-  // construct,                   //   x(...)
-  // delete_array,                // delete[] x
-  // delete_object,               // delete   x
-  // dereference,                 //  *x
-  // dereferenced_access,         //   x  -> y
-  // dereferenced_access_pointer, //   x ->* y
-  // divide,                      //   x   / y
-  // equals,                      //   x  == y
-  // greater,                     //   x   > y
-  // greater_equals,              //   x  >= y
-  // initialize,                  //   x{...}
-  // lesser,                      //   x   < y
-  // lesser_equals,               //   x  <= y
-  // minus,                       //   x   - y
-  // modulo,                      //   x   % y
-  // multiply,                    //   x   * y
-  // negate,                      //  !x
-  // new_array,                   // new     x[y]{...}
-  // new_array_placement,         // new (x) y[z]{...}
-  // new_constructed,             // new     x   (...)
-  // new_constructed_placement,   // new (x) y   (...)
-  // new_initialized,             // new     x   {...}
-  // new_initialized_placement,   // new (x) y   {...}
-  // plus,                        //  +x
-  // post_decrement,              //   x--
-  // post_increment,              //   x++
-  // pre_decrement,               // --x
-  // pre_increment,               // ++x
-  // scope,                       //   x  :: y
-  // subscript,                   //   x             [...]
-  // subscript_static,            //   x::operator [](...)
-  // subtract,                    //   x   - y
-  // unequals                     //   x  != y
+  // TODO -> clean-up `Traits::conditional`s/ convert this to `conditional`/ `sizeof` expressions
+  std::printf("[size] : %lu"   "\r\n", static_cast<unsigned long>(opinfo::nonoverloaded::operate<opinfo::new_constructed, int>::size));
+  std::printf("[value]: %4.5s" "\r\n",         opinfo::nonoverloaded::operate<opinfo::new_constructed, int>                  ::value ? "true" : "false");
+  std::printf("[type] : %4.8s" "\r\n", is_null<opinfo::nonoverloaded::operate<opinfo::new_constructed, int>::type>           ::value ? "null" : "non-null");
+  std::printf("[like] : %4.5s" "\r\n",         opinfo::nonoverloaded::operate<opinfo::new_constructed, int>::like<int (&)[1]>::value ? "true" : "false");
+  std::printf("[is]   : %4.5s" "\r\n",         opinfo::nonoverloaded::operate<opinfo::new_constructed, int>::is  <int>       ::value ? "true" : "false");
+
+  // access_pointer              //   x  .* y
+  // add                         //   x   + y
+  // address                     //  &x
+  // assign                      //   x   = y
+  // assign_add                  //   x  += y
+  // assign_bitwise_and          //   x  &= y
+  // assign_bitwise_or           //   x  |= y
+  // assign_bitwise_shift_left   //   x <<= y
+  // assign_bitwise_shift_right  //   x >>= y
+  // assign_bitwise_xor          //   x  ^= y
+  // assign_divide               //   x  /= y
+  // assign_modulo               //   x  %= y
+  // assign_multiply             //   x  *= y
+  // assign_subtract             //   x  -= y
+  // bitwise_and                 //   x   & y
+  // bitwise_or                  //   x   | y
+  // bitwise_shift_left          //   x  << y
+  // bitwise_shift_right         //   x  >> y
+  // bitwise_xor                 //   x   ^ y
+  // boolean_and                 //   x  && y
+  // boolean_or                  //   x  || y
+  // call                        //   x             (...)
+  // call_static                 //   x::operator ()(...)
+  // cast                        //  (x) y
+  // cast_const                  // const_cast      <x>(y)
+  // cast_dynamic                // dynamic_cast    <x>(y)
+  // cast_reinterpret            // reinterpret_cast<x>(y)
+  // cast_static                 // static_cast     <x>(y)
+  // comma                       //   x   , y
+  // compare                     //   x <=> y
+  // complement                  //  ~x
+  // construct                   //   x(...)
+  // delete_array                // delete[] x
+  // delete_object               // delete   x
+  // dereference                 //  *x
+  // dereferenced_access         //   x  -> y
+  // dereferenced_access_pointer //   x ->* y
+  // divide                      //   x   / y
+  // equals                      //   x  == y
+  // greater                     //   x   > y
+  // greater_equals              //   x  >= y
+  // initialize                  //   x{...}
+  // lesser                      //   x   < y
+  // lesser_equals               //   x  <= y
+  // minus                       //   x   - y
+  // modulo                      //   x   % y
+  // multiply                    //   x   * y
+  // negate                      //  !x
+  // new_array                   // new     x[y]{...}
+  // new_array_placement         // new (x) y[z]{...}
+  // new_constructed             // new     x   (...)
+  // new_constructed_placement   // new (x) y   (...)
+  // new_initialized             // new     x   {...}
+  // new_initialized_placement   // new (x) y   {...}
+  // plus                        //  +x
+  // post_decrement              //   x--
+  // post_increment              //   x++
+  // pre_decrement               // --x
+  // pre_increment               // ++x
+  // scope                       //   x  :: y
+  // subscript                   //   x             [...]
+  // subscript_static            //   x::operator [](...)
+  // subtract                    //   x   - y
+  // trilean_conditional         //   x   ? y : z
+  // unequals                    //   x  != y
   // opinfo::nonoverloaded::operate<opinfo::add, int, int>::is_same   <int>::value;
   // opinfo::nonoverloaded::operate<opinfo::add, int, int>::is_similar<int>::value(2 + 2);
   // opinfo::nonoverloaded::operate<opinfo::add, int, int>::type;

@@ -166,18 +166,20 @@
   #endif
 
   /* Definition */
-  // : [Preprocessor Substitution] ->> Evaluate preprocessor token as boolean
+  // : [Preprocessor Substitution] ->> Evaluate preprocessor token as conditional boolean
   #if CPP_COMPILER == CPP_CLANG_COMPILER
   # pragma clang diagnostic push
   # pragma clang diagnostic ignored "-Wvariadic-macros"
   #elif CPP_COMPILER == CPP_GNUC_COMPILER
-  # pragma GCC system_header // ->> `-Wno-variadic-macros` does not work
+  # pragma GCC diagnostic push
+  # pragma GCC diagnostic ignored "-Wvariadic-macros"
+  # pragma GCC system_header // ->> `-Wno-variadic-macros` doesn't work as it ought to
   #endif
-
-  #define preprocessed(...) (__VA_ARGS__ + 0)
-
+    #define preprocessed(...) (__VA_ARGS__ + 0)
   #if CPP_COMPILER == CPP_CLANG_COMPILER
   # pragma clang diagnostic pop
+  #elif CPP_COMPILER == CPP_GNUC_COMPILER
+  # pragma GCC diagnostic pop
   #endif
 
   // : [Source File Inclusion] ->> Conditionally preferable error diagnostics when `#include`ing other source files
@@ -265,18 +267,20 @@
   #   pragma clang diagnostic push
   #   pragma clang diagnostic ignored "-Wvariadic-macros"
   # elif CPP_COMPILER == CPP_GNUC_COMPILER
-  #   pragma GCC system_header // ->> `-Wno-variadic-macros` does not work
+  #   pragma GCC diagnostic push
+  #   pragma GCC diagnostic ignored "-Wvariadic-macros"
+  #   pragma GCC system_header // ->> `-Wno-variadic-macros` doesn't work as it ought to
   # endif
-
-  # define CPP_PREPROCESSOR_FORMAT CPP_PREPROCESSOR_FORMAT_CHECK(~, MSVC)
-  #   define CPP_PREPROCESSOR_ISO_FORMAT  0x0u
-  #   define CPP_PREPROCESSOR_MSVC_FORMAT 0x1u
-  #
-  #   define CPP_PREPROCESSOR_FORMAT_CHECK(...)             CPP_PREPROCESSOR_FORMAT_SELECT(__VA_ARGS__)
-  #   define CPP_PREPROCESSOR_FORMAT_SELECT(arguments, ...) defer(combine, defer(combine, CPP_PREPROCESSOR_, choose(2u, arguments, ISO, ~)), _FORMAT)
-
+    #define CPP_PREPROCESSOR_FORMAT CPP_PREPROCESSOR_FORMAT_CHECK(~, MSVC)
+    # define CPP_PREPROCESSOR_ISO_FORMAT  0x0u
+    # define CPP_PREPROCESSOR_MSVC_FORMAT 0x1u
+    #
+    # define CPP_PREPROCESSOR_FORMAT_CHECK(...)             CPP_PREPROCESSOR_FORMAT_SELECT(__VA_ARGS__)
+    # define CPP_PREPROCESSOR_FORMAT_SELECT(arguments, ...) defer(combine, defer(combine, CPP_PREPROCESSOR_, choose(2u, arguments, ISO, ~)), _FORMAT)
   # if CPP_COMPILER == CPP_CLANG_COMPILER
   #   pragma clang diagnostic pop
+  #elif CPP_COMPILER == CPP_GNUC_COMPILER
+  #   pragma GCC diagnostic pop
   # endif
   #endif
 
@@ -620,9 +624,9 @@
 
   // : [Parameter Pack]
   #if CPP_VERSION < 2011uL
-  # define arityof(pack) ::Lapys::Traits::collection<::Lapys::Traits::constant<std::size_t, sizeof(typeid(pack)), true>...>::length
+  # define countof(pack) ::Lapys::Traits::collection<::Lapys::Traits::constant<std::size_t, sizeof typeid(pack), true>...>::length
   #else
-  # define arityof(pack) sizeof...(pack)
+  # define countof(pack) sizeof...(pack)
   #endif
 
   // : [Pointer Aliasing]
@@ -822,37 +826,53 @@
 
   // : [Type Inspection Specifier] ->> Reflect on the resulting type of an expression
   #ifndef typeof
-  # if CPP_FRONTEND == CPP_MSVC_FRONTEND or defined(__cpp_decltype) // --> 200707L
-  #   if CPP_COMPILER == CPP_CLANG_COMPILER
-  #     pragma clang diagnostic push
-  #     pragma clang diagnostic ignored "-Wkeyword-macro"
+  # if CPP_COMPILER == CPP_CLANG_COMPILER
+  #   pragma clang diagnostic push
+  #   pragma clang diagnostic ignored "-Wkeyword-macro"
+  # endif
+  #   if CPP_FRONTEND == CPP_MSVC_FRONTEND or defined(__cpp_decltype) // --> 200707L
+  #     if CPP_VERSION < 2011uL
+  #       define kindof(expression) decltype(expression)
+  #     else
+  #       define kindof(...)        decltype(__VA_ARGS__)
+  #     endif
+  #   elif CPP_FRONTEND == CPP_GNUC_FRONTEND
+  #     if CPP_VERSION < 2011uL
+  #       define kindof(expression) __decltype(expression)
+  #     else
+  #       define kindof(...)        __decltype(__VA_ARGS__)
+  #     endif
+  #   elif CPP_FRONTEND == CPP_CLANG_FRONTEND
+  #     if CPP_VERSION < 2011uL
+  #       define kindof(expression) __typeof__(expression)
+  #     else
+  #       define kindof(...)        __typeof__(__VA_ARGS__)
+  #     endif
   #   endif
-  #   if CPP_VERSION < 2011uL
-  #     define notypeof(expression) ::Lapys::Traits::is_void<decltype(expression)>::value
-  #     define typeof(expression)   decltype(expression)
-  #   else
-  #     define notypeof(...) ::Lapys::Traits::is_void<decltype(__VA_ARGS__)>::value
-  #     define typeof(...)   decltype(__VA_ARGS__)
+  #
+  #   if CPP_FRONTEND == CPP_CLANG_FRONTEND or CPP_FRONTEND == CPP_GNUC_FRONTEND or CPP_FRONTEND == CPP_MSVC_FRONTEND or defined(__cpp_decltype) // --> 200707L
+  #     if CPP_VERSION < 2011uL
+  #       define notypeof(expression) ::Lapys::Traits::is_void<kindof(expression)> ::value
+  #     else
+  #       define notypeof(...)        ::Lapys::Traits::is_void<kindof(__VA_ARGS__)>::value
+  #     endif
   #   endif
-  #   if CPP_COMPILER == CPP_CLANG_COMPILER
-  #     pragma clang diagnostic pop
+  #
+  #   if CPP_FRONTEND == CPP_GNUC_FRONTEND or CPP_FRONTEND == CPP_MSVC_FRONTEND or defined(__cpp_decltype) // --> 200707L
+  #     if CPP_VERSION < 2011uL
+  #       define typeof(expression) kindof(expression)
+  #     else
+  #       define typeof(...)        kindof(__VA_ARGS__)
+  #     endif
+  #   elif CPP_FRONTEND == CPP_CLANG_FRONTEND
+  #     if CPP_VERSION < 2011uL
+  #       define typeof(expression) typename ::Lapys::Traits::conditional<sizeof(::Lapys::Traits::boolean_true) == sizeof ::Lapys::Traits::typeinfo::is_lvalue_reference((expression)),  ::Lapys::Traits::alias<kindof(expression)  lref>, typename ::Lapys::Traits::conditional<sizeof(::Lapys::Traits::boolean_true) == sizeof ::Lapys::Traits::typeinfo::is_rvalue_reference((expression)),  ::Lapys::Traits::alias<__typeof__(expression)  rref>, ::Lapys::Traits::alias<__typeof__(expression)> > ::type>::type::type
+  #     else
+  #       define typeof(...)        typename ::Lapys::Traits::conditional<sizeof(::Lapys::Traits::boolean_true) == sizeof ::Lapys::Traits::typeinfo::is_lvalue_reference((__VA_ARGS__)), ::Lapys::Traits::alias<kindof(__VA_ARGS__) lref>, typename ::Lapys::Traits::conditional<sizeof(::Lapys::Traits::boolean_true) == sizeof ::Lapys::Traits::typeinfo::is_rvalue_reference((__VA_ARGS__)), ::Lapys::Traits::alias<__typeof__(__VA_ARGS__) rref>, ::Lapys::Traits::alias<__typeof__(__VA_ARGS__)> >::type>::type::type
+  #     endif
   #   endif
-  # elif CPP_FRONTEND == CPP_GNUC_FRONTEND
-  #   if CPP_VERSION < 2011uL
-  #     define notypeof(expression) ::Lapys::Traits::is_void<__decltype(expression)>::value
-  #     define typeof(expression)   __decltype(expression)
-  #   else
-  #     define notypeof(...) ::Lapys::Traits::is_void<__decltype(__VA_ARGS__)>::value
-  #     define typeof(...)   __decltype(__VA_ARGS__)
-  #   endif
-  # elif CPP_FRONTEND == CPP_CLANG_FRONTEND
-  #   if CPP_VERSION < 2011uL
-  #     define notypeof(expression) ::Lapys::Traits::is_void<__typeof__(expression)>::value
-  #     define typeof(expression)   typename ::Lapys::Traits::conditional<sizeof(::Lapys::Traits::boolean_true) == sizeof(::Lapys::Traits::typeinfo::is_lvalue_reference((expression))), ::Lapys::Traits::alias<__typeof__(expression) lref>, typename ::Lapys::Traits::conditional<sizeof(::Lapys::Traits::boolean_true) == sizeof(::Lapys::Traits::typeinfo::is_rvalue_reference((expression))), ::Lapys::Traits::alias<__typeof__(expression) rref>, ::Lapys::Traits::alias<__typeof__(expression)> >::type>::type::type
-  #   else
-  #     define notypeof(...) ::Lapys::Traits::is_void<__typeof__(__VA_ARGS__)>::value
-  #     define typeof(...)   typename ::Lapys::Traits::conditional<sizeof(::Lapys::Traits::boolean_true) == sizeof(::Lapys::Traits::typeinfo::is_lvalue_reference((__VA_ARGS__))), ::Lapys::Traits::alias<__typeof__(__VA_ARGS__) lref>, typename ::Lapys::Traits::conditional<sizeof(::Lapys::Traits::boolean_true) == sizeof(::Lapys::Traits::typeinfo::is_rvalue_reference((__VA_ARGS__))), ::Lapys::Traits::alias<__typeof__(__VA_ARGS__) rref>, ::Lapys::Traits::alias<__typeof__(__VA_ARGS__)> >::type>::type::type
-  #   endif
+  # if CPP_COMPILER == CPP_CLANG_COMPILER
+  #   pragma clang diagnostic pop
   # endif
   #endif
 
@@ -910,6 +930,24 @@
 
   #define empty()
 
+  #if CPP_FRONTEND == CPP_CLANG_FRONTEND
+  # pragma clang diagnostic push
+  # pragma clang diagnostic ignored "-Wc++20-compat"
+  # pragma clang diagnostic ignored "-Wvariadic-macros"
+  #elif CPP_FRONTEND == CPP_GNUC_FRONTEND
+  # pragma GCC diagnostic push
+  # pragma GCC diagnostic ignored "-Wvariadic-macros"
+  # pragma GCC system_header // ->> `-Wno-variadic-macros` doesn't work as it ought to
+  #endif
+    #define apply_comma(argument, ...)            ,
+    #define apply_expression_begin(argument, ...) (
+    #define apply_expression_end(argument, ...)   )
+  #if CPP_COMPILER == CPP_CLANG_COMPILER
+  # pragma clang diagnostic pop
+  #elif CPP_COMPILER == CPP_GNUC_COMPILER
+  # pragma GCC diagnostic pop
+  #endif
+
   #if preprocessed(LAPYS_PREPROCESSOR)
   # if CPP_FRONTEND == CPP_CLANG_FRONTEND
   #   pragma clang diagnostic push
@@ -918,7 +956,7 @@
   # elif CPP_FRONTEND == CPP_GNUC_FRONTEND
   #   pragma GCC diagnostic push
   #   pragma GCC diagnostic ignored "-Wvariadic-macros"
-  #   pragma GCC system_header
+  #   pragma GCC system_header // ->> `-Wno-variadic-macros` doesn't work as it ought to
   # endif
     #if (LAPYS_MAX_ARITY) >= 1u
     # define arity_1u 1u
@@ -1482,7 +1520,6 @@
     #   define apply_bitwise_xor(argument, ...)                 ^
     #   define apply_boolean_and(argument, ...)                 &&
     #   define apply_boolean_or(argument, ...)                  ||
-    #   define apply_comma(argument, ...)                       ,
     #   define apply_compare(argument, ...)                     <=>
     #   define apply_conditional_falsy(argument, ...)           :
     #   define apply_conditional_truthy(argument, ...)          ?
@@ -1490,8 +1527,6 @@
     #   define apply_dereferenced_access_pointer(argument, ...) ->*
     #   define apply_divide(argument, ...)                      /
     #   define apply_equals(argument, ...)                      ==
-    #   define apply_expression_begin(argument, ...)            (
-    #   define apply_expression_end(argument, ...)              )
     #   define apply_greater(argument, ...)                     >
     #   define apply_greater_equals(argument, ...)              >=
     #   define apply_initializer_begin(argument, ...)           {
