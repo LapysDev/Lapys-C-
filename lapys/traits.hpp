@@ -203,68 +203,69 @@
       struct opinfo;
       struct optraitinfo;
 
-      template <typename>                               struct alias;
-      template <typename, bool = false>                 struct classinfo;
-      template <bool, typename = null, typename = null> struct conditional;
-      template <typename base, base, bool>              struct constant;
-      template <std::size_t, std::size_t = 10u>         struct countof;
-      template <typename>                               struct enuminfo;
-      template <std::size_t>                            struct float_fast_t;
-      template <std::size_t>                            struct float_fast_width_t;
-      template <std::size_t>                            struct float_least_t;
-      template <std::size_t>                            struct float_least_width_t;
-      template <std::size_t>                            struct float_t;
-      template <std::size_t>                            struct float_width_t;
-      template <typename>                               struct functioninfo;
-      template <std::size_t>                            struct int_fast_t;
-      template <std::size_t>                            struct int_fast_width_t;
-      template <std::size_t>                            struct int_least_t;
-      template <std::size_t>                            struct int_least_width_t;
-      template <std::size_t>                            struct int_t;
-      template <std::size_t>                            struct int_width_t;
-      template <typename>                               struct is_class;
-      template <typename>                               struct is_const;
-      template <typename>                               struct is_enum;
-      template <typename>                               struct is_final;
-      template <typename>                               struct is_function;
-      template <typename, bool = false>                 struct is_integer;
-      template <typename>                               struct is_null;
-      template <typename>                               struct is_lvalue_reference;
-      template <typename>                               struct is_reference;
-      template <typename>                               struct is_rvalue_reference;
-      template <typename, typename>                     struct is_same;
-      template <typename>                               struct is_signed;
-      template <typename>                               struct is_similar;
-      template <typename>                               struct is_union;
-      template <typename>                               struct is_unsigned;
-      template <typename>                               struct is_void;
-      template <typename>                               struct is_volatile;
-      template <typename>                               struct maxof;
-      template <typename>                               struct minof;
-      template <typename>                               struct nilof;
-      template <typename>                               struct rankof;
-      template <typename>                               struct remove_const;
-      template <typename>                               struct remove_const_volatile;
-      template <typename>                               struct remove_volatile;
-      template <typename>                               struct signedof;
-      template <std::size_t>                            struct uint_fast_t;
-      template <std::size_t>                            struct uint_fast_width_t;
-      template <std::size_t>                            struct uint_least_t;
-      template <std::size_t>                            struct uint_least_value_t;
-      template <std::size_t>                            struct uint_least_width_t;
-      template <std::size_t>                            struct uint_t;
-      template <std::size_t>                            struct uint_width_t;
-      template <typename>                               struct unsignedof;
-      template <typename>                               struct voidof;
+      template <typename>                               struct alias;                 // --> std::type_identity
+      template <typename, bool = false>                 struct classinfo;             //
+      template <typename, typename>                     struct commonof;              // --> std::common_type
+      template <bool, typename = null, typename = null> struct conditional;           // --> std::conditional
+      template <typename base, base, bool>              struct constant;              // --> std::integral_constant
+      template <std::size_t, std::size_t = 10u>         struct countof;               //
+      template <typename>                               struct enuminfo;              //
+      template <std::size_t>                            struct float_fast_t;          //
+      template <std::size_t>                            struct float_fast_width_t;    //
+      template <std::size_t>                            struct float_least_t;         //
+      template <std::size_t>                            struct float_least_width_t;   //
+      template <std::size_t>                            struct float_t;               //
+      template <std::size_t>                            struct float_width_t;         //
+      template <typename>                               struct functioninfo;          //
+      template <std::size_t>                            struct int_fast_t;            //
+      template <std::size_t>                            struct int_fast_width_t;      //
+      template <std::size_t>                            struct int_least_t;           //
+      template <std::size_t>                            struct int_least_width_t;     //
+      template <std::size_t>                            struct int_t;                 //
+      template <std::size_t>                            struct int_width_t;           //
+      template <typename>                               struct is_class;              // --> std::is_class
+      template <typename>                               struct is_const;              // --> std::is_const
+      template <typename>                               struct is_enum;               // --> std::is_enum; std::is_scoped_enum
+      template <typename>                               struct is_final;              // --> std::is_final
+      template <typename>                               struct is_function;           // --> std::is_function
+      template <typename, bool = false>                 struct is_integer;            // --> std::is_integral
+      template <typename>                               struct is_null;               //
+      template <typename>                               struct is_lvalue_reference;   // --> std::is_lvalue_reference
+      template <typename>                               struct is_reference;          // --> std::is_reference
+      template <typename>                               struct is_rvalue_reference;   // --> std::is_rvalue_reference
+      template <typename, typename>                     struct is_same;               // --> std::is_same
+      template <typename>                               struct is_signed;             // --> std::is_signed
+      template <typename>                               struct is_similar;            //
+      template <typename>                               struct is_union;              // --> std::is_union
+      template <typename>                               struct is_unsigned;           // --> std::is_unsigned
+      template <typename>                               struct is_void;               // --> std::is_void
+      template <typename>                               struct is_volatile;           // --> std::is_volatile
+      template <typename>                               struct maxof;                 //
+      template <typename>                               struct minof;                 //
+      template <typename>                               struct nilof;                 //
+      template <typename>                               struct rankof;                //
+      template <typename>                               struct remove_const;          // --> std::remove_const
+      template <typename>                               struct remove_const_volatile; // --> std::remove_const_volatile
+      template <typename>                               struct remove_volatile;       // --> std::remove_volatile
+      template <typename>                               struct signedof;              // --> std::make_signed
+      template <std::size_t>                            struct uint_fast_t;           //
+      template <std::size_t>                            struct uint_fast_width_t;     //
+      template <std::size_t>                            struct uint_least_t;          //
+      template <std::size_t>                            struct uint_least_value_t;    //
+      template <std::size_t>                            struct uint_least_width_t;    //
+      template <std::size_t>                            struct uint_t;                //
+      template <std::size_t>                            struct uint_width_t;          //
+      template <typename>                               struct unsignedof;            // --> std::make_unsigned
+      template <typename>                               struct voidof;                // --> std::void_t
 
       #ifdef __cpp_variadic_templates // --> 200704L
-        template <bool, bool...> struct boolean_and;
-        template <bool, bool...> struct boolean_or;
-        template <typename...>   struct collection;
+        template <bool, bool...> struct boolean_and; // --> std::conjunction
+        template <bool, bool...> struct boolean_or;  // --> std::disjunction
+        template <typename...>   struct collection;  //
       #else
-        template <bool, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    struct boolean_and;
-        template <bool, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    struct boolean_or;
-        template <typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null> struct collection;
+        template <bool, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    struct boolean_and; // --> std::conjunction
+        template <bool, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    struct boolean_or;  // --> std::disjunction
+        template <typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null> struct collection;  //
       #endif
 
       /* ... ->> Augments expression type deduction; see `opinfo::...::typeof` trait and `typeof(...)` macro definition */
@@ -2294,13 +2295,11 @@
                 // ...
                 template <typename baseA, typename baseB>
                 struct typeof<opinfo::add, baseA, baseB> final {
-                  // typedef typename conditional<is_integer<baseA>::value and is_integer<baseB>::value, conditional<
-                  //   (sizeof(typename conditional<is_integer<baseA>::value, baseA, int>::type) >= sizeof(typename conditional<is_integer<baseB>::value, baseB, int>::type)),
-                  //   typename conditional<
-                  //     is_same<baseA>::value,
-                  //   >::type,
-                  //   baseB
-                  // >, alias<null> >::type::type type;
+                  typedef typename conditional<is_integer<baseA>::value and is_integer<baseB>::value, conditional<
+                    (rankof<baseA>::value > rankof<baseB>::value),
+                    baseA,
+                    baseB
+                  >, alias<null> >::type::type type;
                 };
 
                 // ...
@@ -2974,6 +2973,12 @@
         };
       #endif
 
+      // ... ->> Usual arithmetic operations type resolution --- CITE (Lapys) -> https://en.cppreference.com/w/cpp/language/usual_arithmetic_conversions
+      template <typename baseA, typename baseB>
+      struct commonof final {
+        typedef typename conditional<(rankof<baseA>::value >= rankof<baseB>::value), baseA, baseB>::type type;
+      };
+
       // ... ->> Enumeration type diagnostics
       struct enumtypeinfo final {
         template <typename>
@@ -3105,7 +3110,7 @@
 
       template <typename base>
       struct enuminfo final {
-        typedef typename enumtypeinfo::template decode<sizeof((enumtypeinfo::typeof)(instanceof<base>())) / sizeof(byte)>::type type;
+        typedef typename enumtypeinfo::template decode<sizeof (enumtypeinfo::typeof)(instanceof<base>()) / sizeof(byte)>::type type;
         static bool const value =
           #if CPP_VERSION >= 2011uL
             std::is_enum<base>::value or
@@ -3356,51 +3361,133 @@
       template <typename>
       struct nilof final {};
 
-      // ... ->> Rank of integer type (equal ranks are `char`, `signed char`, and `unsigned char` are made distinct, instead)
+      // ... ->> Rank of integer type (equal ranks are `char`, `signed char`, and `unsigned char` are made distinct, instead) --- CITE (Lapys) -> https://en.cppreference.com/w/cpp/language/usual_arithmetic_conversions
       template <typename base>
       struct rankof final {
-        static uintmin_t const value = 0u;
+        static uintmin_t const value = is_integer<base>::value ? rankof<typename uint_least_t<sizeof(typename conditional<is_integer<base>::value, base, sfinaeptr_t>::type)>::type>::value : 0u;
       };
 
-      template <> struct rankof<bool>           final { static uintmin_t const value = 1u; };
-      template <> struct rankof<char>           final { static uintmin_t const value = 2u; };
-      template <> struct rankof<signed   char>  final { static uintmin_t const value = 3u; };
-      template <> struct rankof<unsigned char>  final { static uintmin_t const value = 4u; };
-      template <> struct rankof<signed   short> final { static uintmin_t const value = 5u; };
-      template <> struct rankof<unsigned short> final { static uintmin_t const value = 6u; };
+      template <> struct rankof<bool>           final { static uintmin_t const value = 1u;  };
+      template <> struct rankof<char>           final { static uintmin_t const value = 5u;  };
+      template <> struct rankof<signed   char>  final { static uintmin_t const value = 10u; };
+      template <> struct rankof<unsigned char>  final { static uintmin_t const value = 15u; };
+      template <> struct rankof<signed   short> final { static uintmin_t const value = 20u; };
+      template <> struct rankof<unsigned short> final { static uintmin_t const value = 25u; };
+      template <> struct rankof<signed   int>   final { static uintmin_t const value = 30u; };
+      template <> struct rankof<unsigned int>   final { static uintmin_t const value = 35u; };
+      template <> struct rankof<signed   long>  final { static uintmin_t const value = 40u; };
+      template <> struct rankof<unsigned long>  final { static uintmin_t const value = 45u; };
 
-      #ifdef __cpp_unicode_characters // --> 200704L
-        template <> struct rankof<char16_t> final { static uintmin_t const value = 7u; };
-        template <> struct rankof<char32_t> final { static uintmin_t const value = 8u; };
-      #endif
-
-      template <> struct rankof<signed   int>  final { static uintmin_t const value = 9u;  };
-      template <> struct rankof<unsigned int>  final { static uintmin_t const value = 10u; };
-      template <> struct rankof<signed   long> final { static uintmin_t const value = 11u; };
-      template <> struct rankof<unsigned long> final { static uintmin_t const value = 12u; };
+      template <>
+      struct rankof<wchar_t> final {
+        static uintmin_t const value = (
+          sizeof(wchar_t) == sizeof(char)  ? rankof<char> ::value :
+          sizeof(wchar_t) == sizeof(short) ? rankof<short>::value :
+          sizeof(wchar_t) == sizeof(int)   ? rankof<int>  ::value :
+          sizeof(wchar_t) == sizeof(long)  ? rankof<long> ::value :
+          #if CPP_VERSION >= 2011uL
+            sizeof(wchar_t) == sizeof(long long)  ? rankof<long long>::value :
+          #endif
+          4u
+        ) - 4u;
+      };
 
       #if CPP_VERSION >= 2011uL
-        template <> struct rankof<signed   long long> final { static uintmin_t const value = 13u; };
-        template <> struct rankof<unsigned long long> final { static uintmin_t const value = 14u; };
+        template <> struct rankof<signed   long long> final { static uintmin_t const value = 50u; };
+        template <> struct rankof<unsigned long long> final { static uintmin_t const value = 55u; };
+      #endif
+
+      #ifdef __cpp_char8_t // --> 201811L
+        template <>
+        struct rankof<char8_t> final {
+          static uintmin_t const value = (
+            sizeof(char8_t) == sizeof(char)  ? rankof<char> ::value :
+            sizeof(char8_t) == sizeof(short) ? rankof<short>::value :
+            sizeof(char8_t) == sizeof(int)   ? rankof<int>  ::value :
+            sizeof(char8_t) == sizeof(long)  ? rankof<long> ::value :
+            #if CPP_VERSION >= 2011uL
+              sizeof(char8_t) == sizeof(long long)  ? rankof<long long>::value :
+            #endif
+            3u
+          ) - 3u;
+        };
+      #endif
+
+      #ifdef __cpp_unicode_characters // --> 200704L
+        template <>
+        struct rankof<char16_t> final {
+          static uintmin_t const value = (
+            sizeof(char16_t) == sizeof(char)  ? rankof<char> ::value :
+            sizeof(char16_t) == sizeof(short) ? rankof<short>::value :
+            sizeof(char16_t) == sizeof(int)   ? rankof<int>  ::value :
+            sizeof(char16_t) == sizeof(long)  ? rankof<long> ::value :
+            #if CPP_VERSION >= 2011uL
+              sizeof(char16_t) == sizeof(long long)  ? rankof<long long>::value :
+            #endif
+            2u
+          ) - 2u;
+        };
+
+        template <>
+        struct rankof<char32_t> final {
+          static uintmin_t const value = (
+            sizeof(char32_t) == sizeof(char)  ? rankof<char> ::value :
+            sizeof(char32_t) == sizeof(short) ? rankof<short>::value :
+            sizeof(char32_t) == sizeof(int)   ? rankof<int>  ::value :
+            sizeof(char32_t) == sizeof(long)  ? rankof<long> ::value :
+            #if CPP_VERSION >= 2011uL
+              sizeof(char32_t) == sizeof(long long)  ? rankof<long long>::value :
+            #endif
+            1u
+          ) - 1u;
+        };
       #endif
 
       #ifdef int128_t
         template <>
         struct rankof<int128_t> final {
-          static uintmin_t const value = 15u;
+          static uintmin_t const value = 60u;
         };
       #endif
 
       #ifdef uint128_t
         template <>
         struct rankof<uint128_t> final {
-          static uintmin_t const value = 16u;
+          static uintmin_t const value = 65u;
         };
       #endif
 
-      template <> struct rankof<float>       final { static uintmin_t const value = 16u; };
-      template <> struct rankof<double>      final { static uintmin_t const value = 17u; };
-      template <> struct rankof<long double> final { static uintmin_t const value = 18u; };
+      template <> struct rankof<float>       final { static uintmin_t const value = 70u; };
+      template <> struct rankof<double>      final { static uintmin_t const value = 75u; };
+      template <> struct rankof<long double> final { static uintmin_t const value = 80u; };
+
+      #ifdef float16_t
+        template <>
+        struct rankof<float16_t> final {
+          static uintmin_t const value = 85u;
+        };
+      #endif
+
+      #ifdef float32_t
+        template <>
+        struct rankof<float32_t> final {
+          static uintmin_t const value = 90u;
+        };
+      #endif
+
+      #ifdef float64_t
+        template <>
+        struct rankof<float64_t> final {
+          static uintmin_t const value = 95u;
+        };
+      #endif
+
+      #ifdef float128_t
+        template <>
+        struct rankof<float128_t> final {
+          static uintmin_t const value = 100u;
+        };
+      #endif
 
       // ... ->> Type topmost const-qualifier removal
       template <typename base>
@@ -3600,9 +3687,9 @@
 
       public:
         typename ::Lapys::Traits::conditional<
-          size == sizeof(valueof<size + increment>(0x00u)) / sizeof(unsigned char),
+          size == sizeof valueof<size + increment>(0x00u) / sizeof(unsigned char),
           typename ::Lapys::Traits::conditional<(increment > 1u), CPP_MAX_SIZE<size, increment / 2u>, unsigned char[size]>::type,
-          CPP_MAX_SIZE<sizeof(valueof<size + increment>(0x00u)) / sizeof(unsigned char), increment == size ? increment + increment : increment>
+          CPP_MAX_SIZE<sizeof valueof<size + increment>(0x00u) / sizeof(unsigned char), increment == size ? increment + increment : increment>
         >::type _;
     };
 

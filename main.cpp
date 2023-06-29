@@ -28,13 +28,6 @@ struct add {
 
 // ...
 int main(int, char*[]) /* noexcept */ {
-  // TODO -> clean-up `Traits::conditional`s/ convert this to `conditional`/ `sizeof` expressions
-  std::printf("[size] : %lu"   "\r\n", static_cast<unsigned long>(opinfo::nonoverloaded::operate<opinfo::new_constructed, int>::size));
-  std::printf("[value]: %4.5s" "\r\n",         opinfo::nonoverloaded::operate<opinfo::new_constructed, int>                  ::value ? "true" : "false");
-  std::printf("[type] : %4.8s" "\r\n", is_null<opinfo::nonoverloaded::operate<opinfo::new_constructed, int>::type>           ::value ? "null" : "non-null");
-  std::printf("[like] : %4.5s" "\r\n",         opinfo::nonoverloaded::operate<opinfo::new_constructed, int>::like<int (&)[1]>::value ? "true" : "false");
-  std::printf("[is]   : %4.5s" "\r\n",         opinfo::nonoverloaded::operate<opinfo::new_constructed, int>::is  <int>       ::value ? "true" : "false");
-
   // access_pointer              //   x  .* y
   // add                         //   x   + y
   // address                     //  &x
