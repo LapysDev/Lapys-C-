@@ -13,15 +13,13 @@
   --- NOTE ---
   Conditionally defines additional library function-like macros and prevents some default library macros from being undefined
     Additional macros:
-    - apply   (...) ->> Recursively invoke a function-like macro (`function_macro(argument)`) iteratively on a list of `arguments`                --> apply(function_macro, condition_macro, separator_macro, ...arguments)
-    - arity   (...) ->> Evaluates to a comma-separated list of `unsigned` integers                                                                --> arity(3u) --> 1u, 2u, 3u
-    - combine (...) ->> Concatenate two tokens                                                                                                    --> combine(a, b) --> ab
-    - defer   (...) ->> Forwards invocation of a `function` with some `arguments` while `stall(...)`ing                                           --> defer(function, ...arguments)
-    - first   (...) ->> Evaluates to the first `argument` in a provided list of `arguments`; Useful for conditional selection with `choose(...)`  --> first(a, b, ...arguments) --> a
-    - parse   (...) ->> Delays evaluation of preprocessor tokens                                                                                  --> parse(...arguments)
-    - second  (...) ->> Evaluates to the second `argument` in a provided list of `arguments`; Useful for conditional selection with `choose(...)` --> first(a, b, ...arguments) --> a
-    - subapply(...) ->> Working `apply` function-like macro within an `apply(...)` evaluation                                                     --> subapply(function_macro, condition_macro, separator_macro, ...arguments) --> apply(subapply, ...)
-    - stall   (...) ->> Delays evaluation of preprocessor tokens                                                                                  --> stall(...)
+    - apply   (...) ->> Recursively invoke a function-like macro (`function_macro(argument)`) iteratively on a list of `arguments` --> apply(function_macro, condition_macro, separator_macro, ...arguments)
+    - arity   (...) ->> Evaluates to a comma-separated list of `unsigned` integers                                                 --> arity(3u) --> 1u, 2u, 3u
+    - combine (...) ->> Concatenate two tokens                                                                                     --> combine(a, b) --> ab
+    - defer   (...) ->> Forwards invocation of a `function` with some `arguments` while `stall(...)`ing                            --> defer(function, ...arguments)
+    - parse   (...) ->> Delays evaluation of preprocessor tokens                                                                   --> parse(...arguments)
+    - subapply(...) ->> Working `apply` function-like macro within an `apply(...)` evaluation                                      --> subapply(function_macro, condition_macro, separator_macro, ...arguments) --> apply(subapply, ...)
+    - stall   (...) ->> Delays evaluation of preprocessor tokens                                                                   --> stall(...)
 
     Persisted macros:
     - CPP_ARCHITECTURE        (including `CPP_*_ARCHITECTURE` macros)
@@ -39,7 +37,6 @@
     - int128_t
     - uint128_t
 
-    - as<>         (...) ->> Casts any type to another other specified type despite correctness
     - choose       (...) ->> Conditionally selects the falsy/ truthy argument or evaluates to the indexed argument within a list of arguments
     - empty        ()    ->> Evaluates to nothing
     - static_assert(...) ->> Fallback for C++98
@@ -204,7 +201,7 @@
   # endif
   #endif
 
-  // : [...]
+  // : [...] ->> Mathematics -> Memory -> Array -> String -> Process -> Event -> Window -> File I/O -> Graphics -> Image
   #if CPP_COMPILER == CPP_CLANG_COMPILER
   # ifndef __cpp_nsdmi // --> 200809L
   #   pragma clang diagnostic push
@@ -227,7 +224,11 @@
   #ifdef LAPYS_MODULE_TRAITS
   # if preprocessed(LAPYS_PREPROCESSOR)
   #   undef  widthof
-  #   define widthof(argument) (CHAR_BIT * sizeof(argument))
+  #   if CPP_VERSION < 2011uL
+  #     define widthof(argument) (CHAR_BIT * sizeof(argument))
+  #   else
+  #     define widthof(...)      (CHAR_BIT * sizeof(__VA_ARGS__))
+  #   endif
   # else
   #   undef CPP_MAX_SIZE
   #   undef widthof
@@ -373,24 +374,21 @@
   # undef member_rlref
   # undef member_rref
   # undef mustinline
-  # undef mustreturn
   # undef nilinit
   # undef nodecay
   # undef nodecayparam
   # undef noeval
   # undef noexit
+  # undef noignore
   # undef noinline
+  # undef notypeof
   # undef nouniqueaddr
   # undef nullptr
   # undef preprocessed
   # undef restricted
   # undef rlref
   # undef rref
-  # ifdef typeof
-  #   undef kindof
-  #   undef notypeof
-  #   undef typeof
-  # endif
+  # undef typeof
   # undef varinit
   #endif
 

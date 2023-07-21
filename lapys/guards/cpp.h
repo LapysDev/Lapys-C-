@@ -11,4 +11,8 @@
   #ifdef std
   # error Lapys C++: Unexpected `std` macro definition
   #endif
+
+  #ifdef unreachable
+  # error Lapys C++: Unexpected `unreachable` macro definition
+  #endif
 #endif

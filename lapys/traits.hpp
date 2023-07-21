@@ -1,3 +1,147 @@
+/* Features -->
+    - LAPYS_MODULE_TRAITS
+
+    - CPP_MAX_SIZE
+
+    - Lapys::bless<T>(value)
+    - Lapys::instanceof<T>()
+    - Lapys::pass<T>(value)
+    - Lapys::Traits::optraitinfo::valueof(...)
+    - Lapys::unreachable()
+    - sfinaeptr
+    - widthof(...)
+
+    - Lapys::bit<N, value>
+    - Lapys::byte
+    - Lapys::empty
+    - Lapys::sfinaeptr_t
+    - Lapys::Traits::alias<T>
+    - Lapys::Traits::boolean_and<bool...>
+    - Lapys::Traits::boolean_false
+    - Lapys::Traits::boolean_or<bool...>
+    - Lapys::Traits::boolean_true
+    - Lapys::Traits::classinfo<T, ...>
+    - Lapys::Traits::collection<T...>
+    - Lapys::Traits::commonof<T, T>
+    - Lapys::Traits::conditional<bool, T, T>
+    - Lapys::Traits::constant<T, value>
+    - Lapys::Traits::countof<maximum, radix>
+    - Lapys::Traits::defer
+    - Lapys::Traits::defer::constant<T, value>
+    - Lapys::Traits::defer::nontyped_template<T...>
+    - Lapys::Traits::defer::type<T>
+    - Lapys::Traits::defer::typed_template<N>
+    - Lapys::Traits::enuminfo<T>
+    - Lapys::Traits::enumtypeinfo
+    - Lapys::Traits::float16_t
+    - Lapys::Traits::float32_t
+    - Lapys::Traits::float64_t
+    - Lapys::Traits::float128_t
+    - Lapys::Traits::float_fast8_t
+    - Lapys::Traits::float_fast16_t
+    - Lapys::Traits::float_fast32_t
+    - Lapys::Traits::float_fast64_t
+    - Lapys::Traits::float_fast128_t
+    - Lapys::Traits::float_fast_t<N>
+    - Lapys::Traits::float_fast_width_t<N>
+    - Lapys::Traits::float_least8_t
+    - Lapys::Traits::float_least16_t
+    - Lapys::Traits::float_least32_t
+    - Lapys::Traits::float_least64_t
+    - Lapys::Traits::float_least128_t
+    - Lapys::Traits::float_least_t<N>
+    - Lapys::Traits::float_least_width_t<N>
+    - Lapys::Traits::float_t<N>
+    - Lapys::Traits::float_width_t<N>
+    - Lapys::Traits::floatmax_t
+    - Lapys::Traits::floatmin_t
+    - Lapys::Traits::floatptr_t
+    - Lapys::Traits::functioninfo<T>
+    - Lapys::Traits::int8_t
+    - Lapys::Traits::int16_t
+    - Lapys::Traits::int32_t
+    - Lapys::Traits::int64_t
+    - Lapys::Traits::int128_t
+    - Lapys::Traits::int_fast8_t
+    - Lapys::Traits::int_fast16_t
+    - Lapys::Traits::int_fast32_t
+    - Lapys::Traits::int_fast64_t
+    - Lapys::Traits::int_fast128_t
+    - Lapys::Traits::int_fast_t<N>
+    - Lapys::Traits::int_fast_width_t<N>
+    - Lapys::Traits::int_least8_t
+    - Lapys::Traits::int_least16_t
+    - Lapys::Traits::int_least32_t
+    - Lapys::Traits::int_least64_t
+    - Lapys::Traits::int_least128_t
+    - Lapys::Traits::int_least_t<N>
+    - Lapys::Traits::int_least_width_t<N>
+    - Lapys::Traits::int_t<N>
+    - Lapys::Traits::int_width_t<N>
+    - Lapys::Traits::intmax_t
+    - Lapys::Traits::intmin_t
+    - Lapys::Traits::intptr_t
+    - Lapys::Traits::is_class<T>
+    - Lapys::Traits::is_const<T>
+    - Lapys::Traits::is_enum<T>
+    - Lapys::Traits::is_final<T>
+    - Lapys::Traits::is_function<T>
+    - Lapys::Traits::is_integer<T, ...>
+    - Lapys::Traits::is_lvalue_reference<T>
+    - Lapys::Traits::is_null<T>
+    - Lapys::Traits::is_reference<T>
+    - Lapys::Traits::is_rvalue_reference<T>
+    - Lapys::Traits::is_same<T, T>
+    - Lapys::Traits::is_signed<T>
+    - Lapys::Traits::is_union<T>
+    - Lapys::Traits::is_unsigned<T>
+    - Lapys::Traits::is_void<T>
+    - Lapys::Traits::is_volatile<T>
+    - Lapys::Traits::maxof<T>
+    - Lapys::Traits::minof<T>
+    - Lapys::Traits::nilof<T>
+    - Lapys::Traits::opinfo
+    - Lapys::Traits::opinfo::nonoverloaded::operate
+    - Lapys::Traits::opinfo::operation
+    - Lapys::Traits::opinfo::overloaded::operate == Lapys::Traits::opinfo::membered::operate | Lapys::Traits::opinfo::nonmembered::operate
+    - Lapys::Traits::optraitinfo
+    - Lapys::Traits::optraitinfo::assert
+    - Lapys::Traits::optraitinfo::get
+    - Lapys::Traits::rankof<T>
+    - Lapys::Traits::remove_const<T>
+    - Lapys::Traits::remove_const_volatile<T>
+    - Lapys::Traits::remove_volatile<T>
+    - Lapys::Traits::signedof<T>
+    - Lapys::Traits::typeinfo
+    - Lapys::Traits::uint8_t
+    - Lapys::Traits::uint16_t
+    - Lapys::Traits::uint32_t
+    - Lapys::Traits::uint64_t
+    - Lapys::Traits::uint128_t
+    - Lapys::Traits::uint_fast8_t
+    - Lapys::Traits::uint_fast16_t
+    - Lapys::Traits::uint_fast32_t
+    - Lapys::Traits::uint_fast64_t
+    - Lapys::Traits::uint_fast128_t
+    - Lapys::Traits::uint_fast_t<N>
+    - Lapys::Traits::uint_fast_width_t<N>
+    - Lapys::Traits::uint_least8_t
+    - Lapys::Traits::uint_least16_t
+    - Lapys::Traits::uint_least32_t
+    - Lapys::Traits::uint_least64_t
+    - Lapys::Traits::uint_least128_t
+    - Lapys::Traits::uint_least_t<N>
+    - Lapys::Traits::uint_least_value_t<N>
+    - Lapys::Traits::uint_least_width_t<N>
+    - Lapys::Traits::uint_t<N>
+    - Lapys::Traits::uint_width_t<N>
+    - Lapys::Traits::uintmax_t
+    - Lapys::Traits::uintmax_template_t
+    - Lapys::Traits::uintmin_t
+    - Lapys::Traits::uintptr_t
+    - Lapys::Traits::unsignedof<T>
+    - Lapys::Traits::voidof<T>
+*/
 #ifndef LAPYS_MODULE_TRAITS
 # define LAPYS_MODULE_TRAITS
   /* Guard > ... */
@@ -46,6 +190,56 @@
     struct bit;
 
     /* Function */
+    // Bless ->> Provenance fence for object addresses --- CITE (Lapys) -> https://github.com/facebook/folly/blob/main/folly/lang/Launder.h
+    noignore mustinline constfunc(true) char*                         (bless)(char*                         const address) noexcept { return address; }
+    noignore mustinline constfunc(true) char const*                   (bless)(char const*                   const address) noexcept { return address; }
+    noignore mustinline constfunc(true) char const volatile*          (bless)(char const volatile*          const address) noexcept { return address; }
+    noignore mustinline constfunc(true) char       volatile*          (bless)(char       volatile*          const address) noexcept { return address; }
+    noignore mustinline constfunc(true) unsigned char*                (bless)(unsigned char*                const address) noexcept { return address; }
+    noignore mustinline constfunc(true) unsigned char const*          (bless)(unsigned char const*          const address) noexcept { return address; }
+    noignore mustinline constfunc(true) unsigned char const volatile* (bless)(unsigned char const volatile* const address) noexcept { return address; }
+    noignore mustinline constfunc(true) unsigned char       volatile* (bless)(unsigned char       volatile* const address) noexcept { return address; }
+
+    #if defined(__cpp_lib_launder) /* --> 201606L */ or CPP_VERSION >= 2017uL or (CPP_COMPILER == CPP_MSVC_COMPILER and defined _HAS_LAUNDER)
+      template <typename type>
+      noignore mustinline constfunc(true) type* (bless)(type* const address) noexcept {
+        return std::launder(address);
+      }
+    #elif defined __has_builtin and (CPP_FRONTEND == CPP_CLANG_FRONTEND or CPP_FRONTEND == CPP_GNUC_FRONTEND)
+      #if __has_builtin(__builtin_launder)
+        template <typename type>
+        noignore mustinline constfunc(true) type* (bless)(type* const address) noexcept {
+          return __builtin_launder(address);
+        }
+      #else
+        // ->> Pretend the object referenced by `address` has a proven distinct lifetime and dynamic type
+        template <typename type>
+        noignore mustinline constfunc(true) type* (bless)(type* const address) noexcept {
+          return address;
+        }
+      #endif
+    #elif CPP_FRONTEND == CPP_GNUC_FRONTEND
+      // ->> Assume `address` was modified because it is used as an input & output
+      template <typename type>
+      noignore mustinline type* (bless)(type* /* const */ address) noexcept {
+        __asm__("" : "+r"(address));
+        return address;
+      }
+    #elif defined _ReadWriteBarrier and (CPP_COMPILER == CPP_MSVC_COMPILER and CPP_VENDOR == CPP_MICROSOFT_WINDOWS_VENDOR)
+      // ->> Prevent memory access re-ordering (relies on MSVC not having optimizations for `const` data members)
+      template <typename type>
+      noignore mustinline type* (bless)(type* /* const */ address) noexcept {
+        _ReadWriteBarrier();
+        return address;
+      }
+    #else
+      // ->> Pretend the object referenced by `address` has a proven distinct lifetime and dynamic type
+      template <typename type>
+      noignore mustinline constfunc(true) type* (bless)(type* const address) noexcept {
+        return address;
+      }
+    #endif
+
     // Instance Of ->> Plain & simple type deduction with no reference-qualifications
     template <typename type>
     constfunc(true) type (instanceof)() noexcept;
@@ -61,8 +255,19 @@
       template <typename type> constfunc(true) mustinline type volatile&       (pass)(type volatile&       object) noexcept { return object; }
     #endif
 
+    // Unreachable ->> Pragmatically invokes undefined behavior to ideally cause the host environment optimize (or trap) out impossible code branches
+    #ifdef __cpp_lib_unreachable // --> 202202L
+      noexit constfunc(false) mustinline void (unreachable)() noexcept { std::unreachable(); (::Lapys::Process::terminate)(); }
+    #elif CPP_FRONTEND == CPP_CLANG_FRONTEND or CPP_FRONTEND == CPP_GNUC_FRONTEND
+      noexit constfunc(false) mustinline void (unreachable)() noexcept { __builtin_unreachable(); (::Lapys::Process::terminate)(); }
+    #elif CPP_FRONTEND == CPP_MSVC_FRONTEND
+      noexit constfunc(false) mustinline void (unreachable)() noexcept { __assume(false); (::Lapys::Process::terminate)(); }
+    #else
+      noexit void (unreachable)() noexcept;
+    #endif
+
     // Width Of ->> Queries bit width of expression (object) TODO
-    #define widthof(expression) (CPP_MAX_SIZE > sizeof ::Lapys::widthof(expression) / sizeof(unsigned char) ? sizeof ::Lapys::widthof(expression) / sizeof(unsigned char) : 0u)
+    #define widthof(expression) (CPP_MAX_SIZE > sizeof ::Lapys::widthof((expression)) / sizeof(unsigned char) ? sizeof ::Lapys::widthof((expression)) / sizeof(unsigned char) : 0u)
 
     // constfunc(true)                              mustinline unsigned char /* --> byte */ (&(widthof)(bit<0u>    const)   noexcept)[CPP_MAX_SIZE];
     // template <std::size_t width> constfunc(true) mustinline unsigned char /* --> byte */ (&(widthof)(bit<width> const)   noexcept)[CPP_MAX_SIZE > width                   ? width                   : CPP_MAX_SIZE];
@@ -74,7 +279,12 @@
     #else
       typedef std::byte byte;
 
-      // ... ->> Make `Lapys::byte` types operationally consistent; cannot override standard-defined operator overloads
+      // ... ->> Make `Lapys::byte` types operationally consistent; Cannot override standard-defined operator overloads
+      noignore mustinline constfunc(true) std::byte*                (bless)(std::byte*                const address) noexcept { return address; }
+      noignore mustinline constfunc(true) std::byte const*          (bless)(std::byte const*          const address) noexcept { return address; }
+      noignore mustinline constfunc(true) std::byte const volatile* (bless)(std::byte const volatile* const address) noexcept { return address; }
+      noignore mustinline constfunc(true) std::byte       volatile* (bless)(std::byte       volatile* const address) noexcept { return address; }
+
       constfunc(true) mustinline std::byte (operator +)(std::byte const byte) noexcept { return byte; }
       constfunc(true) mustinline std::byte (operator -)(std::byte const byte) noexcept { return static_cast<std::byte>(-std::to_integer<unsigned char>(byte)); }
       constfunc(true) mustinline bool      (operator !)(std::byte const byte) noexcept { return !std::to_integer<unsigned char>(byte); }
@@ -233,9 +443,8 @@
       template <typename>                               struct is_lvalue_reference;   // --> std::is_lvalue_reference
       template <typename>                               struct is_reference;          // --> std::is_reference
       template <typename>                               struct is_rvalue_reference;   // --> std::is_rvalue_reference
-      template <typename, typename>                     struct is_same;               // --> std::is_same
+      template <typename, typename = null>              struct is_same;               // --> std::is_same
       template <typename>                               struct is_signed;             // --> std::is_signed
-      template <typename>                               struct is_similar;            //
       template <typename>                               struct is_union;              // --> std::is_union
       template <typename>                               struct is_unsigned;           // --> std::is_unsigned
       template <typename>                               struct is_void;               // --> std::is_void
@@ -270,13 +479,6 @@
 
       /* ... ->> Augments expression type deduction; see `opinfo::...::typeof` trait and `typeof(...)` macro definition */
       struct typeinfo final {
-        enumint(byte, kind) {
-          nonvalued = 0x1u,
-          valued    = 0x2u,
-          voided    = 0x3u
-        };
-
-        /* ... */
         #ifdef __cpp_rvalue_references // --> 200610L
           template <typename type>
           constfunc(true) static typename conditional<Traits::is_lvalue_reference<type>::value, boolean_true, boolean_false>::type (is_lvalue_reference)(type&&) noexcept;
@@ -443,7 +645,7 @@
       template <>                    struct countof<0u,      0u>    final { static std::size_t const value = 0u;      };
       template <>                    struct countof<0u,      1u>    final { static std::size_t const value = 0u;      };
 
-      // ... ->> Dummy type for overarching evaluation eg: `sizeof defer::type<T>` instead of `sizeof T` for incomplete type `T`
+      // ... ->> Dummy SFINAE type eg: `sizeof defer::type<T>` instead of `sizeof T` for incomplete type `T`
       struct defer final {
         template <typename base, base>
         struct constant final {};
@@ -468,10 +670,7 @@
           template <typename base1u = null, typename base2u = null, typename base3u = null, typename base4u = null, typename base5u = null, typename base6u = null, typename base7u = null, typename base8u = null, typename base9u = null, typename base10u = null, typename base11u = null, typename base12u = null, typename base13u = null, typename base14u = null, typename base15u = null, typename base16u = null, typename base17u = null, typename base18u = null, typename base19u = null, typename base20u = null, typename base21u = null, typename base22u = null, typename base23u = null, typename base24u = null, typename base25u = null, typename base26u = null, typename base27u = null, typename base28u = null, typename base29u = null, typename base30u = null, typename base31u = null, typename base32u = null, typename base33u = null, typename base34u = null, typename base35u = null, typename base36u = null, typename base37u = null, typename base38u = null, typename base39u = null, typename base40u = null, typename base41u = null, typename base42u = null, typename base43u = null, typename base44u = null, typename base45u = null, typename base46u = null, typename base47u = null, typename base48u = null, typename base49u = null, typename base50u = null, typename base51u = null, typename base52u = null, typename base53u = null, typename base54u = null, typename base55u = null, typename base56u = null, typename base57u = null, typename base58u = null, typename base59u = null, typename base60u = null, typename base61u = null, typename base62u = null, typename base63u = null, typename base64u = null, typename base65u = null, typename base66u = null, typename base67u = null, typename base68u = null, typename base69u = null, typename base70u = null, typename base71u = null, typename base72u = null, typename base73u = null, typename base74u = null, typename base75u = null, typename base76u = null, typename base77u = null, typename base78u = null, typename base79u = null, typename base80u = null, typename base81u = null, typename base82u = null, typename base83u = null, typename base84u = null, typename base85u = null, typename base86u = null, typename base87u = null, typename base88u = null, typename base89u = null, typename base90u = null, typename base91u = null, typename base92u = null, typename base93u = null, typename base94u = null, typename base95u = null, typename base96u = null, typename base97u = null, typename base98u = null, typename base99u = null, typename base100u = null, typename base101u = null, typename base102u = null, typename base103u = null, typename base104u = null, typename base105u = null, typename base106u = null, typename base107u = null, typename base108u = null, typename base109u = null, typename base110u = null, typename base111u = null, typename base112u = null, typename base113u = null, typename base114u = null, typename base115u = null, typename base116u = null, typename base117u = null, typename base118u = null, typename base119u = null, typename base120u = null, typename base121u = null, typename base122u = null, typename base123u = null, typename base124u = null, typename base125u = null, typename base126u = null, typename base127u = null>
           struct nontyped_template final {
             private:
-              typedef collection<base1u, base2u, base3u, base4u, base5u, base6u, base7u, base8u, base9u, base10u, base11u, base12u, base13u, base14u, base15u, base16u, base17u, base18u, base19u, base20u, base21u, base22u, base23u, base24u, base25u, base26u, base27u, base28u, base29u, base30u, base31u, base32u, base33u, base34u, base35u, base36u, base37u, base38u, base39u, base40u, base41u, base42u, base43u, base44u, base45u, base46u, base47u, base48u, base49u, base50u, base51u, base52u, base53u, base54u, base55u, base56u, base57u, base58u, base59u, base60u, base61u, base62u, base63u, base64u, base65u, base66u, base67u, base68u, base69u, base70u, base71u, base72u, base73u, base74u, base75u, base76u, base77u, base78u, base79u, base80u, base81u, base82u, base83u, base84u, base85u, base86u, base87u, base88u, base89u, base90u, base91u, base92u, base93u, base94u, base95u, base96u, base97u, base98u, base99u, base100u, base101u, base102u, base103u, base104u, base105u, base106u, base107u, base108u, base109u, base110u, base111u, base112u, base113u, base114u, base115u, base116u, base117u, base118u, base119u, base120u, base121u, base122u, base123u, base124u, base125u, base126u, base127u> collection;
-              typedef Traits::constant<bool, collection::length != 0u> undeclarable_nontyped_template;
-
-              /* ... */
+              typedef Traits::constant<bool, 0u != collection<base1u, base2u, base3u, base4u, base5u, base6u, base7u, base8u, base9u, base10u, base11u, base12u, base13u, base14u, base15u, base16u, base17u, base18u, base19u, base20u, base21u, base22u, base23u, base24u, base25u, base26u, base27u, base28u, base29u, base30u, base31u, base32u, base33u, base34u, base35u, base36u, base37u, base38u, base39u, base40u, base41u, base42u, base43u, base44u, base45u, base46u, base47u, base48u, base49u, base50u, base51u, base52u, base53u, base54u, base55u, base56u, base57u, base58u, base59u, base60u, base61u, base62u, base63u, base64u, base65u, base66u, base67u, base68u, base69u, base70u, base71u, base72u, base73u, base74u, base75u, base76u, base77u, base78u, base79u, base80u, base81u, base82u, base83u, base84u, base85u, base86u, base87u, base88u, base89u, base90u, base91u, base92u, base93u, base94u, base95u, base96u, base97u, base98u, base99u, base100u, base101u, base102u, base103u, base104u, base105u, base106u, base107u, base108u, base109u, base110u, base111u, base112u, base113u, base114u, base115u, base116u, base117u, base118u, base119u, base120u, base121u, base122u, base123u, base124u, base125u, base126u, base127u>::length> undeclarable_nontyped_template;
               static_assert(undeclarable_nontyped_template::value, "Unable to declare `nontyped_template<...>` trait with no parameters");
           };
         #endif
@@ -809,16 +1008,65 @@
         };
       #endif
 
-      // ... ->> Type equality
-      template <typename, typename>
+      // ... ->> Type equality (or similarity)
+      template <typename baseA, typename baseB>
       struct is_same final {
         static bool const value = false;
+
+        /* ... */
+        constfunc(true) static boolean_false (valueof)(...) noexcept;
+
+        template <typename type>
+        constfunc(true) static boolean_true (valueof)(type nodecay, bool const (*const)[sizeof noeval((baseB) instanceof<type nodecay>())] = nullptr) noexcept;
       };
+
+      is_same<int>::valueof(int) // TODO: Replacement for `is_similar`
+      is_same<int, long>::valueof(int)
+      is_same<long, long>::valueof(int)
 
       template <typename base>
       struct is_same<base, base> final {
         static bool const value = true;
+
+        /* ... */
+        template <typename type>
+        constfunc(true) static boolean_true (valueof)(type nodecay) noexcept;
       };
+
+      template <typename base>
+      struct is_same<base> final {
+        static bool const value = ...;
+
+        /* ... */
+        #ifdef __cpp_rvalue_references // --> 200610L
+          template <typename type>
+          constfunc(true) static typename conditional<
+            is_const<base>::value or is_reference<base>::value or is_volatile<base>::value
+            ? is_same<base, type&&>::value and is_reference<base>::value
+            : is_same<base, type>  ::value,
+            boolean_true,
+            boolean_false
+          >::type (valueof)(type&&) noexcept;
+        #else
+          template <typename type>
+          constfunc(true) static typename conditional<
+            is_same<base, type&>::value,
+            boolean_true,
+            boolean_false
+          >::type (valueof)(type&) noexcept;
+
+          constfunc(true) static typename conditional<
+            is_const<base>::value or is_reference<base>::value or is_volatile<base>::value,
+            boolean_false,
+            boolean_true
+          >::type (valueof)(...) noexcept;
+        #endif
+      };
+
+      template <> struct is_similar<void>                final { template <typename type> constfunc(true) static boolean_false (value)(type nodecay) noexcept; };
+      template <> struct is_similar<void const>          final { template <typename type> constfunc(true) static boolean_false (value)(type nodecay) noexcept; };
+      template <> struct is_similar<void const volatile> final { template <typename type> constfunc(true) static boolean_false (value)(type nodecay) noexcept; };
+      template <> struct is_similar<void       volatile> final { template <typename type> constfunc(true) static boolean_false (value)(type nodecay) noexcept; };
 
       // ... ->> Type signedness
       template <typename>
@@ -851,39 +1099,6 @@
           static bool const value = true;
         };
       #endif
-
-      // ... ->> Type (expression) similarity
-      template <typename base>
-      struct is_similar final {
-        #ifdef __cpp_rvalue_references // --> 200610L
-          template <typename type>
-          constfunc(true) static typename conditional<
-            is_const<base>::value or is_reference<base>::value or is_volatile<base>::value
-            ? is_same<base, type&&>::value and is_reference<base>::value
-            : is_same<base, type>  ::value,
-            boolean_true,
-            boolean_false
-          >::type (value)(type&&) noexcept;
-        #else
-          template <typename type>
-          constfunc(true) static typename conditional<
-            is_same<base, type&>::value,
-            boolean_true,
-            boolean_false
-          >::type (value)(type&) noexcept;
-
-          constfunc(true) static typename conditional<
-            is_const<base>::value or is_reference<base>::value or is_volatile<base>::value,
-            boolean_false,
-            boolean_true
-          >::type (value)(...) noexcept;
-        #endif
-      };
-
-      template <> struct is_similar<void>                final { template <typename type> constfunc(true) static boolean_false (value)(type nodecay) noexcept; };
-      template <> struct is_similar<void const>          final { template <typename type> constfunc(true) static boolean_false (value)(type nodecay) noexcept; };
-      template <> struct is_similar<void const volatile> final { template <typename type> constfunc(true) static boolean_false (value)(type nodecay) noexcept; };
-      template <> struct is_similar<void       volatile> final { template <typename type> constfunc(true) static boolean_false (value)(type nodecay) noexcept; };
 
       // ... ->> Type set emptiness check
       template <typename>
@@ -2316,7 +2531,7 @@
               #endif
           };
 
-          // ... ->> Dis-junction of `member` and `nonmember` traits
+          // ... ->> Dis-junction of `membered` and `nonmembered` traits
           struct overloaded final {};
         #if CPP_COMPILER == CPP_CLANG_COMPILER
         # pragma clang diagnostic pop
