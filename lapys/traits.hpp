@@ -81,6 +81,8 @@
     - Lapys::Traits::intmax_t
     - Lapys::Traits::intmin_t
     - Lapys::Traits::intptr_t
+    - Lapys::Traits::is_blessed<T>
+    - Lapys::Traits::is_byte<T>
     - Lapys::Traits::is_class<T>
     - Lapys::Traits::is_const<T>
     - Lapys::Traits::is_enum<T>
@@ -170,7 +172,7 @@
   # include <type_traits> // Type Traits
   #endif
 
-  #if defined(__cpp_impl_three_way_comparison) and defined(__cpp_lib_three_way_comparison) // --> 201907L
+  #if defined __cpp_impl_three_way_comparison and defined __cpp_lib_three_way_comparison // --> 201907L
   # include <compare> // Compare
   #endif
 
@@ -191,51 +193,51 @@
 
     /* Function */
     // Bless ->> Provenance fence for object addresses --- CITE (Lapys) -> https://github.com/facebook/folly/blob/main/folly/lang/Launder.h
-    noignore mustinline constfunc(true) char*                         (bless)(char*                         const address) noexcept { return address; }
-    noignore mustinline constfunc(true) char const*                   (bless)(char const*                   const address) noexcept { return address; }
-    noignore mustinline constfunc(true) char const volatile*          (bless)(char const volatile*          const address) noexcept { return address; }
-    noignore mustinline constfunc(true) char       volatile*          (bless)(char       volatile*          const address) noexcept { return address; }
-    noignore mustinline constfunc(true) unsigned char*                (bless)(unsigned char*                const address) noexcept { return address; }
-    noignore mustinline constfunc(true) unsigned char const*          (bless)(unsigned char const*          const address) noexcept { return address; }
-    noignore mustinline constfunc(true) unsigned char const volatile* (bless)(unsigned char const volatile* const address) noexcept { return address; }
-    noignore mustinline constfunc(true) unsigned char       volatile* (bless)(unsigned char       volatile* const address) noexcept { return address; }
+    constfunc(true) mustinline noignore char*                         (bless)(char                         address[]) noexcept { return address; }
+    constfunc(true) mustinline noignore char const*                   (bless)(char const                   address[]) noexcept { return address; }
+    constfunc(true) mustinline noignore char const volatile*          (bless)(char const volatile          address[]) noexcept { return address; }
+    constfunc(true) mustinline noignore char       volatile*          (bless)(char       volatile          address[]) noexcept { return address; }
+    constfunc(true) mustinline noignore unsigned char*                (bless)(unsigned char                address[]) noexcept { return address; }
+    constfunc(true) mustinline noignore unsigned char const*          (bless)(unsigned char const          address[]) noexcept { return address; }
+    constfunc(true) mustinline noignore unsigned char const volatile* (bless)(unsigned char const volatile address[]) noexcept { return address; }
+    constfunc(true) mustinline noignore unsigned char       volatile* (bless)(unsigned char       volatile address[]) noexcept { return address; }
 
-    #if defined(__cpp_lib_launder) /* --> 201606L */ or CPP_VERSION >= 2017uL or (CPP_COMPILER == CPP_MSVC_COMPILER and defined _HAS_LAUNDER)
+    #if defined __cpp_lib_launder /* --> 201606L */ or CPP_VERSION >= 2017uL or (CPP_COMPILER == CPP_MSVC_COMPILER and defined _HAS_LAUNDER)
       template <typename type>
-      noignore mustinline constfunc(true) type* (bless)(type* const address) noexcept {
+      constfunc(true) mustinline noignore type* (bless)(type address[]) noexcept {
         return std::launder(address);
       }
     #elif defined __has_builtin and (CPP_FRONTEND == CPP_CLANG_FRONTEND or CPP_FRONTEND == CPP_GNUC_FRONTEND)
       #if __has_builtin(__builtin_launder)
         template <typename type>
-        noignore mustinline constfunc(true) type* (bless)(type* const address) noexcept {
+        constfunc(true) mustinline noignore type* (bless)(type address[]) noexcept {
           return __builtin_launder(address);
         }
       #else
         // ->> Pretend the object referenced by `address` has a proven distinct lifetime and dynamic type
         template <typename type>
-        noignore mustinline constfunc(true) type* (bless)(type* const address) noexcept {
+        constfunc(true) mustinline noignore type* (bless)(type address[]) noexcept {
           return address;
         }
       #endif
     #elif CPP_FRONTEND == CPP_GNUC_FRONTEND
       // ->> Assume `address` was modified because it is used as an input & output
       template <typename type>
-      noignore mustinline type* (bless)(type* /* const */ address) noexcept {
+      mustinline noignore type* (bless)(type address[]) noexcept {
         __asm__("" : "+r"(address));
         return address;
       }
     #elif defined _ReadWriteBarrier and (CPP_COMPILER == CPP_MSVC_COMPILER and CPP_VENDOR == CPP_MICROSOFT_WINDOWS_VENDOR)
       // ->> Prevent memory access re-ordering (relies on MSVC not having optimizations for `const` data members)
       template <typename type>
-      noignore mustinline type* (bless)(type* /* const */ address) noexcept {
+      mustinline noignore type* (bless)(type address[]) noexcept {
         _ReadWriteBarrier();
         return address;
       }
     #else
       // ->> Pretend the object referenced by `address` has a proven distinct lifetime and dynamic type
       template <typename type>
-      noignore mustinline constfunc(true) type* (bless)(type* const address) noexcept {
+      constfunc(true) mustinline noignore type* (bless)(type address[]) noexcept {
         return address;
       }
     #endif
@@ -257,21 +259,29 @@
 
     // Unreachable ->> Pragmatically invokes undefined behavior to ideally cause the host environment optimize (or trap) out impossible code branches
     #ifdef __cpp_lib_unreachable // --> 202202L
-      noexit constfunc(false) mustinline void (unreachable)() noexcept { std::unreachable(); (::Lapys::Process::terminate)(); }
+      constfunc(false) mustinline noexit void (unreachable)() noexcept {
+        std::unreachable();
+        #if CPP_HOSTED
+          (::Lapys::Process::terminate)();
+        #endif
+      }
     #elif CPP_FRONTEND == CPP_CLANG_FRONTEND or CPP_FRONTEND == CPP_GNUC_FRONTEND
-      noexit constfunc(false) mustinline void (unreachable)() noexcept { __builtin_unreachable(); (::Lapys::Process::terminate)(); }
+      constfunc(false) mustinline noexit void (unreachable)() noexcept {
+        __builtin_unreachable();
+        #if CPP_HOSTED
+          (::Lapys::Process::terminate)();
+        #endif
+      }
     #elif CPP_FRONTEND == CPP_MSVC_FRONTEND
-      noexit constfunc(false) mustinline void (unreachable)() noexcept { __assume(false); (::Lapys::Process::terminate)(); }
+      constfunc(false) mustinline noexit void (unreachable)() noexcept {
+        __assume(false);
+        #if CPP_HOSTED
+          (::Lapys::Process::terminate)();
+        #endif
+      }
     #else
-      noexit void (unreachable)() noexcept;
+      noexit void (unreachable)() noexcept /* = delete */;
     #endif
-
-    // Width Of ->> Queries bit width of expression (object) TODO
-    #define widthof(expression) (CPP_MAX_SIZE > sizeof ::Lapys::widthof((expression)) / sizeof(unsigned char) ? sizeof ::Lapys::widthof((expression)) / sizeof(unsigned char) : 0u)
-
-    // constfunc(true)                              mustinline unsigned char /* --> byte */ (&(widthof)(bit<0u>    const)   noexcept)[CPP_MAX_SIZE];
-    // template <std::size_t width> constfunc(true) mustinline unsigned char /* --> byte */ (&(widthof)(bit<width> const)   noexcept)[CPP_MAX_SIZE > width                   ? width                   : CPP_MAX_SIZE];
-    template <typename    type>  constfunc(true) mustinline unsigned char /* --> byte */ (&(widthof)(type       nodecay) noexcept)[CPP_MAX_SIZE > CHAR_BIT * sizeof(type) ? CHAR_BIT * sizeof(type) : CPP_MAX_SIZE];
 
     /* Alias > Byte ->> Aliases to an (unsigned) byte type blessed by the standard (as specified in the C++ language definition) */
     #ifndef __cpp_lib_byte // --> 201603L
@@ -280,10 +290,10 @@
       typedef std::byte byte;
 
       // ... ->> Make `Lapys::byte` types operationally consistent; Cannot override standard-defined operator overloads
-      noignore mustinline constfunc(true) std::byte*                (bless)(std::byte*                const address) noexcept { return address; }
-      noignore mustinline constfunc(true) std::byte const*          (bless)(std::byte const*          const address) noexcept { return address; }
-      noignore mustinline constfunc(true) std::byte const volatile* (bless)(std::byte const volatile* const address) noexcept { return address; }
-      noignore mustinline constfunc(true) std::byte       volatile* (bless)(std::byte       volatile* const address) noexcept { return address; }
+      constfunc(true) mustinline noignore std::byte*                (bless)(std::byte                address[]) noexcept { return address; }
+      constfunc(true) mustinline noignore std::byte const*          (bless)(std::byte const          address[]) noexcept { return address; }
+      constfunc(true) mustinline noignore std::byte const volatile* (bless)(std::byte const volatile address[]) noexcept { return address; }
+      constfunc(true) mustinline noignore std::byte       volatile* (bless)(std::byte       volatile address[]) noexcept { return address; }
 
       constfunc(true) mustinline std::byte (operator +)(std::byte const byte) noexcept { return byte; }
       constfunc(true) mustinline std::byte (operator -)(std::byte const byte) noexcept { return static_cast<std::byte>(-std::to_integer<unsigned char>(byte)); }
@@ -311,7 +321,7 @@
       template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <= instanceof<type nodecay>())) (operator <= )(std::byte const     byte, type nodecay object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <= instanceof<type nodecay>())) { return std::to_integer<unsigned char>(byte) <= pass<type>(object); }
       template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) >= instanceof<type nodecay>())) (operator >= )(std::byte const     byte, type nodecay object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) >= instanceof<type nodecay>())) { return std::to_integer<unsigned char>(byte) >= pass<type>(object); }
 
-      #if defined(__cpp_impl_three_way_comparison) or defined(__cpp_lib_three_way_comparison) // --> 201907L
+      #if defined __cpp_impl_three_way_comparison or defined __cpp_lib_three_way_comparison // --> 201907L
         template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <=> instanceof<type nodecay>())) (operator <=>)(std::byte const byte, type nodecay object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <=> instanceof<type nodecay>())) { return std::to_integer<unsigned char>(byte) <=> pass<type>(object); }
       #endif
 
@@ -380,7 +390,7 @@
         template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) >= instanceof<type       volatile&>())) (operator >= )(std::byte const     byte, type       volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) >= instanceof<type       volatile&>())) { return std::to_integer<unsigned char>(byte) >= pass<type>(object); }
         template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) >= instanceof<type const volatile&>())) (operator >= )(std::byte const     byte, type const volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) >= instanceof<type const volatile&>())) { return std::to_integer<unsigned char>(byte) >= pass<type>(object); }
 
-        #if defined(__cpp_impl_three_way_comparison) or defined(__cpp_lib_three_way_comparison) // --> 201907L
+        #if defined __cpp_impl_three_way_comparison or defined __cpp_lib_three_way_comparison // --> 201907L
           template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <=> instanceof<type&>               ())) (operator <=>)(std::byte const byte, type&                object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <=> instanceof<type&>               ())) { return std::to_integer<unsigned char>(byte) <=> pass<type>(object); }
           template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <=> instanceof<type       volatile&>())) (operator <=>)(std::byte const byte, type       volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <=> instanceof<type       volatile&>())) { return std::to_integer<unsigned char>(byte) <=> pass<type>(object); }
           template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <=> instanceof<type const volatile&>())) (operator <=>)(std::byte const byte, type const volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <=> instanceof<type const volatile&>())) { return std::to_integer<unsigned char>(byte) <=> pass<type>(object); }
@@ -388,11 +398,17 @@
       #endif
     #endif
 
+    /* Define > Width Of ->> Queries bit width of expression (object) */
+    #define widthof(expression) (CPP_MAX_SIZE > sizeof ::Lapys::widthof((expression)) / sizeof(unsigned char) ? sizeof ::Lapys::widthof((expression)) / sizeof(unsigned char) : 0u)
+
+    template <std::size_t width> constfunc(true) mustinline byte (&(widthof)(bit<width> const)   noexcept)[CPP_MAX_SIZE > width and 0u != width   ? width                   : CPP_MAX_SIZE];
+    template <typename    type>  constfunc(true) mustinline byte (&(widthof)(type       nodecay) noexcept)[CPP_MAX_SIZE > CHAR_BIT * sizeof(type) ? CHAR_BIT * sizeof(type) : CPP_MAX_SIZE];
+
     /* Trait */
     // Null ->> Specialization type denoting an "empty set of values"; See `void` type
     typedef union empty &null;
 
-    // Substitution Failure Is Not An Error (SFINAE Pointer)
+    // Substitution Failure Is Not An Error (SFINAE Pointer) ->> Dummy/ extension type used for selective overloading/ specialization for evaluating possible compile-time constraints and expressions
     #if CPP_VERSION < 2011uL
       #define sfinaeptr sfinaeptr
       enum sfinaeptr_t /* : uintmin_t */ { sfinaeptr /* = 0x00hhu */ };
@@ -433,6 +449,8 @@
       template <std::size_t>                            struct int_least_width_t;     //
       template <std::size_t>                            struct int_t;                 //
       template <std::size_t>                            struct int_width_t;           //
+      template <typename>                               struct is_blessed;            //
+      template <typename>                               struct is_byte;               //
       template <typename>                               struct is_class;              // --> std::is_class
       template <typename>                               struct is_const;              // --> std::is_const
       template <typename>                               struct is_enum;               // --> std::is_enum; std::is_scoped_enum
@@ -645,7 +663,7 @@
       template <>                    struct countof<0u,      0u>    final { static std::size_t const value = 0u;      };
       template <>                    struct countof<0u,      1u>    final { static std::size_t const value = 0u;      };
 
-      // ... ->> Dummy SFINAE type eg: `sizeof defer::type<T>` instead of `sizeof T` for incomplete type `T`
+      // ... ->> Dummy SFINAE type eg: `sizeof defer::type<T>` instead of `sizeof T` for incomplete type `T`; see similar use in `sfinaeptr`
       struct defer final {
         template <typename base, base>
         struct constant final {};
@@ -1009,64 +1027,56 @@
       #endif
 
       // ... ->> Type equality (or similarity)
-      template <typename baseA, typename baseB>
+      template <typename, typename>
       struct is_same final {
         static bool const value = false;
-
-        /* ... */
-        constfunc(true) static boolean_false (valueof)(...) noexcept;
-
-        template <typename type>
-        constfunc(true) static boolean_true (valueof)(type nodecay, bool const (*const)[sizeof noeval((baseB) instanceof<type nodecay>())] = nullptr) noexcept;
       };
-
-      is_same<int>::valueof(int) // TODO: Replacement for `is_similar`
-      is_same<int, long>::valueof(int)
-      is_same<long, long>::valueof(int)
 
       template <typename base>
       struct is_same<base, base> final {
         static bool const value = true;
-
-        /* ... */
-        template <typename type>
-        constfunc(true) static boolean_true (valueof)(type nodecay) noexcept;
       };
 
       template <typename base>
       struct is_same<base> final {
-        static bool const value = ...;
+        static bool const value = false;
 
-        /* ... */
         #ifdef __cpp_rvalue_references // --> 200610L
           template <typename type>
           constfunc(true) static typename conditional<
-            is_const<base>::value or is_reference<base>::value or is_volatile<base>::value
+            not is_void<base>::value and (is_const<base>::value or is_reference<base>::value or is_volatile<base>::value)
             ? is_same<base, type&&>::value and is_reference<base>::value
             : is_same<base, type>  ::value,
             boolean_true,
             boolean_false
           >::type (valueof)(type&&) noexcept;
         #else
-          template <typename type>
           constfunc(true) static typename conditional<
-            is_same<base, type&>::value,
-            boolean_true,
-            boolean_false
-          >::type (valueof)(type&) noexcept;
-
-          constfunc(true) static typename conditional<
-            is_const<base>::value or is_reference<base>::value or is_volatile<base>::value,
+            not is_void<base>::value and (is_const<base>::value or is_reference<base>::value or is_volatile<base>::value),
             boolean_false,
             boolean_true
           >::type (valueof)(...) noexcept;
+
+          template <typename type>
+          constfunc(true) static typename conditional<
+            not is_void<base>::value and is_same<base, type&>::value,
+            boolean_true,
+            boolean_false
+          >::type (valueof)(type&) noexcept;
         #endif
       };
 
-      template <> struct is_similar<void>                final { template <typename type> constfunc(true) static boolean_false (value)(type nodecay) noexcept; };
-      template <> struct is_similar<void const>          final { template <typename type> constfunc(true) static boolean_false (value)(type nodecay) noexcept; };
-      template <> struct is_similar<void const volatile> final { template <typename type> constfunc(true) static boolean_false (value)(type nodecay) noexcept; };
-      template <> struct is_similar<void       volatile> final { template <typename type> constfunc(true) static boolean_false (value)(type nodecay) noexcept; };
+      template <>
+      struct is_same<null> final {
+        static bool const value = true;
+
+        template <typename type>
+        constfunc(true) static typename conditional<
+          is_same<alias<null>, alias<type> >::value,
+          boolean_true,
+          boolean_false
+        >::value (valueof)(type nodecay) noexcept;
+      };
 
       // ... ->> Type signedness
       template <typename>
@@ -1363,7 +1373,7 @@
             arity    == 1u                                                                                                       and
             subtrait == optraitinfo::get::type_equality                                                                          and
             sizeof(boolean_false) == sizeof uses_static_function<trait, (arity < 1u ? arity : 1u), typeA, null, null>(sfinaeptr) and
-            sizeof(boolean_true)  == sizeof (is_similar<type>::value)((trait::value)(instanceof<typeA>()))
+            sizeof(boolean_true)  == sizeof (is_same<type>::valueof)((trait::value)(instanceof<typeA>()))
           ), boolean_true>::type (valueof)(sfinaeptr_t const) noexcept;
 
           template <class trait, std::size_t arity, typename typeA, typename, typename, optraitinfo::get::expressioninfo subtrait, typename type>
@@ -1371,7 +1381,7 @@
             arity    == 1u                                                                                                      and
             subtrait == optraitinfo::get::type_equality                                                                         and
             sizeof(boolean_true) == sizeof uses_static_function<trait, (arity < 1u ? arity : 1u), typeA, null, null>(sfinaeptr) and
-            sizeof(boolean_true) == sizeof (is_similar<type>::value)(trait::template value<typeA>(instanceof<typeA>()))
+            sizeof(boolean_true) == sizeof (is_same<type>::valueof)(trait::template value<typeA>(instanceof<typeA>()))
           ), boolean_true>::type (valueof)(sfinaeptr_t const) noexcept;
 
           // ...
@@ -1381,7 +1391,7 @@
             subtrait == optraitinfo::get::type_equality                                                                           and
             sizeof(boolean_false) == sizeof uses_static_function<trait, (arity < 1u ? arity : 1u), typeA, typeB, null>(sfinaeptr) and
             sizeof(boolean_false) == sizeof uses_static_function<trait, (arity < 2u ? arity : 2u), typeA, typeB, null>(sfinaeptr) and
-            sizeof(boolean_true)  == sizeof (is_similar<type>::value)((trait::value)(instanceof<typeA>(), instanceof<typeB>()))
+            sizeof(boolean_true)  == sizeof (is_same<type>::valueof)((trait::value)(instanceof<typeA>(), instanceof<typeB>()))
           ), boolean_true>::type (valueof)(sfinaeptr_t const) noexcept;
 
           template <class trait, std::size_t arity, typename typeA, typename typeB, typename, optraitinfo::get::expressioninfo subtrait, typename type>
@@ -1390,7 +1400,7 @@
             subtrait == optraitinfo::get::type_equality                                                                           and
             sizeof(boolean_true)  == sizeof uses_static_function<trait, (arity < 1u ? arity : 1u), typeA, typeB, null>(sfinaeptr) and
             sizeof(boolean_false) == sizeof uses_static_function<trait, (arity < 2u ? arity : 2u), typeA, typeB, null>(sfinaeptr) and
-            sizeof(boolean_true)  == sizeof (is_similar<type>::value)(trait::template value<typeA>(instanceof<typeA>(), instanceof<typeB>()))
+            sizeof(boolean_true)  == sizeof (is_same<type>::valueof)(trait::template value<typeA>(instanceof<typeA>(), instanceof<typeB>()))
           ), boolean_true>::type (valueof)(sfinaeptr_t const) noexcept;
 
           template <class trait, std::size_t arity, typename typeA, typename typeB, typename, optraitinfo::get::expressioninfo subtrait, typename type>
@@ -1398,7 +1408,7 @@
             arity    == 2u                                                                                                       and
             subtrait == optraitinfo::get::type_equality                                                                          and
             sizeof(boolean_true) == sizeof uses_static_function<trait, (arity < 2u ? arity : 2u), typeA, typeB, null>(sfinaeptr) and
-            sizeof(boolean_true) == sizeof (is_similar<type>::value)(trait::template value<typeA, typeB>(instanceof<typeA>(), instanceof<typeB>()))
+            sizeof(boolean_true) == sizeof (is_same<type>::valueof)(trait::template value<typeA, typeB>(instanceof<typeA>(), instanceof<typeB>()))
           ), boolean_true>::type (valueof)(sfinaeptr_t const) noexcept;
 
           // ...
@@ -1409,7 +1419,7 @@
             sizeof(boolean_false) == sizeof uses_static_function<trait, 1u, typeA, typeB, typeC>(sfinaeptr) and
             sizeof(boolean_false) == sizeof uses_static_function<trait, 2u, typeA, typeB, typeC>(sfinaeptr) and
             sizeof(boolean_false) == sizeof uses_static_function<trait, 3u, typeA, typeB, typeC>(sfinaeptr) and
-            sizeof(boolean_true)  == sizeof (is_similar<type>::value)((trait::value)(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>()))
+            sizeof(boolean_true)  == sizeof (is_same<type>::valueof)((trait::value)(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>()))
           ), boolean_true>::type (valueof)(sfinaeptr_t const) noexcept;
 
           template <class trait, std::size_t arity, typename typeA, typename typeB, typename typeC, optraitinfo::get::expressioninfo subtrait, typename type>
@@ -1419,7 +1429,7 @@
             sizeof(boolean_true)  == sizeof uses_static_function<trait, (arity < 1u ? arity : 1u), typeA, typeB, typeC>(sfinaeptr) and
             sizeof(boolean_false) == sizeof uses_static_function<trait, (arity < 2u ? arity : 2u), typeA, typeB, typeC>(sfinaeptr) and
             sizeof(boolean_false) == sizeof uses_static_function<trait, (arity < 3u ? arity : 3u), typeA, typeB, typeC>(sfinaeptr) and
-            sizeof(boolean_true)  == sizeof (is_similar<type>::value)(trait::template value<typeA>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>()))
+            sizeof(boolean_true)  == sizeof (is_same<type>::valueof)(trait::template value<typeA>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>()))
           ), boolean_true>::type (valueof)(sfinaeptr_t const) noexcept;
 
           template <class trait, std::size_t arity, typename typeA, typename typeB, typename typeC, optraitinfo::get::expressioninfo subtrait, typename type>
@@ -1428,7 +1438,7 @@
             subtrait == optraitinfo::get::type_equality                                                                            and
             sizeof(boolean_true)  == sizeof uses_static_function<trait, (arity < 2u ? arity : 2u), typeA, typeB, typeC>(sfinaeptr) and
             sizeof(boolean_false) == sizeof uses_static_function<trait, (arity < 3u ? arity : 3u), typeA, typeB, typeC>(sfinaeptr) and
-            sizeof(boolean_true)  == sizeof (is_similar<type>::value)(trait::template value<typeA, typeB>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>()))
+            sizeof(boolean_true)  == sizeof (is_same<type>::valueof)(trait::template value<typeA, typeB>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>()))
           ), boolean_true>::type (valueof)(sfinaeptr_t const) noexcept;
 
           template <class trait, std::size_t arity, typename typeA, typename typeB, typename typeC, optraitinfo::get::expressioninfo subtrait, typename type>
@@ -1436,7 +1446,7 @@
             arity    == 3u                                                                                                        and
             subtrait == optraitinfo::get::type_equality                                                                           and
             sizeof(boolean_true) == sizeof uses_static_function<trait, (arity < 3u ? arity : 3u), typeA, typeB, typeC>(sfinaeptr) and
-            sizeof(boolean_true) == sizeof (is_similar<type>::value)(trait::template value<typeA, typeB, typeC>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>()))
+            sizeof(boolean_true) == sizeof (is_same<type>::valueof)(trait::template value<typeA, typeB, typeC>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>()))
           ), boolean_true>::type (valueof)(sfinaeptr_t const) noexcept;
 
           /* ... --> optraitinfo::get::type_similarity */
@@ -1445,7 +1455,7 @@
             arity    == 1u                                                                                                       and
             subtrait == optraitinfo::get::type_similarity                                                                        and
             sizeof(boolean_false) == sizeof uses_static_function<trait, (arity < 1u ? arity : 1u), typeA, null, null>(sfinaeptr) and
-            sizeof(boolean_true)  == sizeof (is_similar<type>::value)((type) (trait::value)(instanceof<typeA>()))
+            sizeof(boolean_true)  == sizeof (is_same<type>::valueof)((type) (trait::value)(instanceof<typeA>()))
           ), boolean_true>::type (valueof)(sfinaeptr_t const) noexcept;
 
           template <class trait, std::size_t arity, typename typeA, typename, typename, optraitinfo::get::expressioninfo subtrait, typename type>
@@ -1453,7 +1463,7 @@
             arity    == 1u                                                                                                      and
             subtrait == optraitinfo::get::type_similarity                                                                       and
             sizeof(boolean_true) == sizeof uses_static_function<trait, (arity < 1u ? arity : 1u), typeA, null, null>(sfinaeptr) and
-            sizeof(boolean_true) == sizeof (is_similar<type>::value)((type) trait::template value<typeA>(instanceof<typeA>()))
+            sizeof(boolean_true) == sizeof (is_same<type>::valueof)((type) trait::template value<typeA>(instanceof<typeA>()))
           ), boolean_true>::type (valueof)(sfinaeptr_t const) noexcept;
 
           // ...
@@ -1463,7 +1473,7 @@
             subtrait == optraitinfo::get::type_similarity                                                                         and
             sizeof(boolean_false) == sizeof uses_static_function<trait, (arity < 1u ? arity : 1u), typeA, typeB, null>(sfinaeptr) and
             sizeof(boolean_false) == sizeof uses_static_function<trait, (arity < 2u ? arity : 2u), typeA, typeB, null>(sfinaeptr) and
-            sizeof(boolean_true)  == sizeof (is_similar<type>::value)((type) (trait::value)(instanceof<typeA>(), instanceof<typeB>()))
+            sizeof(boolean_true)  == sizeof (is_same<type>::valueof)((type) (trait::value)(instanceof<typeA>(), instanceof<typeB>()))
           ), boolean_true>::type (valueof)(sfinaeptr_t const) noexcept;
 
           template <class trait, std::size_t arity, typename typeA, typename typeB, typename, optraitinfo::get::expressioninfo subtrait, typename type>
@@ -1472,7 +1482,7 @@
             subtrait == optraitinfo::get::type_similarity                                                                         and
             sizeof(boolean_true)  == sizeof uses_static_function<trait, (arity < 1u ? arity : 1u), typeA, typeB, null>(sfinaeptr) and
             sizeof(boolean_false) == sizeof uses_static_function<trait, (arity < 2u ? arity : 2u), typeA, typeB, null>(sfinaeptr) and
-            sizeof(boolean_true)  == sizeof (is_similar<type>::value)((type) trait::template value<typeA>(instanceof<typeA>(), instanceof<typeB>()))
+            sizeof(boolean_true)  == sizeof (is_same<type>::valueof)((type) trait::template value<typeA>(instanceof<typeA>(), instanceof<typeB>()))
           ), boolean_true>::type (valueof)(sfinaeptr_t const) noexcept;
 
           template <class trait, std::size_t arity, typename typeA, typename typeB, typename, optraitinfo::get::expressioninfo subtrait, typename type>
@@ -1480,7 +1490,7 @@
             arity    == 2u                                                                                                       and
             subtrait == optraitinfo::get::type_similarity                                                                        and
             sizeof(boolean_true) == sizeof uses_static_function<trait, (arity < 2u ? arity : 2u), typeA, typeB, null>(sfinaeptr) and
-            sizeof(boolean_true) == sizeof (is_similar<type>::value)((type) trait::template value<typeA, typeB>(instanceof<typeA>(), instanceof<typeB>()))
+            sizeof(boolean_true) == sizeof (is_same<type>::valueof)((type) trait::template value<typeA, typeB>(instanceof<typeA>(), instanceof<typeB>()))
           ), boolean_true>::type (valueof)(sfinaeptr_t const) noexcept;
 
           // ...
@@ -1491,7 +1501,7 @@
             sizeof(boolean_false) == sizeof uses_static_function<trait, 1u, typeA, typeB, typeC>(sfinaeptr) and
             sizeof(boolean_false) == sizeof uses_static_function<trait, 2u, typeA, typeB, typeC>(sfinaeptr) and
             sizeof(boolean_false) == sizeof uses_static_function<trait, 3u, typeA, typeB, typeC>(sfinaeptr) and
-            sizeof(boolean_true)  == sizeof (is_similar<type>::value)((type) (trait::value)(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>()))
+            sizeof(boolean_true)  == sizeof (is_same<type>::valueof)((type) (trait::value)(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>()))
           ), boolean_true>::type (valueof)(sfinaeptr_t const) noexcept;
 
           template <class trait, std::size_t arity, typename typeA, typename typeB, typename typeC, optraitinfo::get::expressioninfo subtrait, typename type>
@@ -1501,7 +1511,7 @@
             sizeof(boolean_true)  == sizeof uses_static_function<trait, (arity < 1u ? arity : 1u), typeA, typeB, typeC>(sfinaeptr) and
             sizeof(boolean_false) == sizeof uses_static_function<trait, (arity < 2u ? arity : 2u), typeA, typeB, typeC>(sfinaeptr) and
             sizeof(boolean_false) == sizeof uses_static_function<trait, (arity < 3u ? arity : 3u), typeA, typeB, typeC>(sfinaeptr) and
-            sizeof(boolean_true)  == sizeof (is_similar<type>::value)((type) trait::template value<typeA>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>()))
+            sizeof(boolean_true)  == sizeof (is_same<type>::valueof)((type) trait::template value<typeA>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>()))
           ), boolean_true>::type (valueof)(sfinaeptr_t const) noexcept;
 
           template <class trait, std::size_t arity, typename typeA, typename typeB, typename typeC, optraitinfo::get::expressioninfo subtrait, typename type>
@@ -1510,7 +1520,7 @@
             subtrait == optraitinfo::get::type_similarity                                                                          and
             sizeof(boolean_true)  == sizeof uses_static_function<trait, (arity < 2u ? arity : 2u), typeA, typeB, typeC>(sfinaeptr) and
             sizeof(boolean_false) == sizeof uses_static_function<trait, (arity < 3u ? arity : 3u), typeA, typeB, typeC>(sfinaeptr) and
-            sizeof(boolean_true)  == sizeof (is_similar<type>::value)((type) trait::template value<typeA, typeB>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>()))
+            sizeof(boolean_true)  == sizeof (is_same<type>::valueof)((type) trait::template value<typeA, typeB>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>()))
           ), boolean_true>::type (valueof)(sfinaeptr_t const) noexcept;
 
           template <class trait, std::size_t arity, typename typeA, typename typeB, typename typeC, optraitinfo::get::expressioninfo subtrait, typename type>
@@ -1518,7 +1528,7 @@
             arity    == 3u                                                                                                        and
             subtrait == optraitinfo::get::type_similarity                                                                         and
             sizeof(boolean_true) == sizeof uses_static_function<trait, (arity < 3u ? arity : 3u), typeA, typeB, typeC>(sfinaeptr) and
-            sizeof(boolean_true) == sizeof (is_similar<type>::value)((type) trait::template value<typeA, typeB, typeC>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>()))
+            sizeof(boolean_true) == sizeof (is_same<type>::valueof)((type) trait::template value<typeA, typeB, typeC>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>()))
           ), boolean_true>::type (valueof)(sfinaeptr_t const) noexcept;
 
           /* ... --> optraitinfo::get::value */
@@ -1771,6 +1781,7 @@
                   };
 
                   #ifdef typeof
+                    // ... --> subtrait::value(...)
                     template <class subtrait>
                     struct typeof<subtrait, 1u, 0u> final {
                       template <typename typeA> constfunc(true) static typename conditional<notypeof((subtrait::value)(instanceof<typeA>())), subnull>::type (valueof)(sfinaeptr_t const, sfinaeptr_t const) noexcept;
@@ -1798,7 +1809,7 @@
                       typedef typename conditional<is_subnull<typeof((valueof<baseA, baseB, baseC>(sfinaeptr, sfinaeptr)))>::value, alias<void>, alias<typeof((valueof<baseA, baseB, baseC>(sfinaeptr, sfinaeptr)))> >::type::type type;
                     };
 
-                    // ...
+                    // ... --> subtrait::value<A>(...)
                     template <class subtrait>
                     struct typeof<subtrait, 1u, 1u> final {
                       template <typename typeA> constfunc(true) static typename conditional<notypeof(subtrait::template value<typeA>(instanceof<typeA>())), subnull>::type (valueof)(sfinaeptr_t const, sfinaeptr_t const) noexcept;
@@ -1826,7 +1837,7 @@
                       typedef typename conditional<is_subnull<typeof((valueof<baseA, baseB, baseC>(sfinaeptr, sfinaeptr)))>::value, alias<void>, alias<typeof((valueof<baseA, baseB, baseC>(sfinaeptr, sfinaeptr)))> >::type::type type;
                     };
 
-                    // ...
+                    // ... --> subtrait::value<A, B>(...)
                     template <class subtrait>
                     struct typeof<subtrait, 2u, 2u> final {
                       template <typename typeA, typename typeB> constfunc(true) static typename conditional<notypeof((subtrait::template value<typeA, typeB>(instanceof<typeA>(), instanceof<typeB>()))), subnull>::type (valueof)(sfinaeptr_t const, sfinaeptr_t const) noexcept;
@@ -1845,7 +1856,7 @@
                       typedef typename conditional<is_subnull<typeof((valueof<baseA, baseB, baseC>(sfinaeptr, sfinaeptr)))>::value, alias<void>, alias<typeof((valueof<baseA, baseB, baseC>(sfinaeptr, sfinaeptr)))> >::type::type type;
                     };
 
-                    // ...
+                    // ... --> subtrait::value<A, B, C>(...)
                     template <class subtrait>
                     struct typeof<subtrait, 3u, 3u> final {
                       template <typename typeA, typename typeB, typename typeC> constfunc(true) static typename conditional<notypeof((subtrait::template value<typeA, typeB, typeC>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>()))), subnull>::type (valueof)(sfinaeptr_t const, sfinaeptr_t const) noexcept;
@@ -1977,30 +1988,30 @@
 
               // ... --> opinfo::unary
               #undef  LAPYS_CODEGEN
-              #define LAPYS_CODEGEN(operation, expression)                                                                                                                                                                                   \
-                template <typename baseA>                                                                                                                                                                                                    \
-                struct operate<operation, baseA> final {                                                                                                                                                                                     \
-                  private:                                                                                                                                                                                                                   \
-                    template <typename subbase>                                                                                                                                                                                              \
-                    struct op final {                                                                                                                                                                                                        \
-                      struct any final { template <typename type> constfunc(true) operator type() const noexcept; }; /* --> C2102 */                                                                                                         \
-                      typedef typename conditional<is_void<subbase>::value, alias<null>, alias<subbase> >::type::type subtype;                                                                                                               \
-                                                                                                                                                                                                                                             \
-                      template <typename typeA> constfunc(true) static typename conditional<0u !=                                                    sizeof noeval(expression),  void>                       ::type (value)(typeA) noexcept; \
-                      template <typename typeA> constfunc(true) static typename alias      <byte (rlref)                                                   [sizeof(expression)]>                             ::type (size) (typeA) noexcept; \
-                      template <typename typeA> constfunc(true) static typename conditional<sizeof(boolean_true) == sizeof (is_similar<subbase>::value)((subtype) (expression)), boolean_true, boolean_false>::type (like) (typeA) noexcept; \
-                      template <typename typeA> constfunc(true) static typename conditional<sizeof(boolean_true) == sizeof (is_similar<subbase>::value)          ((expression)), boolean_true, boolean_false>::type (is)   (typeA) noexcept; \
-                    };                                                                                                                                                                                                                       \
-                                                                                                                                                                                                                                             \
-                  public:                                                                                                                                                                                                                    \
-                    static std::size_t const size  = operate<opinfo::unary, baseA>::template size   <op<void> >::value;                                                                                                                      \
-                    static bool        const value = operate<opinfo::unary, baseA>::template valueof<op<void> >::value;                                                                                                                      \
-                                                                                                                                                                                                                                             \
-                    /* ... */                                                                                                                                                                                                                \
-                    typedef typename typeof<operation, baseA>::type type;                                                                                                                                                                    \
-                                                                                                                                                                                                                                             \
-                    template <typename subbase> struct like final { static bool const value = operate<opinfo::unary, baseA>::template like<op<subbase> >::value; };                                                                          \
-                    template <typename subbase> struct is   final { static bool const value = operate<opinfo::unary, baseA>::template is  <op<subbase> >::value; };                                                                          \
+              #define LAPYS_CODEGEN(operation, expression)                                                                                                                                                                                  \
+                template <typename baseA>                                                                                                                                                                                                   \
+                struct operate<operation, baseA> final {                                                                                                                                                                                    \
+                  private:                                                                                                                                                                                                                  \
+                    template <typename subbase>                                                                                                                                                                                             \
+                    struct op final {                                                                                                                                                                                                       \
+                      struct any final { template <typename type> constfunc(true) operator type() const noexcept; }; /* --> C2102 */                                                                                                        \
+                      typedef typename conditional<is_void<subbase>::value, alias<null>, alias<subbase> >::type::type subtype;                                                                                                              \
+                                                                                                                                                                                                                                            \
+                      template <typename typeA> constfunc(true) static typename conditional<0u !=                                                   sizeof noeval(expression),  void>                       ::type (value)(typeA) noexcept; \
+                      template <typename typeA> constfunc(true) static typename alias      <byte (rlref)                                                  [sizeof(expression)]>                             ::type (size) (typeA) noexcept; \
+                      template <typename typeA> constfunc(true) static typename conditional<sizeof(boolean_true) == sizeof (is_same<subbase>::valueof)((subtype) (expression)), boolean_true, boolean_false>::type (like) (typeA) noexcept; \
+                      template <typename typeA> constfunc(true) static typename conditional<sizeof(boolean_true) == sizeof (is_same<subbase>::valueof)          ((expression)), boolean_true, boolean_false>::type (is)   (typeA) noexcept; \
+                    };                                                                                                                                                                                                                      \
+                                                                                                                                                                                                                                            \
+                  public:                                                                                                                                                                                                                   \
+                    static std::size_t const size  = operate<opinfo::unary, baseA>::template size   <op<void> >::value;                                                                                                                     \
+                    static bool        const value = operate<opinfo::unary, baseA>::template valueof<op<void> >::value;                                                                                                                     \
+                                                                                                                                                                                                                                            \
+                    /* ... */                                                                                                                                                                                                               \
+                    typedef typename typeof<operation, baseA>::type type;                                                                                                                                                                   \
+                                                                                                                                                                                                                                            \
+                    template <typename subbase> struct like final { static bool const value = operate<opinfo::unary, baseA>::template like<op<subbase> >::value; };                                                                         \
+                    template <typename subbase> struct is   final { static bool const value = operate<opinfo::unary, baseA>::template is  <op<subbase> >::value; };                                                                         \
                 }
 
               LAPYS_CODEGEN(opinfo::address,        &any().operator typeA()); // --> C2102
@@ -2033,29 +2044,29 @@
 
               // ... --> opinfo::binary
               #undef  LAPYS_CODEGEN
-              #define LAPYS_CODEGEN(operation, expression)                                                                                                                                                                                                          \
-                template <typename baseA, typename baseB>                                                                                                                                                                                                           \
-                struct operate<operation, baseA, baseB> final {                                                                                                                                                                                                     \
-                  private:                                                                                                                                                                                                                                          \
-                    template <typename subbase>                                                                                                                                                                                                                     \
-                    struct op final {                                                                                                                                                                                                                               \
-                      typedef typename conditional<is_void<subbase>::value, alias<null>, alias<subbase> >::type::type subtype;                                                                                                                                      \
-                                                                                                                                                                                                                                                                    \
-                      template <typename typeA, typename typeB> constfunc(true) static typename conditional<0u !=                                                    sizeof noeval(expression),  void>                       ::type (value)(typeA, typeB) noexcept; \
-                      template <typename typeA, typename typeB> constfunc(true) static typename alias      <byte (rlref)                                                   [sizeof(expression)]>                             ::type (size) (typeA, typeB) noexcept; \
-                      template <typename typeA, typename typeB> constfunc(true) static typename conditional<sizeof(boolean_true) == sizeof (is_similar<subbase>::value)((subtype) (expression)), boolean_true, boolean_false>::type (like) (typeA, typeB) noexcept; \
-                      template <typename typeA, typename typeB> constfunc(true) static typename conditional<sizeof(boolean_true) == sizeof (is_similar<subbase>::value)          ((expression)), boolean_true, boolean_false>::type (is)   (typeA, typeB) noexcept; \
-                    };                                                                                                                                                                                                                                              \
-                                                                                                                                                                                                                                                                    \
-                  public:                                                                                                                                                                                                                                           \
-                    static std::size_t const size  = operate<opinfo::binary, baseA, baseB>::template size   <op<void> >::value;                                                                                                                                     \
-                    static bool        const value = operate<opinfo::binary, baseA, baseB>::template valueof<op<void> >::value;                                                                                                                                     \
-                                                                                                                                                                                                                                                                    \
-                    /* ... */                                                                                                                                                                                                                                       \
-                    typedef typename typeof<operation, baseA, baseB>::type type;                                                                                                                                                                                    \
-                                                                                                                                                                                                                                                                    \
-                    template <typename subbase> struct like final { static bool const value = operate<opinfo::binary, baseA, baseB>::template like<op<subbase> >::value; };                                                                                         \
-                    template <typename subbase> struct is   final { static bool const value = operate<opinfo::binary, baseA, baseB>::template is  <op<subbase> >::value; };                                                                                         \
+              #define LAPYS_CODEGEN(operation, expression)                                                                                                                                                                                                         \
+                template <typename baseA, typename baseB>                                                                                                                                                                                                          \
+                struct operate<operation, baseA, baseB> final {                                                                                                                                                                                                    \
+                  private:                                                                                                                                                                                                                                         \
+                    template <typename subbase>                                                                                                                                                                                                                    \
+                    struct op final {                                                                                                                                                                                                                              \
+                      typedef typename conditional<is_void<subbase>::value, alias<null>, alias<subbase> >::type::type subtype;                                                                                                                                     \
+                                                                                                                                                                                                                                                                   \
+                      template <typename typeA, typename typeB> constfunc(true) static typename conditional<0u !=                                                   sizeof noeval(expression),  void>                       ::type (value)(typeA, typeB) noexcept; \
+                      template <typename typeA, typename typeB> constfunc(true) static typename alias      <byte (rlref)                                                  [sizeof(expression)]>                             ::type (size) (typeA, typeB) noexcept; \
+                      template <typename typeA, typename typeB> constfunc(true) static typename conditional<sizeof(boolean_true) == sizeof (is_same<subbase>::valueof)((subtype) (expression)), boolean_true, boolean_false>::type (like) (typeA, typeB) noexcept; \
+                      template <typename typeA, typename typeB> constfunc(true) static typename conditional<sizeof(boolean_true) == sizeof (is_same<subbase>::valueof)          ((expression)), boolean_true, boolean_false>::type (is)   (typeA, typeB) noexcept; \
+                    };                                                                                                                                                                                                                                             \
+                                                                                                                                                                                                                                                                   \
+                  public:                                                                                                                                                                                                                                          \
+                    static std::size_t const size  = operate<opinfo::binary, baseA, baseB>::template size   <op<void> >::value;                                                                                                                                    \
+                    static bool        const value = operate<opinfo::binary, baseA, baseB>::template valueof<op<void> >::value;                                                                                                                                    \
+                                                                                                                                                                                                                                                                   \
+                    /* ... */                                                                                                                                                                                                                                      \
+                    typedef typename typeof<operation, baseA, baseB>::type type;                                                                                                                                                                                   \
+                                                                                                                                                                                                                                                                   \
+                    template <typename subbase> struct like final { static bool const value = operate<opinfo::binary, baseA, baseB>::template like<op<subbase> >::value; };                                                                                        \
+                    template <typename subbase> struct is   final { static bool const value = operate<opinfo::binary, baseA, baseB>::template is  <op<subbase> >::value; };                                                                                        \
                 }
 
               LAPYS_CODEGEN(opinfo::access_pointer,                  (instanceof<typeA>()  .* instanceof<typeB>()));
@@ -2106,7 +2117,7 @@
                   typedef typename typeof<opinfo::cast_dynamic, baseA, baseB>::type type;
 
                   template <typename subbase> struct like final { static bool const value = operate<opinfo::cast, subbase, type>::value; };
-                  template <typename subbase> struct is   final { static bool const value = sizeof(boolean_true) == sizeof is_similar<subbase>::value(instanceof<type>()); };
+                  template <typename subbase> struct is   final { static bool const value = sizeof(boolean_true) == sizeof is_same<subbase>::valueof(instanceof<type>()); };
 
                   /* ... */
                   static std::size_t const size  = is_null<type>::value ? 0u : sizeof(type);
@@ -2150,29 +2161,29 @@
 
               // ... --> opinfo::ternary
               #undef  LAPYS_CODEGEN
-              #define LAPYS_CODEGEN(operation, expression)                                                                                                                                                                                                                                 \
-                template <typename baseA, typename baseB, typename baseC>                                                                                                                                                                                                                  \
-                struct operate<operation, baseA, baseB, baseC> final {                                                                                                                                                                                                                     \
-                  private:                                                                                                                                                                                                                                                                 \
-                    template <typename subbase>                                                                                                                                                                                                                                            \
-                    struct op final {                                                                                                                                                                                                                                                      \
-                      typedef typename conditional<is_void<subbase>::value, alias<null>, alias<subbase> >::type::type subtype;                                                                                                                                                             \
-                                                                                                                                                                                                                                                                                           \
-                      template <typename typeA, typename typeB, typename typeC> constfunc(true) static typename conditional<0u !=                                                    sizeof noeval(expression),  void>                       ::type (value)(typeA, typeB, typeC) noexcept; \
-                      template <typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias      <byte (rlref)                                                   [sizeof(expression)]>                             ::type (size) (typeA, typeB, typeC) noexcept; \
-                      template <typename typeA, typename typeB, typename typeC> constfunc(true) static typename conditional<sizeof(boolean_true) == sizeof (is_similar<subbase>::value)((subtype) (expression)), boolean_true, boolean_false>::type (like) (typeA, typeB, typeC) noexcept; \
-                      template <typename typeA, typename typeB, typename typeC> constfunc(true) static typename conditional<sizeof(boolean_true) == sizeof (is_similar<subbase>::value)          ((expression)), boolean_true, boolean_false>::type (is)   (typeA, typeB, typeC) noexcept; \
-                    };                                                                                                                                                                                                                                                                     \
-                                                                                                                                                                                                                                                                                           \
-                  public:                                                                                                                                                                                                                                                                  \
-                    static std::size_t const size  = operate<opinfo::ternary, baseA, baseB, baseC>::template size   <op<void> >::value;                                                                                                                                                    \
-                    static bool        const value = operate<opinfo::ternary, baseA, baseB, baseC>::template valueof<op<void> >::value;                                                                                                                                                    \
-                                                                                                                                                                                                                                                                                           \
-                    /* ... */                                                                                                                                                                                                                                                              \
-                    typedef typename typeof<operation, baseA, baseB, baseC>::type type;                                                                                                                                                                                                    \
-                                                                                                                                                                                                                                                                                           \
-                    template <typename subbase> struct like final { static bool const value = operate<opinfo::ternary, baseA, baseB, baseC>::template like<op<subbase> >::value; };                                                                                                        \
-                    template <typename subbase> struct is   final { static bool const value = operate<opinfo::ternary, baseA, baseB, baseC>::template is  <op<subbase> >::value; };                                                                                                        \
+              #define LAPYS_CODEGEN(operation, expression)                                                                                                                                                                                                                                \
+                template <typename baseA, typename baseB, typename baseC>                                                                                                                                                                                                                 \
+                struct operate<operation, baseA, baseB, baseC> final {                                                                                                                                                                                                                    \
+                  private:                                                                                                                                                                                                                                                                \
+                    template <typename subbase>                                                                                                                                                                                                                                           \
+                    struct op final {                                                                                                                                                                                                                                                     \
+                      typedef typename conditional<is_void<subbase>::value, alias<null>, alias<subbase> >::type::type subtype;                                                                                                                                                            \
+                                                                                                                                                                                                                                                                                          \
+                      template <typename typeA, typename typeB, typename typeC> constfunc(true) static typename conditional<0u !=                                                   sizeof noeval(expression),  void>                       ::type (value)(typeA, typeB, typeC) noexcept; \
+                      template <typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias      <byte (rlref)                                                  [sizeof(expression)]>                             ::type (size) (typeA, typeB, typeC) noexcept; \
+                      template <typename typeA, typename typeB, typename typeC> constfunc(true) static typename conditional<sizeof(boolean_true) == sizeof (is_same<subbase>::valueof)((subtype) (expression)), boolean_true, boolean_false>::type (like) (typeA, typeB, typeC) noexcept; \
+                      template <typename typeA, typename typeB, typename typeC> constfunc(true) static typename conditional<sizeof(boolean_true) == sizeof (is_same<subbase>::valueof)          ((expression)), boolean_true, boolean_false>::type (is)   (typeA, typeB, typeC) noexcept; \
+                    };                                                                                                                                                                                                                                                                    \
+                                                                                                                                                                                                                                                                                          \
+                  public:                                                                                                                                                                                                                                                                 \
+                    static std::size_t const size  = operate<opinfo::ternary, baseA, baseB, baseC>::template size   <op<void> >::value;                                                                                                                                                   \
+                    static bool        const value = operate<opinfo::ternary, baseA, baseB, baseC>::template valueof<op<void> >::value;                                                                                                                                                   \
+                                                                                                                                                                                                                                                                                          \
+                    /* ... */                                                                                                                                                                                                                                                             \
+                    typedef typename typeof<operation, baseA, baseB, baseC>::type type;                                                                                                                                                                                                   \
+                                                                                                                                                                                                                                                                                          \
+                    template <typename subbase> struct like final { static bool const value = operate<opinfo::ternary, baseA, baseB, baseC>::template like<op<subbase> >::value; };                                                                                                       \
+                    template <typename subbase> struct is   final { static bool const value = operate<opinfo::ternary, baseA, baseB, baseC>::template is  <op<subbase> >::value; };                                                                                                       \
                 }
 
               LAPYS_CODEGEN(opinfo::call,                             instanceof<typeA>()  (instanceof<typeB>(),  instanceof<typeC>()));
@@ -2200,29 +2211,29 @@
               // ...
               #undef  LAPYS_CODEGEN
               #undef  LAPYS_CODESUBGEN
-              #define LAPYS_CODESUBGEN(operation, parameters, arguments, begin, expression, end)                                                                                                                                                                                                     \
-                template <typename baseA, typename baseB, typename baseC, parameters>                                                                                                                                                                                                                \
-                struct operate<operation, baseA, baseB, baseC, arguments> final {                                                                                                                                                                                                                    \
-                  private:                                                                                                                                                                                                                                                                           \
-                    template <typename subbase>                                                                                                                                                                                                                                                      \
-                    struct op final {                                                                                                                                                                                                                                                                \
-                      typedef typename conditional<is_void<subbase>::value, alias<null>, alias<subbase> >::type::type subtype;                                                                                                                                                                       \
-                                                                                                                                                                                                                                                                                                     \
-                      template <typename typeA, typename typeB, typename typeC> constfunc(true) static typename conditional<0u !=                                                    sizeof noeval(begin expression end), void>                        ::type (value)(typeA, typeB, typeC) noexcept; \
-                      template <typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[                                                         sizeof(begin expression end)]>                             ::type (size) (typeA, typeB, typeC) noexcept; \
-                      template <typename typeA, typename typeB, typename typeC> constfunc(true) static typename conditional<sizeof(boolean_true) == sizeof (is_similar<subbase>::value)((subtype) (begin expression end)), boolean_true, boolean_false>::type (like) (typeA, typeB, typeC) noexcept; \
-                      template <typename typeA, typename typeB, typename typeC> constfunc(true) static typename conditional<sizeof(boolean_true) == sizeof (is_similar<subbase>::value)          ((begin expression end)), boolean_true, boolean_false>::type (is)   (typeA, typeB, typeC) noexcept; \
-                    };                                                                                                                                                                                                                                                                               \
-                                                                                                                                                                                                                                                                                                     \
-                  public:                                                                                                                                                                                                                                                                            \
-                    static std::size_t const size  = operate<opinfo::ternary, baseA, baseB, baseC>::template size   <op<void> >::value;                                                                                                                                                              \
-                    static bool        const value = operate<opinfo::ternary, baseA, baseB, baseC>::template valueof<op<void> >::value;                                                                                                                                                              \
-                                                                                                                                                                                                                                                                                                     \
-                    /* ... */                                                                                                                                                                                                                                                                        \
-                    typedef typename typeof<operation, baseA, baseB, baseC, arguments>::type type;                                                                                                                                                                                                   \
-                                                                                                                                                                                                                                                                                                     \
-                    template <typename subbase> struct like final { static bool const value = operate<opinfo::ternary, baseA, baseB, baseC>::template like<op<subbase> >::value; };                                                                                                                  \
-                    template <typename subbase> struct is   final { static bool const value = operate<opinfo::ternary, baseA, baseB, baseC>::template is  <op<subbase> >::value; };                                                                                                                  \
+              #define LAPYS_CODESUBGEN(operation, parameters, arguments, begin, expression, end)                                                                                                                                                                                                    \
+                template <typename baseA, typename baseB, typename baseC, parameters>                                                                                                                                                                                                               \
+                struct operate<operation, baseA, baseB, baseC, arguments> final {                                                                                                                                                                                                                   \
+                  private:                                                                                                                                                                                                                                                                          \
+                    template <typename subbase>                                                                                                                                                                                                                                                     \
+                    struct op final {                                                                                                                                                                                                                                                               \
+                      typedef typename conditional<is_void<subbase>::value, alias<null>, alias<subbase> >::type::type subtype;                                                                                                                                                                      \
+                                                                                                                                                                                                                                                                                                    \
+                      template <typename typeA, typename typeB, typename typeC> constfunc(true) static typename conditional<0u !=                                                   sizeof noeval(begin expression end), void>                        ::type (value)(typeA, typeB, typeC) noexcept; \
+                      template <typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[                                                        sizeof(begin expression end)]>                             ::type (size) (typeA, typeB, typeC) noexcept; \
+                      template <typename typeA, typename typeB, typename typeC> constfunc(true) static typename conditional<sizeof(boolean_true) == sizeof (is_same<subbase>::valueof)((subtype) (begin expression end)), boolean_true, boolean_false>::type (like) (typeA, typeB, typeC) noexcept; \
+                      template <typename typeA, typename typeB, typename typeC> constfunc(true) static typename conditional<sizeof(boolean_true) == sizeof (is_same<subbase>::valueof)          ((begin expression end)), boolean_true, boolean_false>::type (is)   (typeA, typeB, typeC) noexcept; \
+                    };                                                                                                                                                                                                                                                                              \
+                                                                                                                                                                                                                                                                                                    \
+                  public:                                                                                                                                                                                                                                                                           \
+                    static std::size_t const size  = operate<opinfo::ternary, baseA, baseB, baseC>::template size   <op<void> >::value;                                                                                                                                                             \
+                    static bool        const value = operate<opinfo::ternary, baseA, baseB, baseC>::template valueof<op<void> >::value;                                                                                                                                                             \
+                                                                                                                                                                                                                                                                                                    \
+                    /* ... */                                                                                                                                                                                                                                                                       \
+                    typedef typename typeof<operation, baseA, baseB, baseC, arguments>::type type;                                                                                                                                                                                                  \
+                                                                                                                                                                                                                                                                                                    \
+                    template <typename subbase> struct like final { static bool const value = operate<opinfo::ternary, baseA, baseB, baseC>::template like<op<subbase> >::value; };                                                                                                                 \
+                    template <typename subbase> struct is   final { static bool const value = operate<opinfo::ternary, baseA, baseB, baseC>::template is  <op<subbase> >::value; };                                                                                                                 \
                 }
               #
               #ifdef __cpp_variadic_templates // --> 200704L
@@ -2868,7 +2879,7 @@
                 #elif CPP_COMPILER == CPP_MSVC_COMPILER
                   __is_union(subbase) or
                 #endif
-              sizeof(boolean_true) == sizeof(valueof<subbase>(sfinaeptr)) or
+              sizeof(boolean_true) == sizeof valueof<subbase>(sfinaeptr) or
               subfallback;
           };
 

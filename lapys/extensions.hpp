@@ -5,6 +5,7 @@
     - CPP_COMPILER;            CPP_*_COMPILER
     - CPP_ENDIAN;              CPP_*_ENDIAN; CPP_ENDIAN_RUNTIME
     - CPP_FRONTEND;            CPP_*_FRONTEND
+    - CPP_HOSTED;
     - CPP_PREPROCESSOR_FORMAT; CPP_PREPROCESSOR_*_FORMAT
     - CPP_VENDOR;              CPP_*_VENDOR
     - CPP_VERSION == 1997uL | 2011uL | 2014uL | 2017uL | 2020uL | 2023uL
@@ -298,7 +299,7 @@
 
   #if defined __370__ or defined __THW_370__
   # define CPP_ARCHITECTURE CPP_SYSTEM_370_ARCHITECTURE
-  #elif defined __aarch64__ or defined __aarch64__ or defined __AARCH64EL__ or defined __AARCH64EL__ or defined __arm64 or defined __arm64 or defined __arm__ or defined __ARM_ARCH or defined __ARM_ARCH or defined __ARM_ARCH_4__ or defined __ARM_ARCH_4__ or defined __ARM_ARCH_4T__ or defined __ARM_ARCH_4T__ or defined __ARM_ARCH_5TE__ or defined __ARM_ARCH_5TE__ or defined __ARM_ARCH_5TEJ__ or defined __ARM_ARCH_5TEJ__ or defined __ARM_ARCH_6K__ or defined __ARM_ARCH_6K__ or defined __ARM_ARCH_6KZ__ or defined __ARM_ARCH_6KZ__ or defined __ARM_ARCH_6T2__ or defined __ARM_ARCH_6T2__ or defined __ARM_ARCH_6Z__ or defined __ARM_ARCH_6Z__ or defined __ARM_ARCH_7__ or defined __ARM_ARCH_7__ or defined __ARM_ARCH_7A__ or defined __ARM_ARCH_7A__ or defined __ARM_ARCH_7M__ or defined __ARM_ARCH_7M__ or defined __ARM_ARCH_7R__ or defined __ARM_ARCH_7R__ or defined __TARGET_ARCH_ARM or defined __TARGET_ARCH_ARM or defined __TARGET_ARCH_THUMB or defined __TARGET_ARCH_THUMB or defined __thumb__ or defined _M_ARM or defined _M_ARM or defined _M_ARM64 or defined _M_ARM64
+  #elif defined __aarch64__ or defined __AARCH64EL__ or defined __arm64 or defined __arm__ or defined __ARM_ARCH or defined __ARM_ARCH_4__ or defined __ARM_ARCH_4T__ or defined __ARM_ARCH_5TE__ or defined __ARM_ARCH_5TEJ__ or defined __ARM_ARCH_6K__ or defined __ARM_ARCH_6KZ__ or defined __ARM_ARCH_6T2__ or defined __ARM_ARCH_6Z__ or defined __ARM_ARCH_7__ or defined __ARM_ARCH_7A__ or defined __ARM_ARCH_7M__ or defined __ARM_ARCH_7R__ or defined __TARGET_ARCH_ARM or defined __TARGET_ARCH_THUMB or defined __thumb__ or defined _M_ARM or defined _M_ARM64
   # define CPP_ARCHITECTURE CPP_ARM_ARCHITECTURE
   #elif defined __alpha or defined __alpha__ or defined __alpha_ev4__ or defined __alpha_ev5__ or defined __alpha_ev6__ or defined _M_ALPHA
   # define CPP_ARCHITECTURE CPP_ALPHA_ARCHITECTURE
@@ -342,6 +343,17 @@
   # define CPP_ARCHITECTURE CPP_PYRAMID_9810_ARCHITECTURE
   #else
   # define CPP_ARCHITECTURE 0x00u
+  #endif
+
+  // : [C++ Environment]
+  #ifdef __STDC_HOSTED__
+  # if   __STDC_HOSTED__ == 1
+  #   define CPP_HOSTED true
+  # elif __STDC_HOSTED__ == 0
+  #   define CPP_HOSTED false
+  # endif
+  #else
+  # define CPP_HOSTED (CPP_FRONTEND == CPP_CLANG_FRONTEND or CPP_FRONTEND == CPP_GNUC_FRONTEND or CPP_FRONTEND == CPP_MSVC_FRONTEND)
   #endif
 
   // : [C++ Preprocessor]

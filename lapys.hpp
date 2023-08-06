@@ -25,6 +25,7 @@
     - CPP_ARCHITECTURE        (including `CPP_*_ARCHITECTURE` macros)
     - CPP_COMPILER            (including `CPP_*_COMPILER`     macros)
     - CPP_ENDIAN              (including `CPP_*_ENDIAN`              and `CPP_ENDIAN_*`              macros)
+    - CPP_HOSTED
     - CPP_PREPROCESSOR_FORMAT (including `CPP_PREPROCESSOR_*_FORMAT` and `CPP_PREPROCESSOR_FORMAT_*` macros)
     - CPP_VENDOR              (including `CPP_*_VENDOR` macros)
     - CPP_VERSION
@@ -310,6 +311,7 @@
   #     undef CPP_CLANG_FRONTEND
   #     undef CPP_GNUC_FRONTEND
   #     undef CPP_MSVC_FRONTEND
+  #   undef CPP_HOSTED
   #   undef CPP_PREPROCESSOR_FORMAT
   #     undef CPP_PREPROCESSOR_FORMAT_CHECK
   #     undef CPP_PREPROCESSOR_FORMAT_SELECT
