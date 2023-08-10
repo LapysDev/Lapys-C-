@@ -16,8 +16,8 @@
     - apply_expression_end  (...)
     - apply_*               (...)
     - arity                 (N)
-    - boundsas              (...)
     - boundsof              (...)
+    - boundsspec            (...)
     - choose                (false | true, ..., ...); choose(N, ...)
     - combine               (A, B)
     - constfunc             (false | true)
@@ -838,42 +838,6 @@
   #  define __alignof_is_defined true
   # endif
   #
-  # ifdef __alignas_is_defined
-  #   ifdef _Alignas
-  #     if CPP_VERSION < 2011uL
-  #       define boundsas(argument) _Alignas(argument)
-  #     else
-  #       define boundsas(...)      _Alignas(__VA_ARGS__)
-  #     endif
-  #   else
-  #     if CPP_VERSION < 2011uL
-  #       define boundsas(argument) alignas(argument)
-  #     else
-  #       define boundsas(...)      alignas(__VA_ARGS__)
-  #     endif
-  #   endif
-  # else
-  #   if CPP_COMPILER == CPP_GNUC_COMPILER
-  #     if CPP_VERSION < 2011uL
-  #       define boundsas(argument) __attribute__(aligned(argument))
-  #     else
-  #       define boundsas(...)      __attribute__(aligned(__VA_ARGS__))
-  #     endif
-  #   elif CPP_COMPILER == CPP_MSVC_COMPILER
-  #     if CPP_VERSION < 2011uL
-  #       define boundsas(argument) __declspec(align(argument))
-  #     else
-  #       define boundsas(...)      __declspec(align(__VA_ARGS__))
-  #     endif
-  #   else
-  #     if CPP_VERSION < 2011uL
-  #       define boundsas(argument)
-  #     else
-  #       define boundsas(...)
-  #     endif
-  #   endif
-  # endif
-  #
   # ifdef __alignof_is_defined
   #   ifdef _Alignof
   #     if CPP_VERSION < 2011uL
@@ -909,12 +873,48 @@
   #     endif
   #   endif
   # endif
+  #
+  # ifdef __alignas_is_defined
+  #   ifdef _Alignas
+  #     if CPP_VERSION < 2011uL
+  #       define boundsspec(argument) _Alignas(argument)
+  #     else
+  #       define boundsspec(...)      _Alignas(__VA_ARGS__)
+  #     endif
+  #   else
+  #     if CPP_VERSION < 2011uL
+  #       define boundsspec(argument) alignas(argument)
+  #     else
+  #       define boundsspec(...)      alignas(__VA_ARGS__)
+  #     endif
+  #   endif
+  # else
+  #   if CPP_COMPILER == CPP_GNUC_COMPILER
+  #     if CPP_VERSION < 2011uL
+  #       define boundsspec(argument) __attribute__(aligned(argument))
+  #     else
+  #       define boundsspec(...)      __attribute__(aligned(__VA_ARGS__))
+  #     endif
+  #   elif CPP_COMPILER == CPP_MSVC_COMPILER
+  #     if CPP_VERSION < 2011uL
+  #       define boundsspec(argument) __declspec(align(argument))
+  #     else
+  #       define boundsspec(...)      __declspec(align(__VA_ARGS__))
+  #     endif
+  #   else
+  #     if CPP_VERSION < 2011uL
+  #       define boundsspec(argument)
+  #     else
+  #       define boundsspec(...)
+  #     endif
+  #   endif
+  # endif
   #else
   # if CPP_VERSION < 2011uL
-  #   define boundsas(argument) alignas(argument)
+  #   define boundsspec(argument) alignas(argument)
   #   define boundsof(type)     alignof(type)
   # else
-  #   define boundsas(...) alignas(__VA_ARGS__)
+  #   define boundsspec(...) alignas(__VA_ARGS__)
   #   define boundsof(...) alignof(__VA_ARGS__)
   # endif
   #endif

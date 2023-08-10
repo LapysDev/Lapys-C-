@@ -40,6 +40,7 @@
 
     - choose       (...) ->> Conditionally selects the falsy/ truthy argument or evaluates to the indexed argument within a list of arguments
     - empty        ()    ->> Evaluates to nothing
+    - nilsizeof    (...) ->> Evaluates the bit size of an expression (or type)
     - static_assert(...) ->> Fallback for C++98
     - widthof      (...) ->> Evaluates the bit size of an expression (or type)
 */
@@ -224,14 +225,17 @@
   /* Deletion */
   #ifdef LAPYS_MODULE_TRAITS
   # if preprocessed(LAPYS_PREPROCESSOR)
-  #   undef  widthof
+  #   undef widthof
   #   if CPP_VERSION < 2011uL
   #     define widthof(argument) (CHAR_BIT * sizeof(argument))
   #   else
-  #     define widthof(...)      (CHAR_BIT * sizeof(__VA_ARGS__))
+  #     undef nilsizeof
+  #     define nilsizeof(...) ((sizeof (::Lapys::nilsizeof)((__VA_ARGS__), sfinaeptr) / sizeof(::Lapys::byte)) - 1u)
+  #     define widthof(...) (CHAR_BIT * sizeof(__VA_ARGS__))
   #   endif
   # else
   #   undef CPP_MAX_SIZE
+  #   undef nilsizeof
   #   undef widthof
   # endif
   #
@@ -349,8 +353,8 @@
   #   endif
   # endif
   #
-  # undef boundsas
   # undef boundsof
+  # undef boundsspec
   # undef constfunc
   #   undef constfunc_
   #   undef constfunc_false
