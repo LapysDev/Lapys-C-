@@ -14,8 +14,13 @@
     - Lapys::bit<N, value>
     - Lapys::byte
     - Lapys::empty
+    - Lapys::novoid
+    - Lapys::null
+    - Lapys::refspec
     - Lapys::sfinaeptr_t
+    - Lapys::typeinfo
     - Lapys::Traits::alias<T>
+    - Lapys::Traits::arrayinfo<T>
     - Lapys::Traits::boolean_and<bool...>
     - Lapys::Traits::boolean_false
     - Lapys::Traits::boolean_or<bool...>
@@ -81,20 +86,39 @@
     - Lapys::Traits::intmax_t
     - Lapys::Traits::intmin_t
     - Lapys::Traits::intptr_t
+    - Lapys::Traits::is_abstract<T>
+    - Lapys::Traits::is_aggregate<T>
+    - Lapys::Traits::is_array<T>
     - Lapys::Traits::is_blessed<T>
+    - Lapys::Traits::is_boolean<T>
     - Lapys::Traits::is_byte<T>
+    - Lapys::Traits::is_character<T>
     - Lapys::Traits::is_class<T>
+    - Lapys::Traits::is_compatible_layout<T, T>
+    - Lapys::Traits::is_complete<T>
     - Lapys::Traits::is_const<T>
+    - Lapys::Traits::is_decimal<T>
+    - Lapys::Traits::is_empty<T>
     - Lapys::Traits::is_enum<T>
     - Lapys::Traits::is_final<T>
     - Lapys::Traits::is_function<T>
-    - Lapys::Traits::is_integer<T, ...>
+    - Lapys::Traits::is_fundamental<T>
+    - Lapys::Traits::is_implicit_lifetime<T>
+    - Lapys::Traits::is_integer<T>
+    - Lapys::Traits::is_like<T, T>
     - Lapys::Traits::is_lvalue_reference<T>
     - Lapys::Traits::is_null<T>
+    - Lapys::Traits::is_nullptr_t<T>
+    - Lapys::Traits::is_pointer<T>
+    - Lapys::Traits::is_pointer_interconvertible<T>
+    - Lapys::Traits::is_polymorphic<T>
     - Lapys::Traits::is_reference<T>
     - Lapys::Traits::is_rvalue_reference<T>
     - Lapys::Traits::is_same<T, T>
     - Lapys::Traits::is_signed<T>
+    - Lapys::Traits::is_standard_layout<T>
+    - Lapys::Traits::is_trivial<T, opinfo::operation>
+    - Lapys::Traits::is_unique_represented<T>
     - Lapys::Traits::is_union<T>
     - Lapys::Traits::is_unsigned<T>
     - Lapys::Traits::is_void<T>
@@ -103,18 +127,28 @@
     - Lapys::Traits::minof<T>
     - Lapys::Traits::nilof<T>
     - Lapys::Traits::opinfo
+    - Lapys::Traits::opinfo::membered::operate
+    - Lapys::Traits::opinfo::nonmembered::operate
     - Lapys::Traits::opinfo::nonoverloaded::operate
     - Lapys::Traits::opinfo::operation
     - Lapys::Traits::opinfo::overloaded::operate == Lapys::Traits::opinfo::membered::operate | Lapys::Traits::opinfo::nonmembered::operate
     - Lapys::Traits::optraitinfo
+    - Lapys::Traits::optraitinfo::arityof
     - Lapys::Traits::optraitinfo::assert
+    - Lapys::Traits::optraitinfo::expressioninfo
+    - Lapys::Traits::optraitinfo::evaluate
     - Lapys::Traits::optraitinfo::get
     - Lapys::Traits::rankof<T>
+    - Lapys::Traits::reference_false
+    - Lapys::Traits::reference_true
     - Lapys::Traits::remove_const<T>
     - Lapys::Traits::remove_const_volatile<T>
+    - Lapys::Traits::remove_lvalue_reference<T>
+    - Lapys::Traits::remove_pointer<T>
+    - Lapys::Traits::remove_reference<T>
+    - Lapys::Traits::remove_rvalue_reference<T>
     - Lapys::Traits::remove_volatile<T>
     - Lapys::Traits::signedof<T>
-    - Lapys::Traits::typeinfo
     - Lapys::Traits::uint8_t
     - Lapys::Traits::uint16_t
     - Lapys::Traits::uint32_t
@@ -192,9 +226,295 @@
 
   /* Namespace ->> All concepts/ metafunctions/ traits should be `struct ... final`, everything else a `union ...` */
   namespace Lapys {
-    /* Class > Bit ->> Distinct (unsigned) type similar to `byte` for bitwise storage */
+    /* Namespace ->> Pre-define necessary features for possible extensions like `typeof(...)` */
+    namespace Traits {
+      /* Alias > Boolean (False, True) */
+      typedef bool const decl (rlref boolean_false)[false + 1u];
+      typedef bool const decl (rlref boolean_true) [true  + 1u];
+
+      /* Function > Instance Of ->> Plain & simple type deduction with no reference-qualifications */
+      template <typename type>
+      constfunc(true) type decl (instanceof)() noexcept;
+
+      /* Trait > ... */
+      // Null ->> Specialization type denoting an "empty set of values"; See `void` type
+      typedef union empty &null;
+
+      // Substitution Failure Is Not An Error (SFINAE Pointer) ->> Dummy/ extension type used for selective overloading/ specialization for evaluating possible compile-time constraints and expressions
+      #if CPP_VERSION < 2011uL
+        #define sfinaeptr sfinaeptr
+        enum sfinaeptr_t /* : uintmin_t */ { sfinaeptr /* = 0x00hhu */ };
+      #else
+        #define sfinaeptr nullptr
+        typedef std::nullptr_t sfinaeptr_t;
+      #endif
+
+      // ... ->> Aliases specified type; Plain & simple --> std::type_identity<T>
+      template <typename base>
+      struct alias final {
+        typedef base type;
+      };
+
+      // ... ->> Aliases dependent type based on (boolean) condition --> std::conditional<bool, T, T>
+      template <bool, typename = null, typename = null>
+      struct conditional;
+
+      template <typename baseA, typename baseB>
+      struct conditional<false, baseA, baseB> final {
+        typedef baseB type;
+      };
+
+      template <typename base>
+      struct conditional<false, base, null> final {};
+
+      template <typename baseA, typename baseB>
+      struct conditional<true, baseA, baseB> final {
+        typedef baseA type;
+      };
+
+      template <typename base>
+      struct conditional<true, null, base> final {};
+
+      // ... ->> Type const-qualifier check --> std::is_const<T>
+      template <typename>
+      struct is_const final {
+        static bool const value = false;
+      };
+
+      template <typename base>
+      struct is_const<base const> final {
+        static bool const value = true;
+      };
+
+      // ... ->> Type lvalue reference-qualifier check --> std::is_lvalue_reference<T>
+      template <typename>
+      struct is_lvalue_reference final {
+        static bool const value = false;
+      };
+
+      template <typename base>
+      struct is_lvalue_reference<base&> final {
+        static bool const value = true;
+      };
+
+      // ... ->> Type reference-qualifier check --> std::is_reference<T>
+      template <typename base>
+      struct is_reference final {
+        static bool const value = is_lvalue_reference<base>::value or is_rvalue_reference<base>::value;
+      };
+
+      // ... ->> Type rvalue reference-qualifier check --> std::is_rvalue_reference<T>
+      #ifdef __cpp_rvalue_references // --> 200610L
+        template <typename>
+        struct is_rvalue_reference final {
+          static bool const value = false;
+        };
+
+        template <typename base>
+        struct is_rvalue_reference<base&&> final {
+          static bool const value = true;
+        };
+      #else
+        template <typename base>
+        struct is_rvalue_reference final {
+          private:
+            template <typename type>
+            constfunc(true) static boolean_true decl (valueof)(sfinaeptr_t const, bool (*const)[sizeof noeval(instanceof<type>())] = nullptr) noexcept;
+
+            template <typename>
+            constfunc(true) static boolean_false decl (valueof)(...) noexcept;
+
+          public:
+            static bool const value = is_same<base, base const volatile>::value and sizeof(boolean_true) == sizeof valueof<base>(sfinaeptr);
+        };
+
+        template <typename base>
+        struct is_rvalue_reference<base&> final {
+          static bool const value = false;
+        };
+      #endif
+
+      // ... ->> Type set emptiness check --> std::is_void<T>
+      template <typename>
+      struct is_void final {
+        static bool const value = false;
+      };
+
+      template <> struct is_void<void>                final { static bool const value = true; };
+      template <> struct is_void<void const>          final { static bool const value = true; };
+      template <> struct is_void<void const volatile> final { static bool const value = true; };
+      template <> struct is_void<void       volatile> final { static bool const value = true; };
+
+      // ... ->> Type equality --> std::is_same<T, T>
+      template <typename, typename = null>
+      struct is_same final {
+        static bool const value = false;
+      };
+
+      template <typename base>
+      struct is_same<base, base> final {
+        static bool const value = true;
+      };
+
+      template <typename base>
+      struct is_same<base> final {
+        static bool const value = false;
+
+        #ifdef __cpp_rvalue_references // --> 200610L
+          template <typename type>
+          constfunc(true) static typename conditional<
+            not is_void<base>::value and (is_const<base>::value or is_reference<base>::value or is_volatile<base>::value)
+            ? is_same<base, type&&>::value and is_reference<base>::value
+            : is_same<base, type>  ::value,
+            boolean_true,
+            boolean_false
+          >::type decl (valueof)(type&&) noexcept;
+        #else
+          template <typename type>
+          constfunc(true) static typename conditional<
+            not is_void<base>::value and is_same<base, type&>::value,
+            boolean_true,
+            boolean_false
+          >::type decl (valueof)(type&) noexcept;
+
+          constfunc(true) static typename conditional<
+            not is_void<base>::value and (is_const<base>::value or is_reference<base>::value or is_volatile<base>::value),
+            boolean_false,
+            boolean_true
+          >::type decl (valueof)(...) noexcept;
+        #endif
+      };
+
+      template <>
+      struct is_same<null> final {
+        static bool const value = true;
+
+        template <typename type>
+        constfunc(true) static typename conditional<
+          is_same<alias<null>, alias<type> >::value,
+          boolean_true,
+          boolean_false
+        >::value decl (valueof)(type fref) noexcept;
+      };
+
+      // ... ->> Type volatile-qualifier check --> std::is_volatile<T>
+      template <typename>
+      struct is_volatile final {
+        static bool const value = false;
+      };
+
+      template <typename base>
+      struct is_volatile<base volatile> final {
+        static bool const value = true;
+      };
+
+      /* ... ->> Augments expression type deduction; See `typeof(...)` macro definition */
+      struct typeinfo final {
+        #ifdef __cpp_rvalue_references // --> 200610L
+          template <typename type>
+          constfunc(true) static typename conditional<Traits::is_lvalue_reference<type>::value, boolean_true, boolean_false>::type decl (is_lvalue_reference)(type&&) noexcept;
+        #else
+          template <typename type>
+          constfunc(true) static boolean_true decl (is_lvalue_reference)(type&) noexcept;
+
+          constfunc(true) static boolean_false decl (is_lvalue_reference)(...) noexcept;
+        #endif
+
+        // ...
+        #ifdef __cpp_rvalue_references // --> 200610L
+          template <typename type>
+          constfunc(true) static typename conditional<is_const<type>::value or is_reference<type>::value or is_volatile<type>::value, boolean_true, boolean_false>::type decl (is_reference)(type&&) noexcept;
+        #else
+          template <typename type>
+          constfunc(true) static boolean_true decl (is_reference)(type&) noexcept;
+
+          constfunc(true) static boolean_false decl (is_reference)(...) noexcept;
+        #endif
+
+        // ...
+        #ifdef __cpp_rvalue_references // --> 200610L
+          template <typename type>
+          constfunc(true) static typename conditional<not Traits::is_lvalue_reference<type>::value, boolean_true, boolean_false>::type decl (is_rvalue_reference)(type&&) noexcept;
+        #else
+          template <typename type>
+          constfunc(true) static boolean_false decl (is_rvalue_reference)(type&) noexcept;
+
+          constfunc(true) static boolean_true decl (is_rvalue_reference)(...) noexcept;
+        #endif
+      };
+    }
+
+    /* Class */
+    // Bit ->> Distinct (unsigned) type similar to `byte` for bitwise storage
     template <std::size_t, std::size_t = 0u>
     struct bit;
+
+    // No `void` [Expression] ->> Transforms `void` `...` expressions to `novoid` expressions
+    struct novoid final {
+      #ifdef __cpp_rvalue_references // --> 200610L
+        template <typename type> constfunc(true)        alias<type&&> (operator ,)(type&&)                    const noexcept;
+        template <typename type> constfunc(true) friend type decl     (operator ,)(alias<type> const, novoid const) noexcept;
+      #else
+        template <typename type> constfunc(true) alias<type&>                (operator ,)(type&)                const noexcept;
+        template <typename type> constfunc(true) alias<type const&>          (operator ,)(type const&)          const noexcept;
+        template <typename type> constfunc(true) alias<type const volatile&> (operator ,)(type const volatile&) const noexcept;
+        template <typename type> constfunc(true) alias<type       volatile&> (operator ,)(type       volatile&) const noexcept;
+
+        template <typename type> constfunc(true) friend type decl (operator ,)(alias<type> const, novoid const) noexcept;
+      #endif
+    };
+
+    // [Expression] Reference Specification ->> Disambiguates between reference and value `...` expressions
+    struct refspec final {
+      typedef refspec     fref reference_false;    // --> sizeof refspec[false + 1u]
+      typedef byte decl (rlfef reference_true)[2]; // --> sizeof refspec[true  + 1u]
+
+      // ... --- WARN (Lapys)
+      #ifdef __cpp_rvalue_references // --> 200610L
+        // ... -> Does not disambiguate between non-const-volatile rvalue reference and non-reference-qualified types i.e., `T&& == T`
+        template <typename type> constfunc(true)        typename conditional<is_const<type>::value or is_reference<type>::value or is_volatile<type>::value, reference_true, reference_false>::type decl (operator ,)(type&&)             const noexcept;
+        template <typename type> constfunc(true) friend typename conditional<sizeof decl(reference_true) == sizeof decl(type fref),                          reference_true, reference_false>::type decl (operator ,)(type fref, refspec const) noexcept;
+      #else
+        // ... -> Does not correctly evaluate non-const-only rvalue reference types i.e., `T&&`, `T const volatile&&`, and `T volatile&&` is falsy
+        private:
+          struct noref final {
+            constfunc(true) (noref)(...) noexcept;
+          };
+
+        public:
+          template <typename type> constfunc(true) reference_true  decl (operator ,)(type&)             noexcept;
+                                   constfunc(true) reference_false decl (operator ,)(noref const) const noexcept;
+
+          template <typename type> constfunc(true) friend typename conditional<sizeof decl(reference_true) == sizeof decl(type fref), reference_true, reference_false>::type decl (operator ,)(type fref, refspec const) noexcept;
+      #endif
+    };
+
+    /* Alias > Reference (False, True) */
+    typedef refspec::reference_false reference_false;
+    typedef refspec::reference_true  reference_true;
+
+    /* Define */
+    // Nil Size Of ->> Queries byte size of expression (object), defaulting to zero if it has no discernible size via `sizeof ...` (prefer over `sizeof` for convenience)
+    #define nilsizeof(expression) ((sizeof decl (::Lapys::nilsizeof)(novoid(expression), sfinaeptr) / sizeof decl(::Lapys::byte)) - 1u)
+
+                             constfunc(true) byte decl (&(nilsizeof)(novoid const, sfinaeptr_t const)                                                      noexcept)[0u                     + 1u];
+    template <typename type> constfunc(true) byte decl (&(nilsizeof)(type fref,    sfinaeptr_t const, type[] = nullptr /* --> is_complete<type>::value */) noexcept)[sizeof decl(type fref) + 1u];
+    template <typename type> constfunc(true) byte decl (&(nilsizeof)(type fref,    ...)                                                                    noexcept)[0u                     + 1u];
+
+    // Nil Width Of ->> Queries bit width of expression (object), defaulting to zero if it has no discernible size via `sizeof ...`
+    #define nilwidthof(expression) ((sizeof decl (::Lapys::nilwidthof)(novoid(expression), sfinaeptr) / sizeof decl(::Lapys::byte)) - 1u)
+
+                                 constfunc(true) byte decl (&(nilwidthof)(novoid     const)                                                                  noexcept)[0u                                                                                                 + 1u];
+    template <std::size_t width> constfunc(true) byte decl (&(nilwidthof)(bit<width> const)                                                                  noexcept)[((CPP_MAX_SIZE - 1u) > width and 0u != width        ? width                        : CPP_MAX_SIZE) + 1u];
+    template <typename    type>  constfunc(true) byte decl (&(nilwidthof)(type fref, sfinaeptr_t const, type[] = nullptr /* --> is_complete<type>::value */) noexcept)[((CPP_MAX_SIZE - 1u) / CHAR_BIT > sizeof(type fref) ? CHAR_BIT * sizeof(type fref) : CPP_MAX_SIZE) + 1u];
+    template <typename    type>  constfunc(true) byte decl (&(nilwidthof)(type fref, ...)                                                                    noexcept)[0u                                                                                                 + 1u];
+
+    // Width Of ->> Queries bit width of expression (object)
+    #define widthof(expression) (sizeof decl (::Lapys::widthof)(novoid(expression)) / sizeof decl(::Lapys::byte))
+
+                                 constfunc(true) byte decl (&(widthof)(novoid     const) noexcept)[0u + 1u];
+    template <std::size_t width> constfunc(true) byte decl (&(widthof)(bit<width> const) noexcept)[CPP_MAX_SIZE > width and 0u != width             ? width                             : CPP_MAX_SIZE];
+    template <typename    type>  constfunc(true) byte decl (&(widthof)(type fref)        noexcept)[CPP_MAX_SIZE / CHAR_BIT > sizeof decl(type fref) ? CHAR_BIT * sizeof decl(type fref) : CPP_MAX_SIZE];
 
     /* Function */
     // Bless ->> Provenance fence for object addresses --- CITE (Lapys) -> https://github.com/facebook/folly/blob/main/folly/lang/Launder.h
@@ -247,10 +567,6 @@
       }
     #endif
 
-    // Instance Of ->> Plain & simple type deduction with no reference-qualifications
-    template <typename type>
-    constfunc(true) type (instanceof)() noexcept;
-
     // Pass ->> Prevent redundant copying (and preserve type qualifications) when forwarding parameters between functions
     #ifdef __cpp_rvalue_references // --> 200610L
       template <typename type> constfunc(true) mustinline type&  (pass)(type&  object) noexcept { return static_cast<type&&>(object); }
@@ -264,28 +580,28 @@
 
     // Unreachable ->> Pragmatically invokes undefined behavior to ideally cause the host environment optimize (or trap) out impossible code branches
     #ifdef __cpp_lib_unreachable // --> 202202L
-      constfunc(false) mustinline noexit void (unreachable)() noexcept {
-        std::unreachable();
+      constfunc(false) mustinline noexit void decl (unreachable)() noexcept {
+        (std::unreachable)();
         #if CPP_HOSTED
           (::Lapys::Process::terminate)();
         #endif
       }
     #elif CPP_FRONTEND == CPP_CLANG_FRONTEND or CPP_FRONTEND == CPP_GNUC_FRONTEND
-      constfunc(false) mustinline noexit void (unreachable)() noexcept {
+      constfunc(false) mustinline noexit void decl (unreachable)() noexcept {
         __builtin_unreachable();
         #if CPP_HOSTED
           (::Lapys::Process::terminate)();
         #endif
       }
     #elif CPP_FRONTEND == CPP_MSVC_FRONTEND
-      constfunc(false) mustinline noexit void (unreachable)() noexcept {
+      constfunc(false) mustinline noexit void decl (unreachable)() noexcept {
         __assume(false);
         #if CPP_HOSTED
           (::Lapys::Process::terminate)();
         #endif
       }
     #else
-      noexit void (unreachable)() noexcept /* = delete */;
+      noexit void decl (unreachable)() noexcept /* = delete */;
     #endif
 
     /* Alias > Byte ->> Aliases to an (unsigned) byte type blessed by the standard (as specified in the C++ language definition) */
@@ -300,202 +616,191 @@
       constfunc(true) mustinline noignore std::byte const volatile* (bless)(std::byte const volatile address[]) noexcept { return address; }
       constfunc(true) mustinline noignore std::byte       volatile* (bless)(std::byte       volatile address[]) noexcept { return address; }
 
-      constfunc(true) mustinline std::byte (operator +)(std::byte const byte) noexcept { return byte; }
-      constfunc(true) mustinline std::byte (operator -)(std::byte const byte) noexcept { return static_cast<std::byte>(-std::to_integer<unsigned char>(byte)); }
-      constfunc(true) mustinline bool      (operator !)(std::byte const byte) noexcept { return !std::to_integer<unsigned char>(byte); }
+      #ifdef typeof
+        constfunc(true) mustinline std::byte decl (operator +)(std::byte const byte) noexcept { return byte; }
+        constfunc(true) mustinline std::byte decl (operator -)(std::byte const byte) noexcept { return static_cast<std::byte>(-std::to_integer<unsigned char>(byte)); }
+        constfunc(true) mustinline bool      decl (operator !)(std::byte const byte) noexcept { return !std::to_integer<unsigned char>(byte); }
 
-      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          +=  instanceof<type nodecay>())                    (operator += )(std::byte&          byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char&>()          +=  instanceof<type nodecay>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          +=  instanceof<type nodecay>()) evaluation = (value +=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          +=  instanceof<type nodecay>())>(evaluation); }
-      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() +=  instanceof<type nodecay>())                    (operator += )(std::byte volatile& byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char volatile&>() +=  instanceof<type nodecay>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() +=  instanceof<type nodecay>()) evaluation = (value +=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() +=  instanceof<type nodecay>())>(evaluation); }
-      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          -=  instanceof<type nodecay>())                    (operator -= )(std::byte&          byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char&>()          -=  instanceof<type nodecay>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          -=  instanceof<type nodecay>()) evaluation = (value -=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          -=  instanceof<type nodecay>())>(evaluation); }
-      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() -=  instanceof<type nodecay>())                    (operator -= )(std::byte volatile& byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char volatile&>() -=  instanceof<type nodecay>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() -=  instanceof<type nodecay>()) evaluation = (value -=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() -=  instanceof<type nodecay>())>(evaluation); }
-      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          *=  instanceof<type nodecay>())                    (operator *= )(std::byte&          byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char&>()          *=  instanceof<type nodecay>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          *=  instanceof<type nodecay>()) evaluation = (value *=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          *=  instanceof<type nodecay>())>(evaluation); }
-      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() *=  instanceof<type nodecay>())                    (operator *= )(std::byte volatile& byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char volatile&>() *=  instanceof<type nodecay>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() *=  instanceof<type nodecay>()) evaluation = (value *=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() *=  instanceof<type nodecay>())>(evaluation); }
-      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          /=  instanceof<type nodecay>())                    (operator /= )(std::byte&          byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char&>()          /=  instanceof<type nodecay>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          /=  instanceof<type nodecay>()) evaluation = (value /=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          /=  instanceof<type nodecay>())>(evaluation); }
-      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() /=  instanceof<type nodecay>())                    (operator /= )(std::byte volatile& byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char volatile&>() /=  instanceof<type nodecay>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() /=  instanceof<type nodecay>()) evaluation = (value /=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() /=  instanceof<type nodecay>())>(evaluation); }
-      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          %=  instanceof<type nodecay>())                    (operator %= )(std::byte&          byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char&>()          %=  instanceof<type nodecay>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          %=  instanceof<type nodecay>()) evaluation = (value %=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          %=  instanceof<type nodecay>())>(evaluation); }
-      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() %=  instanceof<type nodecay>())                    (operator %= )(std::byte volatile& byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char volatile&>() %=  instanceof<type nodecay>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() %=  instanceof<type nodecay>()) evaluation = (value %=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() %=  instanceof<type nodecay>())>(evaluation); }
-      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() &=  instanceof<type nodecay>())                    (operator &= )(std::byte volatile& byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char volatile&>() &=  instanceof<type nodecay>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() &=  instanceof<type nodecay>()) evaluation = (value &=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() &=  instanceof<type nodecay>())>(evaluation); }
-      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() |=  instanceof<type nodecay>())                    (operator |= )(std::byte volatile& byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char volatile&>() |=  instanceof<type nodecay>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() |=  instanceof<type nodecay>()) evaluation = (value |=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() |=  instanceof<type nodecay>())>(evaluation); }
-      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type nodecay>())                    (operator ^= )(std::byte volatile& byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char volatile&>() ^=  instanceof<type nodecay>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type nodecay>()) evaluation = (value ^=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type nodecay>())>(evaluation); }
-      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() <<= instanceof<type nodecay>())                    (operator <<=)(std::byte volatile& byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char volatile&>() <<= instanceof<type nodecay>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() <<= instanceof<type nodecay>()) evaluation = (value <<= pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() <<= instanceof<type nodecay>())>(evaluation); }
-      template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() >>= instanceof<type nodecay>())                    (operator >>=)(std::byte volatile& byte, type nodecay object) exceptspec(exceptof(instanceof<unsigned char volatile&>() >>= instanceof<type nodecay>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() >>= instanceof<type nodecay>()) evaluation = (value >>= pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() >>= instanceof<type nodecay>())>(evaluation); }
-      template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) == instanceof<type nodecay>())) (operator == )(std::byte const     byte, type nodecay object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) == instanceof<type nodecay>())) { return std::to_integer<unsigned char>(byte) == pass<type>(object); }
-      template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) != instanceof<type nodecay>())) (operator != )(std::byte const     byte, type nodecay object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) != instanceof<type nodecay>())) { return std::to_integer<unsigned char>(byte) != pass<type>(object); }
-      template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <  instanceof<type nodecay>())) (operator <  )(std::byte const     byte, type nodecay object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <  instanceof<type nodecay>())) { return std::to_integer<unsigned char>(byte) <  pass<type>(object); }
-      template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) >  instanceof<type nodecay>())) (operator >  )(std::byte const     byte, type nodecay object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) >  instanceof<type nodecay>())) { return std::to_integer<unsigned char>(byte) >  pass<type>(object); }
-      template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <= instanceof<type nodecay>())) (operator <= )(std::byte const     byte, type nodecay object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <= instanceof<type nodecay>())) { return std::to_integer<unsigned char>(byte) <= pass<type>(object); }
-      template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) >= instanceof<type nodecay>())) (operator >= )(std::byte const     byte, type nodecay object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) >= instanceof<type nodecay>())) { return std::to_integer<unsigned char>(byte) >= pass<type>(object); }
-
-      #if defined __cpp_impl_three_way_comparison or defined __cpp_lib_three_way_comparison // --> 201907L
-        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <=> instanceof<type nodecay>())) (operator <=>)(std::byte const byte, type nodecay object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <=> instanceof<type nodecay>())) { return std::to_integer<unsigned char>(byte) <=> pass<type>(object); }
-      #endif
-
-      #if CPP_VERSION < 2011uL
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          +=  instanceof<type&>               ())                    (operator += )(std::byte&          byte, type&                object) exceptspec(exceptof(instanceof<unsigned char&>()          +=  instanceof<type&>               ()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          +=  instanceof<type&>               ()) evaluation = (value +=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          +=  instanceof<type&>               ())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          +=  instanceof<type       volatile&>())                    (operator += )(std::byte&          byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char&>()          +=  instanceof<type       volatile&>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          +=  instanceof<type       volatile&>()) evaluation = (value +=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          +=  instanceof<type       volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          +=  instanceof<type const volatile&>())                    (operator += )(std::byte&          byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char&>()          +=  instanceof<type const volatile&>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          +=  instanceof<type const volatile&>()) evaluation = (value +=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          +=  instanceof<type const volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() +=  instanceof<type&>               ())                    (operator += )(std::byte volatile& byte, type&                object) exceptspec(exceptof(instanceof<unsigned char volatile&>() +=  instanceof<type&>               ()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() +=  instanceof<type&>               ()) evaluation = (value +=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() +=  instanceof<type&>               ())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() +=  instanceof<type       volatile&>())                    (operator += )(std::byte volatile& byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() +=  instanceof<type       volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() +=  instanceof<type       volatile&>()) evaluation = (value +=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() +=  instanceof<type       volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() +=  instanceof<type const volatile&>())                    (operator += )(std::byte volatile& byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() +=  instanceof<type const volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() +=  instanceof<type const volatile&>()) evaluation = (value +=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() +=  instanceof<type const volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          -=  instanceof<type&>               ())                    (operator -= )(std::byte&          byte, type&                object) exceptspec(exceptof(instanceof<unsigned char&>()          -=  instanceof<type&>               ()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          -=  instanceof<type&>               ()) evaluation = (value -=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          -=  instanceof<type&>               ())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          -=  instanceof<type       volatile&>())                    (operator -= )(std::byte&          byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char&>()          -=  instanceof<type       volatile&>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          -=  instanceof<type       volatile&>()) evaluation = (value -=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          -=  instanceof<type       volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          -=  instanceof<type const volatile&>())                    (operator -= )(std::byte&          byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char&>()          -=  instanceof<type const volatile&>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          -=  instanceof<type const volatile&>()) evaluation = (value -=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          -=  instanceof<type const volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() -=  instanceof<type&>               ())                    (operator -= )(std::byte volatile& byte, type&                object) exceptspec(exceptof(instanceof<unsigned char volatile&>() -=  instanceof<type&>               ()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() -=  instanceof<type&>               ()) evaluation = (value -=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() -=  instanceof<type&>               ())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() -=  instanceof<type       volatile&>())                    (operator -= )(std::byte volatile& byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() -=  instanceof<type       volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() -=  instanceof<type       volatile&>()) evaluation = (value -=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() -=  instanceof<type       volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() -=  instanceof<type const volatile&>())                    (operator -= )(std::byte volatile& byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() -=  instanceof<type const volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() -=  instanceof<type const volatile&>()) evaluation = (value -=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() -=  instanceof<type const volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          *=  instanceof<type&>               ())                    (operator *= )(std::byte&          byte, type&                object) exceptspec(exceptof(instanceof<unsigned char&>()          *=  instanceof<type&>               ()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          *=  instanceof<type&>               ()) evaluation = (value *=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          *=  instanceof<type&>               ())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          *=  instanceof<type       volatile&>())                    (operator *= )(std::byte&          byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char&>()          *=  instanceof<type       volatile&>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          *=  instanceof<type       volatile&>()) evaluation = (value *=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          *=  instanceof<type       volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          *=  instanceof<type const volatile&>())                    (operator *= )(std::byte&          byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char&>()          *=  instanceof<type const volatile&>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          *=  instanceof<type const volatile&>()) evaluation = (value *=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          *=  instanceof<type const volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() *=  instanceof<type&>               ())                    (operator *= )(std::byte volatile& byte, type&                object) exceptspec(exceptof(instanceof<unsigned char volatile&>() *=  instanceof<type&>               ()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() *=  instanceof<type&>               ()) evaluation = (value *=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() *=  instanceof<type&>               ())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() *=  instanceof<type       volatile&>())                    (operator *= )(std::byte volatile& byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() *=  instanceof<type       volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() *=  instanceof<type       volatile&>()) evaluation = (value *=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() *=  instanceof<type       volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() *=  instanceof<type const volatile&>())                    (operator *= )(std::byte volatile& byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() *=  instanceof<type const volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() *=  instanceof<type const volatile&>()) evaluation = (value *=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() *=  instanceof<type const volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          /=  instanceof<type&>               ())                    (operator /= )(std::byte&          byte, type&                object) exceptspec(exceptof(instanceof<unsigned char&>()          /=  instanceof<type&>               ()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          /=  instanceof<type&>               ()) evaluation = (value /=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          /=  instanceof<type&>               ())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          /=  instanceof<type       volatile&>())                    (operator /= )(std::byte&          byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char&>()          /=  instanceof<type       volatile&>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          /=  instanceof<type       volatile&>()) evaluation = (value /=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          /=  instanceof<type       volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          /=  instanceof<type const volatile&>())                    (operator /= )(std::byte&          byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char&>()          /=  instanceof<type const volatile&>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          /=  instanceof<type const volatile&>()) evaluation = (value /=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          /=  instanceof<type const volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() /=  instanceof<type&>               ())                    (operator /= )(std::byte volatile& byte, type&                object) exceptspec(exceptof(instanceof<unsigned char volatile&>() /=  instanceof<type&>               ()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() /=  instanceof<type&>               ()) evaluation = (value /=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() /=  instanceof<type&>               ())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() /=  instanceof<type       volatile&>())                    (operator /= )(std::byte volatile& byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() /=  instanceof<type       volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() /=  instanceof<type       volatile&>()) evaluation = (value /=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() /=  instanceof<type       volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() /=  instanceof<type const volatile&>())                    (operator /= )(std::byte volatile& byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() /=  instanceof<type const volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() /=  instanceof<type const volatile&>()) evaluation = (value /=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() /=  instanceof<type const volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          %=  instanceof<type&>               ())                    (operator %= )(std::byte&          byte, type&                object) exceptspec(exceptof(instanceof<unsigned char&>()          %=  instanceof<type&>               ()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          %=  instanceof<type&>               ()) evaluation = (value %=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          %=  instanceof<type&>               ())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          %=  instanceof<type       volatile&>())                    (operator %= )(std::byte&          byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char&>()          %=  instanceof<type       volatile&>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          %=  instanceof<type       volatile&>()) evaluation = (value %=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          %=  instanceof<type       volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          %=  instanceof<type const volatile&>())                    (operator %= )(std::byte&          byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char&>()          %=  instanceof<type const volatile&>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          %=  instanceof<type const volatile&>()) evaluation = (value %=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          %=  instanceof<type const volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() %=  instanceof<type&>               ())                    (operator %= )(std::byte volatile& byte, type&                object) exceptspec(exceptof(instanceof<unsigned char volatile&>() %=  instanceof<type&>               ()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() %=  instanceof<type&>               ()) evaluation = (value %=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() %=  instanceof<type&>               ())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() %=  instanceof<type       volatile&>())                    (operator %= )(std::byte volatile& byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() %=  instanceof<type       volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() %=  instanceof<type       volatile&>()) evaluation = (value %=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() %=  instanceof<type       volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() %=  instanceof<type const volatile&>())                    (operator %= )(std::byte volatile& byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() %=  instanceof<type const volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() %=  instanceof<type const volatile&>()) evaluation = (value %=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() %=  instanceof<type const volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() &=  instanceof<type&>               ())                    (operator &= )(std::byte volatile& byte, type&                object) exceptspec(exceptof(instanceof<unsigned char volatile&>() &=  instanceof<type&>               ()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() &=  instanceof<type&>               ()) evaluation = (value &=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() &=  instanceof<type&>               ())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() &=  instanceof<type       volatile&>())                    (operator &= )(std::byte volatile& byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() &=  instanceof<type       volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() &=  instanceof<type       volatile&>()) evaluation = (value &=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() &=  instanceof<type       volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() &=  instanceof<type const volatile&>())                    (operator &= )(std::byte volatile& byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() &=  instanceof<type const volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() &=  instanceof<type const volatile&>()) evaluation = (value &=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() &=  instanceof<type const volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() |=  instanceof<type&>               ())                    (operator |= )(std::byte volatile& byte, type&                object) exceptspec(exceptof(instanceof<unsigned char volatile&>() |=  instanceof<type&>               ()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() |=  instanceof<type&>               ()) evaluation = (value |=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() |=  instanceof<type&>               ())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() |=  instanceof<type       volatile&>())                    (operator |= )(std::byte volatile& byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() |=  instanceof<type       volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() |=  instanceof<type       volatile&>()) evaluation = (value |=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() |=  instanceof<type       volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() |=  instanceof<type const volatile&>())                    (operator |= )(std::byte volatile& byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() |=  instanceof<type const volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() |=  instanceof<type const volatile&>()) evaluation = (value |=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() |=  instanceof<type const volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type&>               ())                    (operator ^= )(std::byte volatile& byte, type&                object) exceptspec(exceptof(instanceof<unsigned char volatile&>() ^=  instanceof<type&>               ()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type&>               ()) evaluation = (value ^=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type&>               ())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type       volatile&>())                    (operator ^= )(std::byte volatile& byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() ^=  instanceof<type       volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type       volatile&>()) evaluation = (value ^=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type       volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type const volatile&>())                    (operator ^= )(std::byte volatile& byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() ^=  instanceof<type const volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type const volatile&>()) evaluation = (value ^=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type const volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() <<= instanceof<type&>               ())                    (operator <<=)(std::byte volatile& byte, type&                object) exceptspec(exceptof(instanceof<unsigned char volatile&>() <<= instanceof<type&>               ()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() <<= instanceof<type&>               ()) evaluation = (value <<= pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() <<= instanceof<type&>               ())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() <<= instanceof<type       volatile&>())                    (operator <<=)(std::byte volatile& byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() <<= instanceof<type       volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() <<= instanceof<type       volatile&>()) evaluation = (value <<= pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() <<= instanceof<type       volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() <<= instanceof<type const volatile&>())                    (operator <<=)(std::byte volatile& byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() <<= instanceof<type const volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() <<= instanceof<type const volatile&>()) evaluation = (value <<= pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() <<= instanceof<type const volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() >>= instanceof<type&>               ())                    (operator >>=)(std::byte volatile& byte, type&                object) exceptspec(exceptof(instanceof<unsigned char volatile&>() >>= instanceof<type&>               ()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() >>= instanceof<type&>               ()) evaluation = (value >>= pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() >>= instanceof<type&>               ())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() >>= instanceof<type       volatile&>())                    (operator >>=)(std::byte volatile& byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() >>= instanceof<type       volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() >>= instanceof<type       volatile&>()) evaluation = (value >>= pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() >>= instanceof<type       volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() >>= instanceof<type const volatile&>())                    (operator >>=)(std::byte volatile& byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() >>= instanceof<type const volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() >>= instanceof<type const volatile&>()) evaluation = (value >>= pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() >>= instanceof<type const volatile&>())>(evaluation); }
-        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) == instanceof<type&>               ())) (operator == )(std::byte const     byte, type&                object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) == instanceof<type&>               ())) { return std::to_integer<unsigned char>(byte) == pass<type>(object); }
-        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) == instanceof<type       volatile&>())) (operator == )(std::byte const     byte, type       volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) == instanceof<type       volatile&>())) { return std::to_integer<unsigned char>(byte) == pass<type>(object); }
-        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) == instanceof<type const volatile&>())) (operator == )(std::byte const     byte, type const volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) == instanceof<type const volatile&>())) { return std::to_integer<unsigned char>(byte) == pass<type>(object); }
-        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) != instanceof<type&>               ())) (operator != )(std::byte const     byte, type&                object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) != instanceof<type&>               ())) { return std::to_integer<unsigned char>(byte) != pass<type>(object); }
-        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) != instanceof<type       volatile&>())) (operator != )(std::byte const     byte, type       volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) != instanceof<type       volatile&>())) { return std::to_integer<unsigned char>(byte) != pass<type>(object); }
-        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) != instanceof<type const volatile&>())) (operator != )(std::byte const     byte, type const volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) != instanceof<type const volatile&>())) { return std::to_integer<unsigned char>(byte) != pass<type>(object); }
-        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <  instanceof<type&>               ())) (operator <  )(std::byte const     byte, type&                object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <  instanceof<type&>               ())) { return std::to_integer<unsigned char>(byte) <  pass<type>(object); }
-        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <  instanceof<type       volatile&>())) (operator <  )(std::byte const     byte, type       volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <  instanceof<type       volatile&>())) { return std::to_integer<unsigned char>(byte) <  pass<type>(object); }
-        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <  instanceof<type const volatile&>())) (operator <  )(std::byte const     byte, type const volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <  instanceof<type const volatile&>())) { return std::to_integer<unsigned char>(byte) <  pass<type>(object); }
-        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) >  instanceof<type&>               ())) (operator >  )(std::byte const     byte, type&                object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) >  instanceof<type&>               ())) { return std::to_integer<unsigned char>(byte) >  pass<type>(object); }
-        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) >  instanceof<type       volatile&>())) (operator >  )(std::byte const     byte, type       volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) >  instanceof<type       volatile&>())) { return std::to_integer<unsigned char>(byte) >  pass<type>(object); }
-        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) >  instanceof<type const volatile&>())) (operator >  )(std::byte const     byte, type const volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) >  instanceof<type const volatile&>())) { return std::to_integer<unsigned char>(byte) >  pass<type>(object); }
-        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <= instanceof<type&>               ())) (operator <= )(std::byte const     byte, type&                object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <= instanceof<type&>               ())) { return std::to_integer<unsigned char>(byte) <= pass<type>(object); }
-        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <= instanceof<type       volatile&>())) (operator <= )(std::byte const     byte, type       volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <= instanceof<type       volatile&>())) { return std::to_integer<unsigned char>(byte) <= pass<type>(object); }
-        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <= instanceof<type const volatile&>())) (operator <= )(std::byte const     byte, type const volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <= instanceof<type const volatile&>())) { return std::to_integer<unsigned char>(byte) <= pass<type>(object); }
-        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) >= instanceof<type&>               ())) (operator >= )(std::byte const     byte, type&                object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) >= instanceof<type&>               ())) { return std::to_integer<unsigned char>(byte) >= pass<type>(object); }
-        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) >= instanceof<type       volatile&>())) (operator >= )(std::byte const     byte, type       volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) >= instanceof<type       volatile&>())) { return std::to_integer<unsigned char>(byte) >= pass<type>(object); }
-        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) >= instanceof<type const volatile&>())) (operator >= )(std::byte const     byte, type const volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) >= instanceof<type const volatile&>())) { return std::to_integer<unsigned char>(byte) >= pass<type>(object); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          +=  instanceof<type fref>())                    (operator += )(std::byte&          byte, type fref object) exceptspec(exceptof(instanceof<unsigned char&>()          +=  instanceof<type fref>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          +=  instanceof<type fref>()) evaluation = (value +=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          +=  instanceof<type fref>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() +=  instanceof<type fref>())                    (operator += )(std::byte volatile& byte, type fref object) exceptspec(exceptof(instanceof<unsigned char volatile&>() +=  instanceof<type fref>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() +=  instanceof<type fref>()) evaluation = (value +=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() +=  instanceof<type fref>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          -=  instanceof<type fref>())                    (operator -= )(std::byte&          byte, type fref object) exceptspec(exceptof(instanceof<unsigned char&>()          -=  instanceof<type fref>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          -=  instanceof<type fref>()) evaluation = (value -=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          -=  instanceof<type fref>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() -=  instanceof<type fref>())                    (operator -= )(std::byte volatile& byte, type fref object) exceptspec(exceptof(instanceof<unsigned char volatile&>() -=  instanceof<type fref>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() -=  instanceof<type fref>()) evaluation = (value -=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() -=  instanceof<type fref>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          *=  instanceof<type fref>())                    (operator *= )(std::byte&          byte, type fref object) exceptspec(exceptof(instanceof<unsigned char&>()          *=  instanceof<type fref>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          *=  instanceof<type fref>()) evaluation = (value *=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          *=  instanceof<type fref>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() *=  instanceof<type fref>())                    (operator *= )(std::byte volatile& byte, type fref object) exceptspec(exceptof(instanceof<unsigned char volatile&>() *=  instanceof<type fref>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() *=  instanceof<type fref>()) evaluation = (value *=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() *=  instanceof<type fref>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          /=  instanceof<type fref>())                    (operator /= )(std::byte&          byte, type fref object) exceptspec(exceptof(instanceof<unsigned char&>()          /=  instanceof<type fref>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          /=  instanceof<type fref>()) evaluation = (value /=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          /=  instanceof<type fref>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() /=  instanceof<type fref>())                    (operator /= )(std::byte volatile& byte, type fref object) exceptspec(exceptof(instanceof<unsigned char volatile&>() /=  instanceof<type fref>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() /=  instanceof<type fref>()) evaluation = (value /=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() /=  instanceof<type fref>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          %=  instanceof<type fref>())                    (operator %= )(std::byte&          byte, type fref object) exceptspec(exceptof(instanceof<unsigned char&>()          %=  instanceof<type fref>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          %=  instanceof<type fref>()) evaluation = (value %=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          %=  instanceof<type fref>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() %=  instanceof<type fref>())                    (operator %= )(std::byte volatile& byte, type fref object) exceptspec(exceptof(instanceof<unsigned char volatile&>() %=  instanceof<type fref>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() %=  instanceof<type fref>()) evaluation = (value %=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() %=  instanceof<type fref>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() &=  instanceof<type fref>())                    (operator &= )(std::byte volatile& byte, type fref object) exceptspec(exceptof(instanceof<unsigned char volatile&>() &=  instanceof<type fref>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() &=  instanceof<type fref>()) evaluation = (value &=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() &=  instanceof<type fref>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() |=  instanceof<type fref>())                    (operator |= )(std::byte volatile& byte, type fref object) exceptspec(exceptof(instanceof<unsigned char volatile&>() |=  instanceof<type fref>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() |=  instanceof<type fref>()) evaluation = (value |=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() |=  instanceof<type fref>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type fref>())                    (operator ^= )(std::byte volatile& byte, type fref object) exceptspec(exceptof(instanceof<unsigned char volatile&>() ^=  instanceof<type fref>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type fref>()) evaluation = (value ^=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type fref>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() <<= instanceof<type fref>())                    (operator <<=)(std::byte volatile& byte, type fref object) exceptspec(exceptof(instanceof<unsigned char volatile&>() <<= instanceof<type fref>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() <<= instanceof<type fref>()) evaluation = (value <<= pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() <<= instanceof<type fref>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() >>= instanceof<type fref>())                    (operator >>=)(std::byte volatile& byte, type fref object) exceptspec(exceptof(instanceof<unsigned char volatile&>() >>= instanceof<type fref>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() >>= instanceof<type fref>()) evaluation = (value >>= pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() >>= instanceof<type fref>())>(evaluation); }
+        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) == instanceof<type fref>())) (operator == )(std::byte const     byte, type fref object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) == instanceof<type fref>())) { return std::to_integer<unsigned char>(byte) == pass<type>(object); }
+        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) != instanceof<type fref>())) (operator != )(std::byte const     byte, type fref object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) != instanceof<type fref>())) { return std::to_integer<unsigned char>(byte) != pass<type>(object); }
+        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <  instanceof<type fref>())) (operator <  )(std::byte const     byte, type fref object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <  instanceof<type fref>())) { return std::to_integer<unsigned char>(byte) <  pass<type>(object); }
+        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) >  instanceof<type fref>())) (operator >  )(std::byte const     byte, type fref object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) >  instanceof<type fref>())) { return std::to_integer<unsigned char>(byte) >  pass<type>(object); }
+        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <= instanceof<type fref>())) (operator <= )(std::byte const     byte, type fref object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <= instanceof<type fref>())) { return std::to_integer<unsigned char>(byte) <= pass<type>(object); }
+        template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) >= instanceof<type fref>())) (operator >= )(std::byte const     byte, type fref object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) >= instanceof<type fref>())) { return std::to_integer<unsigned char>(byte) >= pass<type>(object); }
 
         #if defined __cpp_impl_three_way_comparison or defined __cpp_lib_three_way_comparison // --> 201907L
-          template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <=> instanceof<type&>               ())) (operator <=>)(std::byte const byte, type&                object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <=> instanceof<type&>               ())) { return std::to_integer<unsigned char>(byte) <=> pass<type>(object); }
-          template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <=> instanceof<type       volatile&>())) (operator <=>)(std::byte const byte, type       volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <=> instanceof<type       volatile&>())) { return std::to_integer<unsigned char>(byte) <=> pass<type>(object); }
-          template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <=> instanceof<type const volatile&>())) (operator <=>)(std::byte const byte, type const volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <=> instanceof<type const volatile&>())) { return std::to_integer<unsigned char>(byte) <=> pass<type>(object); }
+          template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <=> instanceof<type fref>())) (operator <=>)(std::byte const byte, type fref object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <=> instanceof<type fref>())) { return std::to_integer<unsigned char>(byte) <=> pass<type>(object); }
+        #endif
+
+        #if CPP_VERSION < 2011uL
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          +=  instanceof<type&>               ())                    (operator += )(std::byte&          byte, type&                object) exceptspec(exceptof(instanceof<unsigned char&>()          +=  instanceof<type&>               ()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          +=  instanceof<type&>               ()) evaluation = (value +=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          +=  instanceof<type&>               ())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          +=  instanceof<type       volatile&>())                    (operator += )(std::byte&          byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char&>()          +=  instanceof<type       volatile&>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          +=  instanceof<type       volatile&>()) evaluation = (value +=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          +=  instanceof<type       volatile&>())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          +=  instanceof<type const volatile&>())                    (operator += )(std::byte&          byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char&>()          +=  instanceof<type const volatile&>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          +=  instanceof<type const volatile&>()) evaluation = (value +=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          +=  instanceof<type const volatile&>())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() +=  instanceof<type&>               ())                    (operator += )(std::byte volatile& byte, type&                object) exceptspec(exceptof(instanceof<unsigned char volatile&>() +=  instanceof<type&>               ()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() +=  instanceof<type&>               ()) evaluation = (value +=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() +=  instanceof<type&>               ())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() +=  instanceof<type       volatile&>())                    (operator += )(std::byte volatile& byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() +=  instanceof<type       volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() +=  instanceof<type       volatile&>()) evaluation = (value +=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() +=  instanceof<type       volatile&>())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() +=  instanceof<type const volatile&>())                    (operator += )(std::byte volatile& byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() +=  instanceof<type const volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() +=  instanceof<type const volatile&>()) evaluation = (value +=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() +=  instanceof<type const volatile&>())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          -=  instanceof<type&>               ())                    (operator -= )(std::byte&          byte, type&                object) exceptspec(exceptof(instanceof<unsigned char&>()          -=  instanceof<type&>               ()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          -=  instanceof<type&>               ()) evaluation = (value -=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          -=  instanceof<type&>               ())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          -=  instanceof<type       volatile&>())                    (operator -= )(std::byte&          byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char&>()          -=  instanceof<type       volatile&>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          -=  instanceof<type       volatile&>()) evaluation = (value -=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          -=  instanceof<type       volatile&>())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          -=  instanceof<type const volatile&>())                    (operator -= )(std::byte&          byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char&>()          -=  instanceof<type const volatile&>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          -=  instanceof<type const volatile&>()) evaluation = (value -=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          -=  instanceof<type const volatile&>())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() -=  instanceof<type&>               ())                    (operator -= )(std::byte volatile& byte, type&                object) exceptspec(exceptof(instanceof<unsigned char volatile&>() -=  instanceof<type&>               ()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() -=  instanceof<type&>               ()) evaluation = (value -=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() -=  instanceof<type&>               ())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() -=  instanceof<type       volatile&>())                    (operator -= )(std::byte volatile& byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() -=  instanceof<type       volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() -=  instanceof<type       volatile&>()) evaluation = (value -=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() -=  instanceof<type       volatile&>())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() -=  instanceof<type const volatile&>())                    (operator -= )(std::byte volatile& byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() -=  instanceof<type const volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() -=  instanceof<type const volatile&>()) evaluation = (value -=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() -=  instanceof<type const volatile&>())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          *=  instanceof<type&>               ())                    (operator *= )(std::byte&          byte, type&                object) exceptspec(exceptof(instanceof<unsigned char&>()          *=  instanceof<type&>               ()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          *=  instanceof<type&>               ()) evaluation = (value *=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          *=  instanceof<type&>               ())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          *=  instanceof<type       volatile&>())                    (operator *= )(std::byte&          byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char&>()          *=  instanceof<type       volatile&>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          *=  instanceof<type       volatile&>()) evaluation = (value *=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          *=  instanceof<type       volatile&>())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          *=  instanceof<type const volatile&>())                    (operator *= )(std::byte&          byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char&>()          *=  instanceof<type const volatile&>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          *=  instanceof<type const volatile&>()) evaluation = (value *=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          *=  instanceof<type const volatile&>())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() *=  instanceof<type&>               ())                    (operator *= )(std::byte volatile& byte, type&                object) exceptspec(exceptof(instanceof<unsigned char volatile&>() *=  instanceof<type&>               ()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() *=  instanceof<type&>               ()) evaluation = (value *=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() *=  instanceof<type&>               ())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() *=  instanceof<type       volatile&>())                    (operator *= )(std::byte volatile& byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() *=  instanceof<type       volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() *=  instanceof<type       volatile&>()) evaluation = (value *=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() *=  instanceof<type       volatile&>())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() *=  instanceof<type const volatile&>())                    (operator *= )(std::byte volatile& byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() *=  instanceof<type const volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() *=  instanceof<type const volatile&>()) evaluation = (value *=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() *=  instanceof<type const volatile&>())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          /=  instanceof<type&>               ())                    (operator /= )(std::byte&          byte, type&                object) exceptspec(exceptof(instanceof<unsigned char&>()          /=  instanceof<type&>               ()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          /=  instanceof<type&>               ()) evaluation = (value /=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          /=  instanceof<type&>               ())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          /=  instanceof<type       volatile&>())                    (operator /= )(std::byte&          byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char&>()          /=  instanceof<type       volatile&>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          /=  instanceof<type       volatile&>()) evaluation = (value /=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          /=  instanceof<type       volatile&>())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          /=  instanceof<type const volatile&>())                    (operator /= )(std::byte&          byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char&>()          /=  instanceof<type const volatile&>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          /=  instanceof<type const volatile&>()) evaluation = (value /=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          /=  instanceof<type const volatile&>())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() /=  instanceof<type&>               ())                    (operator /= )(std::byte volatile& byte, type&                object) exceptspec(exceptof(instanceof<unsigned char volatile&>() /=  instanceof<type&>               ()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() /=  instanceof<type&>               ()) evaluation = (value /=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() /=  instanceof<type&>               ())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() /=  instanceof<type       volatile&>())                    (operator /= )(std::byte volatile& byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() /=  instanceof<type       volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() /=  instanceof<type       volatile&>()) evaluation = (value /=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() /=  instanceof<type       volatile&>())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() /=  instanceof<type const volatile&>())                    (operator /= )(std::byte volatile& byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() /=  instanceof<type const volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() /=  instanceof<type const volatile&>()) evaluation = (value /=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() /=  instanceof<type const volatile&>())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          %=  instanceof<type&>               ())                    (operator %= )(std::byte&          byte, type&                object) exceptspec(exceptof(instanceof<unsigned char&>()          %=  instanceof<type&>               ()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          %=  instanceof<type&>               ()) evaluation = (value %=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          %=  instanceof<type&>               ())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          %=  instanceof<type       volatile&>())                    (operator %= )(std::byte&          byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char&>()          %=  instanceof<type       volatile&>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          %=  instanceof<type       volatile&>()) evaluation = (value %=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          %=  instanceof<type       volatile&>())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char&>()          %=  instanceof<type const volatile&>())                    (operator %= )(std::byte&          byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char&>()          %=  instanceof<type const volatile&>()))                  { unsigned char          value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char&>()          %=  instanceof<type const volatile&>()) evaluation = (value %=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char&>()          %=  instanceof<type const volatile&>())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() %=  instanceof<type&>               ())                    (operator %= )(std::byte volatile& byte, type&                object) exceptspec(exceptof(instanceof<unsigned char volatile&>() %=  instanceof<type&>               ()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() %=  instanceof<type&>               ()) evaluation = (value %=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() %=  instanceof<type&>               ())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() %=  instanceof<type       volatile&>())                    (operator %= )(std::byte volatile& byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() %=  instanceof<type       volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() %=  instanceof<type       volatile&>()) evaluation = (value %=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() %=  instanceof<type       volatile&>())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() %=  instanceof<type const volatile&>())                    (operator %= )(std::byte volatile& byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() %=  instanceof<type const volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() %=  instanceof<type const volatile&>()) evaluation = (value %=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() %=  instanceof<type const volatile&>())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() &=  instanceof<type&>               ())                    (operator &= )(std::byte volatile& byte, type&                object) exceptspec(exceptof(instanceof<unsigned char volatile&>() &=  instanceof<type&>               ()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() &=  instanceof<type&>               ()) evaluation = (value &=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() &=  instanceof<type&>               ())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() &=  instanceof<type       volatile&>())                    (operator &= )(std::byte volatile& byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() &=  instanceof<type       volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() &=  instanceof<type       volatile&>()) evaluation = (value &=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() &=  instanceof<type       volatile&>())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() &=  instanceof<type const volatile&>())                    (operator &= )(std::byte volatile& byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() &=  instanceof<type const volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() &=  instanceof<type const volatile&>()) evaluation = (value &=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() &=  instanceof<type const volatile&>())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() |=  instanceof<type&>               ())                    (operator |= )(std::byte volatile& byte, type&                object) exceptspec(exceptof(instanceof<unsigned char volatile&>() |=  instanceof<type&>               ()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() |=  instanceof<type&>               ()) evaluation = (value |=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() |=  instanceof<type&>               ())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() |=  instanceof<type       volatile&>())                    (operator |= )(std::byte volatile& byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() |=  instanceof<type       volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() |=  instanceof<type       volatile&>()) evaluation = (value |=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() |=  instanceof<type       volatile&>())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() |=  instanceof<type const volatile&>())                    (operator |= )(std::byte volatile& byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() |=  instanceof<type const volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() |=  instanceof<type const volatile&>()) evaluation = (value |=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() |=  instanceof<type const volatile&>())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type&>               ())                    (operator ^= )(std::byte volatile& byte, type&                object) exceptspec(exceptof(instanceof<unsigned char volatile&>() ^=  instanceof<type&>               ()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type&>               ()) evaluation = (value ^=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type&>               ())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type       volatile&>())                    (operator ^= )(std::byte volatile& byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() ^=  instanceof<type       volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type       volatile&>()) evaluation = (value ^=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type       volatile&>())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type const volatile&>())                    (operator ^= )(std::byte volatile& byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() ^=  instanceof<type const volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type const volatile&>()) evaluation = (value ^=  pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() ^=  instanceof<type const volatile&>())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() <<= instanceof<type&>               ())                    (operator <<=)(std::byte volatile& byte, type&                object) exceptspec(exceptof(instanceof<unsigned char volatile&>() <<= instanceof<type&>               ()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() <<= instanceof<type&>               ()) evaluation = (value <<= pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() <<= instanceof<type&>               ())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() <<= instanceof<type       volatile&>())                    (operator <<=)(std::byte volatile& byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() <<= instanceof<type       volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() <<= instanceof<type       volatile&>()) evaluation = (value <<= pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() <<= instanceof<type       volatile&>())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() <<= instanceof<type const volatile&>())                    (operator <<=)(std::byte volatile& byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() <<= instanceof<type const volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() <<= instanceof<type const volatile&>()) evaluation = (value <<= pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() <<= instanceof<type const volatile&>())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() >>= instanceof<type&>               ())                    (operator >>=)(std::byte volatile& byte, type&                object) exceptspec(exceptof(instanceof<unsigned char volatile&>() >>= instanceof<type&>               ()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() >>= instanceof<type&>               ()) evaluation = (value >>= pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() >>= instanceof<type&>               ())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() >>= instanceof<type       volatile&>())                    (operator >>=)(std::byte volatile& byte, type       volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() >>= instanceof<type       volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() >>= instanceof<type       volatile&>()) evaluation = (value >>= pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() >>= instanceof<type       volatile&>())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof(instanceof<unsigned char volatile&>() >>= instanceof<type const volatile&>())                    (operator >>=)(std::byte volatile& byte, type const volatile& object) exceptspec(exceptof(instanceof<unsigned char volatile&>() >>= instanceof<type const volatile&>()))                  { unsigned char volatile value = std::to_integer<unsigned char>(byte); typeof(instanceof<unsigned char volatile&>() >>= instanceof<type const volatile&>()) evaluation = (value >>= pass<type>(object)); byte = static_cast<std::byte>(value); return static_cast<typeof(instanceof<unsigned char volatile&>() >>= instanceof<type const volatile&>())>(evaluation); }
+          template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) == instanceof<type&>               ())) (operator == )(std::byte const     byte, type&                object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) == instanceof<type&>               ())) { return std::to_integer<unsigned char>(byte) == pass<type>(object); }
+          template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) == instanceof<type       volatile&>())) (operator == )(std::byte const     byte, type       volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) == instanceof<type       volatile&>())) { return std::to_integer<unsigned char>(byte) == pass<type>(object); }
+          template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) == instanceof<type const volatile&>())) (operator == )(std::byte const     byte, type const volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) == instanceof<type const volatile&>())) { return std::to_integer<unsigned char>(byte) == pass<type>(object); }
+          template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) != instanceof<type&>               ())) (operator != )(std::byte const     byte, type&                object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) != instanceof<type&>               ())) { return std::to_integer<unsigned char>(byte) != pass<type>(object); }
+          template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) != instanceof<type       volatile&>())) (operator != )(std::byte const     byte, type       volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) != instanceof<type       volatile&>())) { return std::to_integer<unsigned char>(byte) != pass<type>(object); }
+          template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) != instanceof<type const volatile&>())) (operator != )(std::byte const     byte, type const volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) != instanceof<type const volatile&>())) { return std::to_integer<unsigned char>(byte) != pass<type>(object); }
+          template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <  instanceof<type&>               ())) (operator <  )(std::byte const     byte, type&                object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <  instanceof<type&>               ())) { return std::to_integer<unsigned char>(byte) <  pass<type>(object); }
+          template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <  instanceof<type       volatile&>())) (operator <  )(std::byte const     byte, type       volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <  instanceof<type       volatile&>())) { return std::to_integer<unsigned char>(byte) <  pass<type>(object); }
+          template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <  instanceof<type const volatile&>())) (operator <  )(std::byte const     byte, type const volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <  instanceof<type const volatile&>())) { return std::to_integer<unsigned char>(byte) <  pass<type>(object); }
+          template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) >  instanceof<type&>               ())) (operator >  )(std::byte const     byte, type&                object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) >  instanceof<type&>               ())) { return std::to_integer<unsigned char>(byte) >  pass<type>(object); }
+          template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) >  instanceof<type       volatile&>())) (operator >  )(std::byte const     byte, type       volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) >  instanceof<type       volatile&>())) { return std::to_integer<unsigned char>(byte) >  pass<type>(object); }
+          template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) >  instanceof<type const volatile&>())) (operator >  )(std::byte const     byte, type const volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) >  instanceof<type const volatile&>())) { return std::to_integer<unsigned char>(byte) >  pass<type>(object); }
+          template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <= instanceof<type&>               ())) (operator <= )(std::byte const     byte, type&                object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <= instanceof<type&>               ())) { return std::to_integer<unsigned char>(byte) <= pass<type>(object); }
+          template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <= instanceof<type       volatile&>())) (operator <= )(std::byte const     byte, type       volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <= instanceof<type       volatile&>())) { return std::to_integer<unsigned char>(byte) <= pass<type>(object); }
+          template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <= instanceof<type const volatile&>())) (operator <= )(std::byte const     byte, type const volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <= instanceof<type const volatile&>())) { return std::to_integer<unsigned char>(byte) <= pass<type>(object); }
+          template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) >= instanceof<type&>               ())) (operator >= )(std::byte const     byte, type&                object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) >= instanceof<type&>               ())) { return std::to_integer<unsigned char>(byte) >= pass<type>(object); }
+          template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) >= instanceof<type       volatile&>())) (operator >= )(std::byte const     byte, type       volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) >= instanceof<type       volatile&>())) { return std::to_integer<unsigned char>(byte) >= pass<type>(object); }
+          template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) >= instanceof<type const volatile&>())) (operator >= )(std::byte const     byte, type const volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) >= instanceof<type const volatile&>())) { return std::to_integer<unsigned char>(byte) >= pass<type>(object); }
+
+          #if defined __cpp_impl_three_way_comparison or defined __cpp_lib_three_way_comparison // --> 201907L
+            template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <=> instanceof<type&>               ())) (operator <=>)(std::byte const byte, type&                object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <=> instanceof<type&>               ())) { return std::to_integer<unsigned char>(byte) <=> pass<type>(object); }
+            template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <=> instanceof<type       volatile&>())) (operator <=>)(std::byte const byte, type       volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <=> instanceof<type       volatile&>())) { return std::to_integer<unsigned char>(byte) <=> pass<type>(object); }
+            template <typename type> constfunc(false) mustinline typeof((std::to_integer<unsigned char>(instanceof<std::byte>()) <=> instanceof<type const volatile&>())) (operator <=>)(std::byte const byte, type const volatile& object) exceptspec(exceptof(std::to_integer<unsigned char>(instanceof<std::byte>()) <=> instanceof<type const volatile&>())) { return std::to_integer<unsigned char>(byte) <=> pass<type>(object); }
+          #endif
         #endif
       #endif
     #endif
 
-    /* Define */
-    // Nil Size Of ->> Queries byte size of expression (object), defaulting to zero if expression has no discernible size via `sizeof ...`
-    #define nilsizeof(expression) ((sizeof (::Lapys::nilsizeof)((expression), sfinaeptr) / sizeof(::Lapys::byte)) - 1u)
-
-    template <typename type> constfunc(true) byte (&(nilsizeof)(type nodecay, sfinaeptr_t const, type[] = nullptr) noexcept)[sizeof(type) + 1u];
-    template <typename type> constfunc(true) byte (&(nilsizeof)(type nodecay, ...)                                 noexcept)[0u           + 1u];
-
-    // Width Of ->> Queries bit width of expression (object)
-    #define widthof(expression) (CPP_MAX_SIZE > sizeof (::Lapys::widthof)((expression)) / sizeof(::Lapys::byte) ? sizeof (::Lapys::widthof)((expression)) / sizeof(::Lapys::byte) : 0u)
-
-    template <std::size_t width> constfunc(true) byte (&(widthof)(bit<width> const)   noexcept)[CPP_MAX_SIZE > width and 0u != width   ? width                   : CPP_MAX_SIZE];
-    template <typename    type>  constfunc(true) byte (&(widthof)(type       nodecay) noexcept)[CPP_MAX_SIZE > CHAR_BIT * sizeof(type) ? CHAR_BIT * sizeof(type) : CPP_MAX_SIZE];
-
-    /* Trait */
-    // Null ->> Specialization type denoting an "empty set of values"; See `void` type
-    typedef union empty &null;
-
-    // Substitution Failure Is Not An Error (SFINAE Pointer) ->> Dummy/ extension type used for selective overloading/ specialization for evaluating possible compile-time constraints and expressions
-    #if CPP_VERSION < 2011uL
-      #define sfinaeptr sfinaeptr
-      enum sfinaeptr_t /* : uintmin_t */ { sfinaeptr /* = 0x00hhu */ };
-    #else
-      #define sfinaeptr nullptr
-      typedef std::nullptr_t sfinaeptr_t;
-    #endif
-
     /* Namespace ->> Pre-declare provided features */
     namespace Traits {
-      /* Alias > Boolean (False, True) */
-      typedef bool const (rlref boolean_false)[false + 1u];
-      typedef bool const (rlref boolean_true) [true  + 1u];
-
       /* Trait > ... ->> Not all traits are neatly declarable without their definition */
       struct defer;
       struct enumtypeinfo;
       struct opinfo;
       struct optraitinfo;
 
-      template <typename>                               struct alias;                 // --> std::type_identity
-      template <typename, bool = false>                 struct classinfo;             //
-      template <typename, typename>                     struct commonof;              // --> std::common_type
-      template <bool, typename = null, typename = null> struct conditional;           // --> std::conditional
-      template <typename base, base, bool>              struct constant;              // --> std::integral_constant
-      template <std::size_t, std::size_t = 10u>         struct countof;               //
-      template <typename>                               struct enuminfo;              //
-      template <std::size_t>                            struct float_fast_t;          //
-      template <std::size_t>                            struct float_fast_width_t;    //
-      template <std::size_t>                            struct float_least_t;         //
-      template <std::size_t>                            struct float_least_width_t;   //
-      template <std::size_t>                            struct float_t;               //
-      template <std::size_t>                            struct float_width_t;         //
-      template <typename>                               struct functioninfo;          //
-      template <std::size_t>                            struct int_fast_t;            //
-      template <std::size_t>                            struct int_fast_width_t;      //
-      template <std::size_t>                            struct int_least_t;           //
-      template <std::size_t>                            struct int_least_width_t;     //
-      template <std::size_t>                            struct int_t;                 //
-      template <std::size_t>                            struct int_width_t;           //
-      template <typename>                               struct is_blessed;            //
-      template <typename>                               struct is_byte;               //
-      template <typename>                               struct is_class;              // --> std::is_class
-      template <typename>                               struct is_const;              // --> std::is_const
-      template <typename>                               struct is_enum;               // --> std::is_enum; std::is_scoped_enum
-      template <typename>                               struct is_final;              // --> std::is_final
-      template <typename>                               struct is_function;           // --> std::is_function
-      template <typename>                               struct is_integer;            // --> std::is_integral
-      template <typename>                               struct is_null;               //
-      template <typename>                               struct is_lvalue_reference;   // --> std::is_lvalue_reference
-      template <typename>                               struct is_reference;          // --> std::is_reference
-      template <typename>                               struct is_rvalue_reference;   // --> std::is_rvalue_reference
-      template <typename, typename = null>              struct is_same;               // --> std::is_same
-      template <typename>                               struct is_signed;             // --> std::is_signed
-      template <typename>                               struct is_union;              // --> std::is_union
-      template <typename>                               struct is_unsigned;           // --> std::is_unsigned
-      template <typename>                               struct is_void;               // --> std::is_void
-      template <typename>                               struct is_volatile;           // --> std::is_volatile
-      template <typename>                               struct maxof;                 //
-      template <typename>                               struct minof;                 //
-      template <typename>                               struct nilof;                 //
-      template <typename>                               struct rankof;                //
-      template <typename>                               struct remove_const;          // --> std::remove_const
-      template <typename>                               struct remove_const_volatile; // --> std::remove_const_volatile
-      template <typename>                               struct remove_volatile;       // --> std::remove_volatile
-      template <typename>                               struct signedof;              // --> std::make_signed
-      template <std::size_t>                            struct uint_fast_t;           //
-      template <std::size_t>                            struct uint_fast_width_t;     //
-      template <std::size_t>                            struct uint_least_t;          //
-      template <std::size_t>                            struct uint_least_value_t;    //
-      template <std::size_t>                            struct uint_least_width_t;    //
-      template <std::size_t>                            struct uint_t;                //
-      template <std::size_t>                            struct uint_width_t;          //
-      template <typename>                               struct unsignedof;            // --> std::make_unsigned
-      template <typename>                               struct voidof;                // --> std::void_t
+      template <typename>                                                                          struct arrayinfo;                   //
+      template <typename, bool = false>                                                            struct classinfo;                   //
+      template <typename, typename>                                                                struct commonof;                    // --> std::common_type<T, T>
+      template <typename base, base, bool>                                                         struct constant;                    // --> std::integral_constant<T, ...>
+      template <std::size_t, std::size_t = 10u>                                                    struct countof;                     //
+      template <typename>                                                                          struct enuminfo;                    //
+      template <std::size_t>                                                                       struct float_fast_t;                //
+      template <std::size_t>                                                                       struct float_fast_width_t;          //
+      template <std::size_t>                                                                       struct float_least_t;               //
+      template <std::size_t>                                                                       struct float_least_width_t;         //
+      template <std::size_t>                                                                       struct float_t;                     //
+      template <std::size_t>                                                                       struct float_width_t;               //
+      template <typename>                                                                          struct functioninfo;                //
+      template <std::size_t>                                                                       struct int_fast_t;                  //
+      template <std::size_t>                                                                       struct int_fast_width_t;            //
+      template <std::size_t>                                                                       struct int_least_t;                 //
+      template <std::size_t>                                                                       struct int_least_width_t;           //
+      template <std::size_t>                                                                       struct int_t;                       //
+      template <std::size_t>                                                                       struct int_width_t;                 //
+      template <typename>                                                                          struct is_abstract;                 // --> std::is_abstract<T>
+      template <typename>                                                                          struct is_aggregate;                // --> std::is_aggregate<T>
+      template <typename>                                                                          struct is_array;                    // --> std::is_array<T>
+      template <typename>                                                                          struct is_blessed;                  //
+      template <typename>                                                                          struct is_boolean;                  //
+      template <typename>                                                                          struct is_byte;                     //
+      template <typename>                                                                          struct is_character;                //
+      template <typename>                                                                          struct is_class;                    // --> std::is_class<T>
+      template <typename, typename>                                                                struct is_compatible_layout;        // --> std::is_layout_compatible<T>
+      template <typename>                                                                          struct is_complete;                 //
+      template <typename>                                                                          struct is_const;                    // --> std::is_const<T>
+      template <typename>                                                                          struct is_decimal;                  // --> std::is_floating_point<T>
+      template <typename>                                                                          struct is_empty;                    // --> std::is_empty<T>
+      template <typename>                                                                          struct is_enum;                     // --> std::is_enum<T>; std::is_scoped_enum<T>
+      template <typename>                                                                          struct is_final;                    // --> std::is_final<T>
+      template <typename>                                                                          struct is_function;                 // --> std::is_function<T>
+      template <typename>                                                                          struct is_fundamental;              // --> std::is_fundamental<T>
+      template <typename>                                                                          struct is_implicit_lifetime;        // --> std::is_implicit_lifetime
+      template <typename>                                                                          struct is_integer;                  // --> std::is_integral<T>
+      template <typename, typename = null>                                                         struct is_like;                     //
+      template <typename>                                                                          struct is_null;                     //
+      template <typename>                                                                          struct is_nullptr_t;                // --> std::is_null_pointer<T>
+      template <typename>                                                                          struct is_pointer;                  // --> std::is_pointer<T>
+      template <typename, typename>                                                                struct is_pointer_interconvertible; // --> std::is_pointer_interconvertible_base_of<T>
+      template <typename>                                                                          struct is_polymorphic;              // --> std::is_polymorphic<T>
+      template <typename>                                                                          struct is_signed;                   // --> std::is_signed<T>
+      template <typename>                                                                          struct is_standard_layout;          // --> std::is_standard_layout<T>
+      template <typename, unsigned char /* --> opinfo::operation */ = 0x00u /* --> opinfo::nop */> struct is_trivial;                  // --> std::is_trivial<T>, std::is_trivially_assignable<T>, std::is_trivially_constructible<T>, std::is_trivially_copyable<T>, std::is_trivially_copy_assignable<T>, std::is_trivially_copy_constructible<T>, std::is_trivially_default_constructible<T>, std::is_trivially_destructible<T>, std::is_trivially_move_assignable<T>, std::is_trivially_move_constructible<T>
+      template <typename>                                                                          struct is_unique_represented;       // --> std::has_unique_object_representations<T>
+      template <typename>                                                                          struct is_union;                    // --> std::is_union<T>
+      template <typename>                                                                          struct is_unsigned;                 // --> std::is_unsigned<T>
+      template <typename>                                                                          struct is_volatile;                 // --> std::is_volatile<T>
+      template <typename>                                                                          struct maxof;                       //
+      template <typename>                                                                          struct minof;                       //
+      template <typename>                                                                          struct nilof;                       //
+      template <typename>                                                                          struct rankof;                      //
+      template <typename>                                                                          struct remove_const;                // --> std::remove_const<T>
+      template <typename>                                                                          struct remove_const_volatile;       // --> std::remove_const_volatile<T>
+      template <typename>                                                                          struct remove_lvalue_reference;     //
+      template <typename>                                                                          struct remove_pointer;              // --> std::remove_pointer<T>
+      template <typename>                                                                          struct remove_reference;            // --> std::remove_reference<T>
+      template <typename>                                                                          struct remove_rvalue_reference;     //
+      template <typename>                                                                          struct remove_volatile;             // --> std::remove_volatile<T>
+      template <typename>                                                                          struct signedof;                    // --> std::make_signed<T>
+      template <std::size_t>                                                                       struct uint_fast_t;                 //
+      template <std::size_t>                                                                       struct uint_fast_width_t;           //
+      template <std::size_t>                                                                       struct uint_least_t;                //
+      template <std::size_t>                                                                       struct uint_least_value_t;          //
+      template <std::size_t>                                                                       struct uint_least_width_t;          //
+      template <std::size_t>                                                                       struct uint_t;                      //
+      template <std::size_t>                                                                       struct uint_width_t;                //
+      template <typename>                                                                          struct unsignedof;                  // --> std::make_unsigned<t>
+      template <typename>                                                                          struct voidof;                      // --> std::void_t<T>
 
       #ifdef __cpp_variadic_templates // --> 200704L
         template <bool, bool...> struct boolean_and; // --> std::conjunction
@@ -506,41 +811,6 @@
         template <bool, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true, bool = true>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    struct boolean_or;  // --> std::disjunction
         template <typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null> struct collection;  //
       #endif
-
-      /* ... ->> Augments expression type deduction; see `opinfo::...::typeof` trait and `typeof(...)` macro definition */
-      struct typeinfo final {
-        #ifdef __cpp_rvalue_references // --> 200610L
-          template <typename type>
-          constfunc(true) static typename conditional<Traits::is_lvalue_reference<type>::value, boolean_true, boolean_false>::type (is_lvalue_reference)(type&&) noexcept;
-        #else
-          template <typename type>
-          constfunc(true) static boolean_true (is_lvalue_reference)(type&) noexcept;
-
-          constfunc(true) static boolean_false (is_lvalue_reference)(...) noexcept;
-        #endif
-
-        // ...
-        #ifdef __cpp_rvalue_references // --> 200610L
-          template <typename type>
-          constfunc(true) static typename conditional<is_const<type>::value or is_reference<type>::value or is_volatile<type>::value, boolean_true, boolean_false>::type (is_reference)(type&&) noexcept;
-        #else
-          template <typename type>
-          constfunc(true) static boolean_true (is_reference)(type&) noexcept;
-
-          constfunc(true) static boolean_false (is_reference)(...) noexcept;
-        #endif
-
-        // ...
-        #ifdef __cpp_rvalue_references // --> 200610L
-          template <typename type>
-          constfunc(true) static typename conditional<not Traits::is_lvalue_reference<type>::value, boolean_true, boolean_false>::type (is_rvalue_reference)(type&&) noexcept;
-        #else
-          template <typename type>
-          constfunc(true) static boolean_false (is_rvalue_reference)(type&) noexcept;
-
-          constfunc(true) static boolean_true (is_rvalue_reference)(...) noexcept;
-        #endif
-      };
     }
 
     /* ... */
@@ -559,28 +829,27 @@
       typedef unsigned char   uintmin_t;
 
       /* Trait */
-      // ... ->> Aliases specified type (plain and simple)
+      // ... ->> Evaluates if type is not an empty type or incomplete type
       template <typename base>
-      struct alias final {
-        typedef base type;
+      struct is_complete final {
+        private:
+          template <typename type> constfunc(true) static boolean_true  (valueof)(type[]) noexcept;
+          template <typename>      constfunc(true) static boolean_false (valueof)(...)    noexcept;
+
+        public:
+          static bool const value = sizeof(boolean_true) == sizeof valueof<base>(nullptr);
       };
 
-      // ... ->> Aliases dependent type based on (boolean) condition
-      template <typename baseA, typename baseB>
-      struct conditional<false, baseA, baseB> final {
-        typedef baseB type;
+      // ... ->> Evaluates if type is a pointer type
+      template <typename base>
+      struct is_pointer final {
+        static bool const value = false;
       };
 
-      template <typename base>
-      struct conditional<false, base, null> final {};
-
-      template <typename baseA, typename baseB>
-      struct conditional<true, baseA, baseB> final {
-        typedef baseA type;
-      };
-
-      template <typename base>
-      struct conditional<true, null, base> final {};
+      template <typename base> struct is_pointer<base*>                final { static bool const value = true; };
+      template <typename base> struct is_pointer<base* const>          final { static bool const value = true; };
+      template <typename base> struct is_pointer<base* const volatile> final { static bool const value = true; };
+      template <typename base> struct is_pointer<base*       volatile> final { static bool const value = true; };
 
       // ... ->> Evaluates if type is (based on) an integer type
       template <typename base>
@@ -980,115 +1249,31 @@
         template <> struct defer::typed_template<126u> final { template <template <typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename>           class> struct value final {}; };
         template <> struct defer::typed_template<127u> final { template <template <typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename> class> struct value final {}; };
 
-      // ... ->> Type const-qualifier check
-      template <typename>
-      struct is_const final {
-        static bool const value = false;
+      // ... ->> Type similarity
+      template <typename baseA, typename baseB>
+      struct is_like final {
+        private:
+          typedef typename remove_const_volatile<typename remove_reference<baseA>::type>::type typeA;
+          typedef typename remove_const_volatile<typename remove_reference<baseB>::type>::type typeB;
+
+        public:
+          static bool const value = is_same<
+            typename conditional<is_pointer<typeA>::value and is_pointer<baseB>::value, remove_pointer<typeA>, alias<typeA> >::type::type,
+            typename conditional<is_pointer<typeA>::value and is_pointer<baseB>::value, remove_pointer<typeB>, alias<typeB> >::type::type
+          >::value;
       };
 
       template <typename base>
-      struct is_const<base const> final {
-        static bool const value = true;
-      };
-
-      // ... ->> Type lvalue reference-qualifier check
-      template <typename>
-      struct is_lvalue_reference final {
-        static bool const value = false;
-      };
-
-      template <typename base>
-      struct is_lvalue_reference<base&> final {
-        static bool const value = true;
-      };
-
-      // ... ->> Type reference-qualifier check
-      template <typename base>
-      struct is_reference final {
-        static bool const value = is_lvalue_reference<base>::value or is_rvalue_reference<base>::value;
-      };
-
-      // ... ->> Type rvalue reference-qualifier check
-      #ifdef __cpp_rvalue_references // --> 200610L
-        template <typename>
-        struct is_rvalue_reference final {
-          static bool const value = false;
-        };
-
-        template <typename base>
-        struct is_rvalue_reference<base&&> final {
-          static bool const value = true;
-        };
-      #else
-        template <typename base>
-        struct is_rvalue_reference final {
-          private:
-            template <typename type>
-            constfunc(true) static boolean_true (valueof)(sfinaeptr_t const, bool (*const)[sizeof noeval(instanceof<type>())] = nullptr) noexcept;
-
-            template <typename>
-            constfunc(true) static boolean_false (valueof)(...) noexcept;
-
-          public:
-            static bool const value = is_same<base, base const volatile>::value and sizeof(boolean_true) == sizeof valueof<base>(sfinaeptr);
-        };
-
-        template <typename base>
-        struct is_rvalue_reference<base&> final {
-          static bool const value = false;
-        };
-      #endif
-
-      // ... ->> Type equality (or similarity)
-      template <typename, typename>
-      struct is_same final {
-        static bool const value = false;
-      };
-
-      template <typename base>
-      struct is_same<base, base> final {
-        static bool const value = true;
-      };
-
-      template <typename base>
-      struct is_same<base> final {
-        static bool const value = false;
-
-        #ifdef __cpp_rvalue_references // --> 200610L
-          template <typename type>
-          constfunc(true) static typename conditional<
-            not is_void<base>::value and (is_const<base>::value or is_reference<base>::value or is_volatile<base>::value)
-            ? is_same<base, type&&>::value and is_reference<base>::value
-            : is_same<base, type>  ::value,
-            boolean_true,
-            boolean_false
-          >::type (valueof)(type&&) noexcept;
-        #else
-          template <typename type>
-          constfunc(true) static typename conditional<
-            not is_void<base>::value and is_same<base, type&>::value,
-            boolean_true,
-            boolean_false
-          >::type (valueof)(type&) noexcept;
-
-          constfunc(true) static typename conditional<
-            not is_void<base>::value and (is_const<base>::value or is_reference<base>::value or is_volatile<base>::value),
-            boolean_false,
-            boolean_true
-          >::type (valueof)(...) noexcept;
-        #endif
-      };
-
-      template <>
-      struct is_same<null> final {
-        static bool const value = true;
+      struct is_like<base> final {
+        static bool const value = is_same<null, typename remove_const_volatile<typename remove_reference<base>::type>::type>::value;
 
         template <typename type>
-        constfunc(true) static typename conditional<
-          is_same<alias<null>, alias<type> >::value,
-          boolean_true,
-          boolean_false
-        >::value (valueof)(type nodecay) noexcept;
+        static typename conditional<is_like<base, type>::value, boolean_true, boolean_false>::type (valueof)(type fref) noexcept;
+      };
+
+      template <typename baseA, std::size_t capacityA, typename baseB, std::size_t capacityB>
+      struct is_like<baseA[capacityA], baseB[capacityB]> final {
+        static bool const value = capacityA == capacityB and is_like<baseA, baseB>::value;
       };
 
       // ... ->> Type signedness
@@ -1122,28 +1307,6 @@
           static bool const value = true;
         };
       #endif
-
-      // ... ->> Type set emptiness check
-      template <typename>
-      struct is_void final {
-        static bool const value = false;
-      };
-
-      template <> struct is_void<void>                final { static bool const value = true; };
-      template <> struct is_void<void const>          final { static bool const value = true; };
-      template <> struct is_void<void const volatile> final { static bool const value = true; };
-      template <> struct is_void<void       volatile> final { static bool const value = true; };
-
-      // ... ->> Type volatile-qualifier check
-      template <typename>
-      struct is_volatile final {
-        static bool const value = false;
-      };
-
-      template <typename base>
-      struct is_volatile<base volatile> final {
-        static bool const value = true;
-      };
 
       // ... ->> Fastest unsigned integer type with at least specified size
       template <std::size_t size>
@@ -1233,10 +1396,17 @@
       };
 
       // ... ->> Operation diagnostics
-      struct optraitinfo final {
+      struct optraitinfo {
         friend struct opinfo;
 
         private:
+          template <typename type>
+          constfunc(true) byte (&(opsizeof)(type fref) noexcept)[sizeof (nilsizeof)(instanceof<type fref>())];
+
+          // ... ->> Syntactically more concise for safely acquiring `struct novoid` and `struct refspec` objects, using `(T)()` rather than `instanceof<T>()` or `T init(nul())`
+          constfunc(true) static novoid  (novoid) () noexcept;
+          constfunc(true) static refspec (refspec)() noexcept;
+
           // ... --> auto trait::value() const volatile& noexcept;
           template <class trait, std::size_t arity, typename,       typename,       typename>       constfunc(true) static boolean_true (uses_member_function)(sfinaeptr_t const, bool const (*const)[arity == 0u and sizeof reinterpret_cast<bool (trait::*)(...)>(&trait::         value)]                      = nullptr) noexcept;
           template <class trait, std::size_t arity, typename typeA, typename,       typename>       constfunc(true) static boolean_true (uses_member_function)(sfinaeptr_t const, bool const (*const)[arity == 1u and sizeof reinterpret_cast<bool (trait::*)(...)>(&trait::template value<typeA>)]               = nullptr) noexcept;
@@ -1265,10 +1435,10 @@
           constfunc(true) static boolean_false (uses_static_function)(...) noexcept;
 
           // ... --> class trait::value; enum trait::value; struct trait::value; union trait::value; using trait::value = ...;
-          template <class trait, std::size_t arity, typename,       typename,       typename>       constfunc(true) static boolean_true (uses_type)(sfinaeptr_t const, bool const (*const)[arity == 0u and sizeof typeid(typename trait::         value)]                      = nullptr) noexcept;
-          template <class trait, std::size_t arity, typename typeA, typename,       typename>       constfunc(true) static boolean_true (uses_type)(sfinaeptr_t const, bool const (*const)[arity == 1u and sizeof typeid(typename trait::template value<typeA>)]               = nullptr) noexcept;
-          template <class trait, std::size_t arity, typename typeA, typename typeB, typename>       constfunc(true) static boolean_true (uses_type)(sfinaeptr_t const, bool const (*const)[arity == 2u and sizeof typeid(typename trait::template value<typeA, typeB>)]        = nullptr) noexcept;
-          template <class trait, std::size_t arity, typename typeA, typename typeB, typename typeC> constfunc(true) static boolean_true (uses_type)(sfinaeptr_t const, bool const (*const)[arity == 3u and sizeof typeid(typename trait::template value<typeA, typeB, typeC>)] = nullptr) noexcept;
+          template <class trait, std::size_t arity, typename,       typename,       typename>       constfunc(true) static boolean_true (uses_type)(sfinaeptr_t const, bool const (*const)[arity == 0u and sizeof typeid decl(typename trait::         value)]                      = nullptr) noexcept;
+          template <class trait, std::size_t arity, typename typeA, typename,       typename>       constfunc(true) static boolean_true (uses_type)(sfinaeptr_t const, bool const (*const)[arity == 1u and sizeof typeid decl(typename trait::template value<typeA>)]               = nullptr) noexcept;
+          template <class trait, std::size_t arity, typename typeA, typename typeB, typename>       constfunc(true) static boolean_true (uses_type)(sfinaeptr_t const, bool const (*const)[arity == 2u and sizeof typeid decl(typename trait::template value<typeA, typeB>)]        = nullptr) noexcept;
+          template <class trait, std::size_t arity, typename typeA, typename typeB, typename typeC> constfunc(true) static boolean_true (uses_type)(sfinaeptr_t const, bool const (*const)[arity == 3u and sizeof typeid decl(typename trait::template value<typeA, typeB, typeC>)] = nullptr) noexcept;
 
           template <class, std::size_t, typename, typename, typename>
           constfunc(true) static boolean_false (uses_type)(...) noexcept;
@@ -1277,51 +1447,66 @@
           // Expression Diagnostics ->> Evaluates different aspects of a specified `trait::value` function, which is intended to be a wrapper for some `operation`
           //   e.g., `static auto trait::value(auto a, auto b) { return a + b; }` acts as a wrapper for an `opinfo::add` `a + b` operation
           struct get final {
-            enumint(typename uint_least_value_t<4u>::type, expressioninfo) {
-              correctness,     // --> nilsizeof trait::value(...)
-              type_equality,   // --> typeid    trait::value(...) == typeid T
-              type_similarity, // --> typeid    trait::value(...) ~= typeid T
+            enumint(typename uint_least_value_t<5u>::type, expressioninfo) {
+              correctness,      // --> nilsizeof trait::value(...)
+              type_equality,    // --> typeid    trait::value(...) == typeid T
+              type_information, // --> typeof    trait::value(...)
+              type_similarity,  // --> typeid    trait::value(...) ~= typeid T
             };
           };
 
           // ...
           typedef optraitinfo::get::expressioninfo expressioninfo;
 
-          // ... ->> Evaluates different aspects of a specified `type` `expression` --> evaluate<...>::value(..., typeinfo::is_reference(...))
+          // ... ->> Evaluates different aspects of a specified `type` `expression` --> evaluate<...>::value(..., (refspec(), ..., refspec()))
           template <expressioninfo, typename = null>
           struct evaluate;
 
-          template <typename base> // --> nilsizeof ...
+          template <typename base> // --> opsizeof ...
           struct evaluate<optraitinfo::get::correctness, base> {
             template <typename type>
-            constfunc(true) static byte (rlref (valueof)(type nodecay, ...) noexcept)[nilsizeof(type) + 2u];
+            constfunc(true) static byte (rlref (valueof)(type fref, ...) noexcept)[(opsizeof)(instanceof<type fref>()) + 1u];
           };
 
           template <typename base> // --> is_same<base>::valueof(...)
           struct evaluate<optraitinfo::get::type_equality, base> {
             #ifdef __cpp_rvalue_references // --> 200610L
-              template <typename type> constfunc(true) static typename conditional<is_same<base, type>  ::value, boolean_true, boolean_false>::type (valueof)(type,   boolean_false) noexcept;
-              template <typename type> constfunc(true) static typename conditional<is_same<base, type&&>::value, boolean_true, boolean_false>::type (valueof)(type&&, boolean_true)  noexcept;
+              template <typename type> constfunc(true) static typename conditional<is_same<base, type>  ::value, boolean_true, boolean_false>::type (valueof)(type,   refspec::reference_false) noexcept;
+              template <typename type> constfunc(true) static typename conditional<is_same<base, type&&>::value, boolean_true, boolean_false>::type (valueof)(type&&, refspec::reference_true)  noexcept;
             #else
-              template <typename type> constfunc(true) static typename conditional<is_same<base, type>                ::value, boolean_true, boolean_false>::type (valueof)(type,                 boolean_false) noexcept;
-              template <typename type> constfunc(true) static typename conditional<is_same<base, type&>               ::value, boolean_true, boolean_false>::type (valueof)(type&,                boolean_true)  noexcept;
-              template <typename type> constfunc(true) static typename conditional<is_same<base, type const&>         ::value, boolean_true, boolean_false>::type (valueof)(type const&,          boolean_true)  noexcept;
-              template <typename type> constfunc(true) static typename conditional<is_same<base, type const volatile&>::value, boolean_true, boolean_false>::type (valueof)(type const volatile&, boolean_true)  noexcept;
-              template <typename type> constfunc(true) static typename conditional<is_same<base, type volatile&>      ::value, boolean_true, boolean_false>::type (valueof)(type volatile&,       boolean_true)  noexcept;
+              template <typename type> constfunc(true) static typename conditional<is_same<base, type>                ::value, boolean_true, boolean_false>::type (valueof)(type,                 refspec::reference_false) noexcept;
+              template <typename type> constfunc(true) static typename conditional<is_same<base, type&>               ::value, boolean_true, boolean_false>::type (valueof)(type&,                refspec::reference_true)  noexcept;
+              template <typename type> constfunc(true) static typename conditional<is_same<base, type const&>         ::value, boolean_true, boolean_false>::type (valueof)(type const&,          refspec::reference_true)  noexcept;
+              template <typename type> constfunc(true) static typename conditional<is_same<base, type const volatile&>::value, boolean_true, boolean_false>::type (valueof)(type const volatile&, refspec::reference_true)  noexcept;
+              template <typename type> constfunc(true) static typename conditional<is_same<base, type volatile&>      ::value, boolean_true, boolean_false>::type (valueof)(type volatile&,       refspec::reference_true)  noexcept;
+            #endif
+          };
+
+          template <typename base> // --> ...
+          struct evaluate<optraitinfo::get::type_information, base> {
+            #ifdef __cpp_rvalue_references // --> 200610L
+              template <typename type> constfunc(true) static type   (valueof)(type,   refspec::reference_false) noexcept;
+              template <typename type> constfunc(true) static type&& (valueof)(type&&, refspec::reference_true)  noexcept;
+            #else
+              template <typename type> constfunc(true) static type                 (valueof)(type,                 refspec::reference_false) noexcept;
+              template <typename type> constfunc(true) static type&                (valueof)(type&,                refspec::reference_true)  noexcept;
+              template <typename type> constfunc(true) static type const&          (valueof)(type const&,          refspec::reference_true)  noexcept;
+              template <typename type> constfunc(true) static type const volatile& (valueof)(type const volatile&, refspec::reference_true)  noexcept;
+              template <typename type> constfunc(true) static type volatile&       (valueof)(type volatile&,       refspec::reference_true)  noexcept;
             #endif
           };
 
           template <typename base> // --> is_same<base>::valueof((base) ...)
           struct evaluate<optraitinfo::get::type_similarity, base> {
             #ifdef __cpp_rvalue_references // --> 200610L
-              template <typename type> constfunc(true) static typename conditional<sizeof(boolean_true) == sizeof (is_same<base>::template valueof)((base) instanceof<type>  ()), boolean_true, boolean_false>::type (valueof)(type,   boolean_false) noexcept;
-              template <typename type> constfunc(true) static typename conditional<sizeof(boolean_true) == sizeof (is_same<base>::template valueof)((base) instanceof<type&&>()), boolean_true, boolean_false>::type (valueof)(type&&, boolean_true)  noexcept;
+              template <typename type> constfunc(true) static typename conditional<sizeof(boolean_true) == sizeof (is_same<base>::template valueof)((base) instanceof<type>  ()), boolean_true, boolean_false>::type (valueof)(type,   refspec::reference_false) noexcept;
+              template <typename type> constfunc(true) static typename conditional<sizeof(boolean_true) == sizeof (is_same<base>::template valueof)((base) instanceof<type&&>()), boolean_true, boolean_false>::type (valueof)(type&&, refspec::reference_true)  noexcept;
             #else
-              template <typename type> constfunc(true) static typename conditional<sizeof(boolean_true) == sizeof (is_same<base>::template valueof)((base) instanceof<type>                ()), boolean_true, boolean_false>::type (valueof)(type,                 boolean_false) noexcept;
-              template <typename type> constfunc(true) static typename conditional<sizeof(boolean_true) == sizeof (is_same<base>::template valueof)((base) instanceof<type&>               ()), boolean_true, boolean_false>::type (valueof)(type&,                boolean_true)  noexcept;
-              template <typename type> constfunc(true) static typename conditional<sizeof(boolean_true) == sizeof (is_same<base>::template valueof)((base) instanceof<type const&>         ()), boolean_true, boolean_false>::type (valueof)(type const&,          boolean_true)  noexcept;
-              template <typename type> constfunc(true) static typename conditional<sizeof(boolean_true) == sizeof (is_same<base>::template valueof)((base) instanceof<type const volatile&>()), boolean_true, boolean_false>::type (valueof)(type const volatile&, boolean_true)  noexcept;
-              template <typename type> constfunc(true) static typename conditional<sizeof(boolean_true) == sizeof (is_same<base>::template valueof)((base) instanceof<type volatile&>      ()), boolean_true, boolean_false>::type (valueof)(type volatile&,       boolean_true)  noexcept;
+              template <typename type> constfunc(true) static typename conditional<sizeof(boolean_true) == sizeof (is_same<base>::template valueof)((base) instanceof<type>                ()), boolean_true, boolean_false>::type (valueof)(type,                 refspec::reference_false) noexcept;
+              template <typename type> constfunc(true) static typename conditional<sizeof(boolean_true) == sizeof (is_same<base>::template valueof)((base) instanceof<type&>               ()), boolean_true, boolean_false>::type (valueof)(type&,                refspec::reference_true)  noexcept;
+              template <typename type> constfunc(true) static typename conditional<sizeof(boolean_true) == sizeof (is_same<base>::template valueof)((base) instanceof<type const&>         ()), boolean_true, boolean_false>::type (valueof)(type const&,          refspec::reference_true)  noexcept;
+              template <typename type> constfunc(true) static typename conditional<sizeof(boolean_true) == sizeof (is_same<base>::template valueof)((base) instanceof<type const volatile&>()), boolean_true, boolean_false>::type (valueof)(type const volatile&, refspec::reference_true)  noexcept;
+              template <typename type> constfunc(true) static typename conditional<sizeof(boolean_true) == sizeof (is_same<base>::template valueof)((base) instanceof<type volatile&>      ()), boolean_true, boolean_false>::type (valueof)(type volatile&,       refspec::reference_true)  noexcept;
             #endif
           };
 
@@ -1361,115 +1546,58 @@
         public:
           template <class trait, expressioninfo information, typename type, std::size_t arity, typename typeA, typename, typename /* , ... */>
           constfunc(true) static typename Traits::conditional<
-            arityof<trait>::value == 0u and arity == 1u and information == optraitinfo::get::correctness,
-            byte (rlref)[nilsizeof((trait::value)(instanceof<typeA>())) + 2u]
-          >::type (valueof)(sfinaeptr_t const) noexcept;
-
-          template <class trait, expressioninfo information, typename type, std::size_t arity, typename typeA, typename, typename /* , ... */>
-          constfunc(true) static typename Traits::conditional<
-            arityof<trait>::value == 1u and arity == 1u and information == optraitinfo::get::correctness,
-            byte (rlref)[nilsizeof(trait::template value<typeA>(instanceof<typeA>())) + 2u]
-          >::type (valueof)(sfinaeptr_t const) noexcept;
-
-          // ...
-          template <class trait, expressioninfo information, typename type, std::size_t arity, typename typeA, typename typeB, typename /* , ... */>
-          constfunc(true) static typename Traits::conditional<
-            arityof<trait>::value == 0u and arity == 2u and information == optraitinfo::get::correctness,
-            byte (rlref)[nilsizeof((trait::value)(instanceof<typeA>(), instanceof<typeB>())) + 2u]
-          >::type (valueof)(sfinaeptr_t const) noexcept;
-
-          template <class trait, expressioninfo information, typename type, std::size_t arity, typename typeA, typename typeB, typename /* , ... */>
-          constfunc(true) static typename Traits::conditional<
-            arityof<trait>::value == 1u and arity == 2u and information == optraitinfo::get::correctness,
-            byte (rlref)[nilsizeof(trait::template value<typeA>(instanceof<typeA>(), instanceof<typeB>())) + 2u]
-          >::type (valueof)(sfinaeptr_t const) noexcept;
-
-          template <class trait, expressioninfo information, typename type, std::size_t arity, typename typeA, typename typeB, typename /* , ... */>
-          constfunc(true) static typename Traits::conditional<
-            arityof<trait>::value == 2u and arity == 2u and information == optraitinfo::get::correctness,
-            byte (rlref)[nilsizeof(trait::template value<typeA, typeB>(instanceof<typeA>(), instanceof<typeB>())) + 2u]
-          >::type (valueof)(sfinaeptr_t const) noexcept;
-
-          // ...
-          template <class trait, expressioninfo information, typename type, std::size_t arity, typename typeA, typename typeB, typename typeC /* , ... */>
-          constfunc(true) static typename Traits::conditional<
-            arityof<trait>::value == 0u and arity == 3u and information == optraitinfo::get::correctness,
-            byte (rlref)[nilsizeof((trait::value)(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>())) + 2u]
-          >::type (valueof)(sfinaeptr_t const) noexcept;
-
-          template <class trait, expressioninfo information, typename type, std::size_t arity, typename typeA, typename typeB, typename typeC /* , ... */>
-          constfunc(true) static typename Traits::conditional<
-            arityof<trait>::value == 1u and arity == 3u and information == optraitinfo::get::correctness,
-            byte (rlref)[nilsizeof(trait::template value<typeA>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>())) + 2u]
-          >::type (valueof)(sfinaeptr_t const) noexcept;
-
-          template <class trait, expressioninfo information, typename type, std::size_t arity, typename typeA, typename typeB, typename typeC /* , ... */>
-          constfunc(true) static typename Traits::conditional<
-            arityof<trait>::value == 2u and arity == 3u and information == optraitinfo::get::correctness,
-            byte (rlref)[nilsizeof(trait::template value<typeA, typeB>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>())) + 2u]
-          >::type (valueof)(sfinaeptr_t const) noexcept;
-
-          template <class trait, expressioninfo information, typename type, std::size_t arity, typename typeA, typename typeB, typename typeC /* , ... */>
-          constfunc(true) static typename Traits::conditional<
-            arityof<trait>::value == 3u and arity == 3u and information == optraitinfo::get::correctness,
-            byte (rlref)[nilsizeof(trait::template value<typeA, typeB, typeC>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>())) + 2u]
-          >::type (valueof)(sfinaeptr_t const) noexcept;
-
-          /* ... */
-          template <class trait, expressioninfo information, typename type, std::size_t arity, typename typeA, typename, typename /* , ... */>
-          constfunc(true) static typename Traits::conditional<
             arityof<trait>::value == 0u and arity == 1u and information != optraitinfo::get::correctness,
-            bool const (rlref)[sizeof (evaluate<information, type>::template valueof)((trait::value)(instanceof<typeA>()), (typeinfo::is_reference)((trait::value)(instanceof<typeA>())))]
+            byte (rlref)[sizeof (evaluate<information, type>::template valueof)(((novoid)(), (trait::value)(instanceof<typeA>()), (novoid)()), ((refspec)(), ((trait::value)(instanceof<typeA>())), (refspec)()))]
           >::type (valueof)(sfinaeptr_t const) noexcept;
 
           template <class trait, expressioninfo information, typename type, std::size_t arity, typename typeA, typename, typename /* , ... */>
           constfunc(true) static typename Traits::conditional<
             arityof<trait>::value == 1u and arity == 1u and information != optraitinfo::get::correctness,
-            bool const (rlref)[sizeof (evaluate<information, type>::template valueof)(trait::template value<typeA>(instanceof<typeA>()), (typeinfo::is_reference)(trait::template value<typeA>(instanceof<typeA>())))]
+            byte (rlref)[sizeof (evaluate<information, type>::template valueof)(((novoid)(), trait::template value<typeA>(instanceof<typeA>()), (novoid)()), ((refspec)(), (trait::template value<typeA>(instanceof<typeA>())), (refspec)()))]
           >::type (valueof)(sfinaeptr_t const) noexcept;
 
           // ...
           template <class trait, expressioninfo information, typename type, std::size_t arity, typename typeA, typename typeB, typename /* , ... */>
           constfunc(true) static typename Traits::conditional<
             arityof<trait>::value == 0u and arity == 2u and information != optraitinfo::get::correctness,
-            bool const (rlref)[sizeof (evaluate<information, type>::template valueof)((trait::value)(instanceof<typeA>(), instanceof<typeB>()), (typeinfo::is_reference)((trait::value)(instanceof<typeA>(), instanceof<typeB>())))]
+            byte (rlref)[sizeof (evaluate<information, type>::template valueof)(((novoid)(), (trait::value)(instanceof<typeA>(), instanceof<typeB>()), (novoid)()), ((refspec)(), ((trait::value)(instanceof<typeA>(), instanceof<typeB>())), (refspec)()))]
           >::type (valueof)(sfinaeptr_t const) noexcept;
 
           template <class trait, expressioninfo information, typename type, std::size_t arity, typename typeA, typename typeB, typename /* , ... */>
           constfunc(true) static typename Traits::conditional<
             arityof<trait>::value == 1u and arity == 2u and information != optraitinfo::get::correctness,
-            bool const (rlref)[sizeof (evaluate<information, type>::template valueof)(trait::template value<typeA>(instanceof<typeA>(), instanceof<typeB>()), (typeinfo::is_reference)(trait::template value<typeA>(instanceof<typeA>(), instanceof<typeB>())))]
+            byte (rlref)[sizeof (evaluate<information, type>::template valueof)(((novoid)(), trait::template value<typeA>(instanceof<typeA>(), instanceof<typeB>()), (novoid)()), ((refspec)(), (trait::template value<typeA>(instanceof<typeA>(), instanceof<typeB>())), (refspec)()))]
           >::type (valueof)(sfinaeptr_t const) noexcept;
 
           template <class trait, expressioninfo information, typename type, std::size_t arity, typename typeA, typename typeB, typename /* , ... */>
           constfunc(true) static typename Traits::conditional<
             arityof<trait>::value == 2u and arity == 2u and information != optraitinfo::get::correctness,
-            bool const (rlref)[sizeof (evaluate<information, type>::template valueof)(trait::template value<typeA, typeB>(instanceof<typeA>(), instanceof<typeB>()), (typeinfo::is_reference)(trait::template value<typeA, typeB>(instanceof<typeA>(), instanceof<typeB>())))]
+            byte (rlref)[sizeof (evaluate<information, type>::template valueof)(((novoid)(), trait::template value<typeA, typeB>(instanceof<typeA>(), instanceof<typeB>()), (novoid)()), ((refspec)(), (trait::template value<typeA, typeB>(instanceof<typeA>(), instanceof<typeB>())), (refspec)()))]
           >::type (valueof)(sfinaeptr_t const) noexcept;
 
           // ...
           template <class trait, expressioninfo information, typename type, std::size_t arity, typename typeA, typename typeB, typename typeC /* , ... */>
           constfunc(true) static typename Traits::conditional<
             arityof<trait>::value == 0u and arity == 3u and information != optraitinfo::get::correctness,
-            bool const (rlref)[sizeof (evaluate<information, type>::template valueof)((trait::value)(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>()), (typeinfo::is_reference)((trait::value)(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>())))]
+            byte (rlref)[sizeof (evaluate<information, type>::template valueof)(((novoid)(), (trait::value)(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>()), (novoid)()), ((refspec)(), ((trait::value)(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>())), (refspec)()))]
           >::type (valueof)(sfinaeptr_t const) noexcept;
 
           template <class trait, expressioninfo information, typename type, std::size_t arity, typename typeA, typename typeB, typename typeC /* , ... */>
           constfunc(true) static typename Traits::conditional<
             arityof<trait>::value == 1u and arity == 3u and information != optraitinfo::get::correctness,
-            bool const (rlref)[sizeof (evaluate<information, type>::template valueof)(trait::template value<typeA>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>()), (typeinfo::is_reference)(trait::template value<typeA>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>())))]
+            byte (rlref)[sizeof (evaluate<information, type>::template valueof)(((novoid)(), trait::template value<typeA>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>()), (novoid)()), ((refspec)(), (trait::template value<typeA>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>())), (refspec)()))]
           >::type (valueof)(sfinaeptr_t const) noexcept;
 
           template <class trait, expressioninfo information, typename type, std::size_t arity, typename typeA, typename typeB, typename typeC /* , ... */>
           constfunc(true) static typename Traits::conditional<
             arityof<trait>::value == 2u and arity == 3u and information != optraitinfo::get::correctness,
-            bool const (rlref)[sizeof (evaluate<information, type>::template valueof)(trait::template value<typeA, typeB>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>()), (typeinfo::is_reference)(trait::template value<typeA, typeB>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>())))]
+            byte (rlref)[sizeof (evaluate<information, type>::template valueof)(((novoid)(), trait::template value<typeA, typeB>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>()), (novoid)()), ((refspec)(), (trait::template value<typeA, typeB>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>())), (refspec)()))]
           >::type (valueof)(sfinaeptr_t const) noexcept;
 
           template <class trait, expressioninfo information, typename type, std::size_t arity, typename typeA, typename typeB, typename typeC /* , ... */>
           constfunc(true) static typename Traits::conditional<
             arityof<trait>::value == 3u and arity == 3u and information != optraitinfo::get::correctness,
-            bool const (rlref)[sizeof (evaluate<information, type>::template valueof)(trait::template value<typeA, typeB, typeC>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>()), (typeinfo::is_reference)(trait::template value<typeA, typeB, typeC>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>())))]
+            byte (rlref)[sizeof (evaluate<information, type>::template valueof)(((novoid)(), trait::template value<typeA, typeB, typeC>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>()), (novoid)()), ((refspec)(), (trait::template value<typeA, typeB, typeC>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>())), (refspec)()))]
           >::type (valueof)(sfinaeptr_t const) noexcept;
 
           /* ... */
@@ -1477,7 +1605,8 @@
           constfunc(true) static boolean_false (valueof)(...) noexcept;
       };
 
-      struct opinfo final {
+      struct opinfo final : public optraitinfo {
+        /* TODO (Lapys) -> Check for `noexcept`ness? */
         #if CPP_COMPILER == CPP_CLANG_COMPILER
         # pragma clang diagnostic push
         # pragma clang diagnostic ignored "-Wint-to-pointer-cast"
@@ -1488,7 +1617,7 @@
         #endif
 
         /* Operator identifiers --> */
-        enumint(typename uint_least_value_t<4u + 66u>::type, operation) {
+        enumint(typename uint_least_value_t<4u + 68u>::type, operation) {
           nop     = 0u, nullary = nop, //
           unary   = 1u,                // x
           binary  = 2u,                // x y
@@ -1527,6 +1656,7 @@
           compare,                     //   x <=> y
           complement,                  //  ~x
           construct,                   //   x(...)
+          copy,                        //
           delete_array,                // delete[] x
           delete_object,               // delete   x
           dereference,                 //  *x
@@ -1541,6 +1671,7 @@
           lesser_equals,               //   x  <= y
           minus,                       //   x   - y
           modulo,                      //   x   % y
+          move,                        //
           multiply,                    //   x   * y
           negate,                      //  !x
           new_array,                   // new     x[y]{...}
@@ -1564,12 +1695,10 @@
 
         /* ... */
         private:
-          // ... --> using optraitinfo::expressioninfo;
-          typedef optraitinfo::expressioninfo expressioninfo;
-
-          // ... --> using optraitinfo::evaluate;
-          template <expressioninfo information>
-          struct evaluate final : public optraitinfo::evaluate<information> {};
+          using optraitinfo::expressioninfo;
+          using optraitinfo::evaluate;
+          using optraitinfo::novoid;
+          using optraitinfo::refspec;
 
           // ... ->> Base implementation of `opinfo::...::operate<opinfo::binary | opinfo::ternary | opinfo::unary>` traits
           template <std::size_t arity, typename baseA = null, typename baseB = null, typename baseC = null>
@@ -1579,33 +1708,21 @@
               template <class trait, expressioninfo information, typename subbase = null>
               struct subvalueof final {
                 private:
-                  template <typename typeA, typename,       typename>       constfunc(true) static typename conditional<arity == 1u and sizeof(boolean_true) == sizeof trait::template typeof<information, typeA>              (), boolean_true, boolean_false>::type (valueof)(sfinaeptr_t const) noexcept;
-                  template <typename typeA, typename typeB, typename>       constfunc(true) static typename conditional<arity == 2u and sizeof(boolean_true) == sizeof trait::template typeof<information, typeA, typeB>       (), boolean_true, boolean_false>::type (valueof)(sfinaeptr_t const) noexcept;
-                  template <typename typeA, typename typeB, typename typeC> constfunc(true) static typename conditional<arity == 3u and sizeof(boolean_true) == sizeof trait::template typeof<information, typeA, typeB, typeC>(), boolean_true, boolean_false>::type (valueof)(sfinaeptr_t const) noexcept;
+                  template <typename typeA, typename,       typename>       constfunc(true) static typename conditional<arity == 1u, byte (rlref)[sizeof (opsizeof)(trait::template valueof<information, typeA>              ()) + 1u]>::type (valueof)(sfinaeptr_t const) noexcept;
+                  template <typename typeA, typename typeB, typename>       constfunc(true) static typename conditional<arity == 2u, byte (rlref)[sizeof (opsizeof)(trait::template valueof<information, typeA, typeB>       ()) + 1u]>::type (valueof)(sfinaeptr_t const) noexcept;
+                  template <typename typeA, typename typeB, typename typeC> constfunc(true) static typename conditional<arity == 3u, byte (rlref)[sizeof (opsizeof)(trait::template valueof<information, typeA, typeB, typeC>()) + 1u]>::type (valueof)(sfinaeptr_t const) noexcept;
 
                   template <typename typeA, typename typeB, typename typeC>
-                  constfunc(true) static typename conditional<subvalueof<trait, optraitinfo::get::correctness>::value and (
-                    information == optraitinfo::get::type_equality   ? is_same<subbase, void>::value :
-                    information == optraitinfo::get::type_similarity ? is_void<subbase>      ::value :
-                    false
-                  ), boolean_true, boolean_false>::type (valueof)(...) noexcept;
+                  constfunc(true) static typename conditional<
+                    conditional<information != optraitinfo::get::correctness, subvalueof<trait, optraitinfo::get::correctness, subbase>, constant<bool, false> >::type::value and (
+                      information == optraitinfo::get::type_equality   ? is_same<subbase, void>::value :
+                      information == optraitinfo::get::type_similarity ? is_void<subbase>      ::value :
+                      false
+                    ), boolean_true, boolean_false
+                  >::type (valueof)(...) noexcept;
 
                 public:
-                  static bool const value = sizeof(boolean_true) == sizeof valueof<baseA, baseB, baseC>(sfinaeptr);
-              };
-
-              template <class trait>
-              struct subvalueof<trait, optraitinfo::get::correctness> final {
-                private:
-                  template <typename typeA, typename,       typename>       constfunc(true) static typename conditional<arity == 1u, byte (rlref)[sizeof trait::template valueof<information, typeA>              () + 1u]>::type (valueof)(sfinaeptr_t const) noexcept;
-                  template <typename typeA, typename typeB, typename>       constfunc(true) static typename conditional<arity == 2u, byte (rlref)[sizeof trait::template valueof<information, typeA, typeB>       () + 1u]>::type (valueof)(sfinaeptr_t const) noexcept;
-                  template <typename typeA, typename typeB, typename typeC> constfunc(true) static typename conditional<arity == 3u, byte (rlref)[sizeof trait::template valueof<information, typeA, typeB, typeC>() + 1u]>::type (valueof)(sfinaeptr_t const) noexcept;
-
-                  template <typename, typename, typename>
-                  constfunc(true) static boolean_false (valueof)(...) noexcept;
-
-                public:
-                  static std::size_t const value = (sizeof valueof<baseA, baseB, baseC>(sfinaeptr) / sizeof(byte)) - 1u;
+                  static std::size_t const value = sizeof valueof<baseA, baseB, baseC>(sfinaeptr);
               };
 
             public:
@@ -1622,8 +1739,6 @@
                     };
                   #else
                     struct typeof final {
-                      typedef union empty &null;
-
                       private:
                         template <class = trait, std::size_t = arity, std::size_t = arityof<trait>::value>
                         struct valueof;
@@ -1631,24 +1746,24 @@
                         // ... --> subtrait::value(...)
                         template <class subtrait>
                         struct valueof<subtrait, 1u, 0u> final {
-                          template <typename typeA, typename, typename> constfunc(true) static typename conditional<notypeof((subtrait::value)(instanceof<typeA>())), null>::type (value)(sfinaeptr_t const, sfinaeptr_t const) noexcept;
-                          template <typename typeA, typename, typename> constfunc(true) static                        typeof((subtrait::value)(instanceof<typeA>()))              (value)(sfinaeptr_t const, ...)               noexcept;
+                          template <typename typeA, typename, typename> constfunc(true) static typename conditional<notypeof((subtrait::value)(instanceof<typeA>())), novoid>::type (value)(sfinaeptr_t const, sfinaeptr_t const) noexcept;
+                          template <typename typeA, typename, typename> constfunc(true) static                        typeof((subtrait::value)(instanceof<typeA>()))                (value)(sfinaeptr_t const, ...)               noexcept;
 
                           template <typename, typename, typename> constfunc(true) static null (value)(...) noexcept;
                         };
 
                         template <class subtrait>
                         struct valueof<subtrait, 2u, 0u> final {
-                          template <typename typeA, typename typeB, typename> constfunc(true) static typename conditional<notypeof((subtrait::value)(instanceof<typeA>(), instanceof<typeB>())), null>::type (value)(sfinaeptr_t const, sfinaeptr_t const) noexcept;
-                          template <typename typeA, typename typeB, typename> constfunc(true) static                        typeof((subtrait::value)(instanceof<typeA>(), instanceof<typeB>()))              (value)(sfinaeptr_t const, ...)               noexcept;
+                          template <typename typeA, typename typeB, typename> constfunc(true) static typename conditional<notypeof((subtrait::value)(instanceof<typeA>(), instanceof<typeB>())), novoid>::type (value)(sfinaeptr_t const, sfinaeptr_t const) noexcept;
+                          template <typename typeA, typename typeB, typename> constfunc(true) static                        typeof((subtrait::value)(instanceof<typeA>(), instanceof<typeB>()))                (value)(sfinaeptr_t const, ...)               noexcept;
 
                           template <typename, typename, typename> constfunc(true) static null (value)(...) noexcept;
                         };
 
                         template <class subtrait>
                         struct valueof<subtrait, 3u, 0u> final {
-                          template <typename typeA, typename typeB, typename typeC> constfunc(true) static typename conditional<notypeof((subtrait::value)(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>())), null>::type (value)(sfinaeptr_t const, sfinaeptr_t const) noexcept;
-                          template <typename typeA, typename typeB, typename typeC> constfunc(true) static                        typeof((subtrait::value)(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>()))              (value)(sfinaeptr_t const, ...)               noexcept;
+                          template <typename typeA, typename typeB, typename typeC> constfunc(true) static typename conditional<notypeof((subtrait::value)(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>())), novoid>::type (value)(sfinaeptr_t const, sfinaeptr_t const) noexcept;
+                          template <typename typeA, typename typeB, typename typeC> constfunc(true) static                        typeof((subtrait::value)(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>()))                (value)(sfinaeptr_t const, ...)               noexcept;
 
                           template <typename, typename, typename> constfunc(true) static null (value)(...) noexcept;
                         };
@@ -1656,24 +1771,24 @@
                         // ... --> subtrait::value<A>(...)
                         template <class subtrait>
                         struct valueof<subtrait, 1u, 1u> final {
-                          template <typename typeA, typename, typename> constfunc(true) static typename conditional<notypeof(subtrait::template value<typeA>(instanceof<typeA>())), null>::type (value)(sfinaeptr_t const, sfinaeptr_t const) noexcept;
-                          template <typename typeA, typename, typename> constfunc(true) static                        typeof(subtrait::template value<typeA>(instanceof<typeA>()))              (value)(sfinaeptr_t const, ...)               noexcept;
+                          template <typename typeA, typename, typename> constfunc(true) static typename conditional<notypeof(subtrait::template value<typeA>(instanceof<typeA>())), novoid>::type (value)(sfinaeptr_t const, sfinaeptr_t const) noexcept;
+                          template <typename typeA, typename, typename> constfunc(true) static                        typeof(subtrait::template value<typeA>(instanceof<typeA>()))                (value)(sfinaeptr_t const, ...)               noexcept;
 
                           template <typename, typename, typename> constfunc(true) static null (value)(...) noexcept;
                         };
 
                         template <class subtrait>
                         struct valueof<subtrait, 2u, 1u> final {
-                          template <typename typeA, typename typeB, typename> constfunc(true) static typename conditional<notypeof(subtrait::template value<typeA>(instanceof<typeA>(), instanceof<typeB>())), null>::type (value)(sfinaeptr_t const, sfinaeptr_t const) noexcept;
-                          template <typename typeA, typename typeB, typename> constfunc(true) static                        typeof(subtrait::template value<typeA>(instanceof<typeA>(), instanceof<typeB>()))              (value)(sfinaeptr_t const, ...)               noexcept;
+                          template <typename typeA, typename typeB, typename> constfunc(true) static typename conditional<notypeof(subtrait::template value<typeA>(instanceof<typeA>(), instanceof<typeB>())), novoid>::type (value)(sfinaeptr_t const, sfinaeptr_t const) noexcept;
+                          template <typename typeA, typename typeB, typename> constfunc(true) static                        typeof(subtrait::template value<typeA>(instanceof<typeA>(), instanceof<typeB>()))                (value)(sfinaeptr_t const, ...)               noexcept;
 
                           template <typename, typename, typename> constfunc(true) static null (value)(...) noexcept;
                         };
 
                         template <class subtrait>
                         struct valueof<subtrait, 3u, 1u> final {
-                          template <typename typeA, typename typeB, typename typeC> constfunc(true) static typename conditional<notypeof(subtrait::template value<typeA>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>())), null>::type (value)(sfinaeptr_t const, sfinaeptr_t const) noexcept;
-                          template <typename typeA, typename typeB, typename typeC> constfunc(true) static                        typeof(subtrait::template value<typeA>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>()))              (value)(sfinaeptr_t const, ...)               noexcept;
+                          template <typename typeA, typename typeB, typename typeC> constfunc(true) static typename conditional<notypeof(subtrait::template value<typeA>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>())), novoid>::type (value)(sfinaeptr_t const, sfinaeptr_t const) noexcept;
+                          template <typename typeA, typename typeB, typename typeC> constfunc(true) static                        typeof(subtrait::template value<typeA>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>()))                (value)(sfinaeptr_t const, ...)               noexcept;
 
                           template <typename, typename, typename> constfunc(true) static null (value)(...) noexcept;
                         };
@@ -1681,16 +1796,16 @@
                         // ... --> subtrait::value<A, B>(...)
                         template <class subtrait>
                         struct valueof<subtrait, 2u, 2u> final {
-                          template <typename typeA, typename typeB, typename> constfunc(true) static typename conditional<notypeof((subtrait::template value<typeA, typeB>(instanceof<typeA>(), instanceof<typeB>()))), null>::type (value)(sfinaeptr_t const, sfinaeptr_t const) noexcept;
-                          template <typename typeA, typename typeB, typename> constfunc(true) static                        typeof((subtrait::template value<typeA, typeB>(instanceof<typeA>(), instanceof<typeB>())))              (value)(sfinaeptr_t const, ...)               noexcept;
+                          template <typename typeA, typename typeB, typename> constfunc(true) static typename conditional<notypeof((subtrait::template value<typeA, typeB>(instanceof<typeA>(), instanceof<typeB>()))), novoid>::type (value)(sfinaeptr_t const, sfinaeptr_t const) noexcept;
+                          template <typename typeA, typename typeB, typename> constfunc(true) static                        typeof((subtrait::template value<typeA, typeB>(instanceof<typeA>(), instanceof<typeB>())))                (value)(sfinaeptr_t const, ...)               noexcept;
 
                           template <typename, typename, typename> constfunc(true) static null (value)(...) noexcept;
                         };
 
                         template <class subtrait>
                         struct valueof<subtrait, 3u, 2u> final {
-                          template <typename typeA, typename typeB, typename typeC> constfunc(true) static typename conditional<notypeof((subtrait::template value<typeA, typeB>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>()))), null>::type (value)(sfinaeptr_t const, sfinaeptr_t const) noexcept;
-                          template <typename typeA, typename typeB, typename typeC> constfunc(true) static                        typeof((subtrait::template value<typeA, typeB>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>())))              (value)(sfinaeptr_t const, ...)               noexcept;
+                          template <typename typeA, typename typeB, typename typeC> constfunc(true) static typename conditional<notypeof((subtrait::template value<typeA, typeB>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>()))), novoid>::type (value)(sfinaeptr_t const, sfinaeptr_t const) noexcept;
+                          template <typename typeA, typename typeB, typename typeC> constfunc(true) static                        typeof((subtrait::template value<typeA, typeB>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>())))                (value)(sfinaeptr_t const, ...)               noexcept;
 
                           template <typename, typename, typename> constfunc(true) static null (value)(...) noexcept;
                         };
@@ -1698,15 +1813,15 @@
                         // ... --> subtrait::value<A, B, C>(...)
                         template <class subtrait>
                         struct valueof<subtrait, 3u, 3u> final {
-                          template <typename typeA, typename typeB, typename typeC> constfunc(true) static typename conditional<notypeof((subtrait::template value<typeA, typeB, typeC>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>()))), null>::type (value)(sfinaeptr_t const, sfinaeptr_t const) noexcept;
-                          template <typename typeA, typename typeB, typename typeC> constfunc(true) static                        typeof((subtrait::template value<typeA, typeB, typeC>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>())))              (value)(sfinaeptr_t const, ...)               noexcept;
+                          template <typename typeA, typename typeB, typename typeC> constfunc(true) static typename conditional<notypeof((subtrait::template value<typeA, typeB, typeC>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>()))), novoid>::type (value)(sfinaeptr_t const, sfinaeptr_t const) noexcept;
+                          template <typename typeA, typename typeB, typename typeC> constfunc(true) static                        typeof((subtrait::template value<typeA, typeB, typeC>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>())))                (value)(sfinaeptr_t const, ...)               noexcept;
 
                           template <typename, typename, typename> constfunc(true) static null (value)(...) noexcept;
                         };
 
                       public:
                         typedef typename conditional<
-                          is_same<null, typeof((valueof<>::template value<baseA, baseB, baseC>(sfinaeptr, sfinaeptr)))>::value,
+                          is_same<novoid, typeof((valueof<>::template value<baseA, baseB, baseC>(sfinaeptr, sfinaeptr)))>::value,
                           alias<void>,
                           alias<typeof((valueof<>::template value<baseA, baseB, baseC>(sfinaeptr, sfinaeptr)))>
                         >::type::type type;
@@ -1720,8 +1835,8 @@
                   /* ... */
                   typedef typename typeof::type type;
 
-                  template <typename base> struct is   final { static bool const value = sizeof(boolean_true) == sizeof optraitinfo::template valueof<trait, optraitinfo::get::type_equality,   base, arity, baseA, baseB, baseC /* , ... */>(sfinaeptr); };
                   template <typename base> struct like final { static bool const value = sizeof(boolean_true) == sizeof optraitinfo::template valueof<trait, optraitinfo::get::type_similarity, base, arity, baseA, baseB, baseC /* , ... */>(sfinaeptr); };
+                  template <typename base> struct same final { static bool const value = sizeof(boolean_true) == sizeof optraitinfo::template valueof<trait, optraitinfo::get::type_equality,   base, arity, baseA, baseB, baseC /* , ... */>(sfinaeptr); };
               };
           };
 
@@ -1776,27 +1891,41 @@
               #else
                 template <operation operation, typename base1u = null, typename base2u = null, typename base3u = null, typename base4u = null, typename base5u = null, typename base6u = null, typename base7u = null, typename base8u = null, typename base9u = null, typename base10u = null, typename base11u = null, typename base12u = null, typename base13u = null, typename base14u = null, typename base15u = null, typename base16u = null, typename base17u = null, typename base18u = null, typename base19u = null, typename base20u = null, typename base21u = null, typename base22u = null, typename base23u = null, typename base24u = null, typename base25u = null, typename base26u = null, typename base27u = null, typename base28u = null, typename base29u = null, typename base30u = null, typename base31u = null, typename base32u = null, typename base33u = null, typename base34u = null, typename base35u = null, typename base36u = null, typename base37u = null, typename base38u = null, typename base39u = null, typename base40u = null, typename base41u = null, typename base42u = null, typename base43u = null, typename base44u = null, typename base45u = null, typename base46u = null, typename base47u = null, typename base48u = null, typename base49u = null, typename base50u = null, typename base51u = null, typename base52u = null, typename base53u = null, typename base54u = null, typename base55u = null, typename base56u = null, typename base57u = null, typename base58u = null, typename base59u = null, typename base60u = null, typename base61u = null, typename base62u = null, typename base63u = null, typename base64u = null, typename base65u = null, typename base66u = null, typename base67u = null, typename base68u = null, typename base69u = null, typename base70u = null, typename base71u = null, typename base72u = null, typename base73u = null, typename base74u = null, typename base75u = null, typename base76u = null, typename base77u = null, typename base78u = null, typename base79u = null, typename base80u = null, typename base81u = null, typename base82u = null, typename base83u = null, typename base84u = null, typename base85u = null, typename base86u = null, typename base87u = null, typename base88u = null, typename base89u = null, typename base90u = null, typename base91u = null, typename base92u = null, typename base93u = null, typename base94u = null, typename base95u = null, typename base96u = null, typename base97u = null, typename base98u = null, typename base99u = null, typename base100u = null, typename base101u = null, typename base102u = null, typename base103u = null, typename base104u = null, typename base105u = null, typename base106u = null, typename base107u = null, typename base108u = null, typename base109u = null, typename base110u = null, typename base111u = null, typename base112u = null, typename base113u = null, typename base114u = null, typename base115u = null, typename base116u = null, typename base117u = null, typename base118u = null, typename base119u = null, typename base120u = null, typename base121u = null, typename base122u = null, typename base123u = null, typename base124u = null, typename base125u = null, typename base126u = null, typename base127u = null, typename base128u = null, typename base129u = null, typename base130u = null>
                 struct operate final {
-                  // private:
-                  //   static std::size_t const arity = not is_null<base1u>::value + not is_null<base2u>::value + not is_null<base3u>::value + not is_null<base4u>::value + not is_null<base5u>::value + not is_null<base6u>::value + not is_null<base7u>::value + not is_null<base8u>::value + not is_null<base9u>::value + not is_null<base10u>::value + not is_null<base11u>::value + not is_null<base12u>::value + not is_null<base13u>::value + not is_null<base14u>::value + not is_null<base15u>::value + not is_null<base16u>::value + not is_null<base17u>::value + not is_null<base18u>::value + not is_null<base19u>::value + not is_null<base20u>::value + not is_null<base21u>::value + not is_null<base22u>::value + not is_null<base23u>::value + not is_null<base24u>::value + not is_null<base25u>::value + not is_null<base26u>::value + not is_null<base27u>::value + not is_null<base28u>::value + not is_null<base29u>::value + not is_null<base30u>::value + not is_null<base31u>::value + not is_null<base32u>::value + not is_null<base33u>::value + not is_null<base34u>::value + not is_null<base35u>::value + not is_null<base36u>::value + not is_null<base37u>::value + not is_null<base38u>::value + not is_null<base39u>::value + not is_null<base40u>::value + not is_null<base41u>::value + not is_null<base42u>::value + not is_null<base43u>::value + not is_null<base44u>::value + not is_null<base45u>::value + not is_null<base46u>::value + not is_null<base47u>::value + not is_null<base48u>::value + not is_null<base49u>::value + not is_null<base50u>::value + not is_null<base51u>::value + not is_null<base52u>::value + not is_null<base53u>::value + not is_null<base54u>::value + not is_null<base55u>::value + not is_null<base56u>::value + not is_null<base57u>::value + not is_null<base58u>::value + not is_null<base59u>::value + not is_null<base60u>::value + not is_null<base61u>::value + not is_null<base62u>::value + not is_null<base63u>::value + not is_null<base64u>::value + not is_null<base65u>::value + not is_null<base66u>::value + not is_null<base67u>::value + not is_null<base68u>::value + not is_null<base69u>::value + not is_null<base70u>::value + not is_null<base71u>::value + not is_null<base72u>::value + not is_null<base73u>::value + not is_null<base74u>::value + not is_null<base75u>::value + not is_null<base76u>::value + not is_null<base77u>::value + not is_null<base78u>::value + not is_null<base79u>::value + not is_null<base80u>::value + not is_null<base81u>::value + not is_null<base82u>::value + not is_null<base83u>::value + not is_null<base84u>::value + not is_null<base85u>::value + not is_null<base86u>::value + not is_null<base87u>::value + not is_null<base88u>::value + not is_null<base89u>::value + not is_null<base90u>::value + not is_null<base91u>::value + not is_null<base92u>::value + not is_null<base93u>::value + not is_null<base94u>::value + not is_null<base95u>::value + not is_null<base96u>::value + not is_null<base97u>::value + not is_null<base98u>::value + not is_null<base99u>::value + not is_null<base100u>::value + not is_null<base101u>::value + not is_null<base102u>::value + not is_null<base103u>::value + not is_null<base104u>::value + not is_null<base105u>::value + not is_null<base106u>::value + not is_null<base107u>::value + not is_null<base108u>::value + not is_null<base109u>::value + not is_null<base110u>::value + not is_null<base111u>::value + not is_null<base112u>::value + not is_null<base113u>::value + not is_null<base114u>::value + not is_null<base115u>::value + not is_null<base116u>::value + not is_null<base117u>::value + not is_null<base118u>::value + not is_null<base119u>::value + not is_null<base120u>::value + not is_null<base121u>::value + not is_null<base122u>::value + not is_null<base123u>::value + not is_null<base124u>::value + not is_null<base125u>::value + not is_null<base126u>::value + not is_null<base127u>::value + not is_null<base128u>::value + not is_null<base129u>::value + not is_null<base130u>::value;
+                  private:
+                    static std::size_t const arity = not is_null<base1u>::value + not is_null<base2u>::value + not is_null<base3u>::value + not is_null<base4u>::value + not is_null<base5u>::value + not is_null<base6u>::value + not is_null<base7u>::value + not is_null<base8u>::value + not is_null<base9u>::value + not is_null<base10u>::value + not is_null<base11u>::value + not is_null<base12u>::value + not is_null<base13u>::value + not is_null<base14u>::value + not is_null<base15u>::value + not is_null<base16u>::value + not is_null<base17u>::value + not is_null<base18u>::value + not is_null<base19u>::value + not is_null<base20u>::value + not is_null<base21u>::value + not is_null<base22u>::value + not is_null<base23u>::value + not is_null<base24u>::value + not is_null<base25u>::value + not is_null<base26u>::value + not is_null<base27u>::value + not is_null<base28u>::value + not is_null<base29u>::value + not is_null<base30u>::value + not is_null<base31u>::value + not is_null<base32u>::value + not is_null<base33u>::value + not is_null<base34u>::value + not is_null<base35u>::value + not is_null<base36u>::value + not is_null<base37u>::value + not is_null<base38u>::value + not is_null<base39u>::value + not is_null<base40u>::value + not is_null<base41u>::value + not is_null<base42u>::value + not is_null<base43u>::value + not is_null<base44u>::value + not is_null<base45u>::value + not is_null<base46u>::value + not is_null<base47u>::value + not is_null<base48u>::value + not is_null<base49u>::value + not is_null<base50u>::value + not is_null<base51u>::value + not is_null<base52u>::value + not is_null<base53u>::value + not is_null<base54u>::value + not is_null<base55u>::value + not is_null<base56u>::value + not is_null<base57u>::value + not is_null<base58u>::value + not is_null<base59u>::value + not is_null<base60u>::value + not is_null<base61u>::value + not is_null<base62u>::value + not is_null<base63u>::value + not is_null<base64u>::value + not is_null<base65u>::value + not is_null<base66u>::value + not is_null<base67u>::value + not is_null<base68u>::value + not is_null<base69u>::value + not is_null<base70u>::value + not is_null<base71u>::value + not is_null<base72u>::value + not is_null<base73u>::value + not is_null<base74u>::value + not is_null<base75u>::value + not is_null<base76u>::value + not is_null<base77u>::value + not is_null<base78u>::value + not is_null<base79u>::value + not is_null<base80u>::value + not is_null<base81u>::value + not is_null<base82u>::value + not is_null<base83u>::value + not is_null<base84u>::value + not is_null<base85u>::value + not is_null<base86u>::value + not is_null<base87u>::value + not is_null<base88u>::value + not is_null<base89u>::value + not is_null<base90u>::value + not is_null<base91u>::value + not is_null<base92u>::value + not is_null<base93u>::value + not is_null<base94u>::value + not is_null<base95u>::value + not is_null<base96u>::value + not is_null<base97u>::value + not is_null<base98u>::value + not is_null<base99u>::value + not is_null<base100u>::value + not is_null<base101u>::value + not is_null<base102u>::value + not is_null<base103u>::value + not is_null<base104u>::value + not is_null<base105u>::value + not is_null<base106u>::value + not is_null<base107u>::value + not is_null<base108u>::value + not is_null<base109u>::value + not is_null<base110u>::value + not is_null<base111u>::value + not is_null<base112u>::value + not is_null<base113u>::value + not is_null<base114u>::value + not is_null<base115u>::value + not is_null<base116u>::value + not is_null<base117u>::value + not is_null<base118u>::value + not is_null<base119u>::value + not is_null<base120u>::value + not is_null<base121u>::value + not is_null<base122u>::value + not is_null<base123u>::value + not is_null<base124u>::value + not is_null<base125u>::value + not is_null<base126u>::value + not is_null<base127u>::value + not is_null<base128u>::value + not is_null<base129u>::value + not is_null<base130u>::value;
 
-                  //   /* ... */
-                  //   typedef constant<bool, (
-                  //     (0u == arity and opinfo::nop == operation)     or
-                  //     operation == opinfo::call                      or
-                  //     operation == opinfo::call_static               or
-                  //     operation == opinfo::construct                 or
-                  //     operation == opinfo::new_constructed_placement or
-                  //     #ifdef __cpp_initializer_lists // --> 200806L
-                  //       operation == opinfo::new_array_placement       or
-                  //       operation == opinfo::new_initialized_placement or
-                  //     #endif
-                  //     #ifdef __cpp_multidimensional_subscript // --> 202110L
-                  //       operation == opinfo::subscript        or
-                  //       operation == opinfo::subscript_static or
-                  //     #endif
-                  //     false
-                  //   )> unsupported_operation;
-                  //   static_assert(unsupported_operation::value, "Unsupported `operation` specified");
+                    /* ... --- TODO (Lapys) */
+                    template <enum opinfo::operation, typename = void>
+                    struct op;
+
+                    template <typename subbase>
+                    struct op<opinfo::call, subbase> final {
+                      template <expressioninfo information, typename type1u>
+                      constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), instanceof<type1u>()(), (novoid)()), ((refspec)(), instanceof<type1u>()(), (refspec)()))]>::type (valueof)() noexcept;
+                    };
+                    // (0u == arity and opinfo::nop == operation)     or
+                    // operation == opinfo::call                      or
+                    // operation == opinfo::call_static               or
+                    // operation == opinfo::construct                 or
+                    // operation == opinfo::new_constructed_placement or
+                    // #ifdef __cpp_initializer_lists // --> 200806L
+                    //   operation == opinfo::new_array_placement       or
+                    //   operation == opinfo::new_initialized_placement or
+                    // #endif
+                    // #ifdef __cpp_multidimensional_subscript // --> 202110L
+                    //   operation == opinfo::subscript        or
+                    //   operation == opinfo::subscript_static or
+                    // #endif
+
+                  public:
+                    static bool        const value = ...;
+                    static std::size_t const size  = ...;
+
+                    /* ... */
+                    typedef typename typeof<operation, ...>::type type;
+
+                    template <typename subbase> struct like final { static bool const value = ...; };
+                    template <typename subbase> struct same final { static bool const value = ...; };
                 };
               #endif
 
@@ -1825,152 +1954,53 @@
                   template <typename subbase>
                   struct op<opinfo::address, subbase> final {
                     struct any final { template <typename type> constfunc(true) operator type() const noexcept; }; // --> C2102
-
-                    template <expressioninfo information, typename typeA> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(&instanceof<any>().operator typeA(), (typeinfo::is_reference)(&instanceof<any>().operator typeA()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(&instanceof<any>().operator typeA()) + 1u]>                                                          ::type (valueof)() noexcept;
+                    template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), &instanceof<any>().operator typeA(), (novoid)()), ((refspec)(), &instanceof<any>().operator typeA(), (refspec)()))]>::type (valueof)() noexcept;
                   };
 
-                  // ... --> x()
-                  template <typename subbase>
-                  struct op<opinfo::call, subbase> final {
-                    template <expressioninfo information, typename typeA> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(instanceof<typeA>()(), (typeinfo::is_reference)(instanceof<typeA>()()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(instanceof<typeA>()()) + 1u]>                                            ::type (valueof)() noexcept;
-                  };
+                  template <typename subbase> struct op<opinfo::call,            subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),   instanceof<typeA>()(),     (novoid)()), ((refspec)(),   instanceof<typeA>()(), (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::complement,      subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  ~instanceof<typeA>(),       (novoid)()), ((refspec)(),  ~instanceof<typeA>(),   (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::construct,       subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)                          (typeA nul() (),               (refspec)())]>                                       ::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::dereference,     subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  *instanceof<typeA>(),       (novoid)()), ((refspec)(),  *instanceof<typeA>(),   (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::minus,           subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  -instanceof<typeA>(),       (novoid)()), ((refspec)(),  -instanceof<typeA>(),   (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::negate,          subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  !instanceof<typeA>(),       (novoid)()), ((refspec)(),  !instanceof<typeA>(),   (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::new_constructed, subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)                    (::new typeA nul() (),               (refspec)())]>                                       ::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::plus,            subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  +instanceof<typeA>(),       (novoid)()), ((refspec)(),  +instanceof<typeA>(),   (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::post_decrement,  subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),   instanceof<typeA>()--,     (novoid)()), ((refspec)(),   instanceof<typeA>()--, (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::post_increment,  subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),   instanceof<typeA>()++,     (novoid)()), ((refspec)(),   instanceof<typeA>()++, (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::pre_decrement,   subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), --instanceof<typeA>(),       (novoid)()), ((refspec)(), --instanceof<typeA>(),   (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::pre_increment,   subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), ++instanceof<typeA>(),       (novoid)()), ((refspec)(), ++instanceof<typeA>(),   (refspec)()))]>::type (valueof)() noexcept; };
 
-                  // ... --> x()
-                  template <typename subbase>
-                  struct op<opinfo::construct, subbase> final {
-                    template <expressioninfo information, typename typeA> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(typeA(), (typeinfo::is_reference)(typeA()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(typeA()) + 1u]>                              ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> ~x
-                  template <typename subbase>
-                  struct op<opinfo::complement, subbase> final {
-                    template <expressioninfo information, typename typeA> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(~instanceof<typeA>(), (typeinfo::is_reference)(~instanceof<typeA>()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(~instanceof<typeA>()) + 1u]>                                           ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> *x
-                  template <typename subbase>
-                  struct op<opinfo::dereference, subbase> final {
-                    template <expressioninfo information, typename typeA> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(*instanceof<typeA>(), (typeinfo::is_reference)(*instanceof<typeA>()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(*instanceof<typeA>()) + 1u]>                                           ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> -x
-                  template <typename subbase>
-                  struct op<opinfo::minus, subbase> final {
-                    template <expressioninfo information, typename typeA> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(-instanceof<typeA>(), (typeinfo::is_reference)(-instanceof<typeA>()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(-instanceof<typeA>()) + 1u]>                                           ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> !x
-                  template <typename subbase>
-                  struct op<opinfo::negate, subbase> final {
-                    template <expressioninfo information, typename typeA> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(!instanceof<typeA>(), (typeinfo::is_reference)(!instanceof<typeA>()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(!instanceof<typeA>()) + 1u]>                                           ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> new x()
-                  template <typename subbase>
-                  struct op<opinfo::new_constructed, subbase> final {
-                    template <expressioninfo information, typename typeA> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(::new typeA(), (typeinfo::is_reference)(::new typeA()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(::new typeA()) + 1u]>                                    ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> +x
-                  template <typename subbase>
-                  struct op<opinfo::plus, subbase> final {
-                    template <expressioninfo information, typename typeA> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(+instanceof<typeA>(), (typeinfo::is_reference)(+instanceof<typeA>()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(+instanceof<typeA>()) + 1u]>                                           ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> x--
-                  template <typename subbase>
-                  struct op<opinfo::post_decrement, subbase> final {
-                    template <expressioninfo information, typename typeA> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(instanceof<typeA>()--, (typeinfo::is_reference)(instanceof<typeA>()--))]>::type (typeof) () noexcept;
-                    template                             <typename typeA> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(instanceof<typeA>()--) + 1u]>                                            ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> x++
-                  template <typename subbase>
-                  struct op<opinfo::post_increment, subbase> final {
-                    template <expressioninfo information, typename typeA> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(instanceof<typeA>()++, (typeinfo::is_reference)(instanceof<typeA>()++))]>::type (typeof) () noexcept;
-                    template                             <typename typeA> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(instanceof<typeA>()++) + 1u]>                                            ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> --x
-                  template <typename subbase>
-                  struct op<opinfo::pre_decrement, subbase> final {
-                    template <expressioninfo information, typename typeA> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(--instanceof<typeA>(), (typeinfo::is_reference)(--instanceof<typeA>()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(--instanceof<typeA>()) + 1u]>                                            ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> ++x
-                  template <typename subbase>
-                  struct op<opinfo::pre_increment, subbase> final {
-                    template <expressioninfo information, typename typeA> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(++instanceof<typeA>(), (typeinfo::is_reference)(++instanceof<typeA>()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(++instanceof<typeA>()) + 1u]>                                            ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> delete[] x; delete x
                   #if CPP_COMPILER == CPP_MSVC_COMPILER
                     template <typename subbase> struct op<opinfo::delete_array,  subbase> final { template <typename typeA> constfunc(true) static typename alias<byte (rlref)[is_complete<typename remove_pointer<typeA>::value>::value and is_pointer<typeA>::value]>::type (valueof)() noexcept; };
                     template <typename subbase> struct op<opinfo::delete_object, subbase> final { template <typename typeA> constfunc(true) static typename alias<byte (rlref)[is_complete<typename remove_pointer<typeA>::value>::value and is_pointer<typeA>::value]>::type (valueof)() noexcept; };
                   #else
-                    template <typename subbase> struct op<opinfo::delete_array,  subbase> final { template <typename typeA> constfunc(true) static typename alias<byte (rlref)[nilsizeof(::delete[] instanceof<typeA>()) + 1u]>::type (valueof)() noexcept; };
-                    template <typename subbase> struct op<opinfo::delete_object, subbase> final { template <typename typeA> constfunc(true) static typename alias<byte (rlref)[nilsizeof(::delete   instanceof<typeA>()) + 1u]>::type (valueof)() noexcept; };
+                    template <typename subbase> struct op<opinfo::delete_array,  subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)((::delete[] instanceof<typeA>(), (novoid)()), (refspec)())]>::type (valueof)() noexcept; };
+                    template <typename subbase> struct op<opinfo::delete_object, subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)((::delete   instanceof<typeA>(), (novoid)()), (refspec)())]>::type (valueof)() noexcept; };
                   #endif
 
-                  // ... --> x{}; new x{}
                   #ifdef __cpp_initializer_lists // --> 200806L
-                    template <typename subbase>
-                    struct op<opinfo::initialize, subbase> final {
-                      template <expressioninfo information, typename typeA> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(typeA{}, (typeinfo::is_reference)(typeA{}))]>::type (typeof) () noexcept;
-                      template                             <typename typeA> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(typeA{}) + 1u]>                              ::type (valueof)() noexcept;
-                    };
-
-                    template <typename subbase>
-                    struct op<opinfo::new_initialized, subbase> final {
-                      template <expressioninfo information, typename typeA> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(::new typeA{}, (typeinfo::is_reference)(::new typeA{}))]>::type (typeof) () noexcept;
-                      template                             <typename typeA> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(::new typeA{}) + 1u]>                                    ::type (valueof)() noexcept;
-                    };
+                    template <typename subbase> struct op<opinfo::initialize,      subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)      (typeA{}, (refspec)())]>::type (valueof)() noexcept; };
+                    template <typename subbase> struct op<opinfo::new_initialized, subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(::new typeA{}, (refspec)())]>::type (valueof)() noexcept; };
                   #endif
 
-                  // ... --> x[]; x::operator []()
                   #ifdef __cpp_multidimensional_subscript // --> 202110L
-                    template <typename subbase>
-                    struct op<opinfo::subscript, subbase> final {
-                      template <expressioninfo information, typename typeA> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(instanceof<typeA>()[], (typeinfo::is_reference)(instanceof<typeA>()[]))]>::type (typeof) () noexcept;
-                      template                             <typename typeA> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(instanceof<typeA>()[]) + 1u]>                                            ::type (valueof)() noexcept;
-                    };
-
-                    template <typename subbase>
-                    struct op<opinfo::subscript_static, subbase> final {
-                      template <expressioninfo information, typename typeA> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(typeA::operator [](), (typeinfo::is_reference)(typeA::operator []()))]>::type (typeof) () noexcept;
-                      template                             <typename typeA> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(typeA::operator []()) + 1u]>                                           ::type (valueof)() noexcept;
-                    };
+                    template <typename subbase> struct op<opinfo::subscript,        subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), instanceof<typeA>()[], (novoid)()), ((refspec)(), instanceof<typeA>()[], (refspec)()))]>::type (valueof)() noexcept; };
+                    template <typename subbase> struct op<opinfo::subscript_static, subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), typeA::operator  [](), (novoid)()), ((refspec)(), typeA::operator  [](), (refspec)()))]>::type (valueof)() noexcept; };
                   #endif
 
-                  // ... --> x::operator ()()
                   #ifdef __cpp_static_call_operator // --> 202207L
-                    template <typename subbase>
-                    struct op<opinfo::call_static, subbase> final {
-                      template <expressioninfo information, typename typeA> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(typeA::operator ()(), (typeinfo::is_reference)(typeA::operator ()()))]>::type (typeof) () noexcept;
-                      template                             <typename typeA> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(typeA::operator ()()) + 1u]>                                           ::type (valueof)() noexcept;
-                    };
+                    template <typename subbase> struct op<opinfo::call_static, subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), typeA::operator ()(), (novoid)()), ((refspec)(), typeA::operator ()(), (refspec)()))]>::type (valueof)() noexcept; };
                   #endif
 
                 public:
-                  static bool        const value = operate<opinfo::unary, baseA>::template subvalueof<op<operation>, optraitinfo::get::correctness>::value != 0u;
-                  static std::size_t const size  = operate<opinfo::unary, baseA>::template subvalueof<op<operation>, optraitinfo::get::correctness>::value -  value;
+                  static bool        const value = operate<opinfo::unary, baseA>::template subvalueof<op<operation>, optraitinfo::get::correctness>::value != sizeof(boolean_false);
+                  static std::size_t const size  = operate<opinfo::unary, baseA>::template subvalueof<op<operation>, optraitinfo::get::correctness>::value -  (value + 1u);
 
                   /* ... */
                   typedef typename typeof<operation, baseA>::type type;
 
-                  template <typename subbase> struct like final { static bool const value = operate<opinfo::unary, baseA>::template typeof<op<operation, subbase>, optraitinfo::get::type_similarity, subbase>::value; };
-                  template <typename subbase> struct is   final { static bool const value = operate<opinfo::unary, baseA>::template typeof<op<operation, subbase>, optraitinfo::get::type_equality,   subbase>::value; };
+                  template <typename subbase> struct like final { static bool const value = operate<opinfo::unary, baseA>::template subvalueof<op<operation, subbase>, optraitinfo::get::type_similarity, subbase>::value != sizeof(boolean_false); };
+                  template <typename subbase> struct same final { static bool const value = operate<opinfo::unary, baseA>::template subvalueof<op<operation, subbase>, optraitinfo::get::type_equality,   subbase>::value != sizeof(boolean_false); };
               };
 
               // ... --> opinfo::binary
@@ -1983,370 +2013,85 @@
                     static_assert(unsupported_operation::value, "Unsupported binary `operation` specified");
                   };
 
-                  // ... --> x.*y
-                  template <typename subbase>
-                  struct op<opinfo::access_pointer, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(instanceof<typeA>().*instanceof<typeB>(), (typeinfo::is_reference)(instanceof<typeA>().*instanceof<typeB>()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(instanceof<typeA>().*instanceof<typeB>()) + 1u]>                                                               ::type (valueof)() noexcept;
-                  };
+                  template <typename subbase> struct op<opinfo::access_pointer,              subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)              (instanceof<typeA>() .*  instanceof<typeB>(),                ((refspec)(),        instanceof<typeA>() .*  instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::add,                         subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>() +   instanceof<typeB>(),   (novoid)()), ((refspec)(),        instanceof<typeA>() +   instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::assign,                      subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), (instanceof<typeA>() =   instanceof<typeB>()),  (novoid)()), ((refspec)(),       (instanceof<typeA>() =   instanceof<typeB>()),  (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::assign_add,                  subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), (instanceof<typeA>() +=  instanceof<typeB>()),  (novoid)()), ((refspec)(),       (instanceof<typeA>() +=  instanceof<typeB>()),  (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::assign_bitwise_and,          subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), (instanceof<typeA>() &=  instanceof<typeB>()),  (novoid)()), ((refspec)(),       (instanceof<typeA>() &=  instanceof<typeB>()),  (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::assign_bitwise_or,           subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), (instanceof<typeA>() |=  instanceof<typeB>()),  (novoid)()), ((refspec)(),       (instanceof<typeA>() |=  instanceof<typeB>()),  (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::assign_bitwise_shift_left,   subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), (instanceof<typeA>() <<= instanceof<typeB>()),  (novoid)()), ((refspec)(),       (instanceof<typeA>() <<= instanceof<typeB>()),  (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::assign_bitwise_shift_right,  subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), (instanceof<typeA>() >>= instanceof<typeB>()),  (novoid)()), ((refspec)(),       (instanceof<typeA>() >>= instanceof<typeB>()),  (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::assign_bitwise_xor,          subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), (instanceof<typeA>() ^=  instanceof<typeB>()),  (novoid)()), ((refspec)(),       (instanceof<typeA>() ^=  instanceof<typeB>()),  (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::assign_divide,               subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), (instanceof<typeA>() /=  instanceof<typeB>()),  (novoid)()), ((refspec)(),       (instanceof<typeA>() /=  instanceof<typeB>()),  (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::assign_modulo,               subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), (instanceof<typeA>() %=  instanceof<typeB>()),  (novoid)()), ((refspec)(),       (instanceof<typeA>() %=  instanceof<typeB>()),  (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::assign_multiply,             subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), (instanceof<typeA>() *=  instanceof<typeB>()),  (novoid)()), ((refspec)(),       (instanceof<typeA>() *=  instanceof<typeB>()),  (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::assign_subtract,             subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), (instanceof<typeA>() -=  instanceof<typeB>()),  (novoid)()), ((refspec)(),       (instanceof<typeA>() -=  instanceof<typeB>()),  (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::bitwise_and,                 subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>() &   instanceof<typeB>(),   (novoid)()), ((refspec)(),        instanceof<typeA>() &   instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::bitwise_or,                  subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>() |   instanceof<typeB>(),   (novoid)()), ((refspec)(),        instanceof<typeA>() |   instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::bitwise_shift_left,          subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>() <<  instanceof<typeB>(),   (novoid)()), ((refspec)(),        instanceof<typeA>() <<  instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::bitwise_shift_right,         subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>() >>  instanceof<typeB>(),   (novoid)()), ((refspec)(),        instanceof<typeA>() >>  instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::bitwise_xor,                 subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>() ^   instanceof<typeB>(),   (novoid)()), ((refspec)(),        instanceof<typeA>() ^   instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::boolean_and,                 subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>() &&  instanceof<typeB>(),   (novoid)()), ((refspec)(),        instanceof<typeA>() &&  instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::boolean_or,                  subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>() ||  instanceof<typeB>(),   (novoid)()), ((refspec)(),        instanceof<typeA>() ||  instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::call,                        subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>()    (instanceof<typeB>()),  (novoid)()), ((refspec)(),        instanceof<typeA>()    (instanceof<typeB>()),  (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::cast,                        subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),            (typeA)       instanceof<typeB>(),   (novoid)()), ((refspec)(),                  (typeA)       instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::cast_const,                  subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)              (const_cast<typeA>      (instanceof<typeB>()),               ((refspec)(),        const_cast<typeA>      (instanceof<typeB>()),  (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::cast_reinterpret,            subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)        (reinterpret_cast<typeA>      (instanceof<typeB>()),               ((refspec)(),  reinterpret_cast<typeA>      (instanceof<typeB>()),  (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::cast_static,                 subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), static_cast<typeA>      (instanceof<typeB>()),  (novoid)()), ((refspec)(),       static_cast<typeA>      (instanceof<typeB>()),  (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::comma,                       subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), (instanceof<typeA>(),    instanceof<typeB>()),  (novoid)()), ((refspec)(),       (instanceof<typeA>(),    instanceof<typeB>()),  (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::construct,                   subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),             typeA nul() (instanceof<typeB>()),  (novoid)()), ((refspec)(),                   typeA nul() (instanceof<typeB>()),  (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::dereferenced_access_pointer, subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>() ->* instanceof<typeB>(),   (novoid)()), ((refspec)(),        instanceof<typeA>() ->* instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::divide,                      subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>() /   instanceof<typeB>(),   (novoid)()), ((refspec)(),        instanceof<typeA>() /   instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::equals,                      subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>() ==  instanceof<typeB>(),   (novoid)()), ((refspec)(),        instanceof<typeA>() ==  instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::greater,                     subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>() >   instanceof<typeB>(),   (novoid)()), ((refspec)(),        instanceof<typeA>() >   instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::greater_equals,              subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>() >=  instanceof<typeB>(),   (novoid)()), ((refspec)(),        instanceof<typeA>() >=  instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::lesser,                      subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>() <   instanceof<typeB>(),   (novoid)()), ((refspec)(),        instanceof<typeA>() <   instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::lesser_equals,               subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>() <=  instanceof<typeB>(),   (novoid)()), ((refspec)(),        instanceof<typeA>() <=  instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::modulo,                      subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>() %   instanceof<typeB>(),   (novoid)()), ((refspec)(),        instanceof<typeA>() %   instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::multiply,                    subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>() *   instanceof<typeB>(),   (novoid)()), ((refspec)(),        instanceof<typeA>() *   instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::new_constructed,             subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)                   (::new typeA nul() (instanceof<typeB>()),                (refspec)())]>                                                                    ::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::new_constructed_placement,   subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)       (::new (instanceof<typeA>())               typeB nul() (),           (refspec)())]>                                                                    ::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::subscript,                   subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>()    [instanceof<typeB>()],  (novoid)()), ((refspec)(),        instanceof<typeA>()    [instanceof<typeB>()],  (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::subtract,                    subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>() -   instanceof<typeB>(),   (novoid)()), ((refspec)(),        instanceof<typeA>() -   instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::unequals,                    subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>() !=  instanceof<typeB>(),   (novoid)()), ((refspec)(),        instanceof<typeA>() !=  instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
 
-                  // ... --> x + y
-                  template <typename subbase>
-                  struct op<opinfo::add, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(instanceof<typeA>() + instanceof<typeB>(), (typeinfo::is_reference)(instanceof<typeA>() + instanceof<typeB>()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(instanceof<typeA>() + instanceof<typeB>()) + 1u]>                                                                ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> x = y
-                  template <typename subbase>
-                  struct op<opinfo::assign, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)((instanceof<typeA>() = instanceof<typeB>()), (typeinfo::is_reference)(instanceof<typeA>() = instanceof<typeB>()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                        [nilsizeof(instanceof<typeA>() = instanceof<typeB>()) + 1u]>                                                                 ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> x += y
-                  template <typename subbase>
-                  struct op<opinfo::assign_add, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)((instanceof<typeA>() += instanceof<typeB>()), (typeinfo::is_reference)(instanceof<typeA>() += instanceof<typeB>()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                        [nilsizeof(instanceof<typeA>() += instanceof<typeB>()) + 1u]>                                                                  ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> x &= y
-                  template <typename subbase>
-                  struct op<opinfo::assign_bitwise_and, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)((instanceof<typeA>() &= instanceof<typeB>()), (typeinfo::is_reference)(instanceof<typeA>() &= instanceof<typeB>()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                        [nilsizeof(instanceof<typeA>() &= instanceof<typeB>()) + 1u]>                                                                  ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> x |= y
-                  template <typename subbase>
-                  struct op<opinfo::assign_bitwise_or, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)((instanceof<typeA>() |= instanceof<typeB>()), (typeinfo::is_reference)(instanceof<typeA>() |= instanceof<typeB>()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                        [nilsizeof(instanceof<typeA>() |= instanceof<typeB>()) + 1u]>                                                                  ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> x <<= y
-                  template <typename subbase>
-                  struct op<opinfo::assign_bitwise_shift_left, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)((instanceof<typeA>() <<= instanceof<typeB>()), (typeinfo::is_reference)(instanceof<typeA>() <<= instanceof<typeB>()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                        [nilsizeof(instanceof<typeA>() <<= instanceof<typeB>()) + 1u]>                                                                   ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> x >>= y
-                  template <typename subbase>
-                  struct op<opinfo::assign_bitwise_shift_right, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)((instanceof<typeA>() >>= instanceof<typeB>()), (typeinfo::is_reference)(instanceof<typeA>() >>= instanceof<typeB>()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                        [nilsizeof(instanceof<typeA>() >>= instanceof<typeB>()) + 1u]>                                                                   ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> x ^= y
-                  template <typename subbase>
-                  struct op<opinfo::assign_bitwise_xor, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)((instanceof<typeA>() ^= instanceof<typeB>()), (typeinfo::is_reference)(instanceof<typeA>() ^= instanceof<typeB>()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                        [nilsizeof(instanceof<typeA>() ^= instanceof<typeB>()) + 1u]>                                                                  ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> x /= y
-                  template <typename subbase>
-                  struct op<opinfo::assign_divide, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)((instanceof<typeA>() /= instanceof<typeB>()), (typeinfo::is_reference)(instanceof<typeA>() /= instanceof<typeB>()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                        [nilsizeof(instanceof<typeA>() /= instanceof<typeB>()) + 1u]>                                                                  ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> x %= y
-                  template <typename subbase>
-                  struct op<opinfo::assign_modulo, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)((instanceof<typeA>() %= instanceof<typeB>()), (typeinfo::is_reference)(instanceof<typeA>() %= instanceof<typeB>()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                        [nilsizeof(instanceof<typeA>() %= instanceof<typeB>()) + 1u]>                                                                  ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> x *= y
-                  template <typename subbase>
-                  struct op<opinfo::assign_multiply, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)((instanceof<typeA>() *= instanceof<typeB>()), (typeinfo::is_reference)(instanceof<typeA>() *= instanceof<typeB>()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                        [nilsizeof(instanceof<typeA>() *= instanceof<typeB>()) + 1u]>                                                                  ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> x -= y
-                  template <typename subbase>
-                  struct op<opinfo::assign_subtract, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)((instanceof<typeA>() -= instanceof<typeB>()), (typeinfo::is_reference)(instanceof<typeA>() -= instanceof<typeB>()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                        [nilsizeof(instanceof<typeA>() -= instanceof<typeB>()) + 1u]>                                                                  ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> x & y
-                  template <typename subbase>
-                  struct op<opinfo::bitwise_and, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(instanceof<typeA>() & instanceof<typeB>(), (typeinfo::is_reference)(instanceof<typeA>() & instanceof<typeB>()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(instanceof<typeA>() & instanceof<typeB>()) + 1u]>                                                                ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> x | y
-                  template <typename subbase>
-                  struct op<opinfo::bitwise_or, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(instanceof<typeA>() | instanceof<typeB>(), (typeinfo::is_reference)(instanceof<typeA>() | instanceof<typeB>()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(instanceof<typeA>() | instanceof<typeB>()) + 1u]>                                                                ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> x << y
-                  template <typename subbase>
-                  struct op<opinfo::bitwise_shift_left, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(instanceof<typeA>() << instanceof<typeB>(), (typeinfo::is_reference)(instanceof<typeA>() << instanceof<typeB>()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(instanceof<typeA>() << instanceof<typeB>()) + 1u]>                                                                 ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> x >> y
-                  template <typename subbase>
-                  struct op<opinfo::bitwise_shift_right, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(instanceof<typeA>() >> instanceof<typeB>(), (typeinfo::is_reference)(instanceof<typeA>() >> instanceof<typeB>()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(instanceof<typeA>() >> instanceof<typeB>()) + 1u]>                                                                 ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> x ^ y
-                  template <typename subbase>
-                  struct op<opinfo::bitwise_xor, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(instanceof<typeA>() ^ instanceof<typeB>(), (typeinfo::is_reference)(instanceof<typeA>() ^ instanceof<typeB>()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(instanceof<typeA>() ^ instanceof<typeB>()) + 1u]>                                                                ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> x && y
-                  template <typename subbase>
-                  struct op<opinfo::boolean_and, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(instanceof<typeA>() && instanceof<typeB>(), (typeinfo::is_reference)(instanceof<typeA>() && instanceof<typeB>()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(instanceof<typeA>() && instanceof<typeB>()) + 1u]>                                                                 ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> x || y
-                  template <typename subbase>
-                  struct op<opinfo::boolean_or, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(instanceof<typeA>() || instanceof<typeB>(), (typeinfo::is_reference)(instanceof<typeA>() || instanceof<typeB>()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(instanceof<typeA>() || instanceof<typeB>()) + 1u]>                                                                 ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> x(y)
-                  template <typename subbase>
-                  struct op<opinfo::call, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(instanceof<typeA>()(instanceof<typeB>()), (typeinfo::is_reference)(instanceof<typeA>()(instanceof<typeB>())))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(instanceof<typeA>()(instanceof<typeB>())) + 1u]>                                                               ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> (x) y
-                  template <typename subbase>
-                  struct op<opinfo::cast, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)((typeA) instanceof<typeB>(), (typeinfo::is_reference)((typeA) instanceof<typeB>()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof((typeA) instanceof<typeB>()) + 1u]>                                                  ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> const_cast<x>(y)
-                  template <typename subbase>
-                  struct op<opinfo::cast_const, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(const_cast<typeA>(instanceof<typeB>()), (typeinfo::is_reference)(const_cast<typeA>(instanceof<typeB>())))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(const_cast<typeA>(instanceof<typeB>())) + 1u]>                                                             ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> reinterpret_cast<x>(y)
-                  template <typename subbase>
-                  struct op<opinfo::cast_reinterpret, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(reinterpret_cast<typeA>(instanceof<typeB>()), (typeinfo::is_reference)(reinterpret_cast<typeA>(instanceof<typeB>())))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(reinterpret_cast<typeA>(instanceof<typeB>())) + 1u]>                                                                   ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> static_cast<x>(y)
-                  template <typename subbase>
-                  struct op<opinfo::cast_static, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(static_cast<typeA>(instanceof<typeB>()), (typeinfo::is_reference)(static_cast<typeA>(instanceof<typeB>())))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(static_cast<typeA>(instanceof<typeB>())) + 1u]>                                                              ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> x, y
-                  template <typename subbase>
-                  struct op<opinfo::comma, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)((instanceof<typeA>(), instanceof<typeB>()), (typeinfo::is_reference)(instanceof<typeA>(), instanceof<typeB>()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                        [nilsizeof(instanceof<typeA>(), instanceof<typeB>()) + 1u]>                                                                ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> x <=> y
-                  template <typename subbase>
-                  struct op<opinfo::compare, subbase> final {
-                    #ifdef __cpp_impl_three_way_comparison // --> 201907L
-                      template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(instanceof<typeA>() <=> instanceof<typeB>(), (typeinfo::is_reference)(instanceof<typeA>() <=> instanceof<typeB>()))]>::type (typeof) () noexcept;
-                      template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(instanceof<typeA>() <=> instanceof<typeB>()) + 1u]>                                                                  ::type (valueof)() noexcept;
-                    #endif
-                  };
-
-                  // ... --> x(y)
-                  template <typename subbase>
-                  struct op<opinfo::construct, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(typeA(instanceof<typeB>()), (typeinfo::is_reference)(typeA(instanceof<typeB>())))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(typeA(instanceof<typeB>())) + 1u]>                                                 ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> x ->* y
-                  template <typename subbase>
-                  struct op<opinfo::dereferenced_access_pointer, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(instanceof<typeA>() ->* instanceof<typeB>(), (typeinfo::is_reference)(instanceof<typeA>() ->* instanceof<typeB>()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(instanceof<typeA>() ->* instanceof<typeB>()) + 1u]>                                                                  ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> x / y
-                  template <typename subbase>
-                  struct op<opinfo::divide, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(instanceof<typeA>() / instanceof<typeB>(), (typeinfo::is_reference)(instanceof<typeA>() / instanceof<typeB>()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(instanceof<typeA>() / instanceof<typeB>()) + 1u]>                                                                ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> x == y
-                  template <typename subbase>
-                  struct op<opinfo::equals, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(instanceof<typeA>() == instanceof<typeB>(), (typeinfo::is_reference)(instanceof<typeA>() == instanceof<typeB>()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(instanceof<typeA>() == instanceof<typeB>()) + 1u]>                                                                 ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> x > y
-                  template <typename subbase>
-                  struct op<opinfo::greater, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(instanceof<typeA>() > instanceof<typeB>(), (typeinfo::is_reference)(instanceof<typeA>() > instanceof<typeB>()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(instanceof<typeA>() > instanceof<typeB>()) + 1u]>                                                                ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> x >= y
-                  template <typename subbase>
-                  struct op<opinfo::greater_equals, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(instanceof<typeA>() >= instanceof<typeB>(), (typeinfo::is_reference)(instanceof<typeA>() >= instanceof<typeB>()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(instanceof<typeA>() >= instanceof<typeB>()) + 1u]>                                                                 ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> x < y
-                  template <typename subbase>
-                  struct op<opinfo::lesser, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(instanceof<typeA>() < instanceof<typeB>(), (typeinfo::is_reference)(instanceof<typeA>() < instanceof<typeB>()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(instanceof<typeA>() < instanceof<typeB>()) + 1u]>                                                                ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> x <= y
-                  template <typename subbase>
-                  struct op<opinfo::lesser_equals, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(instanceof<typeA>() <= instanceof<typeB>(), (typeinfo::is_reference)(instanceof<typeA>() <= instanceof<typeB>()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(instanceof<typeA>() <= instanceof<typeB>()) + 1u]>                                                                 ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> x % y
-                  template <typename subbase>
-                  struct op<opinfo::modulo, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(instanceof<typeA>() % instanceof<typeB>(), (typeinfo::is_reference)(instanceof<typeA>() % instanceof<typeB>()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(instanceof<typeA>() % instanceof<typeB>()) + 1u]>                                                                ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> x * y
-                  template <typename subbase>
-                  struct op<opinfo::multiply, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(instanceof<typeA>() * instanceof<typeB>(), (typeinfo::is_reference)(instanceof<typeA>() * instanceof<typeB>()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(instanceof<typeA>() * instanceof<typeB>()) + 1u]>                                                                ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> new x(y)
-                  template <typename subbase>
-                  struct op<opinfo::new_constructed, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(::new typeA(instanceof<typeB>()), (typeinfo::is_reference)(::new typeA(instanceof<typeB>())))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(::new typeA(instanceof<typeB>())) + 1u]>                                                       ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> new (x) y()
-                  template <typename subbase>
-                  struct op<opinfo::new_constructed_placement, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(::new (instanceof<typeA>()) typeB(), (typeinfo::is_reference)(::new (instanceof<typeA>()) typeB()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(::new (instanceof<typeA>()) typeB()) + 1u]>                                                          ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> x[y]
-                  template <typename subbase>
-                  struct op<opinfo::subscript, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(instanceof<typeA>()[instanceof<typeB>()], (typeinfo::is_reference)(instanceof<typeA>()[instanceof<typeB>()]))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(instanceof<typeA>()[instanceof<typeB>()]) + 1u]>                                                               ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> x - y
-                  template <typename subbase>
-                  struct op<opinfo::subtract, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(instanceof<typeA>() - instanceof<typeB>(), (typeinfo::is_reference)(instanceof<typeA>() - instanceof<typeB>()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(instanceof<typeA>() - instanceof<typeB>()) + 1u]>                                                                ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> x != y
-                  template <typename subbase>
-                  struct op<opinfo::unequals, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(instanceof<typeA>() != instanceof<typeB>(), (typeinfo::is_reference)(instanceof<typeA>() != instanceof<typeB>()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(instanceof<typeA>() != instanceof<typeB>()) + 1u]>                                                                 ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> dynamic_cast<x>(y)
                   #if CPP_COMPILER != CPP_MSVC_COMPILER // --> C2680
-                    template <typename subbase>
-                    struct op<opinfo::cast_dynamic, subbase> final {
-                      template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(dynamic_cast<typeA>(instanceof<typeB>()), (typeinfo::is_reference)(dynamic_cast<typeA>(instanceof<typeB>())))]>::type (typeof) () noexcept;
-                      template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(dynamic_cast<typeA>(instanceof<typeB>())) + 1u]>                                                               ::type (valueof)() noexcept;
-                    };
+                    template <typename subbase> struct op<opinfo::cast_dynamic, subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(dynamic_cast<typeA>(instanceof<typeB>()), ((refspec)(), dynamic_cast<typeA>(instanceof<typeB>()), (refspec)()))]>::type (valueof)() noexcept; };
                   #endif
 
-                  // ... --> x{y}; new x[y] {}; new x(y); new (x) y{}
+                  #ifdef __cpp_impl_three_way_comparison // --> 201907L
+                    template <typename subbase> struct op<opinfo::compare, subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), instanceof<typeA>() <=> instanceof<typeB>(), (novoid)()), ((refspec)(), instanceof<typeA>() <=> instanceof<typeB>(), (refspec)()))]>::type (valueof)() noexcept; };
+                  #endif
+
                   #ifdef __cpp_initializer_lists // --> 200806L
-                    template <typename subbase>
-                    struct op<opinfo::initialize, subbase> final {
-                      template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(typeA{instanceof<typeB>()}, (typeinfo::is_reference)(typeA{instanceof<typeB>()}))]>::type (typeof) () noexcept;
-                      template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(typeA{instanceof<typeB>()}) + 1u]>                                                 ::type (valueof)() noexcept;
-                    };
+                    template <typename subbase> struct op<opinfo::initialize,      subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)      (typeA{instanceof<typeB>()}, (refspec)())]>::type (valueof)() noexcept; };
+                    template <typename subbase> struct op<opinfo::new_array,       subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(::new typeA[instanceof<typeB>()], (refspec)())]>::type (valueof)() noexcept; };
+                    template <typename subbase> struct op<opinfo::new_initialized, subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(::new typeA{instanceof<typeB>()}, (refspec)())]>::type (valueof)() noexcept; };
 
-                    template <typename subbase>
-                    struct op<opinfo::new_array, subbase> final {
-                      template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(::new typeA[instanceof<typeB>()] {}, (typeinfo::is_reference)(::new typeA[instanceof<typeB>()] {}))]>::type (typeof) () noexcept;
-                      template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(::new typeA[instanceof<typeB>()] {}) + 1u]>                                                          ::type (valueof)() noexcept;
-                    };
-
-                    template <typename subbase>
-                    struct op<opinfo::new_initialized, subbase> final {
-                      template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(::new typeA{instanceof<typeB>()}, (typeinfo::is_reference)(::new typeA{instanceof<typeB>()}))]>::type (typeof) () noexcept;
-                      template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(::new typeA{instanceof<typeB>()}) + 1u]>                                                       ::type (valueof)() noexcept;
-                    };
-
-                    template <typename subbase>
-                    struct op<opinfo::new_initialized_placement, subbase> final {
-                      #if CPP_COMPILER == CPP_MSVC_COMPILER // --> C2143
-                        template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)((static_cast<void>(typeB{}), ::new (instanceof<typeA>()) typeB), (typeinfo::is_reference)((static_cast<void>(typeB{}), ::new (instanceof<typeA>()) typeB)))]>::type (typeof) () noexcept;
-                        template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof((static_cast<void>(typeB{}), ::new (instanceof<typeA>()) typeB)) + 1u]>                                                                                      ::type (valueof)() noexcept;
-                      #else
-                        template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(::new (instanceof<typeA>()) typeB{}, (typeinfo::is_reference)(::new (instanceof<typeA>()) typeB{}))]>::type (typeof) () noexcept;
-                        template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(::new (instanceof<typeA>()) typeB{}) + 1u]>                                                          ::type (valueof)() noexcept;
-                      #endif
-                    };
+                    #if CPP_COMPILER == CPP_MSVC_COMPILER // --> C2143
+                      template <typename subbase> struct op<opinfo::new_initialized_placement, subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)((static_cast<void>(typeB{}), ::new (instanceof<typeA>()) typeB), (refspec)())]>::type (valueof)() noexcept; };
+                    #else
+                      template <typename subbase> struct op<opinfo::new_initialized_placement, subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(::new (instanceof<typeA>()) typeB{}, (refspec)())]>::type (valueof)() noexcept; };
+                    #endif
                   #endif
 
-                  // ... --> x::operator [](y)
                   #ifdef __cpp_multidimensional_subscript // --> 202110L
-                    template <typename subbase>
-                    struct op<opinfo::subscript_static, subbase> final {
-                      template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(typeA::operator [](instanceof<typeB>()), (typeinfo::is_reference)(typeA::operator [](instanceof<typeB>())))]>::type (typeof) () noexcept;
-                      template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(typeA::operator [](instanceof<typeB>())) + 1u]>                                                              ::type (valueof)() noexcept;
-                    };
+                    template <typename subbase> struct op<opinfo::subscript_static, subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), typeA::operator [](instanceof<typeB>()), (novoid)()), ((refspec)(), typeA::operator [](instanceof<typeB>()), (refspec)()))]>::type (valueof)() noexcept; };
                   #endif
 
-                  // ... --> x::operator ()(y)
                   #ifdef __cpp_static_call_operator // --> 202207L
-                    template <typename subbase>
-                    struct op<opinfo::call_static, subbase> final {
-                      template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(typeA::operator ()(instanceof<typeB>()), (typeinfo::is_reference)(typeA::operator ()(instanceof<typeB>())))]>::type (typeof) () noexcept;
-                      template                             <typename typeA, typename typeB> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(typeA::operator ()(instanceof<typeB>())) + 1u]>                                                              ::type (valueof)() noexcept;
-                    };
+                    template <typename subbase> struct op<opinfo::call_static, subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), typeA::operator ()(instanceof<typeB>()), (novoid)()), ((refspec)(), typeA::operator ()(instanceof<typeB>()), (refspec)()))]>::type (valueof)() noexcept; };
                   #endif
 
                 public:
-                  static bool        const value = operate<opinfo::binary, baseA, baseB>::template subvalueof<op<operation>, optraitinfo::get::correctness>::value != 0u;
-                  static std::size_t const size  = operate<opinfo::binary, baseA, baseB>::template subvalueof<op<operation>, optraitinfo::get::correctness>::value -  value;
+                  static bool        const value = operate<opinfo::binary, baseA, baseB>::template subvalueof<op<operation>, optraitinfo::get::correctness>::value != sizeof(boolean_false);
+                  static std::size_t const size  = operate<opinfo::binary, baseA, baseB>::template subvalueof<op<operation>, optraitinfo::get::correctness>::value -  (value + 1u);
 
                   /* ... */
                   typedef typename typeof<operation, baseA, baseB>::type type;
 
-                  template <typename subbase> struct like final { static bool const value = operate<opinfo::binary, baseA, baseB>::template typeof<op<operation, subbase>, optraitinfo::get::type_similarity, subbase>::value; };
-                  template <typename subbase> struct is   final { static bool const value = operate<opinfo::binary, baseA, baseB>::template typeof<op<operation, subbase>, optraitinfo::get::type_equality,   subbase>::value; };
+                  template <typename subbase> struct like final { static bool const value = operate<opinfo::binary, baseA, baseB>::template subvalueof<op<operation, subbase>, optraitinfo::get::type_similarity, subbase>::value != sizeof(boolean_false); };
+                  template <typename subbase> struct same final { static bool const value = operate<opinfo::binary, baseA, baseB>::template subvalueof<op<operation, subbase>, optraitinfo::get::type_equality,   subbase>::value != sizeof(boolean_false); };
               };
 
               #if CPP_COMPILER == CPP_MSVC_COMPILER // --> C2680
@@ -2355,7 +2100,7 @@
                   typedef typename typeof<opinfo::cast_dynamic, baseA, baseB>::type type;
 
                   template <typename subbase> struct like final { static bool const value = operate<opinfo::cast, subbase, type>::value; };
-                  template <typename subbase> struct is   final { static bool const value = sizeof(boolean_true) == sizeof (is_same<subbase>::valueof)(instanceof<type>()); };
+                  template <typename subbase> struct same final { static bool const value = sizeof(boolean_true) == sizeof (is_same<subbase>::valueof)(instanceof<type>()); };
 
                   /* ... */
                   static std::size_t const size  = is_null<type>::value ? 0u : sizeof(typename conditional<is_null<type>::value, sfinaeptr_t, type>::type);
@@ -2373,146 +2118,65 @@
                     static_assert(unsupported_operation::value, "Unsupported ternary `operation` specified");
                   };
 
-                  // ... --> x(y, z)
-                  template <typename subbase>
-                  struct op<opinfo::call, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(instanceof<typeA>()(instanceof<typeB>(), instanceof<typeC>()), (typeinfo::is_reference)(instanceof<typeA>()(instanceof<typeB>(), instanceof<typeC>())))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(instanceof<typeA>()(instanceof<typeB>(), instanceof<typeC>())) + 1u]>                                                                                    ::type (valueof)() noexcept;
-                  };
+                  template <typename subbase> struct op<opinfo::call,                      subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),        instanceof<typeA>()    (instanceof<typeB>(),  instanceof<typeC>()), (novoid)()), ((refspec)(),        instanceof<typeA>()    (instanceof<typeB>(),  instanceof<typeC>()), (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::construct,                 subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),                   typeA nul() (instanceof<typeB>(),  instanceof<typeC>()), (novoid)()), ((refspec)(),                   typeA nul() (instanceof<typeB>(),  instanceof<typeC>()), (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::new_array_placement,       subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)             (::new (instanceof<typeA>())               typeB     [instanceof<typeC>()],               (refspec)())]>                                                                                         ::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::new_constructed_placement, subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)             (::new (instanceof<typeA>())               typeB     (instanceof<typeC>()),               (refspec)())]>                                                                                         ::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::trilean_conditional,       subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),        instanceof<typeA>() ?   instanceof<typeB>() : instanceof<typeC>(),  (novoid)()), ((refspec)(),        instanceof<typeA>() ?   instanceof<typeB>() : instanceof<typeC>(),  (refspec)()))]>::type (valueof)() noexcept; };
 
-                  // ... --> x(y, z)
-                  template <typename subbase>
-                  struct op<opinfo::construct, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(typeA(instanceof<typeB>(), instanceof<typeC>()), (typeinfo::is_reference)(typeA(instanceof<typeB>(), instanceof<typeC>())))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(typeA(instanceof<typeB>(), instanceof<typeC>())) + 1u]>                                                                      ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> new (x) y[z]
-                  template <typename subbase>
-                  struct op<opinfo::new_array_placement, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(::new (instanceof<typeA>()) typeB[instanceof<typeC>()], (typeinfo::is_reference)(::new (instanceof<typeA>()) typeB[instanceof<typeC>()]))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(::new (instanceof<typeA>()) typeB[instanceof<typeC>()]) + 1u]>                                                                             ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> new (x) y(z)
-                  template <typename subbase>
-                  struct op<opinfo::new_constructed_placement, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(::new (instanceof<typeA>()) typeB(instanceof<typeC>()), (typeinfo::is_reference)(::new (instanceof<typeA>()) typeB(instanceof<typeC>())))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(::new (instanceof<typeA>()) typeB(instanceof<typeC>())) + 1u]>                                                                             ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> x ? y : z
-                  template <typename subbase>
-                  struct op<opinfo::trilean_conditional, subbase> final {
-                    template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(instanceof<typeA>() ? instanceof<typeB>() : instanceof<typeC>(), (typeinfo::is_reference)(instanceof<typeA>() ? instanceof<typeB>() : instanceof<typeC>()))]>::type (typeof) () noexcept;
-                    template                             <typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(instanceof<typeA>() ? instanceof<typeB>() : instanceof<typeC>()) + 1u]>                                                                                      ::type (valueof)() noexcept;
-                  };
-
-                  // ... --> x{y, z}; new x[y] {z}; new x{y, z}; new (x) y{z}
                   #ifdef __cpp_initializer_lists // --> 200806L
-                    template <typename subbase>
-                    struct op<opinfo::initialize, subbase> final {
-                      template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(typeA{instanceof<typeB>(), instanceof<typeC>()}, (typeinfo::is_reference)(typeA{instanceof<typeB>(), instanceof<typeC>()}))]>::type (typeof) () noexcept;
-                      template                             <typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(typeA{instanceof<typeB>(), instanceof<typeC>()}) + 1u]>                                                                      ::type (valueof)() noexcept;
-                    };
+                    template <typename subbase> struct op<opinfo::initialize, subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)                  (typeA{instanceof<typeB>(), instanceof<typeC>()}, (refspec)())]>::type (valueof)() noexcept; };
+                    template <typename subbase> struct op<opinfo::new_array,  subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(::new (instanceof<typeA>())        typeB    [instanceof<typeC>()], (refspec)())]>::type (valueof)() noexcept; };
 
-                    // ... --> new (x) y[z]
-                    template <typename subbase>
-                    struct op<opinfo::new_array, subbase> final {
-                      template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(::new typeA[instanceof<typeB>()] {instanceof<typeC>()}, (typeinfo::is_reference)(::new typeA[instanceof<typeB>()] {instanceof<typeC>()}))]>::type (typeof) () noexcept;
-                      template                             <typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(::new typeA[instanceof<typeB>()] {instanceof<typeC>()}) + 1u]>                                                                             ::type (valueof)() noexcept;
-                    };
-
-                    template <typename subbase>
-                    struct op<opinfo::new_initialized, subbase> final {
-                      #if CPP_COMPILER == CPP_MSVC_COMPILER // --> C2143
-                        template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)((static_cast<void>(typeA{instanceof<typeB>(), instanceof<typeC>()}), ::new typeA /* {typeB, typeC} */), (typeinfo::is_reference)((static_cast<void>(typeA{instanceof<typeB>(), instanceof<typeC>()}), ::new typeA /* {typeB, typeC} */)))]>::type (typeof) () noexcept;
-                        template                             <typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte       (rlref)                                        [nilsizeof(static_cast<void>(typeA{instanceof<typeB>(), instanceof<typeC>()}), ::new typeA /* {typeB, typeC} */) + 1u]>                                                                                                                              ::type (valueof)() noexcept;
-                      #else
-                        template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(typeA{instanceof<typeB>(), instanceof<typeC>()}, (typeinfo::is_reference)(typeA{instanceof<typeB>(), instanceof<typeC>()}))]>::type (typeof) () noexcept;
-                        template                             <typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(typeA{instanceof<typeB>(), instanceof<typeC>()}) + 1u]>                                                                      ::type (valueof)() noexcept;
-                      #endif
-                    };
-
-                    template <typename subbase>
-                    struct op<opinfo::new_initialized_placement, subbase> final {
-                      #if CPP_COMPILER == CPP_MSVC_COMPILER // --> C2143
-                        template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)((static_cast<void>(typeB{instanceof<typeC>()}), ::new (instanceof<typeA>()) typeB /* {typeC} */), (typeinfo::is_reference)((static_cast<void>(typeB{instanceof<typeC>()}), ::new (instanceof<typeA>()) typeB /* {typeC} */)))]>::type (typeof) () noexcept;
-                        template                             <typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte       (rlref)                                        [nilsizeof(static_cast<void>(typeB{instanceof<typeC>()}), ::new (instanceof<typeA>()) typeB /* {typeC} */) + 1u]>                                                                                                                        ::type (valueof)() noexcept;
-                      #else
-                        template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(::new (instanceof<typeA>()) typeB{instanceof<typeC>()}, (typeinfo::is_reference)(::new (instanceof<typeA>()) typeB{instanceof<typeC>()}))]>::type (typeof) () noexcept;
-                        template                             <typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(::new (instanceof<typeA>()) typeB{instanceof<typeC>()}) + 1u]>                                                                             ::type (valueof)() noexcept;
-                      #endif
-                    };
+                    #if CPP_COMPILER == CPP_MSVC_COMPILER // --> C2143
+                      template <typename subbase> struct op<opinfo::new_initialized,           subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)((static_cast<void>(typeA{instanceof<typeB>(), instanceof<typeC>()}), ::new typeA),  (refspec)())]>::type (valueof)() noexcept; };
+                      template <typename subbase> struct op<opinfo::new_initialized_placement, subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)((static_cast<void>(typeB{instanceof<typeC>()}), ::new (instanceof<typeA>()) typeB), (refspec)())]>::type (valueof)() noexcept; };
+                    #else
+                      template <typename subbase> struct op<opinfo::new_initialized,           subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(::new             typeA{instanceof<typeB>(), instanceof<typeC>()}, (refspec)())]>::type (valueof)() noexcept; };
+                      template <typename subbase> struct op<opinfo::new_initialized_placement, subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(::new (instanceof<typeA>())        typeB    {instanceof<typeC>()}, (refspec)())]>::type (valueof)() noexcept; };
+                    #endif
                   #endif
 
-                  // ... --> x[y, z]; x::operator [](y, z)
                   #ifdef __cpp_multidimensional_subscript // --> 202110L
-                    template <typename subbase>
-                    struct op<opinfo::subscript, subbase> final {
-                      template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(instanceof<typeA>()[instanceof<typeB>(), instanceof<typeC>()], (typeinfo::is_reference)(instanceof<typeA>()[instanceof<typeB>(), instanceof<typeC>()]))]>::type (typeof) () noexcept;
-                      template                             <typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte       (rlref)                                      [nilsizeof((instanceof<typeA>()[instanceof<typeB>(), instanceof<typeC>()])) + 1u]>                                                                                   ::type (valueof)() noexcept;
-                    };
-
-                    template <typename subbase>
-                    struct op<opinfo::subscript_static, subbase> final {
-                      template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(typeA::operator [](instanceof<typeB>(), instanceof<typeC>()), (typeinfo::is_reference)(typeA::operator [](instanceof<typeB>(), instanceof<typeC>())))]>::type (typeof) () noexcept;
-                      template                             <typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(typeA::operator [](instanceof<typeB>(), instanceof<typeC>())) + 1u]>                                                                                   ::type (valueof)() noexcept;
-                    };
+                    template <typename subbase> struct op<opinfo::subscript,        subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), instanceof<typeA>().operator [](instanceof<typeB>(), instanceof<typeC>()), (novoid)()), ((refspec)(), instanceof<typeA>().operator [](instanceof<typeB>(), instanceof<typeC>()), (refspec)()))]>::type (valueof)() noexcept; };
+                    template <typename subbase> struct op<opinfo::subscript_static, subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), typeA             ::operator [](instanceof<typeB>(), instanceof<typeC>()), (novoid)()), ((refspec)(), typeA             ::operator [](instanceof<typeB>(), instanceof<typeC>()), (refspec)()))]>::type (valueof)() noexcept; };
                   #endif
 
-                  // ... --> x::operator ()(y, z)
                   #ifdef __cpp_static_call_operator // --> 202207L
-                    template <typename subbase>
-                    struct op<opinfo::call_static, subbase> final {
-                      template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<bool const (rlref)[sizeof (evaluate<information, subbase>::valueof)(typeA::operator ()(instanceof<typeB>(), instanceof<typeC>()), (typeinfo::is_reference)(typeA::operator ()(instanceof<typeB>(), instanceof<typeC>())))]>::type (typeof) () noexcept;
-                      template                             <typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte       (rlref)                                       [nilsizeof(typeA::operator ()(instanceof<typeB>(), instanceof<typeC>())) + 1u]>                                                                                   ::type (valueof)() noexcept;
-                    };
+                    template <typename subbase> struct op<opinfo::call_static, subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), typeA::operator ()(instanceof<typeB>(), instanceof<typeC>()), (novoid)()), ((refspec)(), typeA::operator ()(instanceof<typeB>(), instanceof<typeC>()), (refspec)()))]>::type (valueof)() noexcept; };
                   #endif
 
                 public:
-                  static bool        const value = operate<opinfo::ternary, baseA, baseB, baseC>::template subvalueof<op<operation>, optraitinfo::get::correctness>::value != 0u;
-                  static std::size_t const size  = operate<opinfo::ternary, baseA, baseB, baseC>::template subvalueof<op<operation>, optraitinfo::get::correctness>::value -  value;
+                  static bool        const value = operate<opinfo::ternary, baseA, baseB, baseC>::template subvalueof<op<operation>, optraitinfo::get::correctness>::value != sizeof(boolean_false);
+                  static std::size_t const size  = operate<opinfo::ternary, baseA, baseB, baseC>::template subvalueof<op<operation>, optraitinfo::get::correctness>::value -  (value + 1u);
 
                   /* ... */
                   typedef typename typeof<operation, baseA, baseB, baseC>::type type;
 
-                  template <typename subbase> struct like final { static bool const value = operate<opinfo::ternary, baseA, baseB, baseC>::template typeof<op<operation, subbase>, optraitinfo::get::type_similarity, subbase>::value; };
-                  template <typename subbase> struct is   final { static bool const value = operate<opinfo::ternary, baseA, baseB, baseC>::template typeof<op<operation, subbase>, optraitinfo::get::type_equality,   subbase>::value; };
+                  template <typename subbase> struct like final { static bool const value = operate<opinfo::ternary, baseA, baseB, baseC>::template subvalueof<op<operation, subbase>, optraitinfo::get::type_similarity, subbase>::value != sizeof(boolean_false); };
+                  template <typename subbase> struct same final { static bool const value = operate<opinfo::ternary, baseA, baseB, baseC>::template subvalueof<op<operation, subbase>, optraitinfo::get::type_equality,   subbase>::value != sizeof(boolean_false); };
               };
 
             private:
+              /* TODO (Lapys) */
               #ifdef typeof
+                // ... --> x.*y
                 template <typename baseA, typename baseB>
                 struct typeof<opinfo::access_pointer, baseA, baseB> final {
-                  template <typename typeA, typename typeB> constfunc(true) static typename conditional<notypeof(instanceof<typeA>().*instanceof<typeB>()), subnull>::type (valueof)(sfinaeptr_t const, sfinaeptr_t const) noexcept;
-                  template <typename typeA, typename typeB> constfunc(true) static                        typeof(instanceof<typeA>().*instanceof<typeB>())                 (valueof)(sfinaeptr_t const, ...)               noexcept;
-                  template <typename,       typename>       constfunc(true) static null                                                                                    (valueof)(...)                                  noexcept;
+                  template <typename typeA, typename typeB>
+                  constfunc(true) static typeof((evaluate<optraitinfo::get::type_information>::valueof)(
+                    ((novoid) (), instanceof<typeA>().*instanceof<typeB>(), (novoid) ()),
+                    ((refspec)(), instanceof<typeA>().*instanceof<typeB>(), (refspec)())
+                  )) (valueof)(sfinaeptr_t const) noexcept;
 
-                  typedef typename conditional<is_subnull<typeof((valueof<baseA, baseB>(sfinaeptr, sfinaeptr)))>::value, alias<void>, alias<typeof((valueof<baseA, baseB>(sfinaeptr, sfinaeptr)))> >::type::type type;
+                  template <typename, typename>
+                  constfunc(true) static null (valueof)(...) noexcept;
+
+                  /* ... */
+                  typedef typename conditional<is_same<novoid, typeof(valueof<baseA, baseB>(sfinaeptr))>::value, void, typeof(valueof<baseA, baseB>(sfinaeptr))> type;
                 };
-
-                // ...
-                #ifdef __cpp_variadic_templates // --> 200704L
-                  template <typename base, typename... bases>
-                  struct typeof<opinfo::call, base, bases...> final {
-                    template <typename type, typename... types> constfunc(true) static typename conditional<notypeof(instanceof<type>()(instanceof<types>()...)), subnull>::type (valueof)(sfinaeptr_t const, sfinaeptr_t const) noexcept;
-                    template <typename type, typename... types> constfunc(true) static                        typeof(instanceof<type>()(instanceof<types>()...))                 (valueof)(sfinaeptr_t const, ...)               noexcept;
-                    template <typename, typename...>            constfunc(true) static null                                                                                      (valueof)(...)                                  noexcept;
-
-                    typedef typename conditional<is_subnull<typeof((valueof<base, bases...>(sfinaeptr, sfinaeptr)))>::value, alias<void>, alias<typeof((valueof<base, bases...>(sfinaeptr, sfinaeptr)))> >::type::type type;
-                  };
-                #else
-                  template <typename base, typename base1u, typename base2u, typename base3u, typename base4u, typename base5u, typename base6u, typename base7u, typename base8u, typename base9u, typename base10u, typename base11u, typename base12u, typename base13u, typename base14u, typename base15u, typename base16u, typename base17u, typename base18u, typename base19u, typename base20u, typename base21u, typename base22u, typename base23u, typename base24u, typename base25u, typename base26u, typename base27u, typename base28u, typename base29u, typename base30u, typename base31u, typename base32u, typename base33u, typename base34u, typename base35u, typename base36u, typename base37u, typename base38u, typename base39u, typename base40u, typename base41u, typename base42u, typename base43u, typename base44u, typename base45u, typename base46u, typename base47u, typename base48u, typename base49u, typename base50u, typename base51u, typename base52u, typename base53u, typename base54u, typename base55u, typename base56u, typename base57u, typename base58u, typename base59u, typename base60u, typename base61u, typename base62u, typename base63u, typename base64u, typename base65u, typename base66u, typename base67u, typename base68u, typename base69u, typename base70u, typename base71u, typename base72u, typename base73u, typename base74u, typename base75u, typename base76u, typename base77u, typename base78u, typename base79u, typename base80u, typename base81u, typename base82u, typename base83u, typename base84u, typename base85u, typename base86u, typename base87u, typename base88u, typename base89u, typename base90u, typename base91u, typename base92u, typename base93u, typename base94u, typename base95u, typename base96u, typename base97u, typename base98u, typename base99u, typename base100u, typename base101u, typename base102u, typename base103u, typename base104u, typename base105u, typename base106u, typename base107u, typename base108u, typename base109u, typename base110u, typename base111u, typename base112u, typename base113u, typename base114u, typename base115u, typename base116u, typename base117u, typename base118u, typename base119u, typename base120u, typename base121u, typename base122u, typename base123u, typename base124u, typename base125u, typename base126u, typename base127u>
-                  struct typeof<opinfo::call, base, base1u, base2u, base3u, base4u, base5u, base6u, base7u, base8u, base9u, base10u, base11u, base12u, base13u, base14u, base15u, base16u, base17u, base18u, base19u, base20u, base21u, base22u, base23u, base24u, base25u, base26u, base27u, base28u, base29u, base30u, base31u, base32u, base33u, base34u, base35u, base36u, base37u, base38u, base39u, base40u, base41u, base42u, base43u, base44u, base45u, base46u, base47u, base48u, base49u, base50u, base51u, base52u, base53u, base54u, base55u, base56u, base57u, base58u, base59u, base60u, base61u, base62u, base63u, base64u, base65u, base66u, base67u, base68u, base69u, base70u, base71u, base72u, base73u, base74u, base75u, base76u, base77u, base78u, base79u, base80u, base81u, base82u, base83u, base84u, base85u, base86u, base87u, base88u, base89u, base90u, base91u, base92u, base93u, base94u, base95u, base96u, base97u, base98u, base99u, base100u, base101u, base102u, base103u, base104u, base105u, base106u, base107u, base108u, base109u, base110u, base111u, base112u, base113u, base114u, base115u, base116u, base117u, base118u, base119u, base120u, base121u, base122u, base123u, base124u, base125u, base126u, base127u> final {
-                    template <typename type, typename type1u, typename type2u, typename type3u, typename type4u, typename type5u, typename type6u, typename type7u, typename type8u, typename type9u, typename type10u, typename type11u, typename type12u, typename type13u, typename type14u, typename type15u, typename type16u, typename type17u, typename type18u, typename type19u, typename type20u, typename type21u, typename type22u, typename type23u, typename type24u, typename type25u, typename type26u, typename type27u, typename type28u, typename type29u, typename type30u, typename type31u, typename type32u, typename type33u, typename type34u, typename type35u, typename type36u, typename type37u, typename type38u, typename type39u, typename type40u, typename type41u, typename type42u, typename type43u, typename type44u, typename type45u, typename type46u, typename type47u, typename type48u, typename type49u, typename type50u, typename type51u, typename type52u, typename type53u, typename type54u, typename type55u, typename type56u, typename type57u, typename type58u, typename type59u, typename type60u, typename type61u, typename type62u, typename type63u, typename type64u, typename type65u, typename type66u, typename type67u, typename type68u, typename type69u, typename type70u, typename type71u, typename type72u, typename type73u, typename type74u, typename type75u, typename type76u, typename type77u, typename type78u, typename type79u, typename type80u, typename type81u, typename type82u, typename type83u, typename type84u, typename type85u, typename type86u, typename type87u, typename type88u, typename type89u, typename type90u, typename type91u, typename type92u, typename type93u, typename type94u, typename type95u, typename type96u, typename type97u, typename type98u, typename type99u, typename type100u, typename type101u, typename type102u, typename type103u, typename type104u, typename type105u, typename type106u, typename type107u, typename type108u, typename type109u, typename type110u, typename type111u, typename type112u, typename type113u, typename type114u, typename type115u, typename type116u, typename type117u, typename type118u, typename type119u, typename type120u, typename type121u, typename type122u, typename type123u, typename type124u, typename type125u, typename type126u, typename type127u> constfunc(true) static typename conditional<notypeof(instanceof<type>()(instanceof<type1u>(), instanceof<type2u>(), instanceof<type3u>(), instanceof<type4u>(), instanceof<type5u>(), instanceof<type6u>(), instanceof<type7u>(), instanceof<type8u>(), instanceof<type9u>(), instanceof<type10u>(), instanceof<type11u>(), instanceof<type12u>(), instanceof<type13u>(), instanceof<type14u>(), instanceof<type15u>(), instanceof<type16u>(), instanceof<type17u>(), instanceof<type18u>(), instanceof<type19u>(), instanceof<type20u>(), instanceof<type21u>(), instanceof<type22u>(), instanceof<type23u>(), instanceof<type24u>(), instanceof<type25u>(), instanceof<type26u>(), instanceof<type27u>(), instanceof<type28u>(), instanceof<type29u>(), instanceof<type30u>(), instanceof<type31u>(), instanceof<type32u>(), instanceof<type33u>(), instanceof<type34u>(), instanceof<type35u>(), instanceof<type36u>(), instanceof<type37u>(), instanceof<type38u>(), instanceof<type39u>(), instanceof<type40u>(), instanceof<type41u>(), instanceof<type42u>(), instanceof<type43u>(), instanceof<type44u>(), instanceof<type45u>(), instanceof<type46u>(), instanceof<type47u>(), instanceof<type48u>(), instanceof<type49u>(), instanceof<type50u>(), instanceof<type51u>(), instanceof<type52u>(), instanceof<type53u>(), instanceof<type54u>(), instanceof<type55u>(), instanceof<type56u>(), instanceof<type57u>(), instanceof<type58u>(), instanceof<type59u>(), instanceof<type60u>(), instanceof<type61u>(), instanceof<type62u>(), instanceof<type63u>(), instanceof<type64u>(), instanceof<type65u>(), instanceof<type66u>(), instanceof<type67u>(), instanceof<type68u>(), instanceof<type69u>(), instanceof<type70u>(), instanceof<type71u>(), instanceof<type72u>(), instanceof<type73u>(), instanceof<type74u>(), instanceof<type75u>(), instanceof<type76u>(), instanceof<type77u>(), instanceof<type78u>(), instanceof<type79u>(), instanceof<type80u>(), instanceof<type81u>(), instanceof<type82u>(), instanceof<type83u>(), instanceof<type84u>(), instanceof<type85u>(), instanceof<type86u>(), instanceof<type87u>(), instanceof<type88u>(), instanceof<type89u>(), instanceof<type90u>(), instanceof<type91u>(), instanceof<type92u>(), instanceof<type93u>(), instanceof<type94u>(), instanceof<type95u>(), instanceof<type96u>(), instanceof<type97u>(), instanceof<type98u>(), instanceof<type99u>(), instanceof<type100u>(), instanceof<type101u>(), instanceof<type102u>(), instanceof<type103u>(), instanceof<type104u>(), instanceof<type105u>(), instanceof<type106u>(), instanceof<type107u>(), instanceof<type108u>(), instanceof<type109u>(), instanceof<type110u>(), instanceof<type111u>(), instanceof<type112u>(), instanceof<type113u>(), instanceof<type114u>(), instanceof<type115u>(), instanceof<type116u>(), instanceof<type117u>(), instanceof<type118u>(), instanceof<type119u>(), instanceof<type120u>(), instanceof<type121u>(), instanceof<type122u>(), instanceof<type123u>(), instanceof<type124u>(), instanceof<type125u>(), instanceof<type126u>(), instanceof<type127u>())), subnull>::type (valueof)(sfinaeptr_t const, sfinaeptr_t const) noexcept;
-                    template <typename type, typename type1u, typename type2u, typename type3u, typename type4u, typename type5u, typename type6u, typename type7u, typename type8u, typename type9u, typename type10u, typename type11u, typename type12u, typename type13u, typename type14u, typename type15u, typename type16u, typename type17u, typename type18u, typename type19u, typename type20u, typename type21u, typename type22u, typename type23u, typename type24u, typename type25u, typename type26u, typename type27u, typename type28u, typename type29u, typename type30u, typename type31u, typename type32u, typename type33u, typename type34u, typename type35u, typename type36u, typename type37u, typename type38u, typename type39u, typename type40u, typename type41u, typename type42u, typename type43u, typename type44u, typename type45u, typename type46u, typename type47u, typename type48u, typename type49u, typename type50u, typename type51u, typename type52u, typename type53u, typename type54u, typename type55u, typename type56u, typename type57u, typename type58u, typename type59u, typename type60u, typename type61u, typename type62u, typename type63u, typename type64u, typename type65u, typename type66u, typename type67u, typename type68u, typename type69u, typename type70u, typename type71u, typename type72u, typename type73u, typename type74u, typename type75u, typename type76u, typename type77u, typename type78u, typename type79u, typename type80u, typename type81u, typename type82u, typename type83u, typename type84u, typename type85u, typename type86u, typename type87u, typename type88u, typename type89u, typename type90u, typename type91u, typename type92u, typename type93u, typename type94u, typename type95u, typename type96u, typename type97u, typename type98u, typename type99u, typename type100u, typename type101u, typename type102u, typename type103u, typename type104u, typename type105u, typename type106u, typename type107u, typename type108u, typename type109u, typename type110u, typename type111u, typename type112u, typename type113u, typename type114u, typename type115u, typename type116u, typename type117u, typename type118u, typename type119u, typename type120u, typename type121u, typename type122u, typename type123u, typename type124u, typename type125u, typename type126u, typename type127u> constfunc(true) static                        typeof(instanceof<type>()(instanceof<type1u>(), instanceof<type2u>(), instanceof<type3u>(), instanceof<type4u>(), instanceof<type5u>(), instanceof<type6u>(), instanceof<type7u>(), instanceof<type8u>(), instanceof<type9u>(), instanceof<type10u>(), instanceof<type11u>(), instanceof<type12u>(), instanceof<type13u>(), instanceof<type14u>(), instanceof<type15u>(), instanceof<type16u>(), instanceof<type17u>(), instanceof<type18u>(), instanceof<type19u>(), instanceof<type20u>(), instanceof<type21u>(), instanceof<type22u>(), instanceof<type23u>(), instanceof<type24u>(), instanceof<type25u>(), instanceof<type26u>(), instanceof<type27u>(), instanceof<type28u>(), instanceof<type29u>(), instanceof<type30u>(), instanceof<type31u>(), instanceof<type32u>(), instanceof<type33u>(), instanceof<type34u>(), instanceof<type35u>(), instanceof<type36u>(), instanceof<type37u>(), instanceof<type38u>(), instanceof<type39u>(), instanceof<type40u>(), instanceof<type41u>(), instanceof<type42u>(), instanceof<type43u>(), instanceof<type44u>(), instanceof<type45u>(), instanceof<type46u>(), instanceof<type47u>(), instanceof<type48u>(), instanceof<type49u>(), instanceof<type50u>(), instanceof<type51u>(), instanceof<type52u>(), instanceof<type53u>(), instanceof<type54u>(), instanceof<type55u>(), instanceof<type56u>(), instanceof<type57u>(), instanceof<type58u>(), instanceof<type59u>(), instanceof<type60u>(), instanceof<type61u>(), instanceof<type62u>(), instanceof<type63u>(), instanceof<type64u>(), instanceof<type65u>(), instanceof<type66u>(), instanceof<type67u>(), instanceof<type68u>(), instanceof<type69u>(), instanceof<type70u>(), instanceof<type71u>(), instanceof<type72u>(), instanceof<type73u>(), instanceof<type74u>(), instanceof<type75u>(), instanceof<type76u>(), instanceof<type77u>(), instanceof<type78u>(), instanceof<type79u>(), instanceof<type80u>(), instanceof<type81u>(), instanceof<type82u>(), instanceof<type83u>(), instanceof<type84u>(), instanceof<type85u>(), instanceof<type86u>(), instanceof<type87u>(), instanceof<type88u>(), instanceof<type89u>(), instanceof<type90u>(), instanceof<type91u>(), instanceof<type92u>(), instanceof<type93u>(), instanceof<type94u>(), instanceof<type95u>(), instanceof<type96u>(), instanceof<type97u>(), instanceof<type98u>(), instanceof<type99u>(), instanceof<type100u>(), instanceof<type101u>(), instanceof<type102u>(), instanceof<type103u>(), instanceof<type104u>(), instanceof<type105u>(), instanceof<type106u>(), instanceof<type107u>(), instanceof<type108u>(), instanceof<type109u>(), instanceof<type110u>(), instanceof<type111u>(), instanceof<type112u>(), instanceof<type113u>(), instanceof<type114u>(), instanceof<type115u>(), instanceof<type116u>(), instanceof<type117u>(), instanceof<type118u>(), instanceof<type119u>(), instanceof<type120u>(), instanceof<type121u>(), instanceof<type122u>(), instanceof<type123u>(), instanceof<type124u>(), instanceof<type125u>(), instanceof<type126u>(), instanceof<type127u>()))                 (valueof)(sfinaeptr_t const, ...)               noexcept;
-                    template <typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 constfunc(true) static null                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          (valueof)(...)                                  noexcept;
-
-                    typedef typename conditional<is_subnull<typeof((valueof<base, base1u, base2u, base3u, base4u, base5u, base6u, base7u, base8u, base9u, base10u, base11u, base12u, base13u, base14u, base15u, base16u, base17u, base18u, base19u, base20u, base21u, base22u, base23u, base24u, base25u, base26u, base27u, base28u, base29u, base30u, base31u, base32u, base33u, base34u, base35u, base36u, base37u, base38u, base39u, base40u, base41u, base42u, base43u, base44u, base45u, base46u, base47u, base48u, base49u, base50u, base51u, base52u, base53u, base54u, base55u, base56u, base57u, base58u, base59u, base60u, base61u, base62u, base63u, base64u, base65u, base66u, base67u, base68u, base69u, base70u, base71u, base72u, base73u, base74u, base75u, base76u, base77u, base78u, base79u, base80u, base81u, base82u, base83u, base84u, base85u, base86u, base87u, base88u, base89u, base90u, base91u, base92u, base93u, base94u, base95u, base96u, base97u, base98u, base99u, base100u, base101u, base102u, base103u, base104u, base105u, base106u, base107u, base108u, base109u, base110u, base111u, base112u, base113u, base114u, base115u, base116u, base117u, base118u, base119u, base120u, base121u, base122u, base123u, base124u, base125u, base126u, base127u>(sfinaeptr, sfinaeptr)))>::value, alias<void>, alias<typeof((valueof<base, base1u, base2u, base3u, base4u, base5u, base6u, base7u, base8u, base9u, base10u, base11u, base12u, base13u, base14u, base15u, base16u, base17u, base18u, base19u, base20u, base21u, base22u, base23u, base24u, base25u, base26u, base27u, base28u, base29u, base30u, base31u, base32u, base33u, base34u, base35u, base36u, base37u, base38u, base39u, base40u, base41u, base42u, base43u, base44u, base45u, base46u, base47u, base48u, base49u, base50u, base51u, base52u, base53u, base54u, base55u, base56u, base57u, base58u, base59u, base60u, base61u, base62u, base63u, base64u, base65u, base66u, base67u, base68u, base69u, base70u, base71u, base72u, base73u, base74u, base75u, base76u, base77u, base78u, base79u, base80u, base81u, base82u, base83u, base84u, base85u, base86u, base87u, base88u, base89u, base90u, base91u, base92u, base93u, base94u, base95u, base96u, base97u, base98u, base99u, base100u, base101u, base102u, base103u, base104u, base105u, base106u, base107u, base108u, base109u, base110u, base111u, base112u, base113u, base114u, base115u, base116u, base117u, base118u, base119u, base120u, base121u, base122u, base123u, base124u, base125u, base126u, base127u>(sfinaeptr, sfinaeptr)))> >::type::type type;
-                  };
-                #endif
               #else
+                // ... --> x.*y
                 template <typename baseA, typename baseB, class baseC>
                 struct typeof<opinfo::access_pointer, baseA, baseB baseC::*> final {
                   typedef typename conditional<
@@ -2522,42 +2186,74 @@
                   >::type::type type;
                 };
 
-                template <typename baseA, typename baseB, class baseC>
-                struct typeof<opinfo::access_pointer, baseA, baseB baseC::* const> final {
-                  typedef typename typeof<opinfo::access_pointer, baseA, baseB baseC::*>::type type;
-                };
+                template <typename baseA, typename baseB, class baseC> struct typeof<opinfo::access_pointer, baseA, baseB baseC::* const>          final { typedef typename typeof<opinfo::access_pointer, baseA, baseB baseC::*>::type type; };
+                template <typename baseA, typename baseB, class baseC> struct typeof<opinfo::access_pointer, baseA, baseB baseC::* const volatile> final { typedef typename typeof<opinfo::access_pointer, baseA, baseB baseC::*>::type type; };
+                template <typename baseA, typename baseB, class baseC> struct typeof<opinfo::access_pointer, baseA, baseB baseC::*       volatile> final { typedef typename typeof<opinfo::access_pointer, baseA, baseB baseC::*>::type type; };
 
-                template <typename baseA, typename baseB, class baseC>
-                struct typeof<opinfo::access_pointer, baseA, baseB baseC::* const volatile> final {
-                  typedef typename typeof<opinfo::access_pointer, baseA, baseB baseC::*>::type type;
-                };
-
-                template <typename baseA, typename baseB, class baseC>
-                struct typeof<opinfo::access_pointer, baseA, baseB baseC::* volatile> final {
-                  typedef typename typeof<opinfo::access_pointer, baseA, baseB baseC::*>::type type;
-                };
-
-                // ...
-                template <typename baseA, typename baseB>
-                struct typeof<opinfo::add, baseA, baseB> final {
-                  typedef typename conditional<
-                    is_integer<baseA>::value and is_integer<baseB>::value,
-                    conditional<(rankof<baseA>::value > rankof<baseB>::value), baseA, baseB>,
-                    alias<null>
-                  >::type::type type;
-                };
-
-                // ...
-                template <typename baseA, typename baseB>
-                struct typeof<opinfo::call, baseA, baseB> final {
-                  #ifdef __cpp_variadic_templates // --> 200704L
-                    template <operation, typename...>
-                    struct operate;
-                  #else
-                    template <operation, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null>
-                    struct operate;
-                  #endif
-                };
+                // add,                         //   x   + y
+                // address,                     //  &x
+                // assign,                      //   x   = y
+                // assign_add,                  //   x  += y
+                // assign_bitwise_and,          //   x  &= y
+                // assign_bitwise_or,           //   x  |= y
+                // assign_bitwise_shift_left,   //   x <<= y
+                // assign_bitwise_shift_right,  //   x >>= y
+                // assign_bitwise_xor,          //   x  ^= y
+                // assign_divide,               //   x  /= y
+                // assign_modulo,               //   x  %= y
+                // assign_multiply,             //   x  *= y
+                // assign_subtract,             //   x  -= y
+                // bitwise_and,                 //   x   & y
+                // bitwise_or,                  //   x   | y
+                // bitwise_shift_left,          //   x  << y
+                // bitwise_shift_right,         //   x  >> y
+                // bitwise_xor,                 //   x   ^ y
+                // boolean_and,                 //   x  && y
+                // boolean_or,                  //   x  || y
+                // call,                        //   x             (...)
+                // call_static,                 //   x::operator ()(...)
+                // cast,                        //  (x) y
+                // cast_const,                  // const_cast      <x>(y)
+                // cast_dynamic,                // dynamic_cast    <x>(y)
+                // cast_reinterpret,            // reinterpret_cast<x>(y)
+                // cast_static,                 // static_cast     <x>(y)
+                // comma,                       //   x   , y
+                // compare,                     //   x <=> y
+                // complement,                  //  ~x
+                // construct,                   //   x(...)
+                // delete_array,                // delete[] x
+                // delete_object,               // delete   x
+                // dereference,                 //  *x
+                // dereferenced_access,         //   x  -> y
+                // dereferenced_access_pointer, //   x ->* y
+                // divide,                      //   x   / y
+                // equals,                      //   x  == y
+                // greater,                     //   x   > y
+                // greater_equals,              //   x  >= y
+                // initialize,                  //   x{...}
+                // lesser,                      //   x   < y
+                // lesser_equals,               //   x  <= y
+                // minus,                       //   x   - y
+                // modulo,                      //   x   % y
+                // multiply,                    //   x   * y
+                // negate,                      //  !x
+                // new_array,                   // new     x[y]{...}
+                // new_array_placement,         // new (x) y[z]{...}
+                // new_constructed,             // new     x   (...)
+                // new_constructed_placement,   // new (x) y   (...)
+                // new_initialized,             // new     x   {...}
+                // new_initialized_placement,   // new (x) y   {...}
+                // plus,                        //  +x
+                // post_decrement,              //   x--
+                // post_increment,              //   x++
+                // pre_decrement,               // --x
+                // pre_increment,               // ++x
+                // scope,                       //   x  :: y
+                // subscript,                   //   x             [...]
+                // subscript_static,            //   x::operator [](...)
+                // subtract,                    //   x   - y
+                // trilean_conditional,         //   x   ? y : z
+                // unequals                     //   x  != y
               #endif
           };
 
@@ -2569,7 +2265,7 @@
         # pragma GCC diagnostic pop
         #endif
 
-        // TODO ->> Check for MSVC stupidity -> base::type
+        // TODO (Lapys) ->> Finally test things out
         // opinfo::nonoverloaded::operate<opinfo::unary, T>::valueof<trait>::value
       };
 
@@ -2655,7 +2351,7 @@
             };
 
           public:
-            // TODO
+            // TODO (Lapys) -> Finally back to everything else...
             // typename conditional<(width >= 1u), apply<trait>, _apply>::type::template valueof<, 0u>
         };
 
@@ -2688,7 +2384,7 @@
         // width // width, duh
     };
 
-    // TODO
+    // TODO (Lapys)
     // template <std::size_t constantValue>
     // struct bit<0u, constantValue> final {
     //   typedef void      base;
@@ -2842,28 +2538,28 @@
     //   constfunc(true) bit(uintmin_t const = 0u) noexcept discard;
 
     //   /* ... */
-    //   template <typename type> constfunc(false)       bit&          operator =  (type nodecay)          member_lref noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value,          "Assignment of empty type `bit<0zu>`"); return const_cast<bit&>         (*this); }
-    //   template <typename type> constfunc(false)       bit volatile& operator =  (type nodecay) volatile member_lref noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value,          "Assignment of empty type `bit<0zu>`"); return const_cast<bit volatile&>(*this); }
-    //   template <typename type> constfunc(true) friend bit&          operator += (bit&          bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
-    //   template <typename type> constfunc(true) friend bit volatile& operator += (bit volatile& bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
-    //   template <typename type> constfunc(true) friend bit&          operator -= (bit&          bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
-    //   template <typename type> constfunc(true) friend bit volatile& operator -= (bit volatile& bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
-    //   template <typename type> constfunc(true) friend bit&          operator *= (bit&          bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
-    //   template <typename type> constfunc(true) friend bit volatile& operator *= (bit volatile& bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
-    //   template <typename type> constfunc(true) friend bit&          operator /= (bit&          bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
-    //   template <typename type> constfunc(true) friend bit volatile& operator /= (bit volatile& bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
-    //   template <typename type> constfunc(true) friend bit&          operator %= (bit&          bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
-    //   template <typename type> constfunc(true) friend bit volatile& operator %= (bit volatile& bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
-    //   template <typename type> constfunc(true) friend bit&          operator &= (bit&          bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
-    //   template <typename type> constfunc(true) friend bit volatile& operator &= (bit volatile& bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
-    //   template <typename type> constfunc(true) friend bit&          operator |= (bit&          bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
-    //   template <typename type> constfunc(true) friend bit volatile& operator |= (bit volatile& bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
-    //   template <typename type> constfunc(true) friend bit&          operator ^= (bit&          bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
-    //   template <typename type> constfunc(true) friend bit volatile& operator ^= (bit volatile& bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
-    //   template <typename type> constfunc(true) friend bit&          operator <<=(bit&          bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
-    //   template <typename type> constfunc(true) friend bit volatile& operator <<=(bit volatile& bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
-    //   template <typename type> constfunc(true) friend bit&          operator >>=(bit&          bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
-    //   template <typename type> constfunc(true) friend bit volatile& operator >>=(bit volatile& bit, type nodecay)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
+    //   template <typename type> constfunc(false)       bit&          operator =  (type fref)          member_lref noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value,          "Assignment of empty type `bit<0zu>`"); return const_cast<bit&>         (*this); }
+    //   template <typename type> constfunc(false)       bit volatile& operator =  (type fref) volatile member_lref noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value,          "Assignment of empty type `bit<0zu>`"); return const_cast<bit volatile&>(*this); }
+    //   template <typename type> constfunc(true) friend bit&          operator += (bit&          bit, type fref)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
+    //   template <typename type> constfunc(true) friend bit volatile& operator += (bit volatile& bit, type fref)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
+    //   template <typename type> constfunc(true) friend bit&          operator -= (bit&          bit, type fref)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
+    //   template <typename type> constfunc(true) friend bit volatile& operator -= (bit volatile& bit, type fref)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
+    //   template <typename type> constfunc(true) friend bit&          operator *= (bit&          bit, type fref)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
+    //   template <typename type> constfunc(true) friend bit volatile& operator *= (bit volatile& bit, type fref)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
+    //   template <typename type> constfunc(true) friend bit&          operator /= (bit&          bit, type fref)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
+    //   template <typename type> constfunc(true) friend bit volatile& operator /= (bit volatile& bit, type fref)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
+    //   template <typename type> constfunc(true) friend bit&          operator %= (bit&          bit, type fref)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
+    //   template <typename type> constfunc(true) friend bit volatile& operator %= (bit volatile& bit, type fref)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
+    //   template <typename type> constfunc(true) friend bit&          operator &= (bit&          bit, type fref)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
+    //   template <typename type> constfunc(true) friend bit volatile& operator &= (bit volatile& bit, type fref)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
+    //   template <typename type> constfunc(true) friend bit&          operator |= (bit&          bit, type fref)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
+    //   template <typename type> constfunc(true) friend bit volatile& operator |= (bit volatile& bit, type fref)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
+    //   template <typename type> constfunc(true) friend bit&          operator ^= (bit&          bit, type fref)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
+    //   template <typename type> constfunc(true) friend bit volatile& operator ^= (bit volatile& bit, type fref)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
+    //   template <typename type> constfunc(true) friend bit&          operator <<=(bit&          bit, type fref)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
+    //   template <typename type> constfunc(true) friend bit volatile& operator <<=(bit volatile& bit, type fref)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
+    //   template <typename type> constfunc(true) friend bit&          operator >>=(bit&          bit, type fref)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
+    //   template <typename type> constfunc(true) friend bit volatile& operator >>=(bit volatile& bit, type fref)   noexcept { typedef constant<bool, 0u == sizeof(defer::template type<type>)> invalid_bit_assignment; static_assert(invalid_bit_assignment::value, "Compound assignment of empty type `bit<0zu>`"); return bit; }
 
     //   constfunc(true) operator uintmin_t() const noexcept discard;
     // };
@@ -3079,7 +2775,7 @@
             };
 
             /* ... */
-            // TODO
+            // TODO (Lapys)
             // template <class trait>
             // constfunc(true) static boolean_false has_type(...) noexcept;
 
@@ -3113,7 +2809,7 @@
 
               public:
                 typedef collection<
-                  // TODO
+                  // TODO (Lapys)
                   // conditional<(length > 0u), apply<trait>, _apply>::type::template valueof<base1u, 0u>::type
 
                   typename _conditional<(length > 0u), apply<trait>, _apply>::type::template valueof<base1u, 0u>::type, typename _conditional<(length > 1u), apply<trait>, _apply>::type::template valueof<base2u, 1u>::type, typename _conditional<(length > 2u), apply<trait>, _apply>::type::template valueof<base3u, 2u>::type, typename _conditional<(length > 3u), apply<trait>, _apply>::type::template valueof<base4u, 3u>::type, typename _conditional<(length > 4u), apply<trait>, _apply>::type::template valueof<base5u, 4u>::type, typename _conditional<(length > 5u), apply<trait>, _apply>::type::template valueof<base6u, 5u>::type, typename _conditional<(length > 6u), apply<trait>, _apply>::type::template valueof<base7u, 6u>::type, typename _conditional<(length > 7u), apply<trait>, _apply>::type::template valueof<base8u, 7u>::type, typename _conditional<(length > 8u), apply<trait>, _apply>::type::template valueof<base9u, 8u>::type, typename _conditional<(length > 9u), apply<trait>, _apply>::type::template valueof<base10u, 9u>::type, typename _conditional<(length > 10u), apply<trait>, _apply>::type::template valueof<base11u, 10u>::type, typename _conditional<(length > 11u), apply<trait>, _apply>::type::template valueof<base12u, 11u>::type, typename _conditional<(length > 12u), apply<trait>, _apply>::type::template valueof<base13u, 12u>::type, typename _conditional<(length > 13u), apply<trait>, _apply>::type::template valueof<base14u, 13u>::type, typename _conditional<(length > 14u), apply<trait>, _apply>::type::template valueof<base15u, 14u>::type, typename _conditional<(length > 15u), apply<trait>, _apply>::type::template valueof<base16u, 15u>::type, typename _conditional<(length > 16u), apply<trait>, _apply>::type::template valueof<base17u, 16u>::type, typename _conditional<(length > 17u), apply<trait>, _apply>::type::template valueof<base18u, 17u>::type, typename _conditional<(length > 18u), apply<trait>, _apply>::type::template valueof<base19u, 18u>::type, typename _conditional<(length > 19u), apply<trait>, _apply>::type::template valueof<base20u, 19u>::type, typename _conditional<(length > 20u), apply<trait>, _apply>::type::template valueof<base21u, 20u>::type, typename _conditional<(length > 21u), apply<trait>, _apply>::type::template valueof<base22u, 21u>::type, typename _conditional<(length > 22u), apply<trait>, _apply>::type::template valueof<base23u, 22u>::type, typename _conditional<(length > 23u), apply<trait>, _apply>::type::template valueof<base24u, 23u>::type, typename _conditional<(length > 24u), apply<trait>, _apply>::type::template valueof<base25u, 24u>::type, typename _conditional<(length > 25u), apply<trait>, _apply>::type::template valueof<base26u, 25u>::type, typename _conditional<(length > 26u), apply<trait>, _apply>::type::template valueof<base27u, 26u>::type, typename _conditional<(length > 27u), apply<trait>, _apply>::type::template valueof<base28u, 27u>::type, typename _conditional<(length > 28u), apply<trait>, _apply>::type::template valueof<base29u, 28u>::type, typename _conditional<(length > 29u), apply<trait>, _apply>::type::template valueof<base30u, 29u>::type, typename _conditional<(length > 30u), apply<trait>, _apply>::type::template valueof<base31u, 30u>::type, typename _conditional<(length > 31u), apply<trait>, _apply>::type::template valueof<base32u, 31u>::type, typename _conditional<(length > 32u), apply<trait>, _apply>::type::template valueof<base33u, 32u>::type, typename _conditional<(length > 33u), apply<trait>, _apply>::type::template valueof<base34u, 33u>::type, typename _conditional<(length > 34u), apply<trait>, _apply>::type::template valueof<base35u, 34u>::type, typename _conditional<(length > 35u), apply<trait>, _apply>::type::template valueof<base36u, 35u>::type, typename _conditional<(length > 36u), apply<trait>, _apply>::type::template valueof<base37u, 36u>::type, typename _conditional<(length > 37u), apply<trait>, _apply>::type::template valueof<base38u, 37u>::type, typename _conditional<(length > 38u), apply<trait>, _apply>::type::template valueof<base39u, 38u>::type, typename _conditional<(length > 39u), apply<trait>, _apply>::type::template valueof<base40u, 39u>::type, typename _conditional<(length > 40u), apply<trait>, _apply>::type::template valueof<base41u, 40u>::type, typename _conditional<(length > 41u), apply<trait>, _apply>::type::template valueof<base42u, 41u>::type, typename _conditional<(length > 42u), apply<trait>, _apply>::type::template valueof<base43u, 42u>::type, typename _conditional<(length > 43u), apply<trait>, _apply>::type::template valueof<base44u, 43u>::type, typename _conditional<(length > 44u), apply<trait>, _apply>::type::template valueof<base45u, 44u>::type, typename _conditional<(length > 45u), apply<trait>, _apply>::type::template valueof<base46u, 45u>::type, typename _conditional<(length > 46u), apply<trait>, _apply>::type::template valueof<base47u, 46u>::type, typename _conditional<(length > 47u), apply<trait>, _apply>::type::template valueof<base48u, 47u>::type, typename _conditional<(length > 48u), apply<trait>, _apply>::type::template valueof<base49u, 48u>::type, typename _conditional<(length > 49u), apply<trait>, _apply>::type::template valueof<base50u, 49u>::type, typename _conditional<(length > 50u), apply<trait>, _apply>::type::template valueof<base51u, 50u>::type, typename _conditional<(length > 51u), apply<trait>, _apply>::type::template valueof<base52u, 51u>::type, typename _conditional<(length > 52u), apply<trait>, _apply>::type::template valueof<base53u, 52u>::type, typename _conditional<(length > 53u), apply<trait>, _apply>::type::template valueof<base54u, 53u>::type, typename _conditional<(length > 54u), apply<trait>, _apply>::type::template valueof<base55u, 54u>::type, typename _conditional<(length > 55u), apply<trait>, _apply>::type::template valueof<base56u, 55u>::type, typename _conditional<(length > 56u), apply<trait>, _apply>::type::template valueof<base57u, 56u>::type, typename _conditional<(length > 57u), apply<trait>, _apply>::type::template valueof<base58u, 57u>::type, typename _conditional<(length > 58u), apply<trait>, _apply>::type::template valueof<base59u, 58u>::type, typename _conditional<(length > 59u), apply<trait>, _apply>::type::template valueof<base60u, 59u>::type, typename _conditional<(length > 60u), apply<trait>, _apply>::type::template valueof<base61u, 60u>::type, typename _conditional<(length > 61u), apply<trait>, _apply>::type::template valueof<base62u, 61u>::type, typename _conditional<(length > 62u), apply<trait>, _apply>::type::template valueof<base63u, 62u>::type, typename _conditional<(length > 63u), apply<trait>, _apply>::type::template valueof<base64u, 63u>::type, typename _conditional<(length > 64u), apply<trait>, _apply>::type::template valueof<base65u, 64u>::type, typename _conditional<(length > 65u), apply<trait>, _apply>::type::template valueof<base66u, 65u>::type, typename _conditional<(length > 66u), apply<trait>, _apply>::type::template valueof<base67u, 66u>::type, typename _conditional<(length > 67u), apply<trait>, _apply>::type::template valueof<base68u, 67u>::type, typename _conditional<(length > 68u), apply<trait>, _apply>::type::template valueof<base69u, 68u>::type, typename _conditional<(length > 69u), apply<trait>, _apply>::type::template valueof<base70u, 69u>::type, typename _conditional<(length > 70u), apply<trait>, _apply>::type::template valueof<base71u, 70u>::type, typename _conditional<(length > 71u), apply<trait>, _apply>::type::template valueof<base72u, 71u>::type, typename _conditional<(length > 72u), apply<trait>, _apply>::type::template valueof<base73u, 72u>::type, typename _conditional<(length > 73u), apply<trait>, _apply>::type::template valueof<base74u, 73u>::type, typename _conditional<(length > 74u), apply<trait>, _apply>::type::template valueof<base75u, 74u>::type, typename _conditional<(length > 75u), apply<trait>, _apply>::type::template valueof<base76u, 75u>::type, typename _conditional<(length > 76u), apply<trait>, _apply>::type::template valueof<base77u, 76u>::type, typename _conditional<(length > 77u), apply<trait>, _apply>::type::template valueof<base78u, 77u>::type, typename _conditional<(length > 78u), apply<trait>, _apply>::type::template valueof<base79u, 78u>::type, typename _conditional<(length > 79u), apply<trait>, _apply>::type::template valueof<base80u, 79u>::type, typename _conditional<(length > 80u), apply<trait>, _apply>::type::template valueof<base81u, 80u>::type, typename _conditional<(length > 81u), apply<trait>, _apply>::type::template valueof<base82u, 81u>::type, typename _conditional<(length > 82u), apply<trait>, _apply>::type::template valueof<base83u, 82u>::type, typename _conditional<(length > 83u), apply<trait>, _apply>::type::template valueof<base84u, 83u>::type, typename _conditional<(length > 84u), apply<trait>, _apply>::type::template valueof<base85u, 84u>::type, typename _conditional<(length > 85u), apply<trait>, _apply>::type::template valueof<base86u, 85u>::type, typename _conditional<(length > 86u), apply<trait>, _apply>::type::template valueof<base87u, 86u>::type, typename _conditional<(length > 87u), apply<trait>, _apply>::type::template valueof<base88u, 87u>::type, typename _conditional<(length > 88u), apply<trait>, _apply>::type::template valueof<base89u, 88u>::type, typename _conditional<(length > 89u), apply<trait>, _apply>::type::template valueof<base90u, 89u>::type, typename _conditional<(length > 90u), apply<trait>, _apply>::type::template valueof<base91u, 90u>::type, typename _conditional<(length > 91u), apply<trait>, _apply>::type::template valueof<base92u, 91u>::type, typename _conditional<(length > 92u), apply<trait>, _apply>::type::template valueof<base93u, 92u>::type, typename _conditional<(length > 93u), apply<trait>, _apply>::type::template valueof<base94u, 93u>::type, typename _conditional<(length > 94u), apply<trait>, _apply>::type::template valueof<base95u, 94u>::type, typename _conditional<(length > 95u), apply<trait>, _apply>::type::template valueof<base96u, 95u>::type, typename _conditional<(length > 96u), apply<trait>, _apply>::type::template valueof<base97u, 96u>::type, typename _conditional<(length > 97u), apply<trait>, _apply>::type::template valueof<base98u, 97u>::type, typename _conditional<(length > 98u), apply<trait>, _apply>::type::template valueof<base99u, 98u>::type, typename _conditional<(length > 99u), apply<trait>, _apply>::type::template valueof<base100u, 99u>::type, typename _conditional<(length > 100u), apply<trait>, _apply>::type::template valueof<base101u, 100u>::type, typename _conditional<(length > 101u), apply<trait>, _apply>::type::template valueof<base102u, 101u>::type, typename _conditional<(length > 102u), apply<trait>, _apply>::type::template valueof<base103u, 102u>::type, typename _conditional<(length > 103u), apply<trait>, _apply>::type::template valueof<base104u, 103u>::type, typename _conditional<(length > 104u), apply<trait>, _apply>::type::template valueof<base105u, 104u>::type, typename _conditional<(length > 105u), apply<trait>, _apply>::type::template valueof<base106u, 105u>::type, typename _conditional<(length > 106u), apply<trait>, _apply>::type::template valueof<base107u, 106u>::type, typename _conditional<(length > 107u), apply<trait>, _apply>::type::template valueof<base108u, 107u>::type, typename _conditional<(length > 108u), apply<trait>, _apply>::type::template valueof<base109u, 108u>::type, typename _conditional<(length > 109u), apply<trait>, _apply>::type::template valueof<base110u, 109u>::type, typename _conditional<(length > 110u), apply<trait>, _apply>::type::template valueof<base111u, 110u>::type, typename _conditional<(length > 111u), apply<trait>, _apply>::type::template valueof<base112u, 111u>::type, typename _conditional<(length > 112u), apply<trait>, _apply>::type::template valueof<base113u, 112u>::type, typename _conditional<(length > 113u), apply<trait>, _apply>::type::template valueof<base114u, 113u>::type, typename _conditional<(length > 114u), apply<trait>, _apply>::type::template valueof<base115u, 114u>::type, typename _conditional<(length > 115u), apply<trait>, _apply>::type::template valueof<base116u, 115u>::type, typename _conditional<(length > 116u), apply<trait>, _apply>::type::template valueof<base117u, 116u>::type, typename _conditional<(length > 117u), apply<trait>, _apply>::type::template valueof<base118u, 117u>::type, typename _conditional<(length > 118u), apply<trait>, _apply>::type::template valueof<base119u, 118u>::type, typename _conditional<(length > 119u), apply<trait>, _apply>::type::template valueof<base120u, 119u>::type, typename _conditional<(length > 120u), apply<trait>, _apply>::type::template valueof<base121u, 120u>::type, typename _conditional<(length > 121u), apply<trait>, _apply>::type::template valueof<base122u, 121u>::type, typename _conditional<(length > 122u), apply<trait>, _apply>::type::template valueof<base123u, 122u>::type, typename _conditional<(length > 123u), apply<trait>, _apply>::type::template valueof<base124u, 123u>::type, typename _conditional<(length > 124u), apply<trait>, _apply>::type::template valueof<base125u, 124u>::type, typename _conditional<(length > 125u), apply<trait>, _apply>::type::template valueof<base126u, 125u>::type, typename _conditional<(length > 126u), apply<trait>, _apply>::type::template valueof<base127u, 126u>::type
@@ -3264,7 +2960,7 @@
 
             public:
               static std::size_t const value = (
-                // TODO
+                // TODO (Lapys)
                 ((0u != metadata ? metadata : metadataof<base>::value & ((((1u << (METADATA_WIDTH   - 1u)) - 1u) << 1u) + 1u)) << 0u)             |
                 ((static_cast<unsigned char>(is_signed<base>::value)  & ((((1u << (SIGNEDNESS_WIDTH - 1u)) - 1u) << 1u) + 1u)) << METADATA_WIDTH) |
                 ((sizeof(base)                                        & ((((1u << (SIZE_WIDTH       - 1u)) - 1u) << 1u) + 1u)) << (METADATA_WIDTH + SIGNEDNESS_WIDTH))
@@ -3458,7 +3154,7 @@
           typedef typename valueof<typename float_least_width_t<width>::type>::type type;
       };
 
-      // ... ->> Function type diagnostics TODO
+      // ... ->> Function type diagnostics TODO (Lapys)
       template <typename base>
       struct functioninfo final {
         static bool const value = false;
@@ -3933,22 +3629,22 @@
     struct CPP_MAX_SIZE final {
       private:
         template <std::size_t subsize>
-        constfunc(true) static unsigned char (&(valueof)(unsigned char const, CPP_MAX_SIZE<subsize>* const = nullptr) noexcept)[subsize];
+        constfunc(true) static byte (&(valueof)(byte const, CPP_MAX_SIZE<subsize>* const = nullptr) noexcept)[subsize];
 
         template <std::size_t>
-        constfunc(true) static unsigned char (&(valueof)(...) noexcept)[size];
+        constfunc(true) static byte (&(valueof)(...) noexcept)[size];
 
       public:
         typename ::Lapys::Traits::conditional<
-          size == sizeof valueof<size + increment>(0x00u) / sizeof(unsigned char),
-          typename ::Lapys::Traits::conditional<(increment > 1u), CPP_MAX_SIZE<size, increment / 2u>, unsigned char[size]>::type,
-          CPP_MAX_SIZE<sizeof valueof<size + increment>(0x00u) / sizeof(unsigned char), increment == size ? increment + increment : increment>
+          size == sizeof valueof<size + increment>(0x00u) / sizeof(byte),
+          typename ::Lapys::Traits::conditional<(increment > 1u), CPP_MAX_SIZE<size, increment / 2u>, byte[size]>::type,
+          CPP_MAX_SIZE<sizeof valueof<size + increment>(0x00u) / sizeof(byte), increment == size ? increment + increment : increment>
         >::type _;
     };
 
     template <std::size_t increment, std::size_t size> struct CPP_MAX_SIZE<0u,       increment, size> final {};
-    template <std::size_t increment, std::size_t size> struct CPP_MAX_SIZE<SIZE_MAX, increment, size> final { unsigned char _[size]; };
-  # define CPP_MAX_SIZE (sizeof(::CPP_MAX_SIZE<1u>) / sizeof(unsigned char)) // --> UINT_MAX <= x <= PTRDIFF_MAX
+    template <std::size_t increment, std::size_t size> struct CPP_MAX_SIZE<SIZE_MAX, increment, size> final { byte _[size]; };
+  # define CPP_MAX_SIZE (sizeof(::CPP_MAX_SIZE<1u>) / sizeof(byte)) // --> UINT_MAX <= x <= PTRDIFF_MAX
   # if CPP_COMPILER == CPP_CLANG_COMPILER
   #   pragma clang diagnostic pop
   # endif

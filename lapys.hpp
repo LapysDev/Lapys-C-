@@ -39,8 +39,9 @@
     - uint128_t
 
     - choose       (...) ->> Conditionally selects the falsy/ truthy argument or evaluates to the indexed argument within a list of arguments
-    - empty        ()    ->> Evaluates to nothing
-    - nilsizeof    (...) ->> Evaluates the bit size of an expression (or type)
+    - nilsizeof    (...) ->> Evaluates the bit size of an expression
+    - nilwidthof   (...) ->> Evaluates the bit width of an expression
+    - nul          ()    ->> Evaluates to empty space or nothing
     - static_assert(...) ->> Fallback for C++98
     - widthof      (...) ->> Evaluates the bit size of an expression (or type)
 */
@@ -225,17 +226,21 @@
   /* Deletion */
   #ifdef LAPYS_MODULE_TRAITS
   # if preprocessed(LAPYS_PREPROCESSOR)
+  #   undef nilwidthof
   #   undef widthof
   #   if CPP_VERSION < 2011uL
-  #     define widthof(argument) (CHAR_BIT * sizeof(argument))
+  #     define nilwidthof(expression) (CHAR_BIT * nilsizeof   (expression))
+  #     define widthof(expression)    (CHAR_BIT * sizeof decl (expression))
   #   else
   #     undef nilsizeof
-  #     define nilsizeof(...) ((sizeof (::Lapys::nilsizeof)((__VA_ARGS__), sfinaeptr) / sizeof(::Lapys::byte)) - 1u)
-  #     define widthof(...) (CHAR_BIT * sizeof(__VA_ARGS__))
+  #     define nilsizeof(...)  ((sizeof decl (::Lapys::nilsizeof)(novoid(__VA_ARGS__), sfinaeptr) / sizeof decl(::Lapys::byte)) - 1u)
+  #     define nilwidthof(...) (CHAR_BIT * nilsizeof(__VA_ARGS__))
+  #     define widthof(...)    (CHAR_BIT * sizeof decl (__VA_ARGS__))
   #   endif
   # else
   #   undef CPP_MAX_SIZE
   #   undef nilsizeof
+  #   undef nilwidthof
   #   undef widthof
   # endif
   #
@@ -338,12 +343,12 @@
   #   undef choose
   #     undef choose_false
   #     undef choose_true
-  #   undef empty
   #   undef float16_t
   #   undef float32_t
   #   undef float64_t
   #   undef float128_t
   #   undef int128_t
+  #   undef nul
   #   undef uint128_t
   #   ifndef __cpp_static_assert
   #     undef static_assert
@@ -373,6 +378,8 @@
   #     undef exceptspec_true
   #     undef noexcept
   #   endif
+  # undef decl
+  # undef fref
   # undef included
   # undef init
   # undef lref
@@ -381,16 +388,16 @@
   # undef member_rref
   # undef mustinline
   # undef nilinit
-  # undef nodecay
-  # undef nodecayparam
   # undef noeval
   # undef noexit
   # undef noignore
   # undef noinline
-  # undef notypeof
   # undef nouniqueaddr
+  # undef novoid
   # undef nullptr
+  # undef param_fref
   # undef preprocessed
+  # undef refspec
   # undef restricted
   # undef rlref
   # undef rref
@@ -398,8 +405,6 @@
   # undef varinit
   #endif
 
-  #undef LAPYS_CODEGEN    // ->> Intended for considered code generation
-  #undef LAPYS_CODESUBGEN // ->> Intended for considered code generation
   #undef LAPYS_PREPROCESSOR_GUARD
   #undef LAPYS_MODULE_EXTENSIONS
   #undef LAPYS_MODULE_TRAITS

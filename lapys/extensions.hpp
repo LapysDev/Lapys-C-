@@ -25,18 +25,19 @@
     - countof               (...)
     - defer                 (f, ...)
     - defined               (macro)
-    - empty                 ()
     - enumint               (T, name)
     - exceptof              (...)
     - exceptspec            (false | true)
     - included              (<source.cpp>); included("source.cpp")
     - init                  (...)
     - nilinit               (T)
-    - nodecayparam          (name)
     - noeval                (...)
-    - notypeof              (...)
+    - novoid                (...)
+    - nul                   ()
+    - param_fref            (name)
     - parse                 (...)
     - preprocessed          (macro)
+    - refspec               (...)
     - stall                 (...)
     - static_assert         (bool, "...")
     - stringify             (...)
@@ -44,19 +45,21 @@
     - typeof                (...)
 
     - constvar
+    - decl
     - discard
     - final
     - float16_t
     - float32_t
     - float64_t
     - float128_t
+    - fref
+    - func
     - int128_t
     - lref
     - member_lref
     - member_rlref
     - member_rref
     - mustinline
-    - nodecay
     - noexit
     - noignore
     - noinline
@@ -255,10 +258,10 @@
 
   // : [Source File Inclusion] ->> Conditionally preferable error diagnostics when `#include`ing other source files
   #if CPP_VERSION >= 2017uL
-  # define included(path) (__has_include(path))
+  # define included(path) (__has_include decl(path))
   #elif CPP_FRONTEND == CPP_CLANG_FRONTEND or CPP_FRONTEND == CPP_GNUC_FRONTEND
   # ifdef __has_include
-  #   define included(path) (__has_include(path))
+  #   define included(path) (__has_include decl(path))
   # else
   #   define included(path) (false)
   #   undef  included
@@ -267,7 +270,7 @@
   #
   #ifndef included
   # ifdef __has_include
-  #   define included(path) (__has_include(path))
+  #   define included(path) (__has_include decl(path))
   # else
   #   define included(path) (true) // ->> Presume `path` exists by default
   # endif
@@ -426,11 +429,11 @@
   # include <bit>
   # undef CPP_ENDIAN_RUNTIME
   # if CPP_VERSION < 2011uL
-  #   define CPP_ENDIAN_RUNTIME (0x00 == (std::endian::native & (std::endian::big | std::endian::little)) and sizeof(unsigned char) != sizeof(unsigned long))
-  #   define CPP_ENDIAN (std::endian::native == std::endian::little ? CPP_BYTE_LITTLE_ENDIAN : std::endian::native == std::endian::big ? CPP_BYTE_BIG_ENDIAN : sizeof(unsigned char) == sizeof(unsigned long)      or reinterpret_cast<unsigned char const&>(static_cast<unsigned long      const&>(1uL))  == 1u ? CPP_BYTE_LITTLE_ENDIAN : reinterpret_cast<unsigned char const*>(&static_cast<unsigned long      const&>(1uL)) [sizeof(unsigned long)      - 1u] == 1u ? CPP_BYTE_BIG_ENDIAN : CPP_MIXED_ENDIAN)
+  #   define CPP_ENDIAN_RUNTIME (0x00 == (std::endian::native & (std::endian::big | std::endian::little)) and sizeof decl(unsigned char) != sizeof decl(unsigned long))
+  #   define CPP_ENDIAN (std::endian::native == std::endian::little ? CPP_BYTE_LITTLE_ENDIAN : std::endian::native == std::endian::big ? CPP_BYTE_BIG_ENDIAN : sizeof decl(unsigned char) == sizeof decl(unsigned long)      or reinterpret_cast<unsigned char const&>(static_cast<unsigned long      const&>(1uL))  == 1u ? CPP_BYTE_LITTLE_ENDIAN : reinterpret_cast<unsigned char const*>(&static_cast<unsigned long      const&>(1uL)) [sizeof decl(unsigned long)      - 1u] == 1u ? CPP_BYTE_BIG_ENDIAN : CPP_MIXED_ENDIAN)
   # else
-  #   define CPP_ENDIAN_RUNTIME (0x00 == (std::endian::native & (std::endian::big | std::endian::little)) and sizeof(unsigned char) != sizeof(unsigned long long))
-  #   define CPP_ENDIAN (std::endian::native == std::endian::little ? CPP_BYTE_LITTLE_ENDIAN : std::endian::native == std::endian::big ? CPP_BYTE_BIG_ENDIAN : sizeof(unsigned char) == sizeof(unsigned long long) or reinterpret_cast<unsigned char const&>(static_cast<unsigned long long const&>(1uLL)) == 1u ? CPP_BYTE_LITTLE_ENDIAN : reinterpret_cast<unsigned char const*>(&static_cast<unsigned long long const&>(1uLL))[sizeof(unsigned long long) - 1u] == 1u ? CPP_BYTE_BIG_ENDIAN : CPP_MIXED_ENDIAN)
+  #   define CPP_ENDIAN_RUNTIME (0x00 == (std::endian::native & (std::endian::big | std::endian::little)) and sizeof decl(unsigned char) != sizeof decl(unsigned long long))
+  #   define CPP_ENDIAN (std::endian::native == std::endian::little ? CPP_BYTE_LITTLE_ENDIAN : std::endian::native == std::endian::big ? CPP_BYTE_BIG_ENDIAN : sizeof decl(unsigned char) == sizeof decl(unsigned long long) or reinterpret_cast<unsigned char const&>(static_cast<unsigned long long const&>(1uLL)) == 1u ? CPP_BYTE_LITTLE_ENDIAN : reinterpret_cast<unsigned char const*>(&static_cast<unsigned long long const&>(1uLL))[sizeof decl(unsigned long long) - 1u] == 1u ? CPP_BYTE_BIG_ENDIAN : CPP_MIXED_ENDIAN)
   # endif
   #else
   # if included(<machine/endian.h>) and (CPP_VENDOR & CPP_APPLE_MACINTOSH_VENDOR)
@@ -519,18 +522,18 @@
   # if false == defined CPP_ENDIAN // ->> Language endian constants
   #   undef  CPP_ENDIAN_RUNTIME
   #   if CPP_VERSION < 2011uL
-  #     define CPP_ENDIAN_RUNTIME (sizeof(unsigned char) != sizeof(unsigned long))
-  #     define CPP_ENDIAN (false == CPP_ENDIAN_RUNTIME or reinterpret_cast<unsigned char const&>(static_cast<unsigned long      const&>(1uL))  == 1u ? CPP_BYTE_LITTLE_ENDIAN : reinterpret_cast<unsigned char const*>(&static_cast<unsigned long      const&>(1uL)) [sizeof(unsigned long)      - 1u] == 1u ? CPP_BYTE_BIG_ENDIAN : CPP_MIXED_ENDIAN)
+  #     define CPP_ENDIAN_RUNTIME (sizeof decl(unsigned char) != sizeof decl(unsigned long))
+  #     define CPP_ENDIAN (false == CPP_ENDIAN_RUNTIME or reinterpret_cast<unsigned char const&>(static_cast<unsigned long      const&>(1uL))  == 1u ? CPP_BYTE_LITTLE_ENDIAN : reinterpret_cast<unsigned char const*>(&static_cast<unsigned long      const&>(1uL)) [sizeof decl(unsigned long)      - 1u] == 1u ? CPP_BYTE_BIG_ENDIAN : CPP_MIXED_ENDIAN)
   #   else
-  #     define CPP_ENDIAN_RUNTIME (sizeof(unsigned char) != sizeof(unsigned long long))
-  #     define CPP_ENDIAN (false == CPP_ENDIAN_RUNTIME or reinterpret_cast<unsigned char const&>(static_cast<unsigned long long const&>(1uLL)) == 1u ? CPP_BYTE_LITTLE_ENDIAN : reinterpret_cast<unsigned char const*>(&static_cast<unsigned long long const&>(1uLL))[sizeof(unsigned long long) - 1u] == 1u ? CPP_BYTE_BIG_ENDIAN : CPP_MIXED_ENDIAN)
+  #     define CPP_ENDIAN_RUNTIME (sizeof decl(unsigned char) != sizeof decl(unsigned long long))
+  #     define CPP_ENDIAN (false == CPP_ENDIAN_RUNTIME or reinterpret_cast<unsigned char const&>(static_cast<unsigned long long const&>(1uLL)) == 1u ? CPP_BYTE_LITTLE_ENDIAN : reinterpret_cast<unsigned char const*>(&static_cast<unsigned long long const&>(1uLL))[sizeof decl(unsigned long long) - 1u] == 1u ? CPP_BYTE_BIG_ENDIAN : CPP_MIXED_ENDIAN)
   #   endif
   # endif
   #endif
 
   /* Definition */
   // : [Constant Function] ->> Attempts to specify a constant evaluable function; Only accepts tokens `false` and `true`
-  #define constfunc(unrelaxed) constfunc_ ## unrelaxed
+  #define constfunc(unrelaxed) constfunc_ ## unrelaxed decl
   #ifdef __cpp_constexpr // --> 200704L
   # if CPP_VERSION > 2011uL or __cpp_constexpr >= 201304L
   #   define constfunc_false constexpr
@@ -553,12 +556,12 @@
 
   # ifdef __cpp_constexpr // --> 200704L
   #   if CPP_VERSION < 2011uL
-  #     define constint_1u(id, type, name, value)                                                        constexpr static type name varinit(value)
+  #     define constint_1u(id, type, name, value)                                                        constexpr static type name varinit((value))
   #   else
   #     define constint_1u(id, type, name, ...)                                                          constexpr static type name varinit((__VA_ARGS__))
   #   endif
   # elif CPP_VERSION < 2011uL
-  #   define constint_1u(id, type, name, value) enum        { name ## id = static_cast<int> (value) };       const static type name varinit(value)
+  #   define constint_1u(id, type, name, value) enum        { name ## id = static_cast<int> (value) };       const static type name varinit((value))
   # else
   #   define constint_1u(id, type, name, ...)   enum : type { name ## id = static_cast<type>(__VA_ARGS__) }; const static type name varinit((__VA_ARGS__))
   # endif
@@ -586,22 +589,36 @@
   #if CPP_VERSION < 2011uL
   # define exceptof(expression) false
   #else
-  # define exceptof(expression) noexcept(expression)
+  # define exceptof(...) noexcept decl(__VA_ARGS__)
   #endif
 
   // : [Exception Specifier] ->> Attempts to explicitly anticipate `throw` in a specified function
   #if CPP_VERSION < 2011uL
   # define exceptspec(specification) exceptspec_ ## specification // --> choose(specification, exceptspec_true, exceptspec_false)
   #   if CPP_COMPILER == CPP_MSVC_COMPILER
-  #     define exceptspec_false throw(...)
+  #     define exceptspec_false throw decl(...)
   #     define exceptspec_true  noexcept
   #   else
   #     define exceptspec_false
   #     define exceptspec_true noexcept
   #   endif
-  # define noexcept throw() // ->> Shim the `noexcept` keyword
+  # define noexcept throw decl() // ->> Shim the `noexcept` keyword
   #else
-  # define exceptspec(specification) noexcept(specification)
+  # define exceptspec(specification) noexcept decl(specification)
+  #endif
+
+  // : [Expression Reference Specification] ->> Determines if an expression is an lvalue or rvalue reference
+  #if CPP_VERSION < 2011uL
+  # define refspec(expression) (sizeof(::Lapys::Traits::reference_true) == sizeof(::Lapys::Traits::refspec(), (expression),  ::Lapys::Traits::refspec()))
+  #else
+  # define refspec(...)        (sizeof(::Lapys::Traits::reference_true) == sizeof(::Lapys::Traits::refspec(), (__VA_ARGS__), ::Lapys::Traits::refspec()))
+  #endif
+
+  // : [Expression `void` Filter] ->> Reference-qualifies, then re-evaluates `void` expressions as `struct ::Lapys::Traits::novoid` expressions
+  #if CPP_VERSION < 2011uL
+  # define novoid(expression) (::Lapys::Traits::novoid(), (expression),  ::Lapys::Traits::novoid())
+  #else
+  # define novoid(...)        (::Lapys::Traits::novoid(), (__VA_ARGS__), ::Lapys::Traits::novoid())
   #endif
 
   // : [Floating-Point Types] ->> Acknowledges extended floating-point types
@@ -643,12 +660,15 @@
 
   // : [Forwarding Reference] ->> Perfect-forwarding reference-qualification
   #ifdef __cpp_rvalue_references // --> 200610L
-  # define nodecay             &&
-  # define nodecayparam(name) (&&name)
+  # define fref             &&
+  # define param_fref(name) decl (&&name)
   #else
-  # define nodecay            const&
-  # define nodecayparam(name) const (&name)
+  # define fref             const&
+  # define param_fref(name) const decl (&name)
   #endif
+
+  // : [Guard] ->> Intended to guard against function-like macros
+  #define decl
 
   // : [Inheritance Specifier] ->> Attempt to specify a `class` or `struct` as non-inheritable
   #if CPP_VERSION < 2011uL
@@ -665,7 +685,7 @@
   #   define init(...)       {__VA_ARGS__}
   # endif
   #else
-  # define nilinit(type)     = type()
+  # define nilinit(type)     = type decl ()
   # define varinit(argument) = argument
   # if CPP_VERSION < 2011uL
   #   define init(arguments) (arguments)
@@ -719,7 +739,7 @@
 
   // : [Parameter Pack]
   #if CPP_VERSION < 2011uL
-  # define countof(pack) ::Lapys::Traits::collection<::Lapys::Traits::constant<std::size_t, sizeof typeid(pack), true>...>::length
+  # define countof(pack) ::Lapys::Traits::collection<::Lapys::Traits::constant<std::size_t, sizeof typeid decl(pack), true>...>::length
   #else
   # define countof(pack) sizeof...(pack)
   #endif
@@ -867,9 +887,9 @@
   #     endif
   #   else
   #     if CPP_VERSION < 2011uL
-  #       define boundsof(type) sizeof(type)
+  #       define boundsof(type) sizeof decl(type)
   #     else
-  #       define boundsof(...)  sizeof(__VA_ARGS__)
+  #       define boundsof(...)  sizeof decl(__VA_ARGS__)
   #     endif
   #   endif
   # endif
@@ -911,48 +931,20 @@
   # endif
   #else
   # if CPP_VERSION < 2011uL
-  #   define boundsspec(argument) alignas(argument)
-  #   define boundsof(type)     alignof(type)
+  #   define boundsspec(argument) alignas decl(argument)
+  #   define boundsof(type)       alignof decl(type)
   # else
-  #   define boundsspec(...) alignas(__VA_ARGS__)
-  #   define boundsof(...) alignof(__VA_ARGS__)
+  #   define boundsspec(...) alignas decl(__VA_ARGS__)
+  #   define boundsof(...)   alignof decl(__VA_ARGS__)
   # endif
   #endif
 
   // : [Type Inspection Specifier] ->> Reflect on the resulting type of an expression
-  #ifdef typeof
-  # ifndef notypeof
-  #   if CPP_VERSION < 2011uL
-  #     define notypeof(expression) ::Lapys::Traits::is_void<typeof((expression))> ::value
-  #   else
-  #     define notypeof(...)        ::Lapys::Traits::is_void<typeof((__VA_ARGS__))>::value
-  #   endif
-  # endif
-  #else
+  #ifndef typeof
   # if CPP_COMPILER == CPP_CLANG_COMPILER
   #   pragma clang diagnostic push
   #   pragma clang diagnostic ignored "-Wkeyword-macro"
   # endif
-  #   if CPP_FRONTEND == CPP_MSVC_FRONTEND or defined __cpp_decltype // --> 200707L
-  #     if CPP_VERSION < 2011uL
-  #       define notypeof(expression) ::Lapys::Traits::is_void<decltype(expression)> ::value
-  #     else
-  #       define notypeof(...)        ::Lapys::Traits::is_void<decltype(__VA_ARGS__)>::value
-  #     endif
-  #   elif CPP_FRONTEND == CPP_GNUC_FRONTEND
-  #     if CPP_VERSION < 2011uL
-  #       define notypeof(expression) ::Lapys::Traits::is_void<__decltype(expression)> ::value
-  #     else
-  #       define notypeof(...)        ::Lapys::Traits::is_void<__decltype(__VA_ARGS__)>::value
-  #     endif
-  #   elif CPP_FRONTEND == CPP_CLANG_FRONTEND
-  #     if CPP_VERSION < 2011uL
-  #       define notypeof(expression) ::Lapys::Traits::is_void<__typeof__(expression)> ::value
-  #     else
-  #       define notypeof(...)        ::Lapys::Traits::is_void<__typeof__(__VA_ARGS__)>::value
-  #     endif
-  #   endif
-  #
   #   if CPP_FRONTEND == CPP_MSVC_FRONTEND or defined __cpp_decltype // --> 200707L
   #     if CPP_VERSION < 2011uL
   #       define typeof(expression) decltype(expression)
@@ -965,11 +957,11 @@
   #     else
   #       define typeof(...)        __decltype(__VA_ARGS__)
   #     endif
-  #   elif CPP_FRONTEND == CPP_CLANG_FRONTEND
-  #     if CPP_VERSION < 2011uL
-  #       define typeof(expression) typename ::Lapys::Traits::conditional<sizeof(::Lapys::Traits::boolean_true) == sizeof ::Lapys::Traits::typeinfo::is_lvalue_reference((expression)),  ::Lapys::Traits::alias<__typeof__(expression)  lref>, typename ::Lapys::Traits::conditional<sizeof(::Lapys::Traits::boolean_true) == sizeof ::Lapys::Traits::typeinfo::is_rvalue_reference((expression)),  ::Lapys::Traits::alias<__typeof__(expression)  rref>, ::Lapys::Traits::alias<__typeof__(expression)> > ::type>::type::type
+  #   elif CPP_FRONTEND == CPP_CLANG_FRONTEND // --- NOTE (Lapys) -> Presume `__typeof__(...)` does not acknowledge reference qualifications
+  #     if CPP_VERSION < 2011uL               // --- WARN (Lapys) -> Incorrectly evaluates non-const-volatile-qualified rvalue reference types as non-reference types i.e., `T&& == T`
+  #       define typeof(expression)          ::Lapys::Traits::conditional<::Lapys::Traits::is_void<__typeof__(expression)> ::value or not refspec((expression)),  __typeof__(expression),           ::Lapys::Traits::conditional<sizeof decl(::Lapys::Traits::boolean_true) == sizeof decl (::Lapys::Traits::typeinfo::is_lvalue_reference)(novoid((expression))),  __typeof__(novoid((expression)))  lref,          ::Lapys::Traits::conditional<sizeof decl(::Lapys::Traits::boolean_true) == sizeof decl (::Lapys::Traits::typeinfo::is_rvalue_reference)(novoid((expression))),  __typeof__(novoid((expression)))  rref, __typeof__(novoid((expression)))> ::type>::type>::type decl
   #     else
-  #       define typeof(...)        typename ::Lapys::Traits::conditional<sizeof(::Lapys::Traits::boolean_true) == sizeof ::Lapys::Traits::typeinfo::is_lvalue_reference((__VA_ARGS__)), ::Lapys::Traits::alias<__typeof__(__VA_ARGS__) lref>, typename ::Lapys::Traits::conditional<sizeof(::Lapys::Traits::boolean_true) == sizeof ::Lapys::Traits::typeinfo::is_rvalue_reference((__VA_ARGS__)), ::Lapys::Traits::alias<__typeof__(__VA_ARGS__) rref>, ::Lapys::Traits::alias<__typeof__(__VA_ARGS__)> >::type>::type::type
+  #       define typeof(...)        typename ::Lapys::Traits::conditional<::Lapys::Traits::is_void<__typeof__(__VA_ARGS__)>::value or not refspec((__VA_ARGS__)), __typeof__(__VA_ARGS__), typename ::Lapys::Traits::conditional<sizeof decl(::Lapys::Traits::boolean_true) == sizeof decl (::Lapys::Traits::typeinfo::is_lvalue_reference)(novoid((__VA_ARGS__))), __typeof__(novoid((__VA_ARGS__))) lref, typename ::Lapys::Traits::conditional<sizeof decl(::Lapys::Traits::boolean_true) == sizeof decl (::Lapys::Traits::typeinfo::is_rvalue_reference)(novoid((__VA_ARGS__))), __typeof__(novoid((__VA_ARGS__))) rref, __typeof__(novoid((__VA_ARGS__)))>::type>::type>::type decl
   #     endif
   #   endif
   # if CPP_COMPILER == CPP_CLANG_COMPILER
@@ -979,17 +971,17 @@
 
   // : [Unevaluated Expression] ->> Returns a constant whilst parsing, but not evaluating its `expression` operand
   #if CPP_COMPILER == CPP_MSVC_COMPILER or CPP_VERSION > 1997uL
-  # define noeval noexcept
+  # define noeval noexcept decl
   #else
   # include <typeinfo> // Type Information
-  # define noeval typeid
+  # define noeval typeid decl
   #endif
 
   // : [Assertion] ->> Compile-time assertion
   #ifndef __cpp_static_assert // --> 200410L
     template <bool>
     union static_assert_declaration {
-      constfunc(true) static_assert_declaration(char const[]) noexcept {}
+      constfunc(true) decl (static_assert_declaration)(char const[]) noexcept {}
     };
 
     template <> // ... ->> alternatively declare `static_assert_declaration<false>` but not define it
@@ -1003,8 +995,8 @@
 
       public:
         template <typename type, std::size_t capacity> // ->> Single constructor, no overload disambiguation
-        constfunc(false) static_assert_declaration(type (&)[capacity]) exceptspec(false) /* --> static_assert_declaration<false> */ {
-          static_assert_message<type>();
+        constfunc(false) decl (static_assert_declaration)(type decl (&)[capacity]) exceptspec(false) /* --> static_assert_declaration<false> */ {
+          static_assert_message<type>(); // ->> Assert that `type` is `char const`, the element type used by expected string literals
           throw static_assert_declaration<false>(*this); // ->> Error handling is unfortunately runtime-only so re-throw a copy of itself and indirectly call `std::terminate(...)`
         }
     };
@@ -1013,6 +1005,8 @@
     # define static_assert_declaration(condition, message) static_assert_2u(__LINE__, condition, message)
     #   ifdef __cpp_nsdmi // --> 200809L
     #     define static_assert_1u(id, condition, message) ::static_assert_declaration<(condition)> _ ## id = ::static_assert_declaration<(condition)>(message)
+    #   elif CPP_VERSION < 2011uL
+    #     define static_assert_1u(id, condition, message) typedef          ::Lapys::Traits::conditional<static_cast<bool>(condition), ::static_assert_declaration<(condition)> >::type _ ## id
     #   else
     #     define static_assert_1u(id, condition, message) typedef typename ::Lapys::Traits::conditional<static_cast<bool>(condition), ::static_assert_declaration<(condition)> >::type _ ## id
     #   endif
@@ -1029,7 +1023,7 @@
   # define choose_false(truthy, falsy) falsy
   # define choose_true(truthy, falsy)  truthy
 
-  #define empty()
+  #define nul()
 
   #if CPP_FRONTEND == CPP_CLANG_FRONTEND
   # pragma clang diagnostic push
@@ -1759,18 +1753,18 @@
     # define parse_12u(...) parse_11u(parse_11u(__VA_ARGS__))
 
     #define stall(macro) stall_2u(macro)
-    # define stall_1u(macro)  macro empty()
-    # define stall_2u(macro)  macro empty empty()()
-    # define stall_3u(macro)  macro empty empty empty()()()
-    # define stall_4u(macro)  macro empty empty empty empty()()()()
-    # define stall_5u(macro)  macro empty empty empty empty empty()()()()()
-    # define stall_6u(macro)  macro empty empty empty empty empty empty()()()()()()
-    # define stall_7u(macro)  macro empty empty empty empty empty empty empty()()()()()()()
-    # define stall_8u(macro)  macro empty empty empty empty empty empty empty empty()()()()()()()()
-    # define stall_9u(macro)  macro empty empty empty empty empty empty empty empty empty()()()()()()()()()
-    # define stall_10u(macro) macro empty empty empty empty empty empty empty empty empty empty()()()()()()()()()()
-    # define stall_11u(macro) macro empty empty empty empty empty empty empty empty empty empty empty()()()()()()()()()()()
-    # define stall_12u(macro) macro empty empty empty empty empty empty empty empty empty empty empty empty()()()()()()()()()()()()
+    # define stall_1u(macro)  macro nul()
+    # define stall_2u(macro)  macro nul nul()()
+    # define stall_3u(macro)  macro nul nul nul()()()
+    # define stall_4u(macro)  macro nul nul nul nul()()()()
+    # define stall_5u(macro)  macro nul nul nul nul nul()()()()()
+    # define stall_6u(macro)  macro nul nul nul nul nul nul()()()()()()
+    # define stall_7u(macro)  macro nul nul nul nul nul nul nul()()()()()()()
+    # define stall_8u(macro)  macro nul nul nul nul nul nul nul nul()()()()()()()()
+    # define stall_9u(macro)  macro nul nul nul nul nul nul nul nul nul()()()()()()()()()
+    # define stall_10u(macro) macro nul nul nul nul nul nul nul nul nul nul()()()()()()()()()()
+    # define stall_11u(macro) macro nul nul nul nul nul nul nul nul nul nul nul()()()()()()()()()()()
+    # define stall_12u(macro) macro nul nul nul nul nul nul nul nul nul nul nul nul()()()()()()()()()()()()
 
     #define stringify(argument) #argument
   # if CPP_COMPILER == CPP_CLANG_COMPILER
