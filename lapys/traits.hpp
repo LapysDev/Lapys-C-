@@ -28,6 +28,7 @@
     - Lapys::Traits::classinfo<T, ...>
     - Lapys::Traits::collection<T...>
     - Lapys::Traits::commonof<T, T>
+    - Lapys::Traits::complete_representable<T>
     - Lapys::Traits::conditional<bool, T, T>
     - Lapys::Traits::constant<T, value>
     - Lapys::Traits::countof<maximum, radix>
@@ -118,7 +119,6 @@
     - Lapys::Traits::is_signed<T>
     - Lapys::Traits::is_standard_layout<T>
     - Lapys::Traits::is_trivial<T, opinfo::operation>
-    - Lapys::Traits::is_unique_represented<T>
     - Lapys::Traits::is_union<T>
     - Lapys::Traits::is_unsigned<T>
     - Lapys::Traits::is_void<T>
@@ -325,7 +325,7 @@
             constfunc(true) static boolean_false decl (valueof)(...) noexcept;
 
           public:
-            static bool const value = is_same<base, base const volatile>::value and sizeof(boolean_true) == sizeof valueof<base>(sfinaeptr);
+            static bool const value = is_same<base, base const volatile>::value and sizeof decl(boolean_true) == sizeof valueof<base>(sfinaeptr);
         };
 
         template <typename base>
@@ -494,7 +494,7 @@
     typedef refspec::reference_true  reference_true;
 
     /* Define */
-    // Nil Size Of ->> Queries byte size of expression (object), defaulting to zero if it has no discernible size via `sizeof ...` (prefer over `sizeof` for convenience)
+    // Nil Size Of ->> Queries byte size of expression (object), defaulting to zero if it has no discernible size via `sizeof ...`
     #define nilsizeof(expression) ((sizeof decl (::Lapys::nilsizeof)(novoid(expression), sfinaeptr) / sizeof decl(::Lapys::byte)) - 1u)
 
                              constfunc(true) byte decl (&(nilsizeof)(novoid const, sfinaeptr_t const)                                                      noexcept)[0u                     + 1u];
@@ -730,8 +730,9 @@
       struct optraitinfo;
 
       template <typename>                                                                          struct arrayinfo;                   //
-      template <typename, bool = false>                                                            struct classinfo;                   //
+      template <class, bool = false>                                                               struct classinfo;                   //
       template <typename, typename>                                                                struct commonof;                    // --> std::common_type<T, T>
+      template <typename>                                                                          struct complete_representable;      // --> std::has_unique_object_representations<T>
       template <typename base, base, bool>                                                         struct constant;                    // --> std::integral_constant<T, ...>
       template <std::size_t, std::size_t = 10u>                                                    struct countof;                     //
       template <typename>                                                                          struct enuminfo;                    //
@@ -760,9 +761,9 @@
       template <typename>                                                                          struct is_complete;                 //
       template <typename>                                                                          struct is_const;                    // --> std::is_const<T>
       template <typename>                                                                          struct is_decimal;                  // --> std::is_floating_point<T>
-      template <typename>                                                                          struct is_empty;                    // --> std::is_empty<T>
+      template <class>                                                                             struct is_empty;                    // --> std::is_empty<T>
       template <typename>                                                                          struct is_enum;                     // --> std::is_enum<T>; std::is_scoped_enum<T>
-      template <typename>                                                                          struct is_final;                    // --> std::is_final<T>
+      template <class>                                                                             struct is_final;                    // --> std::is_final<T>
       template <typename>                                                                          struct is_function;                 // --> std::is_function<T>
       template <typename>                                                                          struct is_fundamental;              // --> std::is_fundamental<T>
       template <typename>                                                                          struct is_implicit_lifetime;        // --> std::is_implicit_lifetime
@@ -774,9 +775,8 @@
       template <typename, typename>                                                                struct is_pointer_interconvertible; // --> std::is_pointer_interconvertible_base_of<T>
       template <typename>                                                                          struct is_polymorphic;              // --> std::is_polymorphic<T>
       template <typename>                                                                          struct is_signed;                   // --> std::is_signed<T>
-      template <typename>                                                                          struct is_standard_layout;          // --> std::is_standard_layout<T>
+      template <class>                                                                             struct is_standard_layout;          // --> std::is_standard_layout<T>
       template <typename, unsigned char /* --> opinfo::operation */ = 0x00u /* --> opinfo::nop */> struct is_trivial;                  // --> std::is_trivial<T>, std::is_trivially_assignable<T>, std::is_trivially_constructible<T>, std::is_trivially_copyable<T>, std::is_trivially_copy_assignable<T>, std::is_trivially_copy_constructible<T>, std::is_trivially_default_constructible<T>, std::is_trivially_destructible<T>, std::is_trivially_move_assignable<T>, std::is_trivially_move_constructible<T>
-      template <typename>                                                                          struct is_unique_represented;       // --> std::has_unique_object_representations<T>
       template <typename>                                                                          struct is_union;                    // --> std::is_union<T>
       template <typename>                                                                          struct is_unsigned;                 // --> std::is_unsigned<T>
       template <typename>                                                                          struct is_volatile;                 // --> std::is_volatile<T>
@@ -829,28 +829,6 @@
       typedef unsigned char   uintmin_t;
 
       /* Trait */
-      // ... ->> Evaluates if type is not an empty type or incomplete type
-      template <typename base>
-      struct is_complete final {
-        private:
-          template <typename type> constfunc(true) static boolean_true  (valueof)(type[]) noexcept;
-          template <typename>      constfunc(true) static boolean_false (valueof)(...)    noexcept;
-
-        public:
-          static bool const value = sizeof(boolean_true) == sizeof valueof<base>(nullptr);
-      };
-
-      // ... ->> Evaluates if type is a pointer type
-      template <typename base>
-      struct is_pointer final {
-        static bool const value = false;
-      };
-
-      template <typename base> struct is_pointer<base*>                final { static bool const value = true; };
-      template <typename base> struct is_pointer<base* const>          final { static bool const value = true; };
-      template <typename base> struct is_pointer<base* const volatile> final { static bool const value = true; };
-      template <typename base> struct is_pointer<base*       volatile> final { static bool const value = true; };
-
       // ... ->> Evaluates if type is (based on) an integer type
       template <typename base>
       struct is_integer final {
@@ -1249,6 +1227,20 @@
         template <> struct defer::typed_template<126u> final { template <template <typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename>           class> struct value final {}; };
         template <> struct defer::typed_template<127u> final { template <template <typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename> class> struct value final {}; };
 
+      // ... ->> Evaluates if type is not an empty type or incomplete type
+      template <typename base>
+      struct is_complete final {
+        private:
+          template <typename type> constfunc(true) static boolean_true  decl (valueof)(type[]) noexcept;
+          template <typename>      constfunc(true) static boolean_false decl (valueof)(...)    noexcept;
+
+        public:
+          static bool const value = sizeof decl(boolean_true) == sizeof valueof<base>(nullptr);
+      };
+
+      // ... ->> Evaluates if type is a floating-point type
+      struct is_decimal final {};
+
       // ... ->> Type similarity
       template <typename baseA, typename baseB>
       struct is_like final {
@@ -1275,6 +1267,17 @@
       struct is_like<baseA[capacityA], baseB[capacityB]> final {
         static bool const value = capacityA == capacityB and is_like<baseA, baseB>::value;
       };
+
+      // ... ->> Evaluates if type is a pointer type
+      template <typename base>
+      struct is_pointer final {
+        static bool const value = false;
+      };
+
+      template <typename base> struct is_pointer<base*>                final { static bool const value = true; };
+      template <typename base> struct is_pointer<base* const>          final { static bool const value = true; };
+      template <typename base> struct is_pointer<base* const volatile> final { static bool const value = true; };
+      template <typename base> struct is_pointer<base*       volatile> final { static bool const value = true; };
 
       // ... ->> Type signedness
       template <typename>
@@ -2568,7 +2571,7 @@
     namespace Traits {
       /* Trait */
       // ... ->> Class type diagnostics
-      template <typename base, bool fallback>
+      template <class base, bool fallback>
       struct classinfo final {
         private:
           // ... ->> Evaluates if type is a union type
