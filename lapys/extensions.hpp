@@ -585,7 +585,7 @@
   # define discard = delete
   #endif
 
-  // : [Exception Operator] ->> Determines if an expression can `throw` an exception
+  // : [Exception Operator] ->> Determines if an expression can not `throw` an exception
   #if CPP_VERSION < 2011uL
   # define exceptof(expression) false
   #else
@@ -609,9 +609,9 @@
 
   // : [Expression Reference Specification] ->> Determines if an expression is an lvalue or rvalue reference
   #if CPP_VERSION < 2011uL
-  # define refspec(expression) (sizeof(::Lapys::Traits::reference_true) == sizeof(::Lapys::Traits::refspec(), (expression),  ::Lapys::Traits::refspec()))
+  # define refspec(expression) (sizeof decl(::Lapys::Traits::reference_true) == sizeof decl (::Lapys::Traits::refspec(), (expression),  ::Lapys::Traits::refspec()))
   #else
-  # define refspec(...)        (sizeof(::Lapys::Traits::reference_true) == sizeof(::Lapys::Traits::refspec(), (__VA_ARGS__), ::Lapys::Traits::refspec()))
+  # define refspec(...)        (sizeof decl(::Lapys::Traits::reference_true) == sizeof decl (::Lapys::Traits::refspec(), (__VA_ARGS__), ::Lapys::Traits::refspec()))
   #endif
 
   // : [Expression `void` Filter] ->> Reference-qualifies, then re-evaluates `void` expressions as `struct ::Lapys::Traits::novoid` expressions
@@ -622,6 +622,15 @@
   #endif
 
   // : [Floating-Point Types] ->> Acknowledges extended floating-point types
+  #if __STDCPP_BFLOAT16_T__
+  # if LAPYS_PREPROCESSOR_GUARD and defined bfloat16_t
+  #   error Lapys C++: Unexpected `bfloat16_t` macro definition
+  # endif
+  # define bfloat16_t std::bfloat16_t
+  #elif defined bfloat16_t
+  # error Lapys C++: Unexpected `bfloat16_t` macro definition
+  #endif
+
   #if __STDCPP_FLOAT16_T__
   # if LAPYS_PREPROCESSOR_GUARD and defined float16_t
   #   error Lapys C++: Unexpected `float16_t` macro definition

@@ -1239,34 +1239,93 @@
       };
 
       // ... ->> Evaluates if type is a floating-point type
-      struct is_decimal final {};
+      template <typename>
+      struct is_decimal final {
+        static bool const value = false;
+      };
 
-      // ... ->> Type similarity
-      template <typename baseA, typename baseB>
-      struct is_like final {
+      template <> struct is_decimal<double>      { static bool const value = true; };
+      template <> struct is_decimal<float>       { static bool const value = true; };
+      template <> struct is_decimal<long double> { static bool const value = true; };
+
+      #ifdef bfloat16_t
+        template <>
+        struct is_decimal<bfloat16_t> {
+          static bool const value = true;
+        };
+      #endif
+
+      #ifdef float16_t
+        template <>
+        struct is_decimal<float16_t> {
+          static bool const value = true;
+        };
+      #endif
+
+      #ifdef float32_t
+        template <>
+        struct is_decimal<float32_t> {
+          static bool const value = true;
+        };
+      #endif
+
+      #ifdef float64_t
+        template <>
+        struct is_decimal<float64_t> {
+          static bool const value = true;
+        };
+      #endif
+
+      #ifdef float128_t
+        template <>
+        struct is_decimal<float128_t> {
+          static bool const value = true;
+        };
+      #endif
+
+      template <typename base> struct is_decimal<base const>          final { static bool const value = is_decimal<base>::value; };
+      template <typename base> struct is_decimal<base const volatile> final { static bool const value = is_decimal<base>::value; };
+      template <typename base> struct is_decimal<base volatile>       final { static bool const value = is_decimal<base>::value; };
+
+      // ... ->> Evaluates if type is a (possibly reference-qualified) fundamental type (arithmetic type, empty type, or `std::nullptr_t`) or pointer type
+      template <typename base>
+      struct is_fundamental final {
         private:
-          typedef typename remove_const_volatile<typename remove_reference<baseA>::type>::type typeA;
-          typedef typename remove_const_volatile<typename remove_reference<baseB>::type>::type typeB;
+          template <typename, typename>
+          struct is_function final {
+            static bool const value = false;
+          };
+
+          template <typename subbase>
+          struct is_function<subbase, subbase> final {
+            static bool const value = true;
+          };
 
         public:
-          static bool const value = is_same<
-            typename conditional<is_pointer<typeA>::value and is_pointer<baseB>::value, remove_pointer<typeA>, alias<typeA> >::type::type,
-            typename conditional<is_pointer<typeA>::value and is_pointer<baseB>::value, remove_pointer<typeB>, alias<typeB> >::type::type
-          >::value;
+          static bool const value = is_decimal<base>::value or is_function<base>::value or is_integer<base>::value or is_pointer<base>::value or is_void<base>::value;
       };
 
       template <typename base>
-      struct is_like<base> final {
-        static bool const value = is_same<null, typename remove_const_volatile<typename remove_reference<base>::type>::type>::value;
-
-        template <typename type>
-        static typename conditional<is_like<base, type>::value, boolean_true, boolean_false>::type (valueof)(type fref) noexcept;
+      struct is_fundamental<base&> final {
+        static bool const value = is_fundamental<base>::value;
       };
 
-      template <typename baseA, std::size_t capacityA, typename baseB, std::size_t capacityB>
-      struct is_like<baseA[capacityA], baseB[capacityB]> final {
-        static bool const value = capacityA == capacityB and is_like<baseA, baseB>::value;
+      template <typename base>
+      struct is_fundamental<base[]> final {
+        static bool const value = is_fundamental<base>::value;
       };
+
+      template <typename base, std::size_t capacity>
+      struct is_fundamental<base[capacity]> final {
+        static bool const value = is_fundamental<base>::value;
+      };
+
+      #ifdef __cpp_rvalue_references // --> 200610L
+        template <typename base>
+        struct is_fundamental<base&&> final {
+          static bool const value = is_fundamental<base>::value;
+        };
+      #endif
 
       // ... ->> Evaluates if type is a pointer type
       template <typename base>
@@ -1403,13 +1462,6 @@
         friend struct opinfo;
 
         private:
-          template <typename type>
-          constfunc(true) byte (&(opsizeof)(type fref) noexcept)[sizeof (nilsizeof)(instanceof<type fref>())];
-
-          // ... ->> Syntactically more concise for safely acquiring `struct novoid` and `struct refspec` objects, using `(T)()` rather than `instanceof<T>()` or `T init(nul())`
-          constfunc(true) static novoid  (novoid) () noexcept;
-          constfunc(true) static refspec (refspec)() noexcept;
-
           // ... --> auto trait::value() const volatile& noexcept;
           template <class trait, std::size_t arity, typename,       typename,       typename>       constfunc(true) static boolean_true (uses_member_function)(sfinaeptr_t const, bool const (*const)[arity == 0u and sizeof reinterpret_cast<bool (trait::*)(...)>(&trait::         value)]                      = nullptr) noexcept;
           template <class trait, std::size_t arity, typename typeA, typename,       typename>       constfunc(true) static boolean_true (uses_member_function)(sfinaeptr_t const, bool const (*const)[arity == 1u and sizeof reinterpret_cast<bool (trait::*)(...)>(&trait::template value<typeA>)]               = nullptr) noexcept;
@@ -1461,14 +1513,14 @@
           // ...
           typedef optraitinfo::get::expressioninfo expressioninfo;
 
-          // ... ->> Evaluates different aspects of a specified `type` `expression` --> evaluate<...>::value(..., (refspec(), ..., refspec()))
+          // ... ->> Evaluates different aspects of a specified `type` `expression` --> evaluate<...>::value(novoid(...), refspec(...))
           template <expressioninfo, typename = null>
           struct evaluate;
 
-          template <typename base> // --> opsizeof ...
+          template <typename base> // --> nilsizeof ...
           struct evaluate<optraitinfo::get::correctness, base> {
             template <typename type>
-            constfunc(true) static byte (rlref (valueof)(type fref, ...) noexcept)[(opsizeof)(instanceof<type fref>()) + 1u];
+            constfunc(true) static byte (rlref (valueof)(type fref, ...) noexcept)[(nilsizeof)(instanceof<type fref>()) + 1u];
           };
 
           template <typename base> // --> is_same<base>::valueof(...)
@@ -1869,13 +1921,44 @@
           // ... --> +T
           struct nonoverloaded final {
             private:
-              // ... ->> Explicitly deduce the type of a proposed operation without the use of `decltype(...)` or compiler extensions like `typeof(...)`
+              // ... ->> Explicitly deduce the exception-specification and/ or type of a proposed operation without the use of `decltype(...)` or compiler extensions like `typeof(...)`
               #ifdef __cpp_variadic_templates // --> 200704L
-                template <operation operation, typename...>
+                template <operation, typename... bases>
+                struct exceptof final {
+                  template <typename base, std::size_t>
+                  struct voidof final {
+                    typedef typename conditional<is_void<base>::value, void, base>::type type;
+                  };
+
+                  // ...
+                  static bool const value = collection<bases...>::template apply<voidof>::type::template has<void>::value;
+                };
+
+                // ...
+                template <operation, typename...>
                 struct typeof final {
                   typedef null type;
                 };
               #else
+                template <operation operation, typename base1u = null, typename base2u = null, typename base3u = null, typename base4u = null, typename base5u = null, typename base6u = null, typename base7u = null, typename base8u = null, typename base9u = null, typename base10u = null, typename base11u = null, typename base12u = null, typename base13u = null, typename base14u = null, typename base15u = null, typename base16u = null, typename base17u = null, typename base18u = null, typename base19u = null, typename base20u = null, typename base21u = null, typename base22u = null, typename base23u = null, typename base24u = null, typename base25u = null, typename base26u = null, typename base27u = null, typename base28u = null, typename base29u = null, typename base30u = null, typename base31u = null, typename base32u = null, typename base33u = null, typename base34u = null, typename base35u = null, typename base36u = null, typename base37u = null, typename base38u = null, typename base39u = null, typename base40u = null, typename base41u = null, typename base42u = null, typename base43u = null, typename base44u = null, typename base45u = null, typename base46u = null, typename base47u = null, typename base48u = null, typename base49u = null, typename base50u = null, typename base51u = null, typename base52u = null, typename base53u = null, typename base54u = null, typename base55u = null, typename base56u = null, typename base57u = null, typename base58u = null, typename base59u = null, typename base60u = null, typename base61u = null, typename base62u = null, typename base63u = null, typename base64u = null, typename base65u = null, typename base66u = null, typename base67u = null, typename base68u = null, typename base69u = null, typename base70u = null, typename base71u = null, typename base72u = null, typename base73u = null, typename base74u = null, typename base75u = null, typename base76u = null, typename base77u = null, typename base78u = null, typename base79u = null, typename base80u = null, typename base81u = null, typename base82u = null, typename base83u = null, typename base84u = null, typename base85u = null, typename base86u = null, typename base87u = null, typename base88u = null, typename base89u = null, typename base90u = null, typename base91u = null, typename base92u = null, typename base93u = null, typename base94u = null, typename base95u = null, typename base96u = null, typename base97u = null, typename base98u = null, typename base99u = null, typename base100u = null, typename base101u = null, typename base102u = null, typename base103u = null, typename base104u = null, typename base105u = null, typename base106u = null, typename base107u = null, typename base108u = null, typename base109u = null, typename base110u = null, typename base111u = null, typename base112u = null, typename base113u = null, typename base114u = null, typename base115u = null, typename base116u = null, typename base117u = null, typename base118u = null, typename base119u = null, typename base120u = null, typename base121u = null, typename base122u = null, typename base123u = null, typename base124u = null, typename base125u = null, typename base126u = null, typename base127u = null, typename base128u = null, typename base129u = null, typename base130u = null>
+                struct exceptof final {
+                  static bool const value = (
+                    operation == opinfo::construct                 or
+                    operation == opinfo::initialize                or
+                    operation == opinfo::new_array                 or
+                    operation == opinfo::new_array_placement       or
+                    operation == opinfo::new_constructed           or
+                    operation == opinfo::new_constructed_placement or
+                    operation == opinfo::new_initialized           or
+                    operation == opinfo::new_initialized_placement or
+                    operation == opinfo::subscript ?
+                      is_fundamental<base1u>::value :
+
+                    (is_void<base1u>::value or is_void<base2u>::value or is_void<base3u>::value or is_void<base4u>::value or is_void<base5u>::value or is_void<base6u>::value or is_void<base7u>::value or is_void<base8u>::value or is_void<base9u>::value or is_void<base10u>::value or is_void<base11u>::value or is_void<base12u>::value or is_void<base13u>::value or is_void<base14u>::value or is_void<base15u>::value or is_void<base16u>::value or is_void<base17u>::value or is_void<base18u>::value or is_void<base19u>::value or is_void<base20u>::value or is_void<base21u>::value or is_void<base22u>::value or is_void<base23u>::value or is_void<base24u>::value or is_void<base25u>::value or is_void<base26u>::value or is_void<base27u>::value or is_void<base28u>::value or is_void<base29u>::value or is_void<base30u>::value or is_void<base31u>::value or is_void<base32u>::value or is_void<base33u>::value or is_void<base34u>::value or is_void<base35u>::value or is_void<base36u>::value or is_void<base37u>::value or is_void<base38u>::value or is_void<base39u>::value or is_void<base40u>::value or is_void<base41u>::value or is_void<base42u>::value or is_void<base43u>::value or is_void<base44u>::value or is_void<base45u>::value or is_void<base46u>::value or is_void<base47u>::value or is_void<base48u>::value or is_void<base49u>::value or is_void<base50u>::value or is_void<base51u>::value or is_void<base52u>::value or is_void<base53u>::value or is_void<base54u>::value or is_void<base55u>::value or is_void<base56u>::value or is_void<base57u>::value or is_void<base58u>::value or is_void<base59u>::value or is_void<base60u>::value or is_void<base61u>::value or is_void<base62u>::value or is_void<base63u>::value or is_void<base64u>::value or is_void<base65u>::value or is_void<base66u>::value or is_void<base67u>::value or is_void<base68u>::value or is_void<base69u>::value or is_void<base70u>::value or is_void<base71u>::value or is_void<base72u>::value or is_void<base73u>::value or is_void<base74u>::value or is_void<base75u>::value or is_void<base76u>::value or is_void<base77u>::value or is_void<base78u>::value or is_void<base79u>::value or is_void<base80u>::value or is_void<base81u>::value or is_void<base82u>::value or is_void<base83u>::value or is_void<base84u>::value or is_void<base85u>::value or is_void<base86u>::value or is_void<base87u>::value or is_void<base88u>::value or is_void<base89u>::value or is_void<base90u>::value or is_void<base91u>::value or is_void<base92u>::value or is_void<base93u>::value or is_void<base94u>::value or is_void<base95u>::value or is_void<base96u>::value or is_void<base97u>::value or is_void<base98u>::value or is_void<base99u>::value or is_void<base100u>::value or is_void<base101u>::value or is_void<base102u>::value or is_void<base103u>::value or is_void<base104u>::value or is_void<base105u>::value or is_void<base106u>::value or is_void<base107u>::value or is_void<base108u>::value or is_void<base109u>::value or is_void<base110u>::value or is_void<base111u>::value or is_void<base112u>::value or is_void<base113u>::value or is_void<base114u>::value or is_void<base115u>::value or is_void<base116u>::value or is_void<base117u>::value or is_void<base118u>::value or is_void<base119u>::value or is_void<base120u>::value or is_void<base121u>::value or is_void<base122u>::value or is_void<base123u>::value or is_void<base124u>::value or is_void<base125u>::value or is_void<base126u>::value or is_void<base127u>::value or is_void<base128u>::value or is_void<base129u>::value or is_void<base130u>::value)
+                  );
+                };
+
+                // ...
                 template <operation, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null, typename = null>
                 struct typeof final {
                   typedef null type;
@@ -1883,10 +1966,11 @@
               #endif
 
             public:
-              // ... --> opinfo::nop
+              // ... --> opinfo::nop, ...
               #ifdef __cpp_variadic_templates // --> 200704L
                 template <operation operation, typename... bases>
                 struct operate final {
+                  /* TODO (Lapys) */
                   // private:
                   //   typedef constant<bool, opinfo::nop == operation and 0u == countof(bases)> unsupported_operation;
                   //   static_assert(unsupported_operation::value, "Unsupported `operation` specified");
@@ -1897,6 +1981,25 @@
                   private:
                     static std::size_t const arity = not is_null<base1u>::value + not is_null<base2u>::value + not is_null<base3u>::value + not is_null<base4u>::value + not is_null<base5u>::value + not is_null<base6u>::value + not is_null<base7u>::value + not is_null<base8u>::value + not is_null<base9u>::value + not is_null<base10u>::value + not is_null<base11u>::value + not is_null<base12u>::value + not is_null<base13u>::value + not is_null<base14u>::value + not is_null<base15u>::value + not is_null<base16u>::value + not is_null<base17u>::value + not is_null<base18u>::value + not is_null<base19u>::value + not is_null<base20u>::value + not is_null<base21u>::value + not is_null<base22u>::value + not is_null<base23u>::value + not is_null<base24u>::value + not is_null<base25u>::value + not is_null<base26u>::value + not is_null<base27u>::value + not is_null<base28u>::value + not is_null<base29u>::value + not is_null<base30u>::value + not is_null<base31u>::value + not is_null<base32u>::value + not is_null<base33u>::value + not is_null<base34u>::value + not is_null<base35u>::value + not is_null<base36u>::value + not is_null<base37u>::value + not is_null<base38u>::value + not is_null<base39u>::value + not is_null<base40u>::value + not is_null<base41u>::value + not is_null<base42u>::value + not is_null<base43u>::value + not is_null<base44u>::value + not is_null<base45u>::value + not is_null<base46u>::value + not is_null<base47u>::value + not is_null<base48u>::value + not is_null<base49u>::value + not is_null<base50u>::value + not is_null<base51u>::value + not is_null<base52u>::value + not is_null<base53u>::value + not is_null<base54u>::value + not is_null<base55u>::value + not is_null<base56u>::value + not is_null<base57u>::value + not is_null<base58u>::value + not is_null<base59u>::value + not is_null<base60u>::value + not is_null<base61u>::value + not is_null<base62u>::value + not is_null<base63u>::value + not is_null<base64u>::value + not is_null<base65u>::value + not is_null<base66u>::value + not is_null<base67u>::value + not is_null<base68u>::value + not is_null<base69u>::value + not is_null<base70u>::value + not is_null<base71u>::value + not is_null<base72u>::value + not is_null<base73u>::value + not is_null<base74u>::value + not is_null<base75u>::value + not is_null<base76u>::value + not is_null<base77u>::value + not is_null<base78u>::value + not is_null<base79u>::value + not is_null<base80u>::value + not is_null<base81u>::value + not is_null<base82u>::value + not is_null<base83u>::value + not is_null<base84u>::value + not is_null<base85u>::value + not is_null<base86u>::value + not is_null<base87u>::value + not is_null<base88u>::value + not is_null<base89u>::value + not is_null<base90u>::value + not is_null<base91u>::value + not is_null<base92u>::value + not is_null<base93u>::value + not is_null<base94u>::value + not is_null<base95u>::value + not is_null<base96u>::value + not is_null<base97u>::value + not is_null<base98u>::value + not is_null<base99u>::value + not is_null<base100u>::value + not is_null<base101u>::value + not is_null<base102u>::value + not is_null<base103u>::value + not is_null<base104u>::value + not is_null<base105u>::value + not is_null<base106u>::value + not is_null<base107u>::value + not is_null<base108u>::value + not is_null<base109u>::value + not is_null<base110u>::value + not is_null<base111u>::value + not is_null<base112u>::value + not is_null<base113u>::value + not is_null<base114u>::value + not is_null<base115u>::value + not is_null<base116u>::value + not is_null<base117u>::value + not is_null<base118u>::value + not is_null<base119u>::value + not is_null<base120u>::value + not is_null<base121u>::value + not is_null<base122u>::value + not is_null<base123u>::value + not is_null<base124u>::value + not is_null<base125u>::value + not is_null<base126u>::value + not is_null<base127u>::value + not is_null<base128u>::value + not is_null<base129u>::value + not is_null<base130u>::value;
 
+                    /* ... */
+                    typedef constant<bool, (
+                      (0u == arity and opinfo::nop == operation)     or
+                      operation == opinfo::call                      or
+                      operation == opinfo::call_static               or
+                      operation == opinfo::construct                 or
+                      operation == opinfo::new_constructed_placement or
+                      #ifdef __cpp_initializer_lists // --> 200806L
+                        operation == opinfo::new_array_placement       or
+                        operation == opinfo::new_initialized_placement or
+                      #endif
+                      #ifdef __cpp_multidimensional_subscript // --> 202110L
+                        operation == opinfo::subscript        or
+                        operation == opinfo::subscript_static or
+                      #endif
+                      true
+                    )> unsupported_operation;
+                    static_assert(unsupported_operation::value, "Unsupported variadic `operation` specified");
+
                     /* ... --- TODO (Lapys) */
                     template <enum opinfo::operation, typename = void>
                     struct op;
@@ -1904,25 +2007,25 @@
                     template <typename subbase>
                     struct op<opinfo::call, subbase> final {
                       template <expressioninfo information, typename type1u>
-                      constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), instanceof<type1u>()(), (novoid)()), ((refspec)(), instanceof<type1u>()(), (refspec)()))]>::type (valueof)() noexcept;
+                      constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid(instanceof<type1u>()()), refspec(instanceof<type1u>()()))]>::type (valueof)() noexcept;
                     };
-                    // (0u == arity and opinfo::nop == operation)     or
-                    // operation == opinfo::call                      or
-                    // operation == opinfo::call_static               or
-                    // operation == opinfo::construct                 or
-                    // operation == opinfo::new_constructed_placement or
-                    // #ifdef __cpp_initializer_lists // --> 200806L
-                    //   operation == opinfo::new_array_placement       or
-                    //   operation == opinfo::new_initialized_placement or
-                    // #endif
-                    // #ifdef __cpp_multidimensional_subscript // --> 202110L
-                    //   operation == opinfo::subscript        or
-                    //   operation == opinfo::subscript_static or
-                    // #endif
+
+                    template <typename subbase>
+                    struct op<opinfo::nop, subbase> final { template <expressioninfo information> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(instanceof<novoid>(), instanceof<refspec>())]>::type (valueof)() noexcept; };
 
                   public:
                     static bool        const value = ...;
                     static std::size_t const size  = ...;
+                    operate<opinfo::unary, baseA>::template subvalueof<op<operation>, optraitinfo::get::correctness>::value
+                    ↳ template <typename typeA, typename typeB, typename typeC> constfunc(true) static typename conditional<arity == 3u, byte (rlref)[sizeof (opsizeof)(trait::template valueof<information, typeA, typeB, typeC>()) + 1u]>::type (valueof)(sfinaeptr_t const) noexcept;
+                      ↳ template <typename typeA, typename typeB, typename typeC>
+                        constfunc(true) static typename conditional<
+                          conditional<information != optraitinfo::get::correctness, subvalueof<trait, optraitinfo::get::correctness, subbase>, constant<bool, false> >::type::value and (
+                            information == optraitinfo::get::type_equality   ? is_same<subbase, void>::value :
+                            information == optraitinfo::get::type_similarity ? is_void<subbase>      ::value :
+                            false
+                          ), boolean_true, boolean_false
+                        >::type (valueof)(...) noexcept;
 
                     /* ... */
                     typedef typename typeof<operation, ...>::type type;
@@ -1953,46 +2056,46 @@
                     static_assert(unsupported_operation::value, "Unsupported unary `operation` specified");
                   };
 
-                  // ... --> &x
+                  // ...
                   template <typename subbase>
                   struct op<opinfo::address, subbase> final {
                     struct any final { template <typename type> constfunc(true) operator type() const noexcept; }; // --> C2102
-                    template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), &instanceof<any>().operator typeA(), (novoid)()), ((refspec)(), &instanceof<any>().operator typeA(), (refspec)()))]>::type (valueof)() noexcept;
+                    template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid(&instanceof<any>().operator typeA()), refspec(&instanceof<any>().operator typeA()))]>::type (valueof)() noexcept;
                   };
 
-                  template <typename subbase> struct op<opinfo::call,            subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),   instanceof<typeA>()(),     (novoid)()), ((refspec)(),   instanceof<typeA>()(), (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::complement,      subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  ~instanceof<typeA>(),       (novoid)()), ((refspec)(),  ~instanceof<typeA>(),   (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::construct,       subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)                          (typeA nul() (),               (refspec)())]>                                       ::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::dereference,     subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  *instanceof<typeA>(),       (novoid)()), ((refspec)(),  *instanceof<typeA>(),   (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::minus,           subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  -instanceof<typeA>(),       (novoid)()), ((refspec)(),  -instanceof<typeA>(),   (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::negate,          subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  !instanceof<typeA>(),       (novoid)()), ((refspec)(),  !instanceof<typeA>(),   (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::new_constructed, subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)                    (::new typeA nul() (),               (refspec)())]>                                       ::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::plus,            subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  +instanceof<typeA>(),       (novoid)()), ((refspec)(),  +instanceof<typeA>(),   (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::post_decrement,  subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),   instanceof<typeA>()--,     (novoid)()), ((refspec)(),   instanceof<typeA>()--, (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::post_increment,  subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),   instanceof<typeA>()++,     (novoid)()), ((refspec)(),   instanceof<typeA>()++, (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::pre_decrement,   subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), --instanceof<typeA>(),       (novoid)()), ((refspec)(), --instanceof<typeA>(),   (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::pre_increment,   subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), ++instanceof<typeA>(),       (novoid)()), ((refspec)(), ++instanceof<typeA>(),   (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::call,            subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid  (instanceof<typeA>()()),  refspec  (instanceof<typeA>()()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::complement,      subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid (~instanceof<typeA>()),    refspec (~instanceof<typeA>()))]>  ::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::construct,       subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)                    (typeA decl(), instanceof<refspec>())]>           ::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::dereference,     subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid (*instanceof<typeA>()),    refspec (*instanceof<typeA>()))]>  ::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::minus,           subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid (-instanceof<typeA>()),    refspec (-instanceof<typeA>()))]>  ::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::negate,          subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid (!instanceof<typeA>()),    refspec (!instanceof<typeA>()))]>  ::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::new_constructed, subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)              (::new typeA decl(), instanceof<refspec>())]>           ::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::plus,            subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid (+instanceof<typeA>()),    refspec (+instanceof<typeA>()))]>  ::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::post_decrement,  subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid  (instanceof<typeA>()--),  refspec  (instanceof<typeA>()--))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::post_increment,  subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid  (instanceof<typeA>()++),  refspec  (instanceof<typeA>()++))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::pre_decrement,   subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid(--instanceof<typeA>()),    refspec(--instanceof<typeA>()))]>  ::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::pre_increment,   subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid(++instanceof<typeA>()),    refspec(++instanceof<typeA>()))]>  ::type (valueof)() noexcept; };
 
                   #if CPP_COMPILER == CPP_MSVC_COMPILER
                     template <typename subbase> struct op<opinfo::delete_array,  subbase> final { template <typename typeA> constfunc(true) static typename alias<byte (rlref)[is_complete<typename remove_pointer<typeA>::value>::value and is_pointer<typeA>::value]>::type (valueof)() noexcept; };
                     template <typename subbase> struct op<opinfo::delete_object, subbase> final { template <typename typeA> constfunc(true) static typename alias<byte (rlref)[is_complete<typename remove_pointer<typeA>::value>::value and is_pointer<typeA>::value]>::type (valueof)() noexcept; };
                   #else
-                    template <typename subbase> struct op<opinfo::delete_array,  subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)((::delete[] instanceof<typeA>(), (novoid)()), (refspec)())]>::type (valueof)() noexcept; };
-                    template <typename subbase> struct op<opinfo::delete_object, subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)((::delete   instanceof<typeA>(), (novoid)()), (refspec)())]>::type (valueof)() noexcept; };
+                    template <typename subbase> struct op<opinfo::delete_array,  subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid(::delete[] instanceof<typeA>()), instanceof<refspec>())]>::type (valueof)() noexcept; };
+                    template <typename subbase> struct op<opinfo::delete_object, subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid(::delete   instanceof<typeA>()), instanceof<refspec>())]>::type (valueof)() noexcept; };
                   #endif
 
                   #ifdef __cpp_initializer_lists // --> 200806L
-                    template <typename subbase> struct op<opinfo::initialize,      subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)      (typeA{}, (refspec)())]>::type (valueof)() noexcept; };
-                    template <typename subbase> struct op<opinfo::new_initialized, subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(::new typeA{}, (refspec)())]>::type (valueof)() noexcept; };
+                    template <typename subbase> struct op<opinfo::initialize,      subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)      (typeA{}, instanceof<refspec>())]>::type (valueof)() noexcept; };
+                    template <typename subbase> struct op<opinfo::new_initialized, subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(::new typeA{}, instanceof<refspec>())]>::type (valueof)() noexcept; };
                   #endif
 
                   #ifdef __cpp_multidimensional_subscript // --> 202110L
-                    template <typename subbase> struct op<opinfo::subscript,        subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), instanceof<typeA>()[], (novoid)()), ((refspec)(), instanceof<typeA>()[], (refspec)()))]>::type (valueof)() noexcept; };
-                    template <typename subbase> struct op<opinfo::subscript_static, subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), typeA::operator  [](), (novoid)()), ((refspec)(), typeA::operator  [](), (refspec)()))]>::type (valueof)() noexcept; };
+                    template <typename subbase> struct op<opinfo::subscript,        subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid(instanceof<typeA>()[]), refspec(instanceof<typeA>()[]))]>::type (valueof)() noexcept; };
+                    template <typename subbase> struct op<opinfo::subscript_static, subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid(typeA::operator  []()), refspec(typeA::operator  []()))]>::type (valueof)() noexcept; };
                   #endif
 
                   #ifdef __cpp_static_call_operator // --> 202207L
-                    template <typename subbase> struct op<opinfo::call_static, subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), typeA::operator ()(), (novoid)()), ((refspec)(), typeA::operator ()(), (refspec)()))]>::type (valueof)() noexcept; };
+                    template <typename subbase> struct op<opinfo::call_static, subbase> final { template <expressioninfo information, typename typeA> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid(typeA::operator ()()), refspec(typeA::operator ()()))]>::type (valueof)() noexcept; };
                   #endif
 
                 public:
@@ -2016,74 +2119,74 @@
                     static_assert(unsupported_operation::value, "Unsupported binary `operation` specified");
                   };
 
-                  template <typename subbase> struct op<opinfo::access_pointer,              subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)              (instanceof<typeA>() .*  instanceof<typeB>(),                ((refspec)(),        instanceof<typeA>() .*  instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::add,                         subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>() +   instanceof<typeB>(),   (novoid)()), ((refspec)(),        instanceof<typeA>() +   instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::assign,                      subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), (instanceof<typeA>() =   instanceof<typeB>()),  (novoid)()), ((refspec)(),       (instanceof<typeA>() =   instanceof<typeB>()),  (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::assign_add,                  subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), (instanceof<typeA>() +=  instanceof<typeB>()),  (novoid)()), ((refspec)(),       (instanceof<typeA>() +=  instanceof<typeB>()),  (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::assign_bitwise_and,          subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), (instanceof<typeA>() &=  instanceof<typeB>()),  (novoid)()), ((refspec)(),       (instanceof<typeA>() &=  instanceof<typeB>()),  (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::assign_bitwise_or,           subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), (instanceof<typeA>() |=  instanceof<typeB>()),  (novoid)()), ((refspec)(),       (instanceof<typeA>() |=  instanceof<typeB>()),  (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::assign_bitwise_shift_left,   subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), (instanceof<typeA>() <<= instanceof<typeB>()),  (novoid)()), ((refspec)(),       (instanceof<typeA>() <<= instanceof<typeB>()),  (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::assign_bitwise_shift_right,  subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), (instanceof<typeA>() >>= instanceof<typeB>()),  (novoid)()), ((refspec)(),       (instanceof<typeA>() >>= instanceof<typeB>()),  (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::assign_bitwise_xor,          subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), (instanceof<typeA>() ^=  instanceof<typeB>()),  (novoid)()), ((refspec)(),       (instanceof<typeA>() ^=  instanceof<typeB>()),  (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::assign_divide,               subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), (instanceof<typeA>() /=  instanceof<typeB>()),  (novoid)()), ((refspec)(),       (instanceof<typeA>() /=  instanceof<typeB>()),  (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::assign_modulo,               subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), (instanceof<typeA>() %=  instanceof<typeB>()),  (novoid)()), ((refspec)(),       (instanceof<typeA>() %=  instanceof<typeB>()),  (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::assign_multiply,             subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), (instanceof<typeA>() *=  instanceof<typeB>()),  (novoid)()), ((refspec)(),       (instanceof<typeA>() *=  instanceof<typeB>()),  (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::assign_subtract,             subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), (instanceof<typeA>() -=  instanceof<typeB>()),  (novoid)()), ((refspec)(),       (instanceof<typeA>() -=  instanceof<typeB>()),  (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::bitwise_and,                 subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>() &   instanceof<typeB>(),   (novoid)()), ((refspec)(),        instanceof<typeA>() &   instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::bitwise_or,                  subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>() |   instanceof<typeB>(),   (novoid)()), ((refspec)(),        instanceof<typeA>() |   instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::bitwise_shift_left,          subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>() <<  instanceof<typeB>(),   (novoid)()), ((refspec)(),        instanceof<typeA>() <<  instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::bitwise_shift_right,         subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>() >>  instanceof<typeB>(),   (novoid)()), ((refspec)(),        instanceof<typeA>() >>  instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::bitwise_xor,                 subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>() ^   instanceof<typeB>(),   (novoid)()), ((refspec)(),        instanceof<typeA>() ^   instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::boolean_and,                 subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>() &&  instanceof<typeB>(),   (novoid)()), ((refspec)(),        instanceof<typeA>() &&  instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::boolean_or,                  subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>() ||  instanceof<typeB>(),   (novoid)()), ((refspec)(),        instanceof<typeA>() ||  instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::call,                        subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>()    (instanceof<typeB>()),  (novoid)()), ((refspec)(),        instanceof<typeA>()    (instanceof<typeB>()),  (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::cast,                        subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),            (typeA)       instanceof<typeB>(),   (novoid)()), ((refspec)(),                  (typeA)       instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::cast_const,                  subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)              (const_cast<typeA>      (instanceof<typeB>()),               ((refspec)(),        const_cast<typeA>      (instanceof<typeB>()),  (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::cast_reinterpret,            subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)        (reinterpret_cast<typeA>      (instanceof<typeB>()),               ((refspec)(),  reinterpret_cast<typeA>      (instanceof<typeB>()),  (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::cast_static,                 subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), static_cast<typeA>      (instanceof<typeB>()),  (novoid)()), ((refspec)(),       static_cast<typeA>      (instanceof<typeB>()),  (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::comma,                       subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), (instanceof<typeA>(),    instanceof<typeB>()),  (novoid)()), ((refspec)(),       (instanceof<typeA>(),    instanceof<typeB>()),  (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::construct,                   subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),             typeA nul() (instanceof<typeB>()),  (novoid)()), ((refspec)(),                   typeA nul() (instanceof<typeB>()),  (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::dereferenced_access_pointer, subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>() ->* instanceof<typeB>(),   (novoid)()), ((refspec)(),        instanceof<typeA>() ->* instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::divide,                      subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>() /   instanceof<typeB>(),   (novoid)()), ((refspec)(),        instanceof<typeA>() /   instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::equals,                      subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>() ==  instanceof<typeB>(),   (novoid)()), ((refspec)(),        instanceof<typeA>() ==  instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::greater,                     subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>() >   instanceof<typeB>(),   (novoid)()), ((refspec)(),        instanceof<typeA>() >   instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::greater_equals,              subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>() >=  instanceof<typeB>(),   (novoid)()), ((refspec)(),        instanceof<typeA>() >=  instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::lesser,                      subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>() <   instanceof<typeB>(),   (novoid)()), ((refspec)(),        instanceof<typeA>() <   instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::lesser_equals,               subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>() <=  instanceof<typeB>(),   (novoid)()), ((refspec)(),        instanceof<typeA>() <=  instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::modulo,                      subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>() %   instanceof<typeB>(),   (novoid)()), ((refspec)(),        instanceof<typeA>() %   instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::multiply,                    subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>() *   instanceof<typeB>(),   (novoid)()), ((refspec)(),        instanceof<typeA>() *   instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::new_constructed,             subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)                   (::new typeA nul() (instanceof<typeB>()),                (refspec)())]>                                                                    ::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::new_constructed_placement,   subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)       (::new (instanceof<typeA>())               typeB nul() (),           (refspec)())]>                                                                    ::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::subscript,                   subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>()    [instanceof<typeB>()],  (novoid)()), ((refspec)(),        instanceof<typeA>()    [instanceof<typeB>()],  (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::subtract,                    subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>() -   instanceof<typeB>(),   (novoid)()), ((refspec)(),        instanceof<typeA>() -   instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::unequals,                    subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),  instanceof<typeA>() !=  instanceof<typeB>(),   (novoid)()), ((refspec)(),        instanceof<typeA>() !=  instanceof<typeB>(),   (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::access_pointer,              subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)        (instanceof<typeA>() .*  instanceof<typeB>(),     refspec      (instanceof<typeA>() .*  instanceof<typeB>()))]> ::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::add,                         subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid (instanceof<typeA>() +   instanceof<typeB>()),    refspec      (instanceof<typeA>() +   instanceof<typeB>()))]> ::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::assign,                      subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid (instanceof<typeA>() =   instanceof<typeB>()),    refspec     ((instanceof<typeA>() =   instanceof<typeB>())))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::assign_add,                  subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid (instanceof<typeA>() +=  instanceof<typeB>()),    refspec     ((instanceof<typeA>() +=  instanceof<typeB>())))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::assign_bitwise_and,          subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid (instanceof<typeA>() &=  instanceof<typeB>()),    refspec     ((instanceof<typeA>() &=  instanceof<typeB>())))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::assign_bitwise_or,           subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid (instanceof<typeA>() |=  instanceof<typeB>()),    refspec     ((instanceof<typeA>() |=  instanceof<typeB>())))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::assign_bitwise_shift_left,   subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid (instanceof<typeA>() <<= instanceof<typeB>()),    refspec     ((instanceof<typeA>() <<= instanceof<typeB>())))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::assign_bitwise_shift_right,  subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid (instanceof<typeA>() >>= instanceof<typeB>()),    refspec     ((instanceof<typeA>() >>= instanceof<typeB>())))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::assign_bitwise_xor,          subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid (instanceof<typeA>() ^=  instanceof<typeB>()),    refspec     ((instanceof<typeA>() ^=  instanceof<typeB>())))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::assign_divide,               subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid (instanceof<typeA>() /=  instanceof<typeB>()),    refspec     ((instanceof<typeA>() /=  instanceof<typeB>())))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::assign_modulo,               subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid (instanceof<typeA>() %=  instanceof<typeB>()),    refspec     ((instanceof<typeA>() %=  instanceof<typeB>())))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::assign_multiply,             subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid (instanceof<typeA>() *=  instanceof<typeB>()),    refspec     ((instanceof<typeA>() *=  instanceof<typeB>())))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::assign_subtract,             subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid (instanceof<typeA>() -=  instanceof<typeB>()),    refspec     ((instanceof<typeA>() -=  instanceof<typeB>())))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::bitwise_and,                 subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid (instanceof<typeA>() &   instanceof<typeB>()),    refspec      (instanceof<typeA>() &   instanceof<typeB>()))]> ::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::bitwise_or,                  subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid (instanceof<typeA>() |   instanceof<typeB>()),    refspec      (instanceof<typeA>() |   instanceof<typeB>()))]> ::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::bitwise_shift_left,          subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid (instanceof<typeA>() <<  instanceof<typeB>()),    refspec      (instanceof<typeA>() <<  instanceof<typeB>()))]> ::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::bitwise_shift_right,         subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid (instanceof<typeA>() >>  instanceof<typeB>()),    refspec      (instanceof<typeA>() >>  instanceof<typeB>()))]> ::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::bitwise_xor,                 subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid (instanceof<typeA>() ^   instanceof<typeB>()),    refspec      (instanceof<typeA>() ^   instanceof<typeB>()))]> ::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::boolean_and,                 subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid (instanceof<typeA>() &&  instanceof<typeB>()),    refspec      (instanceof<typeA>() &&  instanceof<typeB>()))]> ::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::boolean_or,                  subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid (instanceof<typeA>() ||  instanceof<typeB>()),    refspec      (instanceof<typeA>() ||  instanceof<typeB>()))]> ::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::call,                        subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid (instanceof<typeA>()    (instanceof<typeB>())),   refspec      (instanceof<typeA>()    (instanceof<typeB>())))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::cast,                        subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid           ((typeA)       instanceof<typeB>()),    refspec                ((typeA)       instanceof<typeB>()))]> ::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::cast_const,                  subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)        (const_cast<typeA>      (instanceof<typeB>()),    refspec      (const_cast<typeA>      (instanceof<typeB>())))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::cast_reinterpret,            subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)  (reinterpret_cast<typeA>      (instanceof<typeB>()),    refspec(reinterpret_cast<typeA>      (instanceof<typeB>())))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::cast_static,                 subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid(static_cast<typeA>      (instanceof<typeB>())),   refspec     (static_cast<typeA>      (instanceof<typeB>())))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::comma,                       subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid((instanceof<typeA>(),    instanceof<typeB>())),   refspec     ((instanceof<typeA>(),    instanceof<typeB>())))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::construct,                   subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid            (typeA   decl(instanceof<typeB>())),   refspec                 (typeA   decl(instanceof<typeB>())))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::dereferenced_access_pointer, subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid (instanceof<typeA>() ->* instanceof<typeB>()),    refspec      (instanceof<typeA>() ->* instanceof<typeB>()))]> ::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::divide,                      subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid (instanceof<typeA>() /   instanceof<typeB>()),    refspec      (instanceof<typeA>() /   instanceof<typeB>()))]> ::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::equals,                      subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid (instanceof<typeA>() ==  instanceof<typeB>()),    refspec      (instanceof<typeA>() ==  instanceof<typeB>()))]> ::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::greater,                     subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid (instanceof<typeA>() >   instanceof<typeB>()),    refspec      (instanceof<typeA>() >   instanceof<typeB>()))]> ::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::greater_equals,              subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid (instanceof<typeA>() >=  instanceof<typeB>()),    refspec      (instanceof<typeA>() >=  instanceof<typeB>()))]> ::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::lesser,                      subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid (instanceof<typeA>() <   instanceof<typeB>()),    refspec      (instanceof<typeA>() <   instanceof<typeB>()))]> ::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::lesser_equals,               subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid (instanceof<typeA>() <=  instanceof<typeB>()),    refspec      (instanceof<typeA>() <=  instanceof<typeB>()))]> ::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::modulo,                      subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid (instanceof<typeA>() %   instanceof<typeB>()),    refspec      (instanceof<typeA>() %   instanceof<typeB>()))]> ::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::multiply,                    subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid (instanceof<typeA>() *   instanceof<typeB>()),    refspec      (instanceof<typeA>() *   instanceof<typeB>()))]> ::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::new_constructed,             subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)             (::new typeA   decl(instanceof<typeB>()),    instanceof<refspec>())]>                                      ::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::new_constructed_placement,   subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof) (::new (instanceof<typeA>())               typeB decl(), instanceof<refspec>())]>                                      ::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::subscript,                   subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid (instanceof<typeA>()    [instanceof<typeB>()]),   refspec      (instanceof<typeA>()    [instanceof<typeB>()]))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::subtract,                    subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid (instanceof<typeA>() -   instanceof<typeB>()),    refspec      (instanceof<typeA>() -   instanceof<typeB>()))]> ::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::unequals,                    subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid (instanceof<typeA>() !=  instanceof<typeB>()),    refspec      (instanceof<typeA>() !=  instanceof<typeB>()))]> ::type (valueof)() noexcept; };
 
                   #if CPP_COMPILER != CPP_MSVC_COMPILER // --> C2680
-                    template <typename subbase> struct op<opinfo::cast_dynamic, subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(dynamic_cast<typeA>(instanceof<typeB>()), ((refspec)(), dynamic_cast<typeA>(instanceof<typeB>()), (refspec)()))]>::type (valueof)() noexcept; };
+                    template <typename subbase> struct op<opinfo::cast_dynamic, subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(dynamic_cast<typeA>(instanceof<typeB>()), refspec(dynamic_cast<typeA>(instanceof<typeB>())))]>::type (valueof)() noexcept; };
                   #endif
 
                   #ifdef __cpp_impl_three_way_comparison // --> 201907L
-                    template <typename subbase> struct op<opinfo::compare, subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), instanceof<typeA>() <=> instanceof<typeB>(), (novoid)()), ((refspec)(), instanceof<typeA>() <=> instanceof<typeB>(), (refspec)()))]>::type (valueof)() noexcept; };
+                    template <typename subbase> struct op<opinfo::compare, subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid(instanceof<typeA>() <=> instanceof<typeB>()), refspec(instanceof<typeA>() <=> instanceof<typeB>()))]>::type (valueof)() noexcept; };
                   #endif
 
                   #ifdef __cpp_initializer_lists // --> 200806L
-                    template <typename subbase> struct op<opinfo::initialize,      subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)      (typeA{instanceof<typeB>()}, (refspec)())]>::type (valueof)() noexcept; };
-                    template <typename subbase> struct op<opinfo::new_array,       subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(::new typeA[instanceof<typeB>()], (refspec)())]>::type (valueof)() noexcept; };
-                    template <typename subbase> struct op<opinfo::new_initialized, subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(::new typeA{instanceof<typeB>()}, (refspec)())]>::type (valueof)() noexcept; };
+                    template <typename subbase> struct op<opinfo::initialize,      subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)      (typeA{instanceof<typeB>()}, instanceof<refspec>())]>::type (valueof)() noexcept; };
+                    template <typename subbase> struct op<opinfo::new_array,       subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(::new typeA[instanceof<typeB>()], instanceof<refspec>())]>::type (valueof)() noexcept; };
+                    template <typename subbase> struct op<opinfo::new_initialized, subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(::new typeA{instanceof<typeB>()}, instanceof<refspec>())]>::type (valueof)() noexcept; };
 
                     #if CPP_COMPILER == CPP_MSVC_COMPILER // --> C2143
-                      template <typename subbase> struct op<opinfo::new_initialized_placement, subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)((static_cast<void>(typeB{}), ::new (instanceof<typeA>()) typeB), (refspec)())]>::type (valueof)() noexcept; };
+                      template <typename subbase> struct op<opinfo::new_initialized_placement, subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)((static_cast<void>(typeB{}), ::new (instanceof<typeA>()) typeB), instanceof<refspec>())]>::type (valueof)() noexcept; };
                     #else
-                      template <typename subbase> struct op<opinfo::new_initialized_placement, subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(::new (instanceof<typeA>()) typeB{}, (refspec)())]>::type (valueof)() noexcept; };
+                      template <typename subbase> struct op<opinfo::new_initialized_placement, subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(::new (instanceof<typeA>()) typeB{}, instanceof<refspec>())]>::type (valueof)() noexcept; };
                     #endif
                   #endif
 
                   #ifdef __cpp_multidimensional_subscript // --> 202110L
-                    template <typename subbase> struct op<opinfo::subscript_static, subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), typeA::operator [](instanceof<typeB>()), (novoid)()), ((refspec)(), typeA::operator [](instanceof<typeB>()), (refspec)()))]>::type (valueof)() noexcept; };
+                    template <typename subbase> struct op<opinfo::subscript_static, subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid(typeA::operator [](instanceof<typeB>())), refspec(typeA::operator [](instanceof<typeB>())))]>::type (valueof)() noexcept; };
                   #endif
 
                   #ifdef __cpp_static_call_operator // --> 202207L
-                    template <typename subbase> struct op<opinfo::call_static, subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), typeA::operator ()(instanceof<typeB>()), (novoid)()), ((refspec)(), typeA::operator ()(instanceof<typeB>()), (refspec)()))]>::type (valueof)() noexcept; };
+                    template <typename subbase> struct op<opinfo::call_static, subbase> final { template <expressioninfo information, typename typeA, typename typeB> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid(typeA::operator ()(instanceof<typeB>())), refspec(typeA::operator ()(instanceof<typeB>())))]>::type (valueof)() noexcept; };
                   #endif
 
                 public:
@@ -2121,32 +2224,32 @@
                     static_assert(unsupported_operation::value, "Unsupported ternary `operation` specified");
                   };
 
-                  template <typename subbase> struct op<opinfo::call,                      subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),        instanceof<typeA>()    (instanceof<typeB>(),  instanceof<typeC>()), (novoid)()), ((refspec)(),        instanceof<typeA>()    (instanceof<typeB>(),  instanceof<typeC>()), (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::construct,                 subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),                   typeA nul() (instanceof<typeB>(),  instanceof<typeC>()), (novoid)()), ((refspec)(),                   typeA nul() (instanceof<typeB>(),  instanceof<typeC>()), (refspec)()))]>::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::new_array_placement,       subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)             (::new (instanceof<typeA>())               typeB     [instanceof<typeC>()],               (refspec)())]>                                                                                         ::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::new_constructed_placement, subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)             (::new (instanceof<typeA>())               typeB     (instanceof<typeC>()),               (refspec)())]>                                                                                         ::type (valueof)() noexcept; };
-                  template <typename subbase> struct op<opinfo::trilean_conditional,       subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(),        instanceof<typeA>() ?   instanceof<typeB>() : instanceof<typeC>(),  (novoid)()), ((refspec)(),        instanceof<typeA>() ?   instanceof<typeB>() : instanceof<typeC>(),  (refspec)()))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::call,                      subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid(instanceof<typeA>()  (instanceof<typeB>(),  instanceof<typeC>())), refspec(instanceof<typeA>()  (instanceof<typeB>(),  instanceof<typeC>())))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::construct,                 subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid           (typeA decl(instanceof<typeB>(),  instanceof<typeC>())), refspec           (typeA decl(instanceof<typeB>(),  instanceof<typeC>())))]>::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::new_array_placement,       subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(::new decl(instanceof<typeA>())         typeB     [instanceof<typeC>()],  instanceof<refspec>())]>                                                    ::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::new_constructed_placement, subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(::new decl(instanceof<typeA>())         typeB     (instanceof<typeC>()),  instanceof<refspec>())]>                                                    ::type (valueof)() noexcept; };
+                  template <typename subbase> struct op<opinfo::trilean_conditional,       subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid(instanceof<typeA>() ? instanceof<typeB>() : instanceof<typeC>()),  refspec(instanceof<typeA>() ? instanceof<typeB>() : instanceof<typeC>()))]> ::type (valueof)() noexcept; };
 
                   #ifdef __cpp_initializer_lists // --> 200806L
-                    template <typename subbase> struct op<opinfo::initialize, subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)                  (typeA{instanceof<typeB>(), instanceof<typeC>()}, (refspec)())]>::type (valueof)() noexcept; };
-                    template <typename subbase> struct op<opinfo::new_array,  subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(::new (instanceof<typeA>())        typeB    [instanceof<typeC>()], (refspec)())]>::type (valueof)() noexcept; };
+                    template <typename subbase> struct op<opinfo::initialize, subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)                      (typeA{instanceof<typeB>(), instanceof<typeC>()}, instanceof<refspec>())]>::type (valueof)() noexcept; };
+                    template <typename subbase> struct op<opinfo::new_array,  subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(::new decl(instanceof<typeA>())        typeB    [instanceof<typeC>()], instanceof<refspec>())]>::type (valueof)() noexcept; };
 
                     #if CPP_COMPILER == CPP_MSVC_COMPILER // --> C2143
-                      template <typename subbase> struct op<opinfo::new_initialized,           subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)((static_cast<void>(typeA{instanceof<typeB>(), instanceof<typeC>()}), ::new typeA),  (refspec)())]>::type (valueof)() noexcept; };
-                      template <typename subbase> struct op<opinfo::new_initialized_placement, subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)((static_cast<void>(typeB{instanceof<typeC>()}), ::new (instanceof<typeA>()) typeB), (refspec)())]>::type (valueof)() noexcept; };
+                      template <typename subbase> struct op<opinfo::new_initialized,           subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)((static_cast<void>(typeA{instanceof<typeB>(),              instanceof<typeC>()}), ::new typeA),  instanceof<refspec>())]>::type (valueof)() noexcept; };
+                      template <typename subbase> struct op<opinfo::new_initialized_placement, subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)((static_cast<void>(typeB{instanceof<typeC>()}), ::new decl(instanceof<typeA>()) typeB),          instanceof<refspec>())]>::type (valueof)() noexcept; };
                     #else
-                      template <typename subbase> struct op<opinfo::new_initialized,           subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(::new             typeA{instanceof<typeB>(), instanceof<typeC>()}, (refspec)())]>::type (valueof)() noexcept; };
-                      template <typename subbase> struct op<opinfo::new_initialized_placement, subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(::new (instanceof<typeA>())        typeB    {instanceof<typeC>()}, (refspec)())]>::type (valueof)() noexcept; };
+                      template <typename subbase> struct op<opinfo::new_initialized,           subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(::new                 typeA{instanceof<typeB>(), instanceof<typeC>()}, instanceof<refspec>())]>::type (valueof)() noexcept; };
+                      template <typename subbase> struct op<opinfo::new_initialized_placement, subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(::new decl(instanceof<typeA>())        typeB    {instanceof<typeC>()}, instanceof<refspec>())]>::type (valueof)() noexcept; };
                     #endif
                   #endif
 
                   #ifdef __cpp_multidimensional_subscript // --> 202110L
-                    template <typename subbase> struct op<opinfo::subscript,        subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), instanceof<typeA>().operator [](instanceof<typeB>(), instanceof<typeC>()), (novoid)()), ((refspec)(), instanceof<typeA>().operator [](instanceof<typeB>(), instanceof<typeC>()), (refspec)()))]>::type (valueof)() noexcept; };
-                    template <typename subbase> struct op<opinfo::subscript_static, subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), typeA             ::operator [](instanceof<typeB>(), instanceof<typeC>()), (novoid)()), ((refspec)(), typeA             ::operator [](instanceof<typeB>(), instanceof<typeC>()), (refspec)()))]>::type (valueof)() noexcept; };
+                    template <typename subbase> struct op<opinfo::subscript,        subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid(instanceof<typeA>().operator [](instanceof<typeB>(), instanceof<typeC>())), refspec(instanceof<typeA>().operator [](instanceof<typeB>(), instanceof<typeC>())))]>::type (valueof)() noexcept; };
+                    template <typename subbase> struct op<opinfo::subscript_static, subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid           (typeA  ::operator [](instanceof<typeB>(), instanceof<typeC>())), refspec(typeA             ::operator [](instanceof<typeB>(), instanceof<typeC>())))]>::type (valueof)() noexcept; };
                   #endif
 
                   #ifdef __cpp_static_call_operator // --> 202207L
-                    template <typename subbase> struct op<opinfo::call_static, subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof (evaluate<information, subbase>::valueof)(((novoid)(), typeA::operator ()(instanceof<typeB>(), instanceof<typeC>()), (novoid)()), ((refspec)(), typeA::operator ()(instanceof<typeB>(), instanceof<typeC>()), (refspec)()))]>::type (valueof)() noexcept; };
+                    template <typename subbase> struct op<opinfo::call_static, subbase> final { template <expressioninfo information, typename typeA, typename typeB, typename typeC> constfunc(true) static typename alias<byte (rlref)[sizeof decl (evaluate<information, subbase>::valueof)(novoid(typeA::operator ()(instanceof<typeB>(), instanceof<typeC>())), refspec(typeA::operator ()(instanceof<typeB>(), instanceof<typeC>())))]>::type (valueof)() noexcept; };
                   #endif
 
                 public:
@@ -2162,18 +2265,93 @@
 
             private:
               /* TODO (Lapys) */
+              #if CPP_VERSION >= 2011uL
+                // ... --> x.*y
+                template <typename baseA, typename baseB>
+                struct exceptof<opinfo::access_pointer, baseA, baseB> final {
+                  static bool const value = exceptof(instanceof<typeA>().*instanceof<typeB>());
+                };
+              #else
+                // ... --> opinfo::unary
+                template <typename base> struct exceptof<opinfo::address,        base> final { static bool const value = is_fundamental<base>::value; };
+                template <typename base> struct exceptof<opinfo::complement,     base> final { static bool const value = is_fundamental<base>::value; };
+                template <typename base> struct exceptof<opinfo::delete_array,   base> final { static bool const value = is_fundamental<base>::value; };
+                template <typename base> struct exceptof<opinfo::delete_object,  base> final { static bool const value = is_fundamental<base>::value; };
+                template <typename base> struct exceptof<opinfo::dereference,    base> final { static bool const value = is_fundamental<base>::value; };
+                template <typename base> struct exceptof<opinfo::minus,          base> final { static bool const value = is_fundamental<base>::value; };
+                template <typename base> struct exceptof<opinfo::negate,         base> final { static bool const value = is_fundamental<base>::value; };
+                template <typename base> struct exceptof<opinfo::plus,           base> final { static bool const value = is_fundamental<base>::value; };
+                template <typename base> struct exceptof<opinfo::post_decrement, base> final { static bool const value = is_fundamental<base>::value; };
+                template <typename base> struct exceptof<opinfo::post_increment, base> final { static bool const value = is_fundamental<base>::value; };
+                template <typename base> struct exceptof<opinfo::pre_decrement,  base> final { static bool const value = is_fundamental<base>::value; };
+                template <typename base> struct exceptof<opinfo::pre_increment,  base> final { static bool const value = is_fundamental<base>::value; };
+
+                // ... --> opinfo::binary
+                template <typename baseA, typename baseB> struct exceptof<opinfo::access_pointer,              baseA, baseB> final { static bool const value = true;                                                                                                                 };
+                template <typename baseA, typename baseB> struct exceptof<opinfo::add,                         baseA, baseB> final { static bool const value = is_fundamental<baseA>::value and is_fundamental<baseB>::value;                                                        };
+                template <typename baseA, typename baseB> struct exceptof<opinfo::assign,                      baseA, baseB> final { static bool const value = is_fundamental<baseA>::value                                                                or is_void<baseB>::value; };
+                template <typename baseA, typename baseB> struct exceptof<opinfo::assign_add,                  baseA, baseB> final { static bool const value = is_fundamental<baseA>::value and is_fundamental<baseB>::value;                                                        };
+                template <typename baseA, typename baseB> struct exceptof<opinfo::assign_bitwise_and,          baseA, baseB> final { static bool const value = is_fundamental<baseA>::value and is_fundamental<baseB>::value;                                                        };
+                template <typename baseA, typename baseB> struct exceptof<opinfo::assign_bitwise_or,           baseA, baseB> final { static bool const value = is_fundamental<baseA>::value and is_fundamental<baseB>::value;                                                        };
+                template <typename baseA, typename baseB> struct exceptof<opinfo::assign_bitwise_shift_left,   baseA, baseB> final { static bool const value = is_fundamental<baseA>::value and is_fundamental<baseB>::value;                                                        };
+                template <typename baseA, typename baseB> struct exceptof<opinfo::assign_bitwise_shift_right,  baseA, baseB> final { static bool const value = is_fundamental<baseA>::value and is_fundamental<baseB>::value;                                                        };
+                template <typename baseA, typename baseB> struct exceptof<opinfo::assign_bitwise_xor,          baseA, baseB> final { static bool const value = is_fundamental<baseA>::value and is_fundamental<baseB>::value;                                                        };
+                template <typename baseA, typename baseB> struct exceptof<opinfo::assign_divide,               baseA, baseB> final { static bool const value = is_fundamental<baseA>::value and is_fundamental<baseB>::value;                                                        };
+                template <typename baseA, typename baseB> struct exceptof<opinfo::assign_modulo,               baseA, baseB> final { static bool const value = is_fundamental<baseA>::value and is_fundamental<baseB>::value;                                                        };
+                template <typename baseA, typename baseB> struct exceptof<opinfo::assign_multiply,             baseA, baseB> final { static bool const value = is_fundamental<baseA>::value and is_fundamental<baseB>::value;                                                        };
+                template <typename baseA, typename baseB> struct exceptof<opinfo::assign_subtract,             baseA, baseB> final { static bool const value = is_fundamental<baseA>::value and is_fundamental<baseB>::value;                                                        };
+                template <typename baseA, typename baseB> struct exceptof<opinfo::bitwise_and,                 baseA, baseB> final { static bool const value = is_fundamental<baseA>::value and is_fundamental<baseB>::value;                                                        };
+                template <typename baseA, typename baseB> struct exceptof<opinfo::bitwise_or,                  baseA, baseB> final { static bool const value = is_fundamental<baseA>::value and is_fundamental<baseB>::value;                                                        };
+                template <typename baseA, typename baseB> struct exceptof<opinfo::bitwise_shift_left,          baseA, baseB> final { static bool const value = is_fundamental<baseA>::value and is_fundamental<baseB>::value;                                                        };
+                template <typename baseA, typename baseB> struct exceptof<opinfo::bitwise_shift_right,         baseA, baseB> final { static bool const value = is_fundamental<baseA>::value and is_fundamental<baseB>::value;                                                        };
+                template <typename baseA, typename baseB> struct exceptof<opinfo::bitwise_xor,                 baseA, baseB> final { static bool const value = is_fundamental<baseA>::value and is_fundamental<baseB>::value;                                                        };
+                template <typename baseA, typename baseB> struct exceptof<opinfo::boolean_and,                 baseA, baseB> final { static bool const value = is_fundamental<baseA>::value and is_fundamental<baseB>::value;                                                        };
+                template <typename baseA, typename baseB> struct exceptof<opinfo::boolean_or,                  baseA, baseB> final { static bool const value = is_fundamental<baseA>::value and is_fundamental<baseB>::value;                                                        };
+                template <typename baseA, typename baseB> struct exceptof<opinfo::cast,                        baseA, baseB> final { static bool const value = is_fundamental<baseA>::value and is_fundamental<baseB>::value or is_reference<baseA>::value or is_void<baseA>::value; };
+                template <typename baseA, typename baseB> struct exceptof<opinfo::cast_const,                  baseA, baseB> final { static bool const value = true;                                                                                                                 };
+                template <typename baseA, typename baseB> struct exceptof<opinfo::cast_dynamic,                baseA, baseB> final { static bool const value =                                                                  is_void     <baseA>::value or is_void<baseB>::value; };
+                template <typename baseA, typename baseB> struct exceptof<opinfo::cast_reinterpret,            baseA, baseB> final { static bool const value = true;                                                                                                                 };
+                template <typename baseA, typename baseB> struct exceptof<opinfo::cast_static,                 baseA, baseB> final { static bool const value = is_fundamental<baseA>::value and is_fundamental<baseB>::value;                                                        };
+                template <typename baseA, typename baseB> struct exceptof<opinfo::comma,                       baseA, baseB> final { static bool const value = is_fundamental<baseA>::value and is_fundamental<baseB>::value;                                                        };
+                template <typename baseA, typename baseB> struct exceptof<opinfo::compare,                     baseA, baseB> final { static bool const value = is_fundamental<baseA>::value and is_fundamental<baseB>::value;                                                        };
+                template <typename baseA, typename baseB> struct exceptof<opinfo::dereferenced_access,         baseA, baseB> final { static bool const value = true;                                                                                                                 };
+                template <typename baseA, typename baseB> struct exceptof<opinfo::dereferenced_access_pointer, baseA, baseB> final { static bool const value = is_fundamental<baseA>::value and is_pointer<baseB>::value;                                                            };
+                template <typename baseA, typename baseB> struct exceptof<opinfo::divide,                      baseA, baseB> final { static bool const value = is_fundamental<baseA>::value and is_fundamental<baseB>::value;                                                        };
+                template <typename baseA, typename baseB> struct exceptof<opinfo::equals,                      baseA, baseB> final { static bool const value = is_fundamental<baseA>::value and is_fundamental<baseB>::value;                                                        };
+                template <typename baseA, typename baseB> struct exceptof<opinfo::greater_equals,              baseA, baseB> final { static bool const value = is_fundamental<baseA>::value and is_fundamental<baseB>::value;                                                        };
+                template <typename baseA, typename baseB> struct exceptof<opinfo::lesser,                      baseA, baseB> final { static bool const value = is_fundamental<baseA>::value and is_fundamental<baseB>::value;                                                        };
+                template <typename baseA, typename baseB> struct exceptof<opinfo::lesser_equals,               baseA, baseB> final { static bool const value = is_fundamental<baseA>::value and is_fundamental<baseB>::value;                                                        };
+                template <typename baseA, typename baseB> struct exceptof<opinfo::modulo,                      baseA, baseB> final { static bool const value = is_fundamental<baseA>::value and is_fundamental<baseB>::value;                                                        };
+                template <typename baseA, typename baseB> struct exceptof<opinfo::multiply,                    baseA, baseB> final { static bool const value = is_fundamental<baseA>::value and is_fundamental<baseB>::value;                                                        };
+                template <typename baseA, typename baseB> struct exceptof<opinfo::scope,                       baseA, baseB> final { static bool const value = true;                                                                                                                 };
+                template <typename baseA, typename baseB> struct exceptof<opinfo::subtract,                    baseA, baseB> final { static bool const value = is_fundamental<baseA>::value and is_fundamental<baseB>::value;                                                        };
+                template <typename baseA, typename baseB> struct exceptof<opinfo::unequals                     baseA, baseB> final { static bool const value = is_fundamental<baseA>::value and is_fundamental<baseB>::value;                                                        };
+
+                // ... --> opinfo::ternary
+                template <typename baseA, typename baseB, typename baseC>
+                struct exceptof<opinfo::trilean_conditional, base> final {
+                  static bool const value = true;
+                };
+
+                // ...
+                template <typename base> struct exceptof<opinfo::call,             base> final { static bool const value = false; };
+                template <typename base> struct exceptof<opinfo::call_static,      base> final { static bool const value = false; };
+                template <typename base> struct exceptof<opinfo::subscript_static, base> final { static bool const value = false; };
+              #endif
+
+              /* TODO (Lapys) */
               #ifdef typeof
                 // ... --> x.*y
                 template <typename baseA, typename baseB>
                 struct typeof<opinfo::access_pointer, baseA, baseB> final {
                   template <typename typeA, typename typeB>
                   constfunc(true) static typeof((evaluate<optraitinfo::get::type_information>::valueof)(
-                    ((novoid) (), instanceof<typeA>().*instanceof<typeB>(), (novoid) ()),
-                    ((refspec)(), instanceof<typeA>().*instanceof<typeB>(), (refspec)())
+                    novoid  (instanceof<typeA>().*instanceof<typeB>()),
+                    refspec (instanceof<typeA>().*instanceof<typeB>())
                   )) (valueof)(sfinaeptr_t const) noexcept;
 
                   template <typename, typename>
-                  constfunc(true) static null (valueof)(...) noexcept;
+                  constfunc(true) static null decl (valueof)(...) noexcept;
 
                   /* ... */
                   typedef typename conditional<is_same<novoid, typeof(valueof<baseA, baseB>(sfinaeptr))>::value, void, typeof(valueof<baseA, baseB>(sfinaeptr))> type;
@@ -3246,6 +3424,33 @@
         static bool const value = functioninfo<base>::value; // --> not (is_const<base const>::value or is_reference<base>::value)
       };
 
+      // ... --- TODO (Lapys) ->> Type similarity
+      template <typename baseA, typename baseB>
+      struct is_like final {
+        private:
+          typedef typename remove_const_volatile<typename remove_reference<baseA>::type>::type typeA;
+          typedef typename remove_const_volatile<typename remove_reference<baseB>::type>::type typeB;
+
+        public:
+          static bool const value = is_same<
+            typename conditional<is_pointer<typeA>::value and is_pointer<baseB>::value, remove_pointer<typeA>, alias<typeA> >::type::type,
+            typename conditional<is_pointer<typeA>::value and is_pointer<baseB>::value, remove_pointer<typeB>, alias<typeB> >::type::type
+          >::value;
+      };
+
+      template <typename base>
+      struct is_like<base> final {
+        static bool const value = is_same<null, typename remove_const_volatile<typename remove_reference<base>::type>::type>::value;
+
+        template <typename type>
+        static typename conditional<is_like<base, type>::value, boolean_true, boolean_false>::type (valueof)(type fref) noexcept;
+      };
+
+      template <typename baseA, std::size_t capacityA, typename baseB, std::size_t capacityB>
+      struct is_like<baseA[capacityA], baseB[capacityB]> final {
+        static bool const value = capacityA == capacityB and is_like<baseA, baseB>::value;
+      };
+
       // ... ->> Type "nullity" check
       template <typename>
       struct is_null final {
@@ -3413,10 +3618,17 @@
       template <> struct rankof<double>      final { static uintmin_t const value = 75u; };
       template <> struct rankof<long double> final { static uintmin_t const value = 80u; };
 
+      #ifdef bfloat16_t
+        template <>
+        struct rankof<bfloat16_t> final {
+          static uintmin_t const value = 85u;
+        };
+      #endif
+
       #ifdef float16_t
         template <>
         struct rankof<float16_t> final {
-          static uintmin_t const value = 85u;
+          static uintmin_t const value = 86u;
         };
       #endif
 
