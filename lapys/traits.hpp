@@ -1661,7 +1661,7 @@
       };
 
       struct opinfo final : public optraitinfo {
-        /* TODO (Lapys) -> Check for `noexcept`ness? */
+        /* TODO (Lapys) -> Check for `noexcept`ness? Also, hello from Linux */
         #if CPP_COMPILER == CPP_CLANG_COMPILER
         # pragma clang diagnostic push
         # pragma clang diagnostic ignored "-Wint-to-pointer-cast"
