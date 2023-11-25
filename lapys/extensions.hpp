@@ -43,6 +43,7 @@
     - stringify             (...)
     - subapply              (f, bool, f, ...)
     - typeof                (...)
+    - varinit               (value)
 
     - constvar
     - decl
@@ -60,6 +61,7 @@
     - member_rlref
     - member_rref
     - mustinline
+    - nodefine
     - noexit
     - noignore
     - noinline
@@ -69,7 +71,6 @@
     - rlref
     - rref
     - uint128_t
-    - varinit(value)
 */
 #ifndef LAPYS_MODULE_EXTENSIONS
 # define LAPYS_MODULE_EXTENSIONS
@@ -279,26 +280,29 @@
   // : [C++ Architecture] --- CITE (Lapys)
   # define CPP_ALPHA_ARCHITECTURE         0x01u // -> https://en.wikipedia.org/wiki/DEC_Alpha
   # define CPP_ARM_ARCHITECTURE           0x02u // -> https://en.wikipedia.org/wiki/ARM_architecture
-  # define CPP_BLACKFIN_ARCHITECTURE      0x03u //
-  # define CPP_CONVEX_ARCHITECTURE        0x04u // -> https://en.wikipedia.org/wiki/Convex_Computer
-  # define CPP_E2K_ARCHITECTURE           0x05u // -> https://en.wikipedia.org/wiki/Elbrus_2000
-  # define CPP_HP_PA_RISC_ARCHITECTURE    0x06u // -> https://en.wikipedia.org/wiki/PA-RISC_family
-  # define CPP_INTEL_ITANIUM_ARCHITECTURE 0x07u // -> https://en.wikipedia.org/wiki/Ia64
-  # define CPP_INTEL_X86_64_ARCHITECTURE  0x08u // -> https://en.wikipedia.org/wiki/X86-64
+  # define CPP_AVR_ARCHITECTURE           0x03u // -> https://en.wikipedia.org/wiki/AVR_microcontrollers#Device_architecture
+  # define CPP_BLACKFIN_ARCHITECTURE      0x04u //
+  # define CPP_CONVEX_ARCHITECTURE        0x05u // -> https://en.wikipedia.org/wiki/Convex_Computer
+  # define CPP_E2K_ARCHITECTURE           0x06u // -> https://en.wikipedia.org/wiki/Elbrus_2000
+  # define CPP_HP_PA_ARCHITECTURE         0x07u // -> https://en.wikipedia.org/wiki/PA-RISC_family
+  # define CPP_INTEL_ITANIUM_ARCHITECTURE 0x08u // -> https://en.wikipedia.org/wiki/Ia64
   # define CPP_INTEL_X86_ARCHITECTURE     0x09u // -> https://en.wikipedia.org/wiki/X86
-  # define CPP_MIPS_ARCHITECTURE          0x0Au // -> https://en.wikipedia.org/wiki/MIPS_architecture
-  # define CPP_MOTOROLA_68K_ARCHITECTURE  0x0Bu // -> https://en.wikipedia.org/wiki/M68k
-  # define CPP_POWER_PC_64_ARCHITECTURE   0x0Cu // -> https://en.wikipedia.org/wiki/PowerPC
-  # define CPP_POWER_PC_ARCHITECTURE      0x0Du // -> https://en.wikipedia.org/wiki/PowerPC
-  # define CPP_PTX_ARCHITECTURE           0x0Eu // -> https://en.wikipedia.org/wiki/Parallel_Thread_Execution
-  # define CPP_PYRAMID_9810_ARCHITECTURE  0x0Fu //
-  # define CPP_RISC_V_ARCHITECTURE        0x10u //
-  # define CPP_RS_6000_ARCHITECTURE       0x11u // -> https://en.wikipedia.org/wiki/RS/6000
-  # define CPP_SPARC_ARCHITECTURE         0x12u // -> https://en.wikipedia.org/wiki/SPARC
-  # define CPP_SUPER_H_ARCHITECTURE       0x13u // -> https://en.wikipedia.org/wiki/SuperH
-  # define CPP_SYSTEM_370_ARCHITECTURE    0x14u // -> https://en.wikipedia.org/wiki/System/370
-  # define CPP_SYSTEM_390_ARCHITECTURE    0x15u // -> https://en.wikipedia.org/wiki/System/390
-  # define CPP_Z_ARCHITECTURE             0x16u // -> https://en.wikipedia.org/wiki/Z/Architecture
+  # define CPP_INTEL_X86_64_ARCHITECTURE  0x0Au // -> https://en.wikipedia.org/wiki/X86-64
+  # define CPP_LOONGSON_ARCHITECTURE      0x0Bu // -> https://en.wikipedia.org/wiki/Loongson
+  # define CPP_MIPS_ARCHITECTURE          0x0Cu // -> https://en.wikipedia.org/wiki/MIPS_architecture
+  # define CPP_MOTOROLA_68K_ARCHITECTURE  0x0Du // -> https://en.wikipedia.org/wiki/M68k
+  # define CPP_POWER_PC_ARCHITECTURE      0x0Eu // -> https://en.wikipedia.org/wiki/PowerPC
+  # define CPP_POWER_PC_64_ARCHITECTURE   0x0Fu // -> https://en.wikipedia.org/wiki/PowerPC
+  # define CPP_PTX_ARCHITECTURE           0x10u // -> https://en.wikipedia.org/wiki/Parallel_Thread_Execution
+  # define CPP_PYRAMID_9810_ARCHITECTURE  0x11u //
+  # define CPP_RISC_V_ARCHITECTURE        0x12u //
+  # define CPP_RS_6000_ARCHITECTURE       0x13u // -> https://en.wikipedia.org/wiki/RS/6000
+  # define CPP_SPARC_ARCHITECTURE         0x14u // -> https://en.wikipedia.org/wiki/SPARC
+  # define CPP_SUPER_H_ARCHITECTURE       0x15u // -> https://en.wikipedia.org/wiki/SuperH
+  # define CPP_SYSTEM_370_ARCHITECTURE    0x16u // -> https://en.wikipedia.org/wiki/System/370
+  # define CPP_SYSTEM_390_ARCHITECTURE    0x17u // -> https://en.wikipedia.org/wiki/System/390
+  # define CPP_XTENSA_ARCHITECTURE        0x18u // -> https://en.wikipedia.org/wiki/Tensilica#Xtensa_instruction_set
+  # define CPP_Z_ARCHITECTURE             0x19u // -> https://en.wikipedia.org/wiki/Z/Architecture
 
   #if defined __370__ or defined __THW_370__
   # define CPP_ARCHITECTURE CPP_SYSTEM_370_ARCHITECTURE
@@ -306,6 +310,8 @@
   # define CPP_ARCHITECTURE CPP_ARM_ARCHITECTURE
   #elif defined __alpha or defined __alpha__ or defined __alpha_ev4__ or defined __alpha_ev5__ or defined __alpha_ev6__ or defined _M_ALPHA
   # define CPP_ARCHITECTURE CPP_ALPHA_ARCHITECTURE
+  #elif defined __AVR_AT43USB320__ or defined __AVR_AT43USB355__ or defined __AVR_AT76C711__ or defined __AVR_AT86RF401__ or defined __AVR_AT90C8534__ or defined __AVR_AT90CAN128__ or defined __AVR_AT90CAN32__ or defined __AVR_AT90CAN64__ or defined __AVR_AT90PWM161__ or defined __AVR_AT90PWM1__ or defined __AVR_AT90PWM216__ or defined __AVR_AT90PWM2__ or defined __AVR_AT90PWM2B__ or defined __AVR_AT90PWM316__ or defined __AVR_AT90PWM3__ or defined __AVR_AT90PWM3B__ or defined __AVR_AT90PWM81__ or defined __AVR_AT90S1200__ or defined __AVR_AT90S2313__ or defined __AVR_AT90S2323__ or defined __AVR_AT90S2333__ or defined __AVR_AT90S2343__ or defined __AVR_AT90S4414__ or defined __AVR_AT90S4433__ or defined __AVR_AT90S4434__ or defined __AVR_AT90S8515__ or defined __AVR_AT90S8535__ or defined __AVR_AT90SCR100__ or defined __AVR_AT90USB1286__ or defined __AVR_AT90USB1287__ or defined __AVR_AT90USB162__ or defined __AVR_AT90USB646__ or defined __AVR_AT90USB647__ or defined __AVR_AT90USB82__ or defined __AVR_AT94K__ or defined __AVR_ATA5272__ or defined __AVR_ATA5505__ or defined __AVR_ATA5790__ or defined __AVR_ATA5795__ or defined __AVR_ATA6285__ or defined __AVR_ATA6286__ or defined __AVR_ATA6289__ or defined __AVR_ATmega103__ or defined __AVR_ATmega1280__ or defined __AVR_ATmega1281__ or defined __AVR_ATmega1284__ or defined __AVR_ATmega1284P__ or defined __AVR_ATmega1284RFR2__ or defined __AVR_ATmega128__ or defined __AVR_ATmega128A__ or defined __AVR_ATmega128RFR2__ or defined __AVR_ATmega161__ or defined __AVR_ATmega162__ or defined __AVR_ATmega163__ or defined __AVR_ATmega164A__ or defined __AVR_ATmega164P__ or defined __AVR_ATmega164PA__ or defined __AVR_ATmega165__ or defined __AVR_ATmega165A__ or defined __AVR_ATmega165P__ or defined __AVR_ATmega165PA__ or defined __AVR_ATmega168__ or defined __AVR_ATmega168A__ or defined __AVR_ATmega168P__ or defined __AVR_ATmega168PA__ or defined __AVR_ATmega169__ or defined __AVR_ATmega169A__ or defined __AVR_ATmega169P__ or defined __AVR_ATmega169PA__ or defined __AVR_ATmega16__ or defined __AVR_ATmega16A__ or defined __AVR_ATmega16HVA2__ or defined __AVR_ATmega16HVA__ or defined __AVR_ATmega16HVB__ or defined __AVR_ATmega16HVBREVB__ or defined __AVR_ATmega16M1__ or defined __AVR_ATmega16U2__ or defined __AVR_ATmega16U4__ or defined __AVR_ATmega2560__ or defined __AVR_ATmega2561__ or defined __AVR_ATmega2564RFR2__ or defined __AVR_ATmega256RFR2__ or defined __AVR_ATmega323__ or defined __AVR_ATmega324A__ or defined __AVR_ATmega324P__ or defined __AVR_ATmega324PA__ or defined __AVR_ATmega3250__ or defined __AVR_ATmega3250A__ or defined __AVR_ATmega3250P__ or defined __AVR_ATmega3250PA__ or defined __AVR_ATmega325__ or defined __AVR_ATmega325A__ or defined __AVR_ATmega325P__ or defined __AVR_ATmega325PA__ or defined __AVR_ATmega328__ or defined __AVR_ATmega328P__ or defined __AVR_ATmega3290__ or defined __AVR_ATmega3290A__ or defined __AVR_ATmega3290P__ or defined __AVR_ATmega3290PA__ or defined __AVR_ATmega329__ or defined __AVR_ATmega329A__ or defined __AVR_ATmega329P__ or defined __AVR_ATmega329PA__ or defined __AVR_ATmega32__ or defined __AVR_ATmega32A__ or defined __AVR_ATmega32C1__ or defined __AVR_ATmega32HVB__ or defined __AVR_ATmega32HVBREVB__ or defined __AVR_ATmega32M1__ or defined __AVR_ATmega32U2__ or defined __AVR_ATmega32U4__ or defined __AVR_ATmega32U6__ or defined __AVR_ATmega406__ or defined __AVR_ATmega48__ or defined __AVR_ATmega48A__ or defined __AVR_ATmega48P__ or defined __AVR_ATmega48PA__ or defined __AVR_ATmega603__ or defined __AVR_ATmega640__ or defined __AVR_ATmega644__ or defined __AVR_ATmega644A__ or defined __AVR_ATmega644P__ or defined __AVR_ATmega644PA__ or defined __AVR_ATmega644RFR2__ or defined __AVR_ATmega6450__ or defined __AVR_ATmega6450A__ or defined __AVR_ATmega6450P__ or defined __AVR_ATmega645__ or defined __AVR_ATmega645A__ or defined __AVR_ATmega645P__ or defined __AVR_ATmega6490__ or defined __AVR_ATmega6490A__ or defined __AVR_ATmega6490P__ or defined __AVR_ATmega649__ or defined __AVR_ATmega649A__ or defined __AVR_ATmega649P__ or defined __AVR_ATmega64__ or defined __AVR_ATmega64A__ or defined __AVR_ATmega64C1__ or defined __AVR_ATmega64HVE__ or defined __AVR_ATmega64M1__ or defined __AVR_ATmega64RFR2__ or defined __AVR_ATmega8515__ or defined __AVR_ATmega8535__ or defined __AVR_ATmega88__ or defined __AVR_ATmega88A__ or defined __AVR_ATmega88P__ or defined __AVR_ATmega88PA__ or defined __AVR_ATmega8__ or defined __AVR_ATmega8A__ or defined __AVR_ATmega8HVA__ or defined __AVR_ATmega8U2__ or defined __AVR_ATtiny10__ or defined __AVR_ATtiny11__ or defined __AVR_ATtiny12__ or defined __AVR_ATtiny13__ or defined __AVR_ATtiny13A__ or defined __AVR_ATtiny15__ or defined __AVR_ATtiny1634__ or defined __AVR_ATtiny167__ or defined __AVR_ATtiny20__ or defined __AVR_ATtiny22__ or defined __AVR_ATtiny2313__ or defined __AVR_ATtiny2313A__ or defined __AVR_ATtiny24__ or defined __AVR_ATtiny24A__ or defined __AVR_ATtiny25__ or defined __AVR_ATtiny261__ or defined __AVR_ATtiny261A__ or defined __AVR_ATtiny26__ or defined __AVR_ATtiny28__ or defined __AVR_ATtiny40__ or defined __AVR_ATtiny4313__ or defined __AVR_ATtiny43U__ or defined __AVR_ATtiny44__ or defined __AVR_ATtiny44A__ or defined __AVR_ATtiny45__ or defined __AVR_ATtiny461__ or defined __AVR_ATtiny461A__ or defined __AVR_ATtiny48__ or defined __AVR_ATtiny4__ or defined __AVR_ATtiny5__ or defined __AVR_ATtiny828__ or defined __AVR_ATtiny84__ or defined __AVR_ATtiny84A__ or defined __AVR_ATtiny85__ or defined __AVR_ATtiny861__ or defined __AVR_ATtiny861A__ or defined __AVR_ATtiny87__ or defined __AVR_ATtiny88__ or defined __AVR_ATtiny9__ or defined __AVR_ATxmega128A1__ or defined __AVR_ATxmega128A1U__ or defined __AVR_ATxmega128A3__ or defined __AVR_ATxmega128A3U__ or defined __AVR_ATxmega128A4U__ or defined __AVR_ATxmega128B1__ or defined __AVR_ATxmega128B3__ or defined __AVR_ATxmega128C3__ or defined __AVR_ATxmega128D3__ or defined __AVR_ATxmega128D4__ or defined __AVR_ATxmega16A4__ or defined __AVR_ATxmega16A4U__ or defined __AVR_ATxmega16C4__ or defined __AVR_ATxmega16D4__ or defined __AVR_ATxmega192A3__ or defined __AVR_ATxmega192A3U__ or defined __AVR_ATxmega192C3__ or defined __AVR_ATxmega192D3__ or defined __AVR_ATxmega256A3__ or defined __AVR_ATxmega256A3B__ or defined __AVR_ATxmega256A3BU__ or defined __AVR_ATxmega256A3U__ or defined __AVR_ATxmega256C3__ or defined __AVR_ATxmega256D3__ or defined __AVR_ATxmega32A4__ or defined __AVR_ATxmega32A4U__ or defined __AVR_ATxmega32C4__ or defined __AVR_ATxmega32D4__ or defined __AVR_ATxmega384C3__ or defined __AVR_ATxmega384D3__ or defined __AVR_ATxmega64A1__ or defined __AVR_ATxmega64A1U__ or defined __AVR_ATxmega64A3__ or defined __AVR_ATxmega64A3U__ or defined __AVR_ATxmega64A4U__ or defined __AVR_ATxmega64B1__ or defined __AVR_ATxmega64B3__ or defined __AVR_ATxmega64C3__ or defined __AVR_ATxmega64D3__ or defined __AVR_ATxmega64D4__ or defined __AVR_M3000__
+  # define CPP_ARCHITECTURE CPP_AVR_ARCHITECTURE
   #elif defined __amd64 or defined __amd64__ or defined __x86_64 or defined __x86_64__ or defined _M_X64
   # define CPP_ARCHITECTURE CPP_INTEL_X86_64_ARCHITECTURE
   #elif defined __bfin__ or defined __BFIN__ or defined bfin or defined BFIN
@@ -317,11 +323,13 @@
   #elif defined __e2k__
   # define CPP_ARCHITECTURE CPP_E2K_ARCHITECTURE
   #elif defined __hppa or defined __HPPA11__ or defined __HPPA20__ or defined __hppa__ or defined __HPPA__ or defined __PA7100__ or defined __PA8000__ or defined __RISC2_0__ or defined _PA_RISC1_0 or defined _PA_RISC1_1 or defined _PA_RISC2_0
-  # define CPP_ARCHITECTURE CPP_HP_PA_RISC_ARCHITECTURE
+  # define CPP_ARCHITECTURE CPP_HP_PA_ARCHITECTURE
   #elif defined __i386 or defined __i386__ or defined __i386__ or defined __i486__ or defined __i486__ or defined __i586__ or defined __i586__ or defined __i686__ or defined __i686__ or defined __I86__ or defined __I86__ or defined __INTEL__ or defined __THW_INTEL__ or defined _M_IX86 or defined _M_IX86 or defined _X86_ or defined i386
   # define CPP_ARCHITECTURE CPP_INTEL_X86_ARCHITECTURE
   #elif defined __ia64 or defined __ia64__ or defined __IA64__ or defined __itanium__ or defined _IA64 or defined _M_IA64
   # define CPP_ARCHITECTURE CPP_INTEL_ITANIUM_ARCHITECTURE
+  #elif defined __loongarch64 or defined __loongarch__ or defined __loongarch_arch or defined __loongarch_double_float or defined __loongarch_frlen or defined __loongarch_grlen or defined __loongarch_hard_float or defined __loongarch_lp64 or defined __loongarch_single_float or defined __loongarch_soft_float or defined __loongarch_tune or defined _LOONGARCH_ARCH or defined _LOONGARCH_SIM or defined _LOONGARCH_SZINT or defined _LOONGARCH_SZLONG or defined _LOONGARCH_SZPTR or defined _LOONGARCH_TUNE
+  # define CPP_ARCHITECTURE CPP_LOONGSON_ARCHITECTURE
   #elif defined __m68k__ or defined __mc68000 or defined __mc68000__ or defined __mc68010 or defined __mc68010__ or defined __mc68020 or defined __mc68020__ or defined __mc68030 or defined __mc68030__ or defined __mc68040 or defined __mc68040__ or defined __mc68060 or defined __mc68060__ or defined M68000 or defined mc68000 or defined mc68010 or defined mc68020 or defined mc68030 or defined mc68040 or defined mc68060
   # define CPP_ARCHITECTURE CPP_MOTOROLA_68K_ARCHITECTURE
   #elif defined __mips or defined __MIPS__ or defined __MIPS_ISA2__ or defined __MIPS_ISA3__ or defined __MIPS_ISA4__ or defined _MIPS_ISA_MIPS1 or defined _MIPS_ISA_MIPS2 or defined _MIPS_ISA_MIPS3 or defined _MIPS_ISA_MIPS4 or defined _R3000 or defined _R4000
@@ -338,6 +346,8 @@
   # define CPP_ARCHITECTURE CPP_SUPER_H_ARCHITECTURE
   #elif defined __sparc or defined __sparc__ or defined __sparc_v8__ or defined __sparc_v9__ or defined __sparcv8 or defined __sparcv9
   # define CPP_ARCHITECTURE CPP_SPARC_ARCHITECTURE
+  #elif defined __xtensa__ or defined __XTENSA__ or defined __XTENSA_EB__ or defined __XTENSA_EL__ or defined __XTENSA_SOFT_FLOAT__ or defined __XTENSA_WINDOWED_ABI__
+  # define CPP_ARCHITECTURE CPP_XTENSA_ARCHITECTURE
   #elif defined __SYSC_ZARCH__
   # define CPP_ARCHITECTURE CPP_Z_ARCHITECTURE
   #elif defined __THW_RS6000 or defined _ARCH_PWR or defined _ARCH_PWR2 or defined _IBMR2 or defined _POWER
@@ -512,9 +522,9 @@
   # endif
   #
   # if false == defined CPP_ENDIAN
-  #   if defined _M_AMD64 or CPP_ARCHITECTURE == CPP_ALPHA_ARCHITECTURE or CPP_ARCHITECTURE == CPP_BLACKFIN_ARCHITECTURE or CPP_ARCHITECTURE == CPP_INTEL_ITANIUM_ARCHITECTURE or CPP_ARCHITECTURE == CPP_INTEL_X86_64_ARCHITECTURE or CPP_ARCHITECTURE == CPP_INTEL_X86_ARCHITECTURE or (CPP_ARCHITECTURE == CPP_ARM_ARCHITECTURE and (CPP_VENDOR & CPP_MICROSOFT_WINDOWS_VENDOR))
+  #   if defined _M_AMD64 or defined __XTENSA_EL__ or CPP_ARCHITECTURE == CPP_ALPHA_ARCHITECTURE or CPP_ARCHITECTURE == CPP_AVR_ARCHITECTURE or CPP_ARCHITECTURE == CPP_BLACKFIN_ARCHITECTURE or CPP_ARCHITECTURE == CPP_INTEL_ITANIUM_ARCHITECTURE or CPP_ARCHITECTURE == CPP_INTEL_X86_64_ARCHITECTURE or CPP_ARCHITECTURE == CPP_INTEL_X86_ARCHITECTURE or CPP_ARCHITECTURE == CPP_LOONGSON_ARCHITECTURE or CPP_ARCHITECTURE == CPP_RISC_V_ARCHITECTURE or (CPP_ARCHITECTURE == CPP_ARM_ARCHITECTURE and (CPP_VENDOR & CPP_MICROSOFT_WINDOWS_VENDOR))
   #     define CPP_ENDIAN CPP_BYTE_LITTLE_ENDIAN
-  #   elif defined __hpux or CPP_ARCHITECTURE == CPP_HP_PA_RISC_ARCHITECTURE or CPP_ARCHITECTURE == CPP_MOTOROLA_68K_ARCHITECTURE or CPP_ARCHITECTURE == CPP_POWER_PC_ARCHITECTURE or CPP_ARCHITECTURE == CPP_RS_6000_ARCHITECTURE or CPP_ARCHITECTURE == CPP_SPARC_ARCHITECTURE or CPP_ARCHITECTURE == CPP_SYSTEM_370_ARCHITECTURE or CPP_ARCHITECTURE == CPP_SYSTEM_390_ARCHITECTURE or CPP_ARCHITECTURE == CPP_Z_ARCHITECTURE
+  #   elif defined __hpux or defined __XTENSA_EB__ or CPP_ARCHITECTURE == CPP_HP_PA_ARCHITECTURE or CPP_ARCHITECTURE == CPP_MOTOROLA_68K_ARCHITECTURE or CPP_ARCHITECTURE == CPP_POWER_PC_ARCHITECTURE or CPP_ARCHITECTURE == CPP_RS_6000_ARCHITECTURE or CPP_ARCHITECTURE == CPP_SPARC_ARCHITECTURE or CPP_ARCHITECTURE == CPP_SYSTEM_370_ARCHITECTURE or CPP_ARCHITECTURE == CPP_SYSTEM_390_ARCHITECTURE or CPP_ARCHITECTURE == CPP_Z_ARCHITECTURE
   #     define CPP_ENDIAN CPP_BYTE_BIG_ENDIAN
   #   endif
   # endif
@@ -589,22 +599,22 @@
   #if CPP_VERSION < 2011uL
   # define exceptof(expression) false
   #else
-  # define exceptof(...) noexcept decl(__VA_ARGS__)
+  # define exceptof(...) not noexcept decl(__VA_ARGS__)
   #endif
 
   // : [Exception Specifier] ->> Attempts to explicitly anticipate `throw` in a specified function
   #if CPP_VERSION < 2011uL
   # define exceptspec(specification) exceptspec_ ## specification // --> choose(specification, exceptspec_true, exceptspec_false)
   #   if CPP_COMPILER == CPP_MSVC_COMPILER
-  #     define exceptspec_false throw decl(...)
-  #     define exceptspec_true  noexcept
+  #     define exceptspec_false noexcept
+  #     define exceptspec_true  throw decl(...)
   #   else
-  #     define exceptspec_false
-  #     define exceptspec_true noexcept
+  #     define exceptspec_false noexcept
+  #     define exceptspec_true
   #   endif
   # define noexcept throw decl() // ->> Shim the `noexcept` keyword
   #else
-  # define exceptspec(specification) noexcept decl(specification)
+  # define exceptspec(specification) noexcept decl(not static_cast<bool>(specification))
   #endif
 
   // : [Expression Reference Specification] ->> Determines if an expression is an lvalue or rvalue reference
@@ -745,6 +755,9 @@
   #   error Lapys C++: Unexpected `uint128_t` macro definition
   # endif
   #endif
+
+  // : [Object Declaration]
+  #define nodefine
 
   // : [Parameter Pack]
   #if CPP_VERSION < 2011uL
@@ -1004,7 +1017,7 @@
 
       public:
         template <typename type, std::size_t capacity> // ->> Single constructor, no overload disambiguation
-        constfunc(false) decl (static_assert_declaration)(type decl (&)[capacity]) exceptspec(false) /* --> static_assert_declaration<false> */ {
+        constfunc(false) decl (static_assert_declaration)(type decl (&)[capacity]) exceptspec(true) /* --> static_assert_declaration<false> */ {
           static_assert_message<type>(); // ->> Assert that `type` is `char const`, the element type used by expected string literals
           throw static_assert_declaration<false>(*this); // ->> Error handling is unfortunately runtime-only so re-throw a copy of itself and indirectly call `std::terminate(...)`
         }
