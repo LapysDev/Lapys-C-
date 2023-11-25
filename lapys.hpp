@@ -388,6 +388,7 @@
   # undef member_rref
   # undef mustinline
   # undef nilinit
+  # undef nodefine
   # undef noeval
   # undef noexit
   # undef noignore
