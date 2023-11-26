@@ -27,7 +27,7 @@ struct add {
 };
 
 // ...
-int main(int, char*[]) /* noexcept */ {
+int main(int, char*[]) /* noexcept(true) */ {
   // access_pointer              //   x  .* y
   // add                         //   x   + y
   // address                     //  &x
