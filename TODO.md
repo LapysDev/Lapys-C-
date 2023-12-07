@@ -1,12 +1,3 @@
-object = object.method();
-object.=method();
-
-if value == A || value == B || value == C
-if value ||== {A, B, C}
-
-if (valueA == A || valueA == B || valueA == C) && (valueB == A || valueB == B || valueB == C)
-if [&&]{valueA, valueB} == [||]{A, B, C}
-
 <!-- Arrays -->
 <h1 style=text-transform:none> <a href=#arrays target=_self> Arrays </a> </h1>
 General-purpose COW arrays supporting an initial fixed-size memory buffer <br/>
