@@ -24,7 +24,6 @@
     - constint              (T, name, value)
     - countof               (...)
     - defer                 (f, ...)
-    - defined               (macro)
     - enumint               (T, name)
     - exceptof              (...)
     - exceptspec            (false | true)
@@ -54,7 +53,6 @@
     - float64_t
     - float128_t
     - fref
-    - func
     - int128_t
     - lref
     - member_lref
@@ -632,7 +630,7 @@
   #endif
 
   // : [Floating-Point Types] ->> Acknowledges extended floating-point types
-  #if __STDCPP_BFLOAT16_T__
+  #if defined __STDCPP_BFLOAT16_T__
   # if LAPYS_PREPROCESSOR_GUARD and defined bfloat16_t
   #   error Lapys C++: Unexpected `bfloat16_t` macro definition
   # endif
@@ -641,7 +639,7 @@
   # error Lapys C++: Unexpected `bfloat16_t` macro definition
   #endif
 
-  #if __STDCPP_FLOAT16_T__
+  #if defined __STDCPP_FLOAT16_T__
   # if LAPYS_PREPROCESSOR_GUARD and defined float16_t
   #   error Lapys C++: Unexpected `float16_t` macro definition
   # endif
@@ -650,7 +648,7 @@
   # error Lapys C++: Unexpected `float16_t` macro definition
   #endif
 
-  #if __STDCPP_FLOAT32_T__
+  #if defined __STDCPP_FLOAT32_T__
   # if LAPYS_PREPROCESSOR_GUARD and defined float32_t
   #   error Lapys C++: Unexpected `float32_t` macro definition
   # endif
@@ -659,7 +657,7 @@
   # error Lapys C++: Unexpected `float32_t` macro definition
   #endif
 
-  #if __STDCPP_FLOAT64_T__
+  #if defined __STDCPP_FLOAT64_T__
   # if LAPYS_PREPROCESSOR_GUARD and defined float64_t
   #   error Lapys C++: Unexpected `float64_t` macro definition
   # endif
@@ -668,7 +666,7 @@
   # error Lapys C++: Unexpected `float64_t` macro definition
   #endif
 
-  #if __STDCPP_FLOAT128_T__
+  #if defined __STDCPP_FLOAT128_T__
   # if LAPYS_PREPROCESSOR_GUARD and defined float128_t
   #   error Lapys C++: Unexpected `float128_t` macro definition
   # endif
