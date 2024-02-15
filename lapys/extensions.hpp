@@ -110,7 +110,7 @@
   # define CPP_PALM_COMPILER    0x18u // ->
   # define CPP_PATH_COMPILER    0x19u // -> https://en.wikipedia.org/wiki/PathScale
   # define CPP_PGI_COMPILER     0x1Au // -> https://en.wikipedia.org/wiki/The_Portland_Group
-  # define CPP_SGI_COMPILER     0x1Bu // -> https://en.wikipedia.org/wiki/MIPSpro
+  # define CPP_SGI_COMPILER     0x1Bu // -> https://en.wikipedia.org/wiki/Silicon_Graphics -> https://en.wikipedia.org/wiki/Open64
   # define CPP_SUNPRO_COMPILER  0x1Cu // -> https://en.wikipedia.org/wiki/Oracle_Solaris_Studio
   # define CPP_SYSC_COMPILER    0x1Du // -> https://www.dignus.com/dcxx/
   # define CPP_TENDRA_COMPILER  0x1Eu // -> https://en.wikipedia.org/wiki/TenDRA_Compiler
@@ -617,16 +617,16 @@
 
   // : [Expression Reference Specification] ->> Determines if an expression is an lvalue or rvalue reference
   #if CPP_VERSION < 2011uL
-  # define refspec(expression) (sizeof decl(::Lapys::Traits::reference_true) == sizeof decl (::Lapys::Traits::refspec(), (expression),  ::Lapys::Traits::refspec()))
+  # define refspec(expression) (sizeof decl(::Lapys::Traits::reference_true) == sizeof decl (::Lapys::instanceof<::Lapys::Traits::refspec>(), (expression),  ::Lapys::instanceof<::Lapys::Traits::refspec>()))
   #else
-  # define refspec(...)        (sizeof decl(::Lapys::Traits::reference_true) == sizeof decl (::Lapys::Traits::refspec(), (__VA_ARGS__), ::Lapys::Traits::refspec()))
+  # define refspec(...)        (sizeof decl(::Lapys::Traits::reference_true) == sizeof decl (::Lapys::instanceof<::Lapys::Traits::refspec>(), (__VA_ARGS__), ::Lapys::instanceof<::Lapys::Traits::refspec>()))
   #endif
 
   // : [Expression `void` Filter] ->> Reference-qualifies, then re-evaluates `void` expressions as `struct ::Lapys::Traits::novoid` expressions
   #if CPP_VERSION < 2011uL
-  # define novoid(expression) (::Lapys::Traits::novoid(), (expression),  ::Lapys::Traits::novoid())
+  # define novoid(expression) (::Lapys::instanceof<::Lapys::Traits::novoid>(), (expression),  ::Lapys::instanceof<::Lapys::Traits::novoid>())
   #else
-  # define novoid(...)        (::Lapys::Traits::novoid(), (__VA_ARGS__), ::Lapys::Traits::novoid())
+  # define novoid(...)        (::Lapys::instanceof<::Lapys::Traits::novoid>(), (__VA_ARGS__), ::Lapys::instanceof<::Lapys::Traits::novoid>())
   #endif
 
   // : [Floating-Point Types] ->> Acknowledges extended floating-point types
