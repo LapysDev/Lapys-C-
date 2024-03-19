@@ -10,38 +10,39 @@
     - CPP_VENDOR;              CPP_*_VENDOR
     - CPP_VERSION == 1997uL | 2011uL | 2014uL | 2017uL | 2020uL | 2023uL
 
-    - apply                 (f, bool, f, ...)
-    - apply_comma           (...)
-    - apply_expression_begin(...)
-    - apply_expression_end  (...)
-    - apply_*               (...)
+    - apply                 (f, bool, f, …)
+    - apply_comma           (…)
+    - apply_expression_begin(…)
+    - apply_expression_end  (…)
+    - apply_*               (…)
     - arity                 (N)
-    - boundsof              (...)
-    - boundsspec            (...)
-    - choose                (false | true, ..., ...); choose(N, ...)
+    - boundsof              (…)
+    - boundsspec            (…)
+    - choose                (false | true, …, …); choose(N, …)
     - combine               (A, B)
     - constfunc             (false | true)
     - constint              (T, name, value)
-    - countof               (...)
-    - defer                 (f, ...)
+    - countof               (…)
+    - defer                 (f, …)
     - enumint               (T, name)
-    - exceptof              (...)
+    - exceptof              (…)
     - exceptspec            (false | true)
     - included              (<source.cpp>); included("source.cpp")
-    - init                  (...)
+    - init                  (…)
     - nilinit               (T)
-    - noeval                (...)
-    - novoid                (...)
+    - noeval                (…)
+    - novoid                (…)
     - nul                   ()
     - param_fref            (name)
-    - parse                 (...)
+    - parse                 (…)
     - preprocessed          (macro)
-    - refspec               (...)
-    - stall                 (...)
-    - static_assert         (bool, "...")
-    - stringify             (...)
-    - subapply              (f, bool, f, ...)
-    - typeof                (...)
+    - refspec               (…)
+    - stall                 (…)
+    - static_assert         (bool, "…")
+    - stringify             (…)
+    - subapply              (f, bool, f, …)
+    - then
+    - typeof                (…)
     - varinit               (value)
 
     - constvar
@@ -593,6 +594,11 @@
   # define discard = delete
   #endif
 
+  // : [Evaluation Sequencing] --- TODO (Lapys) -> Description, and REALLY think about what this does. It's cool, but how WOULD it work in C++?
+  #define then ) if (
+  #define then ?
+  #define then struct and or{...}
+
   // : [Exception Operator] ->> Determines if an expression can not `throw` an exception
   #if CPP_VERSION < 2011uL
   # define exceptof(expression) false
@@ -977,7 +983,7 @@
   #     else
   #       define typeof(...)        __decltype(__VA_ARGS__)
   #     endif
-  #   elif CPP_FRONTEND == CPP_CLANG_FRONTEND // --- NOTE (Lapys) -> Presume `__typeof__(...)` does not acknowledge reference qualifications
+  #   elif CPP_FRONTEND == CPP_CLANG_FRONTEND // --- NOTE (Lapys) -> Presume `__typeof__(…)` does not acknowledge reference qualifications
   #     if CPP_VERSION < 2011uL               // --- WARN (Lapys) -> Incorrectly evaluates non-const-volatile-qualified rvalue reference types as non-reference types i.e., `T&& == T`
   #       define typeof(expression)          ::Lapys::Traits::conditional<::Lapys::Traits::is_void<__typeof__(expression)> ::value or not refspec((expression)),  __typeof__(expression),           ::Lapys::Traits::conditional<sizeof decl(::Lapys::Traits::boolean_true) == sizeof decl (::Lapys::Traits::typeinfo::is_lvalue_reference)(novoid((expression))),  __typeof__(novoid((expression)))  lref,          ::Lapys::Traits::conditional<sizeof decl(::Lapys::Traits::boolean_true) == sizeof decl (::Lapys::Traits::typeinfo::is_rvalue_reference)(novoid((expression))),  __typeof__(novoid((expression)))  rref, __typeof__(novoid((expression)))> ::type>::type>::type decl
   #     else
@@ -1017,7 +1023,7 @@
         template <typename type, std::size_t capacity> // ->> Single constructor, no overload disambiguation
         constfunc(false) decl (static_assert_declaration)(type decl (&)[capacity]) exceptspec(true) /* --> static_assert_declaration<false> */ {
           static_assert_message<type>(); // ->> Assert that `type` is `char const`, the element type used by expected string literals
-          throw static_assert_declaration<false>(*this); // ->> Error handling is unfortunately runtime-only so re-throw a copy of itself and indirectly call `std::terminate(...)`
+          throw static_assert_declaration<false>(*this); // ->> Error handling is unfortunately runtime-only so re-throw a copy of itself and indirectly call `std::terminate(…)`
         }
     };
 
@@ -1611,7 +1617,7 @@
     # define defer_12u(function, call) defer_11u(function, call)
 
     #undef apply
-    # define apply_begin(function, condition, separator, currentArgument, nextArgument, ...) choose(condition(currentArgument, nextArgument, __VA_ARGS__), apply_continue, apply_break)( /* ->> Body of the `apply(...)` loop */ \
+    # define apply_begin(function, condition, separator, currentArgument, nextArgument, ...) choose(condition(currentArgument, nextArgument, __VA_ARGS__), apply_continue, apply_break)( /* ->> Body of the `apply(…)` loop */ \
       function,                                                                                                                                                                                                                  \
       choose(condition(nextArgument, __VA_ARGS__), separator, apply_terminator),                                                                                                                                                 \
       stall(reapply)()stall((function, condition, separator, nextArgument, __VA_ARGS__, break)),                                                                                                                                 \
@@ -1691,10 +1697,10 @@
     # else
     #   error Variadic macro expansion feature `apply(...)` requested
     # endif
-    # define reapply() apply_begin // ->> Succession of the `apply(...)` loop
-    #   define reapply_break ~, false // ->> End     of the `apply(...)` loop
+    # define reapply() apply_begin // ->> Succession of the `apply(…)` loop
+    #   define reapply_break ~, false // ->> End     of the `apply(…)` loop
 
-    #undef subapply // --> `subapply(...)`, `subapply_begin(...)`, `subapply_continue(...)`, and `subapply_setup(...)` are similar to their `apply(...)` counterparts
+    #undef subapply // --> `subapply(…)`, `subapply_begin(…)`, `subapply_continue(…)`, and `subapply_setup(…)` are similar to their `apply(…)` counterparts
     # define subapply_begin(function, condition, separator, currentArgument, nextArgument, ...) choose(condition(currentArgument, nextArgument, __VA_ARGS__), subapply_continue, apply_break)( \
       function,                                                                                                                                                                                \
       choose(condition(nextArgument, __VA_ARGS__), separator, apply_terminator),                                                                                                               \

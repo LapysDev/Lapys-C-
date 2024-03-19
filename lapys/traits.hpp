@@ -6,10 +6,10 @@
     - Lapys::bless       <T>(value)
     - Lapys::forward_cast<T>(value)
     - Lapys::instanceof  <T>()
-    - Lapys::Traits::optraitinfo::valueof(...)
+    - Lapys::Traits::optraitinfo::valueof(…)
     - Lapys::unreachable()
-    - nilsizeof(...)
-    - widthof  (...)
+    - nilsizeof(…)
+    - widthof  (…)
 
     - Lapys::bit<N, value>
     - Lapys::byte
@@ -21,12 +21,12 @@
     - Lapys::typeinfo
     - Lapys::Traits::alias<T>
     - Lapys::Traits::arrayinfo<T>
-    - Lapys::Traits::boolean_and<bool...>
+    - Lapys::Traits::boolean_and<bool…>
     - Lapys::Traits::boolean_false
-    - Lapys::Traits::boolean_or<bool...>
+    - Lapys::Traits::boolean_or<bool…>
     - Lapys::Traits::boolean_true
-    - Lapys::Traits::classinfo<T, ...>
-    - Lapys::Traits::collection<T...>
+    - Lapys::Traits::classinfo<T, …>
+    - Lapys::Traits::collection<T…>
     - Lapys::Traits::commonof<T, T>
     - Lapys::Traits::complete_representable<T>
     - Lapys::Traits::conditional<bool, T, T>
@@ -34,7 +34,7 @@
     - Lapys::Traits::countof<maximum, radix>
     - Lapys::Traits::defer
     - Lapys::Traits::defer::constant<T, value>
-    - Lapys::Traits::defer::nontyped_template<T...>
+    - Lapys::Traits::defer::nontyped_template<T…>
     - Lapys::Traits::defer::type<T>
     - Lapys::Traits::defer::typed_template<N>
     - Lapys::Traits::enuminfo<T>
@@ -224,9 +224,9 @@
   # define CPP_MAX_SIZE PTRDIFF_MAX
   #endif
 
-  /* Namespace ->> All concepts/ metafunctions/ traits should be `struct ... final`, everything else a `union ...` */
+  /* Namespace ->> All concepts/ metafunctions/ traits should be `struct … final`, everything else a `union …` */
   namespace Lapys {
-    /* Namespace ->> Pre-define necessary features for possible extensions like `typeof(...)` */
+    /* Namespace ->> Pre-define necessary features for possible extensions like `typeof(…)` */
     namespace Traits {
       /* Alias > Boolean (False, True) */
       typedef bool const decl (rlref boolean_false)[false + 1u];
@@ -408,7 +408,7 @@
         static bool const value = true;
       };
 
-      /* ... ->> Augments expression type deduction; See `typeof(...)` macro definition */
+      /* ... ->> Augments expression type deduction; See `typeof(…)` macro definition */
       struct typeinfo final {
         #ifdef __cpp_rvalue_references // --> 200610L
           template <typename type>
@@ -449,7 +449,7 @@
     template <std::size_t, std::size_t = 0u>
     struct bit;
 
-    // No `void` [Expression] ->> Transforms `void` `...` expressions to `novoid` expressions
+    // No `void` [Expression] ->> Transforms `void` `…` expressions to `novoid` expressions
     struct novoid final {
       #ifdef __cpp_rvalue_references // --> 200610L
         template <typename type> constfunc(true)        alias<type&&> (operator ,)(type&&)                    const noexcept;
@@ -464,7 +464,7 @@
       #endif
     };
 
-    // [Expression] Reference Specification ->> Disambiguates between reference and value `...` expressions
+    // [Expression] Reference Specification ->> Disambiguates between reference and value `…` expressions
     struct refspec final {
       typedef refspec     fref reference_false;    // --> sizeof refspec[false + 1u]
       typedef byte decl (rlfef reference_true)[2]; // --> sizeof refspec[true  + 1u]
@@ -494,14 +494,14 @@
     typedef refspec::reference_true  reference_true;
 
     /* Define */
-    // Nil Size Of ->> Queries byte size of expression (object), defaulting to zero if it has no discernible size via `sizeof ...`
+    // Nil Size Of ->> Queries byte size of expression (object), defaulting to zero if it has no discernible size via `sizeof …`
     #define nilsizeof(expression) ((sizeof decl (::Lapys::nilsizeof)(novoid(expression), sfinaeptr) / sizeof decl(::Lapys::byte)) - 1u)
 
                              constfunc(true) byte decl (&(nilsizeof)(novoid const, sfinaeptr_t const)                                                      noexcept)[0u                     + 1u];
     template <typename type> constfunc(true) byte decl (&(nilsizeof)(type fref,    sfinaeptr_t const, type[] = nullptr /* --> is_complete<type>::value */) noexcept)[sizeof decl(type fref) + 1u];
     template <typename type> constfunc(true) byte decl (&(nilsizeof)(type fref,    ...)                                                                    noexcept)[0u                     + 1u];
 
-    // Nil Width Of ->> Queries bit width of expression (object), defaulting to zero if it has no discernible size via `sizeof ...`
+    // Nil Width Of ->> Queries bit width of expression (object), defaulting to zero if it has no discernible size via `sizeof …`
     #define nilwidthof(expression) ((sizeof decl (::Lapys::nilwidthof)(novoid(expression), sfinaeptr) / sizeof decl(::Lapys::byte)) - 1u)
 
                                  constfunc(true) byte decl (&(nilwidthof)(novoid     const)                                                                  noexcept)[0u                                                                                                 + 1u];
@@ -733,7 +733,7 @@
       template <class, bool = false>                                                               struct classinfo;                   //
       template <typename, typename>                                                                struct commonof;                    // --> std::common_type<T, T>
       template <typename>                                                                          struct complete_representable;      // --> std::has_unique_object_representations<T>
-      template <typename base, base, bool>                                                         struct constant;                    // --> std::integral_constant<T, ...>
+      template <typename base, base, bool>                                                         struct constant;                    // --> std::integral_constant<T, …>
       template <std::size_t, std::size_t = 10u>                                                    struct countof;                     //
       template <typename>                                                                          struct enuminfo;                    //
       template <std::size_t>                                                                       struct float_fast_t;                //
@@ -1489,7 +1489,7 @@
           template <class, std::size_t, typename, typename, typename>
           constfunc(true) static boolean_false (uses_static_function)(...) noexcept;
 
-          // ... --> class trait::value; enum trait::value; struct trait::value; union trait::value; using trait::value = ...;
+          // ... --> class trait::value; enum trait::value; struct trait::value; union trait::value; using trait::value = …;
           template <class trait, std::size_t arity, typename,       typename,       typename>       constfunc(true) static boolean_true (uses_type)(sfinaeptr_t const, bool const (*const)[arity == 0u and sizeof typeid decl(typename trait::         value)]                      = nullptr) noexcept;
           template <class trait, std::size_t arity, typename typeA, typename,       typename>       constfunc(true) static boolean_true (uses_type)(sfinaeptr_t const, bool const (*const)[arity == 1u and sizeof typeid decl(typename trait::template value<typeA>)]               = nullptr) noexcept;
           template <class trait, std::size_t arity, typename typeA, typename typeB, typename>       constfunc(true) static boolean_true (uses_type)(sfinaeptr_t const, bool const (*const)[arity == 2u and sizeof typeid decl(typename trait::template value<typeA, typeB>)]        = nullptr) noexcept;
@@ -1503,27 +1503,27 @@
           //   e.g., `static auto trait::value(auto a, auto b) { return a + b; }` acts as a wrapper for an `opinfo::add` `a + b` operation
           struct get final {
             enumint(typename uint_least_value_t<5u>::type, expressioninfo) {
-              correctness,      // --> nilsizeof trait::value(...)
-              type_equality,    // --> typeid    trait::value(...) == typeid T
-              type_information, // --> typeof    trait::value(...)
-              type_similarity,  // --> typeid    trait::value(...) ~= typeid T
+              correctness,      // --> nilsizeof trait::value(…)
+              type_equality,    // --> typeid    trait::value(…) == typeid T
+              type_information, // --> typeof    trait::value(…)
+              type_similarity,  // --> typeid    trait::value(…) ~= typeid T
             };
           };
 
           // ...
           typedef optraitinfo::get::expressioninfo expressioninfo;
 
-          // ... ->> Evaluates different aspects of a specified `type` `expression` --> evaluate<...>::value(novoid(...), refspec(...))
+          // ... ->> Evaluates different aspects of a specified `type` `expression` --> evaluate<…>::value(novoid(…), refspec(…))
           template <expressioninfo, typename = null>
           struct evaluate;
 
-          template <typename base> // --> nilsizeof ...
+          template <typename base> // --> nilsizeof …
           struct evaluate<optraitinfo::get::correctness, base> {
             template <typename type>
             constfunc(true) static byte (rlref (valueof)(type fref, ...) noexcept)[(nilsizeof)(instanceof<type fref>()) + 1u];
           };
 
-          template <typename base> // --> is_same<base>::valueof(...)
+          template <typename base> // --> is_same<base>::valueof(…)
           struct evaluate<optraitinfo::get::type_equality, base> {
             #ifdef __cpp_rvalue_references // --> 200610L
               template <typename type> constfunc(true) static typename conditional<is_same<base, type>  ::value, boolean_true, boolean_false>::type (valueof)(type,   refspec::reference_false) noexcept;
@@ -1551,7 +1551,7 @@
             #endif
           };
 
-          template <typename base> // --> is_same<base>::valueof((base) ...)
+          template <typename base> // --> is_same<base>::valueof((base) …)
           struct evaluate<optraitinfo::get::type_similarity, base> {
             #ifdef __cpp_rvalue_references // --> 200610L
               template <typename type> constfunc(true) static typename conditional<sizeof(boolean_true) == sizeof (is_same<base>::template valueof)((base) instanceof<type>  ()), boolean_true, boolean_false>::type (valueof)(type,   refspec::reference_false) noexcept;
@@ -1572,7 +1572,7 @@
               sizeof(boolean_true) == sizeof optraitinfo::template uses_static_function<trait, 3u, baseA, baseB, baseC>(sfinaeptr) ? 3u :
               sizeof(boolean_true) == sizeof optraitinfo::template uses_static_function<trait, 2u, baseA, baseB, baseC>(sfinaeptr) ? 2u :
               sizeof(boolean_true) == sizeof optraitinfo::template uses_static_function<trait, 1u, baseA, baseB, baseC>(sfinaeptr) ? 1u :
-              0u // ->> Possibly `optraitinfo::uses_static_function<trait, 0u, ...>(...)`
+              0u // ->> Possibly `optraitinfo::uses_static_function<trait, 0u, …>(…)`
             );
           };
 
@@ -1599,57 +1599,57 @@
           };
 
         public:
-          template <class trait, expressioninfo information, typename type, std::size_t arity, typename typeA, typename, typename /* , ... */>
+          template <class trait, expressioninfo information, typename type, std::size_t arity, typename typeA, typename, typename /* , … */>
           constfunc(true) static typename Traits::conditional<
             arityof<trait>::value == 0u and arity == 1u and information != optraitinfo::get::correctness,
             byte (rlref)[sizeof (evaluate<information, type>::template valueof)(((novoid)(), (trait::value)(instanceof<typeA>()), (novoid)()), ((refspec)(), ((trait::value)(instanceof<typeA>())), (refspec)()))]
           >::type (valueof)(sfinaeptr_t const) noexcept;
 
-          template <class trait, expressioninfo information, typename type, std::size_t arity, typename typeA, typename, typename /* , ... */>
+          template <class trait, expressioninfo information, typename type, std::size_t arity, typename typeA, typename, typename /* , … */>
           constfunc(true) static typename Traits::conditional<
             arityof<trait>::value == 1u and arity == 1u and information != optraitinfo::get::correctness,
             byte (rlref)[sizeof (evaluate<information, type>::template valueof)(((novoid)(), trait::template value<typeA>(instanceof<typeA>()), (novoid)()), ((refspec)(), (trait::template value<typeA>(instanceof<typeA>())), (refspec)()))]
           >::type (valueof)(sfinaeptr_t const) noexcept;
 
           // ...
-          template <class trait, expressioninfo information, typename type, std::size_t arity, typename typeA, typename typeB, typename /* , ... */>
+          template <class trait, expressioninfo information, typename type, std::size_t arity, typename typeA, typename typeB, typename /* , … */>
           constfunc(true) static typename Traits::conditional<
             arityof<trait>::value == 0u and arity == 2u and information != optraitinfo::get::correctness,
             byte (rlref)[sizeof (evaluate<information, type>::template valueof)(((novoid)(), (trait::value)(instanceof<typeA>(), instanceof<typeB>()), (novoid)()), ((refspec)(), ((trait::value)(instanceof<typeA>(), instanceof<typeB>())), (refspec)()))]
           >::type (valueof)(sfinaeptr_t const) noexcept;
 
-          template <class trait, expressioninfo information, typename type, std::size_t arity, typename typeA, typename typeB, typename /* , ... */>
+          template <class trait, expressioninfo information, typename type, std::size_t arity, typename typeA, typename typeB, typename /* , … */>
           constfunc(true) static typename Traits::conditional<
             arityof<trait>::value == 1u and arity == 2u and information != optraitinfo::get::correctness,
             byte (rlref)[sizeof (evaluate<information, type>::template valueof)(((novoid)(), trait::template value<typeA>(instanceof<typeA>(), instanceof<typeB>()), (novoid)()), ((refspec)(), (trait::template value<typeA>(instanceof<typeA>(), instanceof<typeB>())), (refspec)()))]
           >::type (valueof)(sfinaeptr_t const) noexcept;
 
-          template <class trait, expressioninfo information, typename type, std::size_t arity, typename typeA, typename typeB, typename /* , ... */>
+          template <class trait, expressioninfo information, typename type, std::size_t arity, typename typeA, typename typeB, typename /* , … */>
           constfunc(true) static typename Traits::conditional<
             arityof<trait>::value == 2u and arity == 2u and information != optraitinfo::get::correctness,
             byte (rlref)[sizeof (evaluate<information, type>::template valueof)(((novoid)(), trait::template value<typeA, typeB>(instanceof<typeA>(), instanceof<typeB>()), (novoid)()), ((refspec)(), (trait::template value<typeA, typeB>(instanceof<typeA>(), instanceof<typeB>())), (refspec)()))]
           >::type (valueof)(sfinaeptr_t const) noexcept;
 
           // ...
-          template <class trait, expressioninfo information, typename type, std::size_t arity, typename typeA, typename typeB, typename typeC /* , ... */>
+          template <class trait, expressioninfo information, typename type, std::size_t arity, typename typeA, typename typeB, typename typeC /* , … */>
           constfunc(true) static typename Traits::conditional<
             arityof<trait>::value == 0u and arity == 3u and information != optraitinfo::get::correctness,
             byte (rlref)[sizeof (evaluate<information, type>::template valueof)(((novoid)(), (trait::value)(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>()), (novoid)()), ((refspec)(), ((trait::value)(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>())), (refspec)()))]
           >::type (valueof)(sfinaeptr_t const) noexcept;
 
-          template <class trait, expressioninfo information, typename type, std::size_t arity, typename typeA, typename typeB, typename typeC /* , ... */>
+          template <class trait, expressioninfo information, typename type, std::size_t arity, typename typeA, typename typeB, typename typeC /* , … */>
           constfunc(true) static typename Traits::conditional<
             arityof<trait>::value == 1u and arity == 3u and information != optraitinfo::get::correctness,
             byte (rlref)[sizeof (evaluate<information, type>::template valueof)(((novoid)(), trait::template value<typeA>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>()), (novoid)()), ((refspec)(), (trait::template value<typeA>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>())), (refspec)()))]
           >::type (valueof)(sfinaeptr_t const) noexcept;
 
-          template <class trait, expressioninfo information, typename type, std::size_t arity, typename typeA, typename typeB, typename typeC /* , ... */>
+          template <class trait, expressioninfo information, typename type, std::size_t arity, typename typeA, typename typeB, typename typeC /* , … */>
           constfunc(true) static typename Traits::conditional<
             arityof<trait>::value == 2u and arity == 3u and information != optraitinfo::get::correctness,
             byte (rlref)[sizeof (evaluate<information, type>::template valueof)(((novoid)(), trait::template value<typeA, typeB>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>()), (novoid)()), ((refspec)(), (trait::template value<typeA, typeB>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>())), (refspec)()))]
           >::type (valueof)(sfinaeptr_t const) noexcept;
 
-          template <class trait, expressioninfo information, typename type, std::size_t arity, typename typeA, typename typeB, typename typeC /* , ... */>
+          template <class trait, expressioninfo information, typename type, std::size_t arity, typename typeA, typename typeB, typename typeC /* , … */>
           constfunc(true) static typename Traits::conditional<
             arityof<trait>::value == 3u and arity == 3u and information != optraitinfo::get::correctness,
             byte (rlref)[sizeof (evaluate<information, type>::template valueof)(((novoid)(), trait::template value<typeA, typeB, typeC>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>()), (novoid)()), ((refspec)(), (trait::template value<typeA, typeB, typeC>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>())), (refspec)()))]
@@ -1701,8 +1701,8 @@
           bitwise_xor,                 //   x   ^ y
           boolean_and,                 //   x  && y
           boolean_or,                  //   x  || y
-          call,                        //   x             (...)
-          call_static,                 //   x::operator ()(...)
+          call,                        //   x             (…)
+          call_static,                 //   x::operator ()(…)
           cast,                        //  (x) y
           cast_const,                  // const_cast      <x>(y)
           cast_dynamic,                // dynamic_cast    <x>(y)
@@ -1711,7 +1711,7 @@
           comma,                       //   x   , y
           compare,                     //   x <=> y
           complement,                  //  ~x
-          construct,                   //   x(...)
+          construct,                   //   x(…)
           copy,                        //
           delete_array,                // delete[] x
           delete_object,               // delete   x
@@ -1722,7 +1722,7 @@
           equals,                      //   x  == y
           greater,                     //   x   > y
           greater_equals,              //   x  >= y
-          initialize,                  //   x{...}
+          initialize,                  //   x{…}
           lesser,                      //   x   < y
           lesser_equals,               //   x  <= y
           minus,                       //   x   - y
@@ -1730,20 +1730,20 @@
           move,                        //
           multiply,                    //   x   * y
           negate,                      //  !x
-          new_array,                   // new     x[y]{...}
-          new_array_placement,         // new (x) y[z]{...}
-          new_constructed,             // new     x   (...)
-          new_constructed_placement,   // new (x) y   (...)
-          new_initialized,             // new     x   {...}
-          new_initialized_placement,   // new (x) y   {...}
+          new_array,                   // new     x[y]{…}
+          new_array_placement,         // new (x) y[z]{…}
+          new_constructed,             // new     x   (…)
+          new_constructed_placement,   // new (x) y   (…)
+          new_initialized,             // new     x   {…}
+          new_initialized_placement,   // new (x) y   {…}
           plus,                        //  +x
           post_decrement,              //   x--
           post_increment,              //   x++
           pre_decrement,               // --x
           pre_increment,               // ++x
           scope,                       //   x  :: y
-          subscript,                   //   x             [...]
-          subscript_static,            //   x::operator [](...)
+          subscript,                   //   x             […]
+          subscript_static,            //   x::operator [](…)
           subtract,                    //   x   - y
           trilean_conditional,         //   x   ? y : z
           unequals                     //   x  != y
@@ -1756,7 +1756,7 @@
           using optraitinfo::novoid;
           using optraitinfo::refspec;
 
-          // ... ->> Base implementation of `opinfo::...::operate<opinfo::binary | opinfo::ternary | opinfo::unary>` traits
+          // ... ->> Base implementation of `opinfo::…::operate<opinfo::binary | opinfo::ternary | opinfo::unary>` traits
           template <std::size_t arity, typename baseA = null, typename baseB = null, typename baseC = null>
           struct variadic {
             protected:
@@ -1788,7 +1788,7 @@
                   typedef optraitinfo::template assert<trait, arity, baseA, baseB, baseC> invalid_value;
                   static_assert(invalid_value::value, "Expected `template` argument of `opinfo::...::operate<...>::valueof<>` to declare `static` member function named `value()`");
 
-                  /* ... ->> Determine type of `trait::value(...)` */
+                  /* ... ->> Determine type of `trait::value(…)` */
                   #ifndef typeof
                     struct typeof final {
                       typedef null type;
@@ -1799,7 +1799,7 @@
                         template <class = trait, std::size_t = arity, std::size_t = arityof<trait>::value>
                         struct valueof;
 
-                        // ... --> subtrait::value(...)
+                        // ... --> subtrait::value(…)
                         template <class subtrait>
                         struct valueof<subtrait, 1u, 0u> final {
                           template <typename typeA, typename, typename> constfunc(true) static typename conditional<notypeof((subtrait::value)(instanceof<typeA>())), novoid>::type (value)(sfinaeptr_t const, sfinaeptr_t const) noexcept;
@@ -1824,7 +1824,7 @@
                           template <typename, typename, typename> constfunc(true) static null (value)(...) noexcept;
                         };
 
-                        // ... --> subtrait::value<A>(...)
+                        // ... --> subtrait::value<A>(…)
                         template <class subtrait>
                         struct valueof<subtrait, 1u, 1u> final {
                           template <typename typeA, typename, typename> constfunc(true) static typename conditional<notypeof(subtrait::template value<typeA>(instanceof<typeA>())), novoid>::type (value)(sfinaeptr_t const, sfinaeptr_t const) noexcept;
@@ -1849,7 +1849,7 @@
                           template <typename, typename, typename> constfunc(true) static null (value)(...) noexcept;
                         };
 
-                        // ... --> subtrait::value<A, B>(...)
+                        // ... --> subtrait::value<A, B>(…)
                         template <class subtrait>
                         struct valueof<subtrait, 2u, 2u> final {
                           template <typename typeA, typename typeB, typename> constfunc(true) static typename conditional<notypeof((subtrait::template value<typeA, typeB>(instanceof<typeA>(), instanceof<typeB>()))), novoid>::type (value)(sfinaeptr_t const, sfinaeptr_t const) noexcept;
@@ -1866,7 +1866,7 @@
                           template <typename, typename, typename> constfunc(true) static null (value)(...) noexcept;
                         };
 
-                        // ... --> subtrait::value<A, B, C>(...)
+                        // ... --> subtrait::value<A, B, C>(…)
                         template <class subtrait>
                         struct valueof<subtrait, 3u, 3u> final {
                           template <typename typeA, typename typeB, typename typeC> constfunc(true) static typename conditional<notypeof((subtrait::template value<typeA, typeB, typeC>(instanceof<typeA>(), instanceof<typeB>(), instanceof<typeC>()))), novoid>::type (value)(sfinaeptr_t const, sfinaeptr_t const) noexcept;
@@ -1885,14 +1885,14 @@
                   #endif
 
                 public:
-                  static bool        const value = (sizeof optraitinfo::template valueof<trait, optraitinfo::get::correctness, null, arity, baseA, baseB, baseC /* , ... */>(sfinaeptr) != sizeof(boolean_false));
-                  static std::size_t const size  = (sizeof optraitinfo::template valueof<trait, optraitinfo::get::correctness, null, arity, baseA, baseB, baseC /* , ... */>(sfinaeptr) /  sizeof(byte)) - (value + 1u);
+                  static bool        const value = (sizeof optraitinfo::template valueof<trait, optraitinfo::get::correctness, null, arity, baseA, baseB, baseC /* , … */>(sfinaeptr) != sizeof(boolean_false));
+                  static std::size_t const size  = (sizeof optraitinfo::template valueof<trait, optraitinfo::get::correctness, null, arity, baseA, baseB, baseC /* , … */>(sfinaeptr) /  sizeof(byte)) - (value + 1u);
 
                   /* ... */
                   typedef typename typeof::type type;
 
-                  template <typename base> struct like final { static bool const value = sizeof(boolean_true) == sizeof optraitinfo::template valueof<trait, optraitinfo::get::type_similarity, base, arity, baseA, baseB, baseC /* , ... */>(sfinaeptr); };
-                  template <typename base> struct same final { static bool const value = sizeof(boolean_true) == sizeof optraitinfo::template valueof<trait, optraitinfo::get::type_equality,   base, arity, baseA, baseB, baseC /* , ... */>(sfinaeptr); };
+                  template <typename base> struct like final { static bool const value = sizeof(boolean_true) == sizeof optraitinfo::template valueof<trait, optraitinfo::get::type_similarity, base, arity, baseA, baseB, baseC /* , … */>(sfinaeptr); };
+                  template <typename base> struct same final { static bool const value = sizeof(boolean_true) == sizeof optraitinfo::template valueof<trait, optraitinfo::get::type_equality,   base, arity, baseA, baseB, baseC /* , … */>(sfinaeptr); };
               };
           };
 
@@ -1922,7 +1922,7 @@
           // ... --> +T
           struct nonoverloaded final {
             private:
-              // ... ->> Explicitly deduce the exception-specification and/ or type of a proposed operation without the use of `decltype(...)` or compiler extensions like `typeof(...)`
+              // ... ->> Explicitly deduce the exception-specification and/ or type of a proposed operation without the use of `decltype(…)` or compiler extensions like `typeof(…)`
               #ifdef __cpp_variadic_templates // --> 200704L
                 template <operation, typename... bases>
                 struct exceptof final {
@@ -1967,7 +1967,7 @@
               #endif
 
             public:
-              // ... --> opinfo::nop, ...
+              // ... --> opinfo::nop, …
               #ifdef __cpp_variadic_templates // --> 200704L
                 template <operation operation, typename... bases>
                 struct operate final {
@@ -2392,8 +2392,8 @@
                 // bitwise_xor,                 //   x   ^ y
                 // boolean_and,                 //   x  && y
                 // boolean_or,                  //   x  || y
-                // call,                        //   x             (...)
-                // call_static,                 //   x::operator ()(...)
+                // call,                        //   x             (…)
+                // call_static,                 //   x::operator ()(…)
                 // cast,                        //  (x) y
                 // cast_const,                  // const_cast      <x>(y)
                 // cast_dynamic,                // dynamic_cast    <x>(y)
@@ -2402,7 +2402,7 @@
                 // comma,                       //   x   , y
                 // compare,                     //   x <=> y
                 // complement,                  //  ~x
-                // construct,                   //   x(...)
+                // construct,                   //   x(…)
                 // delete_array,                // delete[] x
                 // delete_object,               // delete   x
                 // dereference,                 //  *x
@@ -2412,27 +2412,27 @@
                 // equals,                      //   x  == y
                 // greater,                     //   x   > y
                 // greater_equals,              //   x  >= y
-                // initialize,                  //   x{...}
+                // initialize,                  //   x{…}
                 // lesser,                      //   x   < y
                 // lesser_equals,               //   x  <= y
                 // minus,                       //   x   - y
                 // modulo,                      //   x   % y
                 // multiply,                    //   x   * y
                 // negate,                      //  !x
-                // new_array,                   // new     x[y]{...}
-                // new_array_placement,         // new (x) y[z]{...}
-                // new_constructed,             // new     x   (...)
-                // new_constructed_placement,   // new (x) y   (...)
-                // new_initialized,             // new     x   {...}
-                // new_initialized_placement,   // new (x) y   {...}
+                // new_array,                   // new     x[y]{…}
+                // new_array_placement,         // new (x) y[z]{…}
+                // new_constructed,             // new     x   (…)
+                // new_constructed_placement,   // new (x) y   (…)
+                // new_initialized,             // new     x   {…}
+                // new_initialized_placement,   // new (x) y   {…}
                 // plus,                        //  +x
                 // post_decrement,              //   x--
                 // post_increment,              //   x++
                 // pre_decrement,               // --x
                 // pre_increment,               // ++x
                 // scope,                       //   x  :: y
-                // subscript,                   //   x             [...]
-                // subscript_static,            //   x::operator [](...)
+                // subscript,                   //   x             […]
+                // subscript_static,            //   x::operator [](…)
                 // subtract,                    //   x   - y
                 // trilean_conditional,         //   x   ? y : z
                 // unequals                     //   x  != y
@@ -2533,7 +2533,7 @@
             };
 
           public:
-            // TODO (Lapys) -> Finally back to everything else...
+            // TODO (Lapys) -> Finally back to everything else…
             // typename conditional<(width >= 1u), apply<trait>, _apply>::type::template valueof<, 0u>
         };
 
@@ -2787,7 +2787,7 @@
               #if CPP_VERSION >= 2011uL
                 std::is_class<subbase>::value or
               #elif CPP_COMPILER == CPP_CIRCLE_COMPILER or CPP_COMPILER == CPP_CLANG_COMPILER or CPP_COMPILER == CPP_GNUC_COMPILER or CPP_COMPILER == CPP_INTEL_COMPILER or CPP_COMPILER == CPP_LLVM_COMPILER or CPP_COMPILER == CPP_NVCC_COMPILER
-              # ifdef __has_builtin // --> `__is_class(...)` may still exist otherwise
+              # ifdef __has_builtin // --> `__is_class(…)` may still exist otherwise
               #   if __has_builtin(__is_class)
                     __is_class(subbase) or
               #   endif
@@ -2811,7 +2811,7 @@
                 std::is_final<subbase>::value and
               #elif CPP_VERSION >= 2011uL
               # if CPP_COMPILER == CPP_CIRCLE_COMPILER or CPP_COMPILER == CPP_CLANG_COMPILER or CPP_COMPILER == CPP_GNUC_COMPILER or CPP_COMPILER == CPP_INTEL_COMPILER or CPP_COMPILER == CPP_LLVM_COMPILER or CPP_COMPILER == CPP_NVCC_COMPILER
-              #   ifdef __has_builtin // --> `__is_final(...)` may still exist otherwise
+              #   ifdef __has_builtin // --> `__is_final(…)` may still exist otherwise
               #     if __has_builtin(__is_final)
                       __is_final(subbase) and
               #     endif
@@ -3246,7 +3246,7 @@
             #if CPP_VERSION >= 2011uL
               std::is_enum<base>::value or
             #elif CPP_COMPILER == CPP_CIRCLE_COMPILER or CPP_COMPILER == CPP_CLANG_COMPILER or CPP_COMPILER == CPP_GNUC_COMPILER or CPP_COMPILER == CPP_INTEL_COMPILER or CPP_COMPILER == CPP_LLVM_COMPILER or CPP_COMPILER == CPP_NVCC_COMPILER
-            # ifdef __has_builtin // --> `__is_enum(...)` may still exist otherwise
+            # ifdef __has_builtin // --> `__is_enum(…)` may still exist otherwise
             #   if __has_builtin(__is_enum)
                   __is_enum(base) or
             #   endif
@@ -3815,7 +3815,7 @@
     }
 
     namespace Traits {
-      // ... ->> For configurable function code paths (e.g., `Memory::allocate(...)`, ...) or generic data structures (e.g., `Array`, ...)
+      // ... ->> For configurable function code paths (e.g., `Memory::allocate(…)`, …) or generic data structures (e.g., `Array`, …)
       // enumint(uint_least16_t, control_parameter) {
       //   DYNAMIC     = 0x0000u,
       //   HEAP        = 0x0000u,
@@ -3868,7 +3868,7 @@
 
   // Current Goals
   // • Ensure `apply(…)` macro works as intended
-  // • Ensure `CPP_ENDIAN` works validly with `as` (does it need `std::memcpy(...)`?)
+  // • Ensure `CPP_ENDIAN` works validly with `as` (does it need `std::memcpy(…)`?)
   // • Provide declarations for traits used here (such as `opinfo::cast<>`)
   //
   // Design Goals
